@@ -1,0 +1,15 @@
+[submodule "lib/FreeRTOS"]
+	path = lib/FreeRTOS
+	url = https://github.com/brandonbraun653/FreeRTOS.git
+[submodule "lib/Aurora"]
+	path = lib/Aurora
+	url = https://github.com/brandonbraun653/Aurora.git
+[submodule "lib/Chimera"]
+	path = lib/Chimera
+	url = https://github.com/brandonbraun653/Chimera.git
+[submodule "lib/CommonTools"]
+	path = lib/CommonTools
+	url = https://github.com/brandonbraun653/CommonTools.git
+[submodule "lib/Conda"]
+	path = lib/Conda
+	url = https://github.com/brandonbraun653/Conda.git
