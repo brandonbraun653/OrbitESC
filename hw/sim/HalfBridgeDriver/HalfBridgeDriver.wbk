@@ -1,0 +1,13 @@
+1
+9
+.tran 10n 100u 0
+3
+1
+/MotorDrive
+V
+1
+/vHSDrive
+V
+1
+Net-(Q1-Pad3)
+V
