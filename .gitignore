@@ -1,0 +1,9 @@
+.VSCodeCounter
+build/**
+artifacts/**
+
+# Binaries for the simulator that are generated in the root directory
+*.bin
+
+# PyCharm project directory
+.idea/**
