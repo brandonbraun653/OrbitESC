@@ -27,17 +27,12 @@
             "${workspaceFolder}/lib/FreeRTOS/include",
             "${workspaceFolder}/lib/FreeRTOS/include/FreeRTOS",
             "${workspaceFolder}/lib/FreeRTOS/portable/GCC/ARM_CM4F",
-            "${workspaceFolder}/lib/Ripple/inc",
             "${workspaceFolder}/lib/Thor/**",
             "${workspaceFolder}/lib/Thor/config/freertos",
             "${workspaceFolder}/lib/Thor/include",
-            "${workspaceFolder}/lib/nanopb",
-            "${workspaceFolder}/lib/tinyusb/src",
-            "${workspaceFolder}/lib/VirtualDrone/src/VDrone/nanopb",
             "${workspaceFolder}/src/**",
             "${workspaceFolder}/src/config/thor",
-            "${workspaceFolder}/src/config/freertos",
-            "${workspaceFolder}/src/config/tinyusb"
+            "${workspaceFolder}/src/config/freertos"
         ],
         "thorIncludePaths_HLD": [
             "${workspaceFolder}/lib/Thor/hld",
@@ -58,24 +53,22 @@
             "${workspaceFolder}/lib/Thor/hld/usb",
             "${workspaceFolder}/lib/Thor/hld/watchdog"
         ],
-        "thorIncludePaths_LLD_F4": [
-            "${workspaceFolder}/lib/Thor/lld/stm32f4x/adc",
-            "${workspaceFolder}/lib/Thor/lld/stm32f4x/des",
-            "${workspaceFolder}/lib/Thor/lld/stm32f4x/dma",
-            "${workspaceFolder}/lib/Thor/lld/stm32f4x/exti",
-            "${workspaceFolder}/lib/Thor/lld/stm32f4x/flash",
-            "${workspaceFolder}/lib/Thor/lld/stm32f4x/gpio",
-            "${workspaceFolder}/lib/Thor/lld/stm32f4x/interrupt",
-            "${workspaceFolder}/lib/Thor/lld/stm32f4x/iwdg",
-            "${workspaceFolder}/lib/Thor/lld/stm32f4x/power",
-            "${workspaceFolder}/lib/Thor/lld/stm32f4x/rcc",
-            "${workspaceFolder}/lib/Thor/lld/stm32f4x/spi",
-            "${workspaceFolder}/lib/Thor/lld/stm32f4x/startup",
-            "${workspaceFolder}/lib/Thor/lld/stm32f4x/system",
-            "${workspaceFolder}/lib/Thor/lld/stm32f4x/timer",
-            "${workspaceFolder}/lib/Thor/lld/stm32f4x/uart",
-            "${workspaceFolder}/lib/Thor/lld/stm32f4x/usart",
-            "${workspaceFolder}/lib/Thor/lld/stm32f4x/wwdg"
+        "thorIncludePaths_LLD_L4": [
+            "${workspaceFolder}/lib/Thor/lld/stm32l4x/adc",
+            "${workspaceFolder}/lib/Thor/lld/stm32l4x/des",
+            "${workspaceFolder}/lib/Thor/lld/stm32l4x/exti",
+            "${workspaceFolder}/lib/Thor/lld/stm32l4x/flash",
+            "${workspaceFolder}/lib/Thor/lld/stm32l4x/gpio",
+            "${workspaceFolder}/lib/Thor/lld/stm32l4x/interrupt",
+            "${workspaceFolder}/lib/Thor/lld/stm32l4x/iwdg",
+            "${workspaceFolder}/lib/Thor/lld/stm32l4x/power",
+            "${workspaceFolder}/lib/Thor/lld/stm32l4x/rcc",
+            "${workspaceFolder}/lib/Thor/lld/stm32l4x/spi",
+            "${workspaceFolder}/lib/Thor/lld/stm32l4x/startup",
+            "${workspaceFolder}/lib/Thor/lld/stm32l4x/system",
+            "${workspaceFolder}/lib/Thor/lld/stm32l4x/timer",
+            "${workspaceFolder}/lib/Thor/lld/stm32l4x/usart",
+            "${workspaceFolder}/lib/Thor/lld/stm32l4x/wwdg"
         ],
         "defaultDefines": [
             "DEBUG",
@@ -107,13 +100,13 @@
             "includePath": [
                 "${defaultIncludePaths}",
                 "${thorIncludePaths_HLD}",
-                "${thorIncludePaths_LLD_F4}"
+                "${thorIncludePaths_LLD_L4}"
             ],
             "defines": [
                 "${defaultDefines}",
                 "${defaultEmbeddedDefines}",
-                "STM32F446xx",
-                "TARGET_STM32F4",
+                "STM32L432xx",
+                "TARGET_STM32L4",
                 "THOR_USER_CONFIG"
             ],
             "compilerPath": "${arm_none_eabi_path}",
