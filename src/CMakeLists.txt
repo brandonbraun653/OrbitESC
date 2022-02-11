@@ -3,6 +3,8 @@ include("${COMMON_TOOL_ROOT}/cmake/utility/embedded.cmake")
 # -----------------------------------------------------------------------------
 # Project Libraries
 # -----------------------------------------------------------------------------
+add_subdirectory(config/bsp)
+add_subdirectory(core)
 
 # -----------------------------------------------------------------------------
 # Project Libraries
@@ -57,6 +59,9 @@ target_link_libraries(OrbitESC PRIVATE
   thor_intf_inc
 
   # Project Libraries
+  lib_orbit_cfg_bsp
+  lib_orbit_tasks
+  lib_orbit_core
 
   # Submodule Libraries
   chimera_core_rel
