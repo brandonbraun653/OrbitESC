@@ -119,7 +119,8 @@
     "typeindex": "cpp",
     "cstdbool": "cpp",
     "dma": "cpp",
-    "event": "cpp"
+    "event": "cpp",
+    "can": "cpp"
   },
   "peacock.color": "#f9e64f",
   "cSpell.words": [

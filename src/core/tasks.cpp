@@ -16,6 +16,7 @@ Includes
 #include <Chimera/thread>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_idle.hpp>
+#include <src/core/tasks/tsk_hwm.hpp>
 
 
 namespace Orbit::Tasks
@@ -46,6 +47,27 @@ namespace Orbit::Tasks
     s_thread_id[ TASK_IDLE ] = tsk.start();
   }
 
+
+  static void init_hwm_task()
+  {
+    using namespace Chimera::Thread;
+
+    TaskConfig cfg;
+    Task       tsk;
+
+    cfg.arg        = nullptr;
+    cfg.function   = HWM::HWMThread;
+    cfg.priority   = HWM::PRIORITY;
+    cfg.stackWords = HWM::STACK;
+    cfg.type       = TaskInitType::DYNAMIC;
+    cfg.name       = HWM::NAME.data();
+
+    tsk.create( cfg );
+    s_thread_id[ TASK_HWM ] = tsk.start();
+
+  }
+
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
@@ -65,6 +87,7 @@ namespace Orbit::Tasks
     Task Initialization
     -------------------------------------------------------------------------*/
     init_idle_task();
+    init_hwm_task();
   }
 
 

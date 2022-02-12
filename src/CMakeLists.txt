@@ -59,6 +59,7 @@ target_link_libraries(OrbitESC PRIVATE
   thor_intf_inc
 
   # Project Libraries
+  lib_orbit_hw
   lib_orbit_cfg_bsp
   lib_orbit_tasks
   lib_orbit_core

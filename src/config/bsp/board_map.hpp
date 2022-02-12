@@ -39,6 +39,7 @@ namespace Orbit::IO
     static constexpr Chimera::GPIO::Port portButton = Chimera::GPIO::Port::PORTB;
   }    // namespace GPIO
 
+
   namespace Analog
   {
     static constexpr Chimera::GPIO::PinInit CommonAnalogCfg = { .alternate = Chimera::GPIO::Alternate::NONE,
@@ -83,7 +84,6 @@ namespace Orbit::IO
 
   namespace CAN
   {
-
     /*-----------------------------------------------------------------------------
     GPIO
     -----------------------------------------------------------------------------*/

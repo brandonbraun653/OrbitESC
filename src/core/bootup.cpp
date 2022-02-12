@@ -11,12 +11,18 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Chimera/adc>
 #include <Chimera/assert>
 #include <Chimera/gpio>
 #include <Chimera/serial>
 #include <etl/circular_buffer.h>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/bootup.hpp>
+#include <src/core/hw/orbit_adc.hpp>
+#include <src/core/hw/orbit_can.hpp>
+#include <src/core/hw/orbit_i2c.hpp>
+#include <src/core/hw/orbit_timer.hpp>
+#include <src/core/tasks.hpp>
 
 
 namespace Orbit::Boot
@@ -38,16 +44,69 @@ namespace Orbit::Boot
   static std::array<uint8_t, HWBufferSize>            sRXHWBuffer;
   static etl::circular_buffer<uint8_t, CircleBufSize> sRXCircularBuffer;
 
+
   /*---------------------------------------------------------------------------
   Static Functions
   ---------------------------------------------------------------------------*/
   static void power_up_adc()
   {
+    Chimera::GPIO::Driver_rPtr gpio;
+    Chimera::GPIO::PinInit pin_cfg;
+
+    /*-------------------------------------------------------------------------
+    Phase A GPIO Config
+    -------------------------------------------------------------------------*/
+    pin_cfg          = IO::Analog::CommonAnalogCfg;
+    pin_cfg.port     = IO::Analog::portPhaseA;
+    pin_cfg.pin      = IO::Analog::pinPhaseA;
+    pin_cfg.validity = true;
+
+    gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
+
+    /*-------------------------------------------------------------------------
+    Phase B GPIO Config
+    -------------------------------------------------------------------------*/
+    pin_cfg          = IO::Analog::CommonAnalogCfg;
+    pin_cfg.port     = IO::Analog::portPhaseB;
+    pin_cfg.pin      = IO::Analog::pinPhaseB;
+    pin_cfg.validity = true;
+
+    gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
+
+    /*-------------------------------------------------------------------------
+    Phase C GPIO Config
+    -------------------------------------------------------------------------*/
+    pin_cfg          = IO::Analog::CommonAnalogCfg;
+    pin_cfg.port     = IO::Analog::portPhaseC;
+    pin_cfg.pin      = IO::Analog::pinPhaseC;
+    pin_cfg.validity = true;
+
+    gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
+
+    /*-------------------------------------------------------------------------
+    Three Phase Center Tap GPIO Config
+    -------------------------------------------------------------------------*/
+    pin_cfg          = IO::Analog::CommonAnalogCfg;
+    pin_cfg.port     = IO::Analog::portCenterTap;
+    pin_cfg.pin      = IO::Analog::pinCenterTap;
+    pin_cfg.validity = true;
+
+    gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
+
+    /*-------------------------------------------------------------------------
+    Power up the ADC driver
+    -------------------------------------------------------------------------*/
+    //Orbit::ADC::powerUp();
   }
 
 
   static void power_up_can()
   {
+    Orbit::CAN::powerUp();
   }
 
 
@@ -97,11 +156,13 @@ namespace Orbit::Boot
 
   static void power_up_i2c()
   {
+    Orbit::I2C::powerUp();
   }
 
 
   static void power_up_timers()
   {
+    Orbit::TIMER::powerUp();
   }
 
 
@@ -152,6 +213,9 @@ namespace Orbit::Boot
 
   void startTasks()
   {
+    using namespace Chimera::Thread;
+
+    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_HWM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
   }
 
 }    // namespace Orbit::Boot
