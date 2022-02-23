@@ -14,9 +14,9 @@ gen_intf_lib_variants(
     embedded_core_libs
   LIBRARIES
     thor_cmn_cm4
-    thor_hld_core
-    thor_lld_intf
-    thor_lld_stm32l4
+    thor_hld_core_dbg
+    thor_lld_intf_dbg
+    thor_lld_stm32l4_dbg
     thor_cfg_freertos
   EXPORT_DIR
     ${PROJECT_BINARY_DIR}/OrbitESC
@@ -75,7 +75,7 @@ target_link_libraries(OrbitESC PRIVATE
 
 # Hardware Driver Model
 if(${DEVICE_TARGET} MATCHES "^stm32l4")
-  target_link_libraries(OrbitESC PRIVATE embedded_core_libs_rel)
+  target_link_libraries(OrbitESC PRIVATE embedded_core_libs)
 elseif(${DEVICE_TARGET} MATCHES "^sim")
   target_link_libraries(OrbitESC PRIVATE chimera_sim_core)
 else()

@@ -7,3 +7,4 @@ artifacts/**
 
 # PyCharm project directory
 .idea/**
+.conda

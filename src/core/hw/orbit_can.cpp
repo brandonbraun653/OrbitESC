@@ -11,17 +11,87 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Chimera/can>
+#include <Chimera/common>
+#include <Chimera/gpio>
 #include <src/core/hw/orbit_can.hpp>
+#include <src/config/bsp/board_map.hpp>
 
 
 namespace Orbit::CAN
 {
   /*---------------------------------------------------------------------------
+  Constants
+  ---------------------------------------------------------------------------*/
+  static constexpr size_t CAN_FRAME_BUF_SIZE = 8;
+
+
+  /*---------------------------------------------------------------------------
+  Static Data
+  ---------------------------------------------------------------------------*/
+  static Chimera::CAN::BasicFrame s_tx_frame_buffer[ CAN_FRAME_BUF_SIZE ];
+  static Chimera::CAN::BasicFrame s_rx_frame_buffer[ CAN_FRAME_BUF_SIZE ];
+
+
+  /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   void powerUp()
   {
+    Chimera::GPIO::Driver_rPtr pin = nullptr;
+    Chimera::CAN::Driver_rPtr can = nullptr;
     Chimera::CAN::DriverConfig cfg;
+
+    /*-------------------------------------------------------------------------
+    TX GPIO
+    -------------------------------------------------------------------------*/
+    cfg.TXInit.clear();
+    cfg.TXInit.threaded  = true;
+    cfg.TXInit.validity  = true;
+    cfg.TXInit.alternate = Chimera::GPIO::Alternate::CAN1_TX;
+    cfg.TXInit.drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL;
+    cfg.TXInit.pin       = IO::CAN::pinTX;
+    cfg.TXInit.port      = IO::CAN::portTX;
+    cfg.TXInit.pull      = Chimera::GPIO::Pull::PULL_UP;
+
+    pin = Chimera::GPIO::getDriver( cfg.TXInit.port, cfg.TXInit.pin );
+    RT_HARD_ASSERT( pin != nullptr );
+    RT_HARD_ASSERT( Chimera::Status::OK == pin->init( cfg.TXInit ) );
+
+    /*-------------------------------------------------------------------------
+    RX GPIO
+    -------------------------------------------------------------------------*/
+    cfg.RXInit.clear();
+    cfg.RXInit.threaded  = true;
+    cfg.RXInit.validity  = true;
+    cfg.RXInit.alternate = Chimera::GPIO::Alternate::CAN1_RX;
+    cfg.RXInit.drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL;
+    cfg.RXInit.pin       = IO::CAN::pinRX;
+    cfg.RXInit.port      = IO::CAN::portRX;
+    cfg.RXInit.pull      = Chimera::GPIO::Pull::PULL_UP;
+
+    pin = Chimera::GPIO::getDriver( cfg.RXInit.port, cfg.RXInit.pin );
+    RT_HARD_ASSERT( pin != nullptr );
+    RT_HARD_ASSERT( Chimera::Status::OK == pin->init( cfg.RXInit ) );
+
+    /*-------------------------------------------------------------------------
+    Device Initialization
+    -------------------------------------------------------------------------*/
+    cfg.validity = true;
+    cfg.HWInit.channel = Chimera::CAN::Channel::CAN0;
+    cfg.HWInit.txBuffer = s_tx_frame_buffer;
+    cfg.HWInit.txElements = ARRAY_COUNT( s_tx_frame_buffer );
+    cfg.HWInit.rxBuffer = s_rx_frame_buffer;
+    cfg.HWInit.rxElements = ARRAY_COUNT( s_rx_frame_buffer );
+    cfg.HWInit.samplePointPercent = 0.875f;
+    cfg.HWInit.baudRate = 100000;
+    cfg.HWInit.timeQuanta = 16;
+    cfg.HWInit.resyncJumpWidth = 1;
+    cfg.HWInit.maxBaudError = 0.05;
+
+    can = Chimera::CAN::getDriver( cfg.HWInit.channel );
+    RT_HARD_ASSERT( can != nullptr );
+    RT_HARD_ASSERT( Chimera::Status::OK == can->open( cfg ) );
   }
 
-}  // namespace Orbit::CAN
+}    // namespace Orbit::CAN
