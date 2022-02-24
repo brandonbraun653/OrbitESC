@@ -25,6 +25,7 @@ namespace Orbit::CAN
   ---------------------------------------------------------------------------*/
   static constexpr size_t CAN_FRAME_BUF_SIZE = 8;
 
+  static constexpr Chimera::CAN::Filter s_filter_list[] = { { .id = 0x45, .mask = 0xFF, .extended = false } };
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -39,7 +40,7 @@ namespace Orbit::CAN
   void powerUp()
   {
     Chimera::GPIO::Driver_rPtr pin = nullptr;
-    Chimera::CAN::Driver_rPtr can = nullptr;
+    Chimera::CAN::Driver_rPtr  can = nullptr;
     Chimera::CAN::DriverConfig cfg;
 
     /*-------------------------------------------------------------------------
@@ -77,21 +78,22 @@ namespace Orbit::CAN
     /*-------------------------------------------------------------------------
     Device Initialization
     -------------------------------------------------------------------------*/
-    cfg.validity = true;
-    cfg.HWInit.channel = Chimera::CAN::Channel::CAN0;
-    cfg.HWInit.txBuffer = s_tx_frame_buffer;
-    cfg.HWInit.txElements = ARRAY_COUNT( s_tx_frame_buffer );
-    cfg.HWInit.rxBuffer = s_rx_frame_buffer;
-    cfg.HWInit.rxElements = ARRAY_COUNT( s_rx_frame_buffer );
+    cfg.validity                  = true;
+    cfg.HWInit.channel            = Chimera::CAN::Channel::CAN0;
+    cfg.HWInit.txBuffer           = s_tx_frame_buffer;
+    cfg.HWInit.txElements         = ARRAY_COUNT( s_tx_frame_buffer );
+    cfg.HWInit.rxBuffer           = s_rx_frame_buffer;
+    cfg.HWInit.rxElements         = ARRAY_COUNT( s_rx_frame_buffer );
     cfg.HWInit.samplePointPercent = 0.875f;
-    cfg.HWInit.baudRate = 100000;
-    cfg.HWInit.timeQuanta = 16;
-    cfg.HWInit.resyncJumpWidth = 1;
-    cfg.HWInit.maxBaudError = 0.05;
+    cfg.HWInit.baudRate           = 100000;
+    cfg.HWInit.timeQuanta         = 16;
+    cfg.HWInit.resyncJumpWidth    = 1;
+    cfg.HWInit.maxBaudError       = 0.05;
 
     can = Chimera::CAN::getDriver( cfg.HWInit.channel );
     RT_HARD_ASSERT( can != nullptr );
     RT_HARD_ASSERT( Chimera::Status::OK == can->open( cfg ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == can->filter( s_filter_list, ARRAY_COUNT( s_filter_list ) ) );
   }
 
 }    // namespace Orbit::CAN
