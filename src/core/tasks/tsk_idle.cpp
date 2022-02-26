@@ -11,6 +11,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Aurora/logging>
 #include <Chimera/assert>
 #include <Chimera/common>
 #include <Chimera/gpio>
@@ -35,6 +36,7 @@ namespace Orbit::Tasks::Idle
     /*-------------------------------------------------------------------------
     Get the status/heartbeat pin and flash a quick boot up sequence
     -------------------------------------------------------------------------*/
+    LOG_INFO( "Powering up OrbitESC\r\n" );
     auto pin = Chimera::GPIO::getDriver( IO::GPIO::portHeartbeat, IO::GPIO::pinHeartbeat );
     for ( auto x = 0; x < 8; x++ )
     {

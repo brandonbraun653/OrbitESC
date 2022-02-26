@@ -35,6 +35,53 @@ namespace Orbit::ADC
   ---------------------------------------------------------------------------*/
   void powerUp()
   {
+    Chimera::GPIO::Driver_rPtr gpio;
+    Chimera::GPIO::PinInit pin_cfg;
+
+    /*-------------------------------------------------------------------------
+    Phase A GPIO Config
+    -------------------------------------------------------------------------*/
+    pin_cfg          = IO::Analog::CommonAnalogCfg;
+    pin_cfg.port     = IO::Analog::portPhaseA;
+    pin_cfg.pin      = IO::Analog::pinPhaseA;
+    pin_cfg.validity = true;
+
+    gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
+
+    /*-------------------------------------------------------------------------
+    Phase B GPIO Config
+    -------------------------------------------------------------------------*/
+    pin_cfg          = IO::Analog::CommonAnalogCfg;
+    pin_cfg.port     = IO::Analog::portPhaseB;
+    pin_cfg.pin      = IO::Analog::pinPhaseB;
+    pin_cfg.validity = true;
+
+    gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
+
+    /*-------------------------------------------------------------------------
+    Phase C GPIO Config
+    -------------------------------------------------------------------------*/
+    pin_cfg          = IO::Analog::CommonAnalogCfg;
+    pin_cfg.port     = IO::Analog::portPhaseC;
+    pin_cfg.pin      = IO::Analog::pinPhaseC;
+    pin_cfg.validity = true;
+
+    gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
+
+    /*-------------------------------------------------------------------------
+    Three Phase Center Tap GPIO Config
+    -------------------------------------------------------------------------*/
+    pin_cfg          = IO::Analog::CommonAnalogCfg;
+    pin_cfg.port     = IO::Analog::portCenterTap;
+    pin_cfg.pin      = IO::Analog::pinCenterTap;
+    pin_cfg.validity = true;
+
+    gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
+
     /*-------------------------------------------------------------------------
     Configure the ADC driver
     -------------------------------------------------------------------------*/

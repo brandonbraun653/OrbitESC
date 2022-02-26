@@ -6,8 +6,10 @@ gen_static_lib_variants(
   SOURCES
     orbit_adc.cpp
     orbit_can.cpp
+    orbit_gpio.cpp
     orbit_i2c.cpp
     orbit_timer.cpp
+    orbit_usart.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc

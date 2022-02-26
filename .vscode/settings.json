@@ -197,5 +197,5 @@
     "statusBarItem.remoteBackground": "#f9e64f",
     "statusBarItem.remoteForeground": "#15202b"
   },
-  "cortex-debug.variableUseNaturalFormat": true
+  "cortex-debug.variableUseNaturalFormat": false
 }
