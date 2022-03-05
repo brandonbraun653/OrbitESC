@@ -14,6 +14,8 @@ Includes
 #include <Chimera/thread>
 #include <Chimera/can>
 #include <src/core/tasks.hpp>
+#include <src/core/tasks/tsk_hwm.hpp>
+#include <src/core/runtime/can_runtime.hpp>
 
 
 namespace Orbit::Tasks::HWM
@@ -29,27 +31,26 @@ namespace Orbit::Tasks::HWM
     waitInit();
 
     /*-------------------------------------------------------------------------
-    Do something?
+    Initialize the HWM drivers
     -------------------------------------------------------------------------*/
-    auto can = Chimera::CAN::getDriver( Chimera::CAN::Channel::CAN0 );
-    RT_HARD_ASSERT( can );
+    Orbit::CAN::initRuntime();
 
-    Chimera::CAN::BasicFrame msg;
-    msg.clear();
-    msg.id         = 0x33;
-    msg.idMode     = Chimera::CAN::IdType::STANDARD;
-    msg.frameType  = Chimera::CAN::FrameType::DATA;
-    msg.dataLength = 5;
-    msg.data[ 0 ]  = 0x44;
-    msg.data[ 1 ]  = 0x55;
-    msg.data[ 2 ]  = 0x66;
-    msg.data[ 3 ]  = 0x77;
-    msg.data[ 4 ]  = 0x88;
-
+    /*-------------------------------------------------------------------------
+    Run the HWM thread
+    -------------------------------------------------------------------------*/
+    size_t wake_up_tick = Chimera::millis();
     while( 1 )
     {
-      Chimera::delayMilliseconds( 500 );
-      can->send( msg );
+      /*---------------------------------------------------------------------
+      Process hardware drivers
+      ---------------------------------------------------------------------*/
+      Orbit::CAN::processCANBus();
+
+      /*---------------------------------------------------------------------
+      Pseudo attempt to run this task periodically
+      ---------------------------------------------------------------------*/
+      Chimera::delayUntil( wake_up_tick + PERIOD_MS );
+      wake_up_tick = Chimera::millis();
     }
   }
 }  // namespace Orbit::Tasks::HWM

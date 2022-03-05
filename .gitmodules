@@ -16,3 +16,6 @@
 [submodule "lib/Thor"]
 	path = lib/Thor
 	url = https://github.com/brandonbraun653/Thor.git
+[submodule "lib/PyUtils"]
+	path = lib/PyUtils
+	url = https://github.com/brandonbraun653/PyUtils

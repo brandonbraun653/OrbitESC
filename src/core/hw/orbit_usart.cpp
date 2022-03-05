@@ -92,6 +92,12 @@ namespace Orbit::USART
     }
 
     Aurora::Logging::setRootSink( s_serial_handle );
+
+    /*-------------------------------------------------------------------------
+    Clear the terminal screen
+    -------------------------------------------------------------------------*/
+    serial->write( Aurora::Logging::Terminal::CmdClearScreen.data(), Aurora::Logging::Terminal::CmdClearScreen.size() );
+    serial->await( Chimera::Event::Trigger::TRIGGER_WRITE_COMPLETE, Chimera::Thread::TIMEOUT_BLOCK );
   }
 
 }    // namespace Orbit::USART

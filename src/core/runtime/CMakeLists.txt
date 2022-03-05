@@ -1,16 +1,10 @@
 include("${COMMON_TOOL_ROOT}/cmake/utility/embedded.cmake")
 
-add_subdirectory(com)
-add_subdirectory(hw)
-add_subdirectory(runtime)
-add_subdirectory(tasks)
-
 gen_static_lib_variants(
   TARGET
-    lib_orbit_core
+    lib_orbit_runtime
   SOURCES
-    bootup.cpp
-    tasks.cpp
+    can_runtime.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc

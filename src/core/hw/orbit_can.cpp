@@ -16,6 +16,7 @@ Includes
 #include <Chimera/gpio>
 #include <src/core/hw/orbit_can.hpp>
 #include <src/config/bsp/board_map.hpp>
+#include <src/core/com/can_com.hpp>
 
 
 namespace Orbit::CAN
@@ -25,7 +26,9 @@ namespace Orbit::CAN
   ---------------------------------------------------------------------------*/
   static constexpr size_t CAN_FRAME_BUF_SIZE = 8;
 
-  static constexpr Chimera::CAN::Filter s_filter_list[] = { { .id = 0x45, .mask = 0xFF, .extended = false } };
+  static constexpr Chimera::CAN::Filter s_filter_list[] = {
+    { .id = 0xFFFF, .mask = 0, .extended = false }  // Accept everything
+  };
 
   /*---------------------------------------------------------------------------
   Static Data

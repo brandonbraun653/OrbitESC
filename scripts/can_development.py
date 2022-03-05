@@ -1,13 +1,9 @@
-import can
+
+from pyorbit.esc import OrbitESC
+from pyorbit.messages import NodeID
 from loguru import logger
 
-# Test and see if the embedded code can print this out over the debug port
-
 if __name__ == "__main__":
-    bus = can.interface.Bus(bustype='socketcan', channel='can0', bitrate=100000)
-    tx_msg = can.Message(arbitration_id=0x45, is_extended_id=False, data=[1, 2, 3, 4, 5])
-
-    logger.info("Sending data")
-    bus.send(msg=tx_msg)
-    rx_msg = bus.recv()
-    print(rx_msg)
+    esc = OrbitESC(can_device="can0", bit_rate=100000)
+    esc.connect(node_id=NodeID.NODE_0)
+    esc.shutdown()
