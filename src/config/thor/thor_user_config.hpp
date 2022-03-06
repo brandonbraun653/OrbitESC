@@ -17,7 +17,7 @@ Peripheral Support
 -------------------------------------------------*/
 #define DC_NEED_ADC   1
 #define DC_NEED_CAN   1
-#define DC_NEED_DMA   0
+#define DC_NEED_DMA   1
 #define DC_NEED_EXTI  1
 #define DC_NEED_GPIO  1
 #define DC_NEED_I2C   0
