@@ -4,6 +4,7 @@ gen_static_lib_variants(
   TARGET
     lib_orbit_runtime
   SOURCES
+    adc_runtime.cpp
     can_runtime.cpp
   PRV_LIBRARIES
     aurora_intf_inc

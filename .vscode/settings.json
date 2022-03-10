@@ -120,7 +120,8 @@
     "cstdbool": "cpp",
     "dma": "cpp",
     "event": "cpp",
-    "can": "cpp"
+    "can": "cpp",
+    "callback": "cpp"
   },
   "peacock.color": "#f9e64f",
   "cSpell.words": [

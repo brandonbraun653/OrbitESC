@@ -35,7 +35,7 @@ namespace Orbit::Boot
   ---------------------------------------------------------------------------*/
   void powerUpSystemDrivers()
   {
-    //Orbit::ADC::powerUp();
+    Orbit::ADC::powerUp();
     Orbit::CAN::powerUp();
     Orbit::GPIO::powerUp();
     Orbit::I2C::powerUp();

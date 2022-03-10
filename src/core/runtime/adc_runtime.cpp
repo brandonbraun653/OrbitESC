@@ -1,9 +1,9 @@
 /******************************************************************************
  *  File Name:
- *    tsk_hwm.cpp
+ *    adc_runtime.cpp
  *
  *  Description:
- *    Hardware manager task
+ *    Runtime for processing the ADC
  *
  *  2022 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
@@ -11,49 +11,51 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <Chimera/thread>
-#include <Chimera/can>
-#include <src/core/tasks.hpp>
-#include <src/core/tasks/tsk_hwm.hpp>
+#include <Aurora/logging>
+#include <Chimera/adc>
 #include <src/core/runtime/adc_runtime.hpp>
-#include <src/core/runtime/can_runtime.hpp>
+#include <src/config/bsp/board_map.hpp>
 
-
-namespace Orbit::Tasks::HWM
+namespace Orbit::ADC
 {
+  /*---------------------------------------------------------------------------
+  Static Data
+  ---------------------------------------------------------------------------*/
+  static Chimera::ADC::Driver_rPtr s_adc_driver;
+
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
-  void HWMThread( void *arg )
+  void initRuntime()
   {
     /*-------------------------------------------------------------------------
-    Wait for the start signal
+    Grab a reference to the ADC driver
     -------------------------------------------------------------------------*/
-    waitInit();
+    s_adc_driver = Chimera::ADC::getDriver( Chimera::ADC::Peripheral::ADC_0 );
+    RT_HARD_ASSERT( s_adc_driver );
+  }
 
-    /*-------------------------------------------------------------------------
-    Initialize the HWM drivers
-    -------------------------------------------------------------------------*/
-    Orbit::CAN::initRuntime();
-    Orbit::ADC::initRuntime();
 
+  void processADC()
+  {
     /*-------------------------------------------------------------------------
-    Run the HWM thread
+    Input Protections
     -------------------------------------------------------------------------*/
-    size_t wake_up_tick = Chimera::millis();
-    while( 1 )
+    if( !s_adc_driver )
     {
-      /*---------------------------------------------------------------------
-      Process hardware drivers
-      ---------------------------------------------------------------------*/
-      Orbit::CAN::processCANBus();
-      Orbit::ADC::processADC();
+      return;
+    }
 
-      /*---------------------------------------------------------------------
-      Pseudo attempt to run this task periodically
-      ---------------------------------------------------------------------*/
-      Chimera::delayUntil( wake_up_tick + PERIOD_MS );
-      wake_up_tick = Chimera::millis();
+    /*-------------------------------------------------------------------------
+    Pull the latest data off the bus
+    -------------------------------------------------------------------------*/
+    Chimera::ADC::Sample raw_sample;
+
+    if( s_adc_driver->nextSample( IO::Analog::adcPhaseA, raw_sample ) )
+    {
+      LOG_INFO( "Phase A: %d\r\n", raw_sample.counts );
     }
   }
-}  // namespace Orbit::Tasks::HWM
+
+}  // namespace Orbit::ADC

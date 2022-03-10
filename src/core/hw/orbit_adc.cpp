@@ -20,15 +20,7 @@ namespace Orbit::ADC
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static Chimera::ADC::SampleList s_adc_samples;
   static Chimera::ADC::ChannelList s_adc_channels;
-
-
-  /*---------------------------------------------------------------------------
-  Static Functions
-  ---------------------------------------------------------------------------*/
-  static void adc_isr_handler( const Chimera::ADC::InterruptDetail &detail );
-
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -91,20 +83,17 @@ namespace Orbit::ADC
 
     /* Core configuration */
     adc_cfg.clear();
-    adc_cfg.bmISREnable         = Chimera::ADC::Interrupt::EOC_SEQUENCE | Chimera::ADC::Interrupt::EOC_SINGLE | Chimera::ADC::Interrupt::OVERRUN;
+    adc_cfg.bmISREnable         = Chimera::ADC::Interrupt::NONE;
     adc_cfg.clockPrescale       = Chimera::ADC::Prescaler::DIV_2;
     adc_cfg.clockSource         = Chimera::Clock::Bus::SYSCLK;
     adc_cfg.defaultSampleCycles = 24;
     adc_cfg.oversampleRate      = Chimera::ADC::Oversampler::OS_NONE;
-    adc_cfg.periph              = Chimera::ADC::Peripheral::ADC_1;
+    adc_cfg.periph              = Chimera::ADC::Peripheral::ADC_0;
     adc_cfg.resolution          = Chimera::ADC::Resolution::BIT_12;
-    adc_cfg.transferMode        = Chimera::ADC::TransferMode::INTERRUPT;
+    adc_cfg.transferMode        = Chimera::ADC::TransferMode::DMA;
 
     adc = Chimera::ADC::getDriver( adc_cfg.periph );
     RT_HARD_ASSERT( Chimera::Status::OK == adc->open( adc_cfg ) );
-
-    /* Attach project side interrupt handler */
-    adc->onInterrupt( adc_cfg.bmISREnable, Chimera::ADC::ISRCallback::create<adc_isr_handler>() );
 
     /* Configure the sequence conversion */
     s_adc_channels[ 0 ] = IO::Analog::adcPhaseA;
@@ -115,24 +104,14 @@ namespace Orbit::ADC
     seq.clear();
     seq.channels    = &s_adc_channels;
     seq.numChannels = 4;
-    seq.mode        = Chimera::ADC::SamplingMode::ONE_SHOT;
+    seq.mode        = Chimera::ADC::SamplingMode::CONTINUOUS;
 
     RT_HARD_ASSERT( Chimera::Status::OK == adc->configSequence( seq ) );
+
+    /*-------------------------------------------------------------------------
+    Kick off the DMA based sampling of the pins
+    -------------------------------------------------------------------------*/
+    adc->startSequence();
   }
 
-  /*---------------------------------------------------------------------------
-  Static Functions
-  ---------------------------------------------------------------------------*/
-  /**
-   * @brief Processes sampled ADC data
-   *
-   * This function is registered as a callback with the ADC driver's userspace
-   * interrupt handler, allowing normal multi-tasking operations to be used
-   * safely.
-   *
-   * @param detail    Details about the interrupt event
-   */
-  static void adc_isr_handler( const Chimera::ADC::InterruptDetail &detail )
-  {
-  }
 }  // namespace Orbit::ADC
