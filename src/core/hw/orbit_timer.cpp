@@ -11,6 +11,11 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Aurora/logging>
+#include <Chimera/common>
+#include <Chimera/gpio>
+#include <Chimera/timer>
+#include <src/config/bsp/board_map.hpp>
 #include <src/core/hw/orbit_timer.hpp>
 
 
@@ -21,7 +26,25 @@ namespace Orbit::TIMER
   ---------------------------------------------------------------------------*/
   void powerUp()
   {
+    // NOT PRODUCTION CODE
+    using namespace Chimera::Timer;
 
+    Chimera::Timer::PWM::Driver *pwm =
+        Chimera::Timer::getDriver<Chimera::Timer::PWM::Driver>( Instance::TIMER16 );
+    RT_HARD_ASSERT( pwm );
+
+    Chimera::Timer::PWM::DriverConfig cfg;
+    cfg.clear();
+    cfg.allowPeriphReconfigure = true;
+    cfg.polarity               = Chimera::Timer::PWM::OutputPolarity::ACTIVE_HIGH;
+    cfg.safeIOLevel            = Chimera::GPIO::State::HIGH;
+    cfg.peripheral             = Instance::TIMER16;
+    cfg.outputChannel          = Channel::CHANNEL_1;
+    cfg.dutyCycle              = 50.0f;
+    cfg.frequency              = 10000.0f;
+
+    auto cfg_result = pwm->init( cfg );
+    pwm->enableOutput();
   }
 
 }  // namespace Orbit::TIMER

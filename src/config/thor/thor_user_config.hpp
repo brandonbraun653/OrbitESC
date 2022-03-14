@@ -12,9 +12,9 @@
 #ifndef DC_THOR_PERIPHERAL_CONFIGURATION_HPP
 #define DC_THOR_PERIPHERAL_CONFIGURATION_HPP
 
-/*-------------------------------------------------
+/*-----------------------------------------------------------------------------
 Peripheral Support
--------------------------------------------------*/
+-----------------------------------------------------------------------------*/
 #define DC_NEED_ADC   1
 #define DC_NEED_CAN   1
 #define DC_NEED_DMA   1
@@ -22,15 +22,13 @@ Peripheral Support
 #define DC_NEED_GPIO  1
 #define DC_NEED_I2C   0
 #define DC_NEED_INT   1
-#define DC_NEED_SPI   0
-#define DC_NEED_UART  0
+#define DC_NEED_TIMER 1
 #define DC_NEED_USART 1
-#define DC_NEED_USB   0
 #define DC_NEED_WDG   1
 
-/*----------------------------------------------
-High Level Driver Support
-----------------------------------------------*/
+/*-----------------------------------------------------------------------------
+Configure High/Low level driver pairings
+-----------------------------------------------------------------------------*/
 #if DC_NEED_ADC
 #define THOR_HLD_ADC
 #define THOR_LLD_ADC
@@ -66,25 +64,14 @@ High Level Driver Support
 #define THOR_LLD_INT
 #endif
 
-#if DC_NEED_SPI
-#define THOR_HLD_SPI
-#define THOR_LLD_SPI
-#define THOR_USE_SPI_1
-#endif
-
-#if DC_NEED_UART
-#define THOR_HLD_UART
-#define THOR_LLD_UART
+#if DC_NEED_TIMER
+#define THOR_HLD_TIMER
+#define THOR_LLD_TIMER
 #endif
 
 #if DC_NEED_USART
 #define THOR_HLD_USART
 #define THOR_LLD_USART
-#endif
-
-#if DC_NEED_USB
-#define THOR_HLD_USB
-#define THOR_LLD_USB
 #endif
 
 #if DC_NEED_WDG
@@ -102,9 +89,9 @@ High Level Driver Support
 #define THOR_HLD_SYSTEM
 #endif
 
-/*----------------------------------------------
-Low Level Driver Support
-----------------------------------------------*/
+/*-----------------------------------------------------------------------------
+Explicit Low Level Driver Support
+-----------------------------------------------------------------------------*/
 #ifndef THOR_LLD_DES
 #define THOR_LLD_DES
 #endif

@@ -13,11 +13,54 @@ gen_intf_lib_variants(
   TARGET
     embedded_core_libs
   LIBRARIES
-    thor_cmn_cm4
-    thor_hld_core_dbg
-    thor_lld_intf_dbg
-    thor_lld_stm32l4_dbg
-    thor_cfg_freertos
+    thor_cmn_cm4_rel
+    thor_hld_adc_rel
+    thor_hld_can_rel
+    thor_hld_clock_rel
+    thor_hld_dma_rel
+    thor_hld_exti_rel
+    thor_hld_gpio_rel
+    thor_hld_i2c_rel
+    thor_hld_interrupt_rel
+    thor_hld_spi_rel
+    thor_hld_system_rel
+    thor_hld_timer_dbg
+    thor_hld_uart_rel
+    thor_hld_usart_rel
+    thor_hld_usb_rel
+    thor_hld_watchdog_rel
+    thor_lld_intf_adc_rel
+    thor_lld_intf_can_rel
+    thor_lld_intf_dma_rel
+    thor_lld_intf_exti_rel
+    thor_lld_intf_gpio_rel
+    thor_lld_intf_i2c_rel
+    thor_lld_intf_interrupt_rel
+    thor_lld_intf_rcc_rel
+    thor_lld_intf_spi_rel
+    thor_lld_intf_sys_rel
+    thor_lld_intf_timer_dbg
+    thor_lld_intf_usart_rel
+    thor_lld_intf_usb_rel
+    thor_lld_intf_watchdog_rel
+    thor_lld_stm32l4_adc_rel
+    thor_lld_stm32l4_can_rel
+    thor_lld_stm32l4_crs_rel
+    thor_lld_stm32l4_des_rel
+    thor_lld_stm32l4_dma_rel
+    thor_lld_stm32l4_exti_rel
+    thor_lld_stm32l4_flash_rel
+    thor_lld_stm32l4_gpio_rel
+    thor_lld_stm32l4_interrupt_rel
+    thor_lld_stm32l4_iwdg_rel
+    thor_lld_stm32l4_power_rel
+    thor_lld_stm32l4_rcc_rel
+    thor_lld_stm32l4_spi_rel
+    thor_lld_stm32l4_startup_rel
+    thor_lld_stm32l4_system_rel
+    thor_lld_stm32l4_usart_rel
+    thor_lld_stm32l4_wwdg_rel
+    thor_cfg_freertos_rel
   EXPORT_DIR
     ${PROJECT_BINARY_DIR}/OrbitESC
 )
@@ -68,7 +111,7 @@ target_link_libraries(OrbitESC PRIVATE
 
   # Submodule Libraries
   chimera_core_rel
-  aurora_libs_dbg
+  aurora_libs_rel
 
   # Target Properties
   prj_device_target

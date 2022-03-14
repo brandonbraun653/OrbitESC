@@ -86,7 +86,7 @@ namespace Orbit::ADC
     adc_cfg.bmISREnable         = Chimera::ADC::Interrupt::NONE;
     adc_cfg.clockPrescale       = Chimera::ADC::Prescaler::DIV_2;
     adc_cfg.clockSource         = Chimera::Clock::Bus::SYSCLK;
-    adc_cfg.defaultSampleCycles = 24;
+    adc_cfg.defaultSampleCycles = 230;
     adc_cfg.oversampleRate      = Chimera::ADC::Oversampler::OS_NONE;
     adc_cfg.periph              = Chimera::ADC::Peripheral::ADC_0;
     adc_cfg.resolution          = Chimera::ADC::Resolution::BIT_12;
