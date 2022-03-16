@@ -11,7 +11,10 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Chimera/gpio>
+#include <Chimera/i2c>
 #include <src/core/hw/orbit_i2c.hpp>
+#include <src/config/bsp/board_map.hpp>
 
 
 namespace Orbit::I2C
@@ -21,7 +24,37 @@ namespace Orbit::I2C
   ---------------------------------------------------------------------------*/
   void powerUp()
   {
+    /*-------------------------------------------------------------------------
+    Build up the config
+    -------------------------------------------------------------------------*/
     Chimera::I2C::DriverConfig cfg;
+    cfg.clear();
+    cfg.validity         = true;
+    cfg.HWInit.channel   = IO::I2C::channel;
+    cfg.HWInit.frequency = IO::I2C::frequency;
+
+    cfg.SCLInit.clear();
+    cfg.SCLInit.alternate = Chimera::GPIO::Alternate::I2C1_SCL;
+    cfg.SCLInit.drive     = Chimera::GPIO::Drive::ALTERNATE_OPEN_DRAIN;
+    cfg.SCLInit.pin       = IO::I2C::sclPin;
+    cfg.SCLInit.port      = IO::I2C::sclPort;
+    cfg.SCLInit.validity  = true;
+
+    cfg.SDAInit.clear();
+    cfg.SDAInit.alternate = Chimera::GPIO::Alternate::I2C1_SCL;
+    cfg.SDAInit.drive     = Chimera::GPIO::Drive::ALTERNATE_OPEN_DRAIN;
+    cfg.SDAInit.pin       = IO::I2C::sdaPin;
+    cfg.SDAInit.port      = IO::I2C::sdaPort;
+    cfg.SDAInit.validity  = true;
+
+    /*-------------------------------------------------------------------------
+    Power on the hardware peripheral
+    -------------------------------------------------------------------------*/
+    auto i2c = Chimera::I2C::getDriver( IO::I2C::channel );
+    RT_HARD_ASSERT( i2c );
+    RT_HARD_ASSERT( Chimera::Status::OK == i2c->open( cfg ) );
+
+    
   }
 
 }  // namespace Orbit::I2C

@@ -20,7 +20,7 @@ Peripheral Support
 #define DC_NEED_DMA   1
 #define DC_NEED_EXTI  1
 #define DC_NEED_GPIO  1
-#define DC_NEED_I2C   0
+#define DC_NEED_I2C   1
 #define DC_NEED_INT   1
 #define DC_NEED_TIMER 1
 #define DC_NEED_USART 1
