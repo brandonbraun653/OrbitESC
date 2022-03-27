@@ -36,13 +36,15 @@ namespace Orbit::I2C
     cfg.SCLInit.clear();
     cfg.SCLInit.alternate = Chimera::GPIO::Alternate::I2C1_SCL;
     cfg.SCLInit.drive     = Chimera::GPIO::Drive::ALTERNATE_OPEN_DRAIN;
+    cfg.SCLInit.pull      = Chimera::GPIO::Pull::NO_PULL;
     cfg.SCLInit.pin       = IO::I2C::sclPin;
     cfg.SCLInit.port      = IO::I2C::sclPort;
     cfg.SCLInit.validity  = true;
 
     cfg.SDAInit.clear();
-    cfg.SDAInit.alternate = Chimera::GPIO::Alternate::I2C1_SCL;
+    cfg.SDAInit.alternate = Chimera::GPIO::Alternate::I2C1_SDA;
     cfg.SDAInit.drive     = Chimera::GPIO::Drive::ALTERNATE_OPEN_DRAIN;
+    cfg.SDAInit.pull      = Chimera::GPIO::Pull::NO_PULL;
     cfg.SDAInit.pin       = IO::I2C::sdaPin;
     cfg.SDAInit.port      = IO::I2C::sdaPort;
     cfg.SDAInit.validity  = true;
@@ -53,8 +55,6 @@ namespace Orbit::I2C
     auto i2c = Chimera::I2C::getDriver( IO::I2C::channel );
     RT_HARD_ASSERT( i2c );
     RT_HARD_ASSERT( Chimera::Status::OK == i2c->open( cfg ) );
-
-    
   }
 
 }  // namespace Orbit::I2C

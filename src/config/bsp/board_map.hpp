@@ -131,8 +131,8 @@ namespace Orbit::IO
     /*-------------------------------------------------------------------------
     I2C
     -------------------------------------------------------------------------*/
-    static constexpr Chimera::I2C::Channel   channel   = Chimera::I2C::Channel::I2C1;
-    static constexpr Chimera::I2C::Frequency frequency = Chimera::I2C::Frequency::F400KHZ;
+    static constexpr Chimera::I2C::Channel   channel   = Chimera::I2C::Channel::I2C0;
+    static constexpr Chimera::I2C::Frequency frequency = Chimera::I2C::Frequency::F100KHZ;
   }    // namespace I2C
 
 

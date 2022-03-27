@@ -19,8 +19,8 @@ gen_intf_lib_variants(
     thor_hld_clock_rel
     thor_hld_dma_rel
     thor_hld_exti_rel
-    thor_hld_gpio_rel
-    thor_hld_i2c_rel
+    thor_hld_gpio_dbg
+    thor_hld_i2c_dbg
     thor_hld_interrupt_rel
     thor_hld_spi_rel
     thor_hld_system_rel
@@ -33,8 +33,8 @@ gen_intf_lib_variants(
     thor_lld_intf_can_rel
     thor_lld_intf_dma_rel
     thor_lld_intf_exti_rel
-    thor_lld_intf_gpio_rel
-    thor_lld_intf_i2c_rel
+    thor_lld_intf_gpio_dbg
+    thor_lld_intf_i2c_dbg
     thor_lld_intf_interrupt_rel
     thor_lld_intf_rcc_rel
     thor_lld_intf_spi_rel
@@ -50,7 +50,8 @@ gen_intf_lib_variants(
     thor_lld_stm32l4_dma_rel
     thor_lld_stm32l4_exti_rel
     thor_lld_stm32l4_flash_rel
-    thor_lld_stm32l4_gpio_rel
+    thor_lld_stm32l4_gpio_dbg
+    thor_lld_stm32l4_i2c_dbg
     thor_lld_stm32l4_interrupt_rel
     thor_lld_stm32l4_iwdg_rel
     thor_lld_stm32l4_power_rel
@@ -110,7 +111,7 @@ target_link_libraries(OrbitESC PRIVATE
   lib_orbit_tasks
 
   # Submodule Libraries
-  chimera_core_rel
+  chimera_core_dbg
   aurora_libs_rel
 
   # Target Properties
@@ -134,7 +135,7 @@ if(Toolchain::HAS_GCC_ARM_NONE_EABI)
 
     # Threading Library
     freertos_intf_inc_all
-    freertos_core_rel
+    freertos_core_dbg
     freertos_port
     freertos_heap
     freertos_heap_4_rel

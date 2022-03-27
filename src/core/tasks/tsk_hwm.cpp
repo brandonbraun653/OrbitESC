@@ -19,6 +19,9 @@ Includes
 #include <src/core/runtime/can_runtime.hpp>
 
 
+#include <Chimera/i2c>
+#include <src/config/bsp/board_map.hpp>
+
 namespace Orbit::Tasks::HWM
 {
   /*---------------------------------------------------------------------------
@@ -37,6 +40,10 @@ namespace Orbit::Tasks::HWM
     Orbit::CAN::initRuntime();
     Orbit::ADC::initRuntime();
 
+    auto i2c = Chimera::I2C::getDriver( IO::I2C::channel );
+    uint8_t raw_data = 0x24;
+
+
     /*-------------------------------------------------------------------------
     Run the HWM thread
     -------------------------------------------------------------------------*/
@@ -48,6 +55,8 @@ namespace Orbit::Tasks::HWM
       ---------------------------------------------------------------------*/
       Orbit::CAN::processCANBus();
       Orbit::ADC::processADC();
+
+      i2c->write( 0x53, &raw_data, sizeof( raw_data ) );
 
       /*---------------------------------------------------------------------
       Pseudo attempt to run this task periodically

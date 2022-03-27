@@ -121,7 +121,8 @@
     "dma": "cpp",
     "event": "cpp",
     "can": "cpp",
-    "callback": "cpp"
+    "callback": "cpp",
+    "i2c": "cpp"
   },
   "peacock.color": "#f9e64f",
   "cSpell.words": [
