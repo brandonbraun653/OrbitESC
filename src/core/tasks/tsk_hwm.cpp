@@ -11,6 +11,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Aurora/memory>
 #include <Chimera/thread>
 #include <Chimera/can>
 #include <src/core/tasks.hpp>
@@ -40,8 +41,17 @@ namespace Orbit::Tasks::HWM
     Orbit::CAN::initRuntime();
     Orbit::ADC::initRuntime();
 
-    auto i2c = Chimera::I2C::getDriver( IO::I2C::channel );
+    auto cfg = Aurora::Flash::EEPROM::DeviceConfig();
+    cfg.clear();
+    cfg.deviceAddress = 0x53;
+    cfg.i2cChannel    = IO::I2C::channel;
+    cfg.whichChip     = Aurora::Flash::EEPROM::Chip::AT24C02;
+
+    auto eeprom = Aurora::Flash::EEPROM::Driver();
+    eeprom.configure( cfg );
+
     uint8_t raw_data = 0x24;
+    size_t last_write = Chimera::millis();
 
 
     /*-------------------------------------------------------------------------
@@ -56,7 +66,11 @@ namespace Orbit::Tasks::HWM
       Orbit::CAN::processCANBus();
       Orbit::ADC::processADC();
 
-      i2c->write( 0x53, &raw_data, sizeof( raw_data ) );
+      if ( ( Chimera::millis() - last_write ) > 25 )
+      {
+        eeprom.write( 0x10, &raw_data, sizeof( raw_data ) );
+        last_write = Chimera::millis();
+      }
 
       /*---------------------------------------------------------------------
       Pseudo attempt to run this task periodically
