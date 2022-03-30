@@ -12,6 +12,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/memory>
+#include <Aurora/logging>
 #include <Chimera/thread>
 #include <Chimera/can>
 #include <src/core/tasks.hpp>
@@ -50,8 +51,11 @@ namespace Orbit::Tasks::HWM
     auto eeprom = Aurora::Flash::EEPROM::Driver();
     eeprom.configure( cfg );
 
-    uint8_t raw_data = 0x24;
+    const char * hello = "helloworld";
+    bool rw_flag = true;
     size_t last_write = Chimera::millis();
+    uint8_t read_buf[ 50 ];
+    size_t rw_address = 123;
 
 
     /*-------------------------------------------------------------------------
@@ -66,11 +70,23 @@ namespace Orbit::Tasks::HWM
       Orbit::CAN::processCANBus();
       Orbit::ADC::processADC();
 
-      if ( ( Chimera::millis() - last_write ) > 25 )
-      {
-        eeprom.write( 0x10, &raw_data, sizeof( raw_data ) );
-        last_write = Chimera::millis();
-      }
+      // if ( ( Chimera::millis() - last_write ) > 100 )
+      // {
+      //   if( rw_flag )
+      //   {
+      //     eeprom.write( rw_address, hello, strlen( hello ) );
+      //     rw_flag = false;
+      //   }
+      //   else
+      //   {
+      //     memset( read_buf, 0, sizeof( read_buf ) );
+      //     eeprom.read( rw_address, read_buf, strlen( hello ) );
+      //     Chimera::delayMilliseconds( 10 );
+
+      //     LOG_INFO( "EEPROM says: %s\r\n", read_buf );
+      //   }
+      //   last_write = Chimera::millis();
+      // }
 
       /*---------------------------------------------------------------------
       Pseudo attempt to run this task periodically
