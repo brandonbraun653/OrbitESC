@@ -1,0 +1,5 @@
+!stm32l432kb.ioc
+Core/
+Drivers/
+EWARM/
+.mxproject

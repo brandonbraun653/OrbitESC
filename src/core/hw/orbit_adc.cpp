@@ -28,7 +28,7 @@ namespace Orbit::ADC
   void powerUp()
   {
     Chimera::GPIO::Driver_rPtr gpio;
-    Chimera::GPIO::PinInit pin_cfg;
+    Chimera::GPIO::PinInit     pin_cfg;
 
     /*-------------------------------------------------------------------------
     Phase A GPIO Config
@@ -77,7 +77,7 @@ namespace Orbit::ADC
     /*-------------------------------------------------------------------------
     Configure the ADC driver
     -------------------------------------------------------------------------*/
-    Chimera::ADC::Driver_rPtr adc;
+    Chimera::ADC::Driver_rPtr  adc;
     Chimera::ADC::DriverConfig adc_cfg;
     Chimera::ADC::SequenceInit seq;
 
@@ -86,7 +86,7 @@ namespace Orbit::ADC
     adc_cfg.bmISREnable         = Chimera::ADC::Interrupt::NONE;
     adc_cfg.clockPrescale       = Chimera::ADC::Prescaler::DIV_2;
     adc_cfg.clockSource         = Chimera::Clock::Bus::SYSCLK;
-    adc_cfg.defaultSampleCycles = 230;
+    adc_cfg.defaultSampleCycles = 1000;
     adc_cfg.oversampleRate      = Chimera::ADC::Oversampler::OS_NONE;
     adc_cfg.periph              = Chimera::ADC::Peripheral::ADC_0;
     adc_cfg.resolution          = Chimera::ADC::Resolution::BIT_12;
@@ -104,7 +104,7 @@ namespace Orbit::ADC
     seq.clear();
     seq.channels    = &s_adc_channels;
     seq.numChannels = 4;
-    seq.mode        = Chimera::ADC::SamplingMode::CONTINUOUS;
+    seq.seqMode     = Chimera::ADC::SamplingMode::ONE_SHOT;
 
     RT_HARD_ASSERT( Chimera::Status::OK == adc->configSequence( seq ) );
 
@@ -114,4 +114,4 @@ namespace Orbit::ADC
     adc->startSequence();
   }
 
-}  // namespace Orbit::ADC
+}    // namespace Orbit::ADC
