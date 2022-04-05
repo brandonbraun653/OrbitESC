@@ -35,10 +35,9 @@ namespace Orbit::TIMER
 
     Chimera::Timer::PWM::DriverConfig cfg;
     cfg.clear();
-    cfg.allowPeriphReconfigure = true;
-    cfg.polarity               = Chimera::Timer::PWM::OutputPolarity::ACTIVE_HIGH;
+    cfg.polarity               = Chimera::Timer::PWM::Polarity::ACTIVE_HIGH;
     cfg.safeIOLevel            = Chimera::GPIO::State::HIGH;
-    cfg.peripheral             = Instance::TIMER16;
+    cfg.coreCfg.instance       = Instance::TIMER16;
     cfg.outputChannel          = Channel::CHANNEL_1;
     cfg.dutyCycle              = 50.0f;
     cfg.frequency              = 10000.0f;
