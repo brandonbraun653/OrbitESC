@@ -20,7 +20,7 @@ gen_intf_lib_variants(
     thor_hld_dma_rel
     thor_hld_exti_rel
     thor_hld_gpio_rel
-    thor_hld_i2c_rel
+    thor_hld_i2c_dbg
     thor_hld_interrupt_rel
     thor_hld_spi_rel
     thor_hld_system_rel

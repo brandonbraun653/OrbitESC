@@ -13,5 +13,43 @@
       "svdFile": "${workspaceRoot}/lib/CommonTools/svd/STM32L4x2.svd",
       "gdbPath": "gdb-multiarch"
     },
+    {
+      "name": "Black Magic Probe",
+      "type": "cppdbg",
+      "request": "launch",
+      "cwd": "${workspaceRoot}",
+      "program": "${workspaceRoot}/artifacts/last_build_version/sys_image",
+      "MIMode": "gdb",
+      "targetArchitecture": "arm",
+      "logging": {
+        "engineLogging": true
+      },
+      "miDebuggerPath": "/usr/bin/arm-none-eabi-gdb",
+      "debugServerPath": "",
+      "serverLaunchTimeout": 10000,
+      "customLaunchSetupCommands": [
+        {
+          "text": "target extended-remote /dev/ttyACM0"
+        },
+        {
+          "text": "monitor swdp_scan"
+        },
+        {
+          "text": "attach 1"
+        },
+        {
+          "text": "file ${workspaceRoot}/artifacts/last_build_version/sys_image"
+        },
+        {
+          "text": "load"
+        },
+        {
+          "text": "set mem inaccessible-by-default off"
+        },
+        {
+          "text": "break main"
+        }
+      ]
+    },
   ]
 }
