@@ -36,8 +36,7 @@ SYSVIEW_EVTMASK_TASK_STOP_READY   | SysView can re-build task sequences without 
 -------------------------------------------------------------------------------*/
 /* clang-format off */
 #define SEGGER_DISABLE_MASK             \
-  ( SYSVIEW_EVTMASK_ALL_INTERRUPTS    | \
-    SYSVIEW_EVTMASK_SYSTIME_CYCLES    | \
+  ( SYSVIEW_EVTMASK_SYSTIME_CYCLES    | \
     SYSVIEW_EVTMASK_SYSTIME_US        | \
     SYSVIEW_EVTMASK_TIMER_ENTER       | \
     SYSVIEW_EVTMASK_TIMER_EXIT        | \
