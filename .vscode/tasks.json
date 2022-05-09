@@ -34,9 +34,9 @@
     {
       "label": "Build Current Configuration",
       "type": "shell",
-      "command": "cmake --build . --target OrbitESC -j8",
+      "command": "./build_embedded.sh",
       "options": {
-        "cwd": "${workspaceFolder}/build"
+        "cwd": "${workspaceFolder}/scripts"
       },
       "problemMatcher": []
     }

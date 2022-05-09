@@ -47,7 +47,6 @@
             "${workspaceFolder}/lib/Thor/hld/exti",
             "${workspaceFolder}/lib/Thor/hld/gpio",
             "${workspaceFolder}/lib/Thor/hld/interrupt",
-            "${workspaceFolder}/lib/Thor/hld/pwm",
             "${workspaceFolder}/lib/Thor/hld/spi",
             "${workspaceFolder}/lib/Thor/hld/system",
             "${workspaceFolder}/lib/Thor/hld/timer",
@@ -119,18 +118,15 @@
         {
             "name": "Simulator Development",
             "includePath": [
-                "${defaultIncludePaths}",
-                "${workspaceFolder}/lib/ChimeraSim",
-                "${workspaceFolder}/lib/ChimeraSim/include",
-                "${workspaceFolder}/lib/ChimeraSim/lib/json/include",
-                "${workspaceFolder}/lib/ChimeraSim/lib/zeromq"
+                "${defaultIncludePaths}"
             ],
             "defines": [
                 "${defaultSimDefines}"
             ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "gnu17",
-            "cppStandard": "gnu++20"
+            "cppStandard": "gnu++20",
+            "configurationProvider": "ms-vscode.cmake-tools"
         }
     ],
     "version": 4
