@@ -20,6 +20,10 @@
             "${workspaceFolder}/lib/Chimera/../",
             "${workspaceFolder}/lib/Chimera/include",
             "${workspaceFolder}/lib/Chimera/source/**",
+            "${workspaceFolder}/lib/Chimera/source/drivers/common",
+            "${workspaceFolder}/lib/Chimera/source/drivers/peripherals",
+            "${workspaceFolder}/lib/Chimera/source/drivers/peripherals/timer",
+            "${workspaceFolder}/lib/Chimera/source/drivers/peripherals/timer/views",
             "${workspaceFolder}/lib/CommonTools/cpputest/include",
             "${workspaceFolder}/lib/CommonTools/googletest",
             "${workspaceFolder}/lib/CommonTools/googletest/googletest/googlemock/include",
@@ -55,6 +59,11 @@
             "${workspaceFolder}/lib/Thor/hld/usb",
             "${workspaceFolder}/lib/Thor/hld/watchdog"
         ],
+        "thorIncludePaths_LLD_Intf": [
+            "${workspaceFolder}/lib/Thor/lld/interface/timer",
+            "${workspaceFolder}/lib/Thor/lld/interface/timer/functions",
+            "${workspaceFolder}/lib/Thor/lld/interface/timer/registers"
+        ],
         "thorIncludePaths_LLD_L4": [
             "${workspaceFolder}/lib/Thor/lld/stm32l4x/adc",
             "${workspaceFolder}/lib/Thor/lld/stm32l4x/des",
@@ -69,6 +78,7 @@
             "${workspaceFolder}/lib/Thor/lld/stm32l4x/startup",
             "${workspaceFolder}/lib/Thor/lld/stm32l4x/system",
             "${workspaceFolder}/lib/Thor/lld/stm32l4x/timer",
+            "${workspaceFolder}/lib/Thor/lld/stm32l4x/timer/variant",
             "${workspaceFolder}/lib/Thor/lld/stm32l4x/usart",
             "${workspaceFolder}/lib/Thor/lld/stm32l4x/wwdg"
         ],
@@ -102,6 +112,7 @@
             "includePath": [
                 "${defaultIncludePaths}",
                 "${thorIncludePaths_HLD}",
+                "${thorIncludePaths_LLD_Intf}",
                 "${thorIncludePaths_LLD_L4}"
             ],
             "defines": [

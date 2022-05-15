@@ -39,7 +39,7 @@ namespace Orbit::Boot
     Orbit::CAN::powerUp();
     Orbit::GPIO::powerUp();
     Orbit::I2C::powerUp();
-    //Orbit::TIMER::powerUp();
+    Orbit::TIMER::powerUp();
     Orbit::USART::powerUp();
   }
 

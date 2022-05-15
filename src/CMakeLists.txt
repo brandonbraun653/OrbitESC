@@ -14,13 +14,13 @@ gen_intf_lib_variants(
     embedded_core_libs
   LIBRARIES
     thor_cmn_cm4_rel
-    thor_hld_adc_dbg
+    thor_hld_adc_rel
     thor_hld_can_rel
     thor_hld_clock_rel
     thor_hld_dma_rel
     thor_hld_exti_rel
     thor_hld_gpio_rel
-    thor_hld_i2c_dbg
+    thor_hld_i2c_rel
     thor_hld_interrupt_rel
     thor_hld_spi_rel
     thor_hld_system_rel
@@ -29,9 +29,9 @@ gen_intf_lib_variants(
     thor_hld_usart_rel
     thor_hld_usb_rel
     thor_hld_watchdog_rel
-    thor_lld_intf_adc_dbg
+    thor_lld_intf_adc_rel
     thor_lld_intf_can_rel
-    thor_lld_intf_dma_dbg
+    thor_lld_intf_dma_rel
     thor_lld_intf_exti_rel
     thor_lld_intf_gpio_rel
     thor_lld_intf_i2c_rel
@@ -43,11 +43,11 @@ gen_intf_lib_variants(
     thor_lld_intf_usart_rel
     thor_lld_intf_usb_rel
     thor_lld_intf_watchdog_rel
-    thor_lld_stm32l4_adc_dbg
+    thor_lld_stm32l4_adc_rel
     thor_lld_stm32l4_can_rel
     thor_lld_stm32l4_crs_rel
     thor_lld_stm32l4_des_rel
-    thor_lld_stm32l4_dma_dbg
+    thor_lld_stm32l4_dma_rel
     thor_lld_stm32l4_exti_rel
     thor_lld_stm32l4_flash_rel
     thor_lld_stm32l4_gpio_rel

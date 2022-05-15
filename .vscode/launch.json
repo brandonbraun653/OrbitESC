@@ -10,8 +10,8 @@
       "servertype": "jlink",
       "interface": "swd",
       "device": "STM32L432KB",
-      "svdFile": "${workspaceRoot}/lib/CommonTools/svd/STM32L4x2.svd",
-      "gdbPath": "gdb-multiarch"
+      "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32L4x2.svd",
+      "gdbPath": "/usr/bin/arm-none-eabi-gdb"
     },
     {
       "name": "Black Magic Probe",

@@ -22,28 +22,50 @@ Includes
 namespace Orbit::TIMER
 {
   /*---------------------------------------------------------------------------
+  Public Data
+  ---------------------------------------------------------------------------*/
+  Chimera::Timer::PWM::Driver PWMDriver;
+
+  /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   void powerUp()
   {
-    // NOT PRODUCTION CODE
-    using namespace Chimera::Timer;
+    /*-------------------------------------------------------------------------
+    Configure the GPIO
+    -------------------------------------------------------------------------*/
+    Chimera::GPIO::PinInit pin_cfg;
 
-    Chimera::Timer::PWM::Driver *pwm =
-        Chimera::Timer::getDriver<Chimera::Timer::PWM::Driver>( Instance::TIMER16 );
-    RT_HARD_ASSERT( pwm );
+    pin_cfg.clear();
+    pin_cfg.validity  = true;
+    pin_cfg.threaded  = true;
+    pin_cfg.alternate = Chimera::GPIO::Alternate::TIM16_CH1;
+    pin_cfg.drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL;
+    pin_cfg.pin       = IO::GPIO::pinHeartbeat;
+    pin_cfg.port      = IO::GPIO::portHeartbeat;
+    pin_cfg.pull      = Chimera::GPIO::Pull::NO_PULL;
+    pin_cfg.state     = Chimera::GPIO::State::LOW;
 
+    auto pin = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_HARD_ASSERT( pin != nullptr );
+    RT_HARD_ASSERT( Chimera::Status::OK == pin->init( pin_cfg ) );
+
+    /*-------------------------------------------------------------------------
+    Configure the PWM timer
+    -------------------------------------------------------------------------*/
     Chimera::Timer::PWM::DriverConfig cfg;
     cfg.clear();
     cfg.polarity               = Chimera::Timer::PWM::Polarity::ACTIVE_HIGH;
     cfg.safeIOLevel            = Chimera::GPIO::State::HIGH;
-    cfg.coreCfg.instance       = Instance::TIMER16;
-    cfg.outputChannel          = Channel::CHANNEL_1;
+    cfg.coreCfg.instance       = Chimera::Timer::Instance::TIMER16;
+    cfg.coreCfg.baseFreq       = 1'000'000.0f;
+    cfg.coreCfg.clockSource    = Chimera::Clock::Bus::SYSCLK;
+    cfg.outputChannel          = Chimera::Timer::Channel::CHANNEL_1;
     cfg.dutyCycle              = 50.0f;
     cfg.frequency              = 10000.0f;
 
-    auto cfg_result = pwm->init( cfg );
-    pwm->enableOutput();
+    auto cfg_result = PWMDriver.init( cfg );
+    PWMDriver.enableOutput();
   }
 
 }  // namespace Orbit::TIMER

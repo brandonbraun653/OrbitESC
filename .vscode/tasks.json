@@ -20,7 +20,7 @@
       "problemMatcher": []
     },
     {
-      "label": "Configure Embedded",
+      "label": "Configure Embedded Debug",
       "type": "shell",
       "command": "cmake -DTOOLCHAIN=arm-none-eabi -DFREERTOS_THREADS=ON -DDEVICE_TARGET=stm32l432kb -DCMAKE_BUILD_TYPE=Debug ./../",
       "dependsOn": [
