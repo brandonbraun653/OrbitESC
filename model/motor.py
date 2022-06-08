@@ -93,8 +93,8 @@ class Motor:
         r_alpha_integral = lambda t: u.item(0) - self.R * self.x.item(0)
         r_beta_integral = lambda t: u.item(1) - self.R * self.x.item(1)
 
-        r_alpha = quad(r_alpha_integral, self._last_time, self._last_time + dt) - self.Ls * self.x.item(0)
-        r_beta = quad(r_beta_integral, self._last_time, self._last_time + dt) - self.Ls * self.x.item(1)
+        r_alpha = quad(r_alpha_integral, self._last_time, self._last_time + dt)[0] - self.Ls * self.x.item(0)
+        r_beta = quad(r_beta_integral, self._last_time, self._last_time + dt)[0] - self.Ls * self.x.item(1)
         self._last_time += dt
 
         new_theta_r = np.arctan(r_beta/r_alpha)
