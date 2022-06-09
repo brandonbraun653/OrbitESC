@@ -34,6 +34,11 @@ class FullStateFeedbackObserver:
         self.x_hat = np.ndarray((4, 1), dtype=float)        # Estimated system state
         self.x_hat_dot = np.ndarray((4, 1), dtype=float)    # Derivative of estimated system state
 
+        self.Ls = 0.0
+        self.W = 0.0
+        self.theta = 0.0
+        self._theta_last = 0.0
+
     def initialize(self) -> None:
         """
         Resets the observer back to initial defaults
@@ -77,6 +82,17 @@ class FullStateFeedbackObserver:
 
         # Calculate the estimated output
         self.y_hat = self.C @ self.x_hat
+
+        # Estimate the back-emf
+        Ea = self.x_hat_dot.item(2) + 1.0 * self.Ls * y_plant.item(0) - self.Ls * self.W * y_plant.item(1)
+        Eb = self.x_hat_dot.item(3) + self.Ls * self.W * y_plant.item(0) + 1.0 * self.Ls * y_plant.item(1)
+
+        # Calculate the rotor angle
+        self.theta = np.arctan2(Eb, Ea)
+
+        # Calculate the rotor speed
+        self.W = (self._theta_last - self.theta)/dt
+        self._theta_last = self.theta
 
     def estimated_system_state(self) -> np.ndarray:
         return self.x_hat

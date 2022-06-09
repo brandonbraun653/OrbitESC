@@ -23,9 +23,6 @@ class Motor:
         self.C = np.ndarray((2, 4), dtype=float)
         self.D = np.ndarray((2, 2), dtype=float)
 
-        self._last_time = 0.0
-        self._theta_r = 0.0
-
     def initialize(self) -> None:
         """
         Resets the motor model back to initial defaults
@@ -79,6 +76,8 @@ class Motor:
 
         # Update the model with the estimated rotor speed
         self.W = omega
+        self.A[2][3] = -1.0 * self.W
+        self.A[3][2] = self.W
 
         # Step the state space model forward by one iteration
         self.xdot = self.A @ self.x + self.B @ u
@@ -86,20 +85,6 @@ class Motor:
 
         # Update the output for this iteration
         self.y = self.C @ self.x
-
-        tmp = self.x.item(0)
-        # Calculate the rotor angle
-        # Equations 6.3, 6.4, 6.5. Numerical integration needed.
-        r_alpha_integral = lambda t: u.item(0) - self.R * self.x.item(0)
-        r_beta_integral = lambda t: u.item(1) - self.R * self.x.item(1)
-
-        r_alpha = quad(r_alpha_integral, self._last_time, self._last_time + dt)[0] - self.Ls * self.x.item(0)
-        r_beta = quad(r_beta_integral, self._last_time, self._last_time + dt)[0] - self.Ls * self.x.item(1)
-        self._last_time += dt
-
-        new_theta_r = np.arctan(r_beta/r_alpha)
-        self.W = (new_theta_r - self._theta_r) / dt
-        self._theta_r = new_theta_r
 
     def system_output(self) -> np.ndarray:
         return self.y
