@@ -167,10 +167,6 @@ class MotorV2:
         self._inner_sample_num = 0
         self._h_theta_last = 0.0
 
-    @property
-    def d(self) -> float:
-        return (-self.Rs / self.Ls) * 5.0  # (5.0 + (15.0 / self.W_max) * abs(self.hW))
-
     def initialize(self) -> None:
         # Initialize the state vector, its derivative, and the output vector
         self.x = np.zeros(self.x.shape)
@@ -179,14 +175,14 @@ class MotorV2:
 
         # Set up the coefficients for the A matrix
         self.A = np.zeros(self.A.shape)
-        self.A[0][0] = -self.Rs / self.Ls
+        self.A[0][0] = self.Rs / self.Ls
         self.A[0][2] = -1.0 / self.Ls
 
-        self.A[1][1] = -self.Rs / self.Ls
+        self.A[1][1] = self.Rs / self.Ls
         self.A[1][3] = -1.0 / self.Ls
 
-        self.A[2][3] = -self.hW
-        self.A[3][2] = self.hW
+        self.A[2][3] = self.hW
+        self.A[3][2] = -self.hW
 
         # Set up the coefficients for the B matrix
         self.B = np.zeros(self.B.shape)
@@ -221,6 +217,10 @@ class MotorV2:
         self.F = (self.Rs + self.Ls) * tmp
         self.G = -1.0 * tmp
 
+    @property
+    def d(self) -> float:
+        return 0  # (-self.Rs / self.Ls) * 5.0  # (5.0 + (15.0 / self.W_max) * abs(self.hW))
+
     def step(self, u: np.ndarray, dt: float) -> None:
         """
         Steps the motor model forward by some time delta
@@ -234,8 +234,8 @@ class MotorV2:
             None
         """
         # Update the model with the estimated rotor speed
-        self.A[2][3] = -self.hW
-        self.A[3][2] = self.hW
+        self.A[2][3] = self.hW
+        self.A[3][2] = -self.hW
 
         # Step the state space model forward by one iteration
         self.xdot = self.A @ self.x + self.B @ u
