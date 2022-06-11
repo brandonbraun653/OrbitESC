@@ -85,32 +85,35 @@ def main2():
     motor = MotorV2()
     motor.initialize()
 
-    time = np.arange(0, 0.200, 30e-6)
+    step = 30e-6
+    time = np.arange(0, 0.001, step)
     rotor_speed_data = np.zeros((1, time.shape[0]), dtype=float)
 
     u = np.zeros((2, 1))
 
     d_act = 0
     q_act = 0
-    d_pid = PID(1, 0.1, 0.0, setpoint=1.0)
-    q_pid = PID(1, 0.1, 0.0, setpoint=0.0)
+    d_pid = PID(1, 0.1, 0.0, setpoint=0.0)
+    q_pid = PID(1, 0.1, 0.0, setpoint=1.0)
 
-    d_ref = 1.0
-    q_ref = 0
+    d_ref = 0.0
+    q_ref = 0.5
 
     for idx in range(time.shape[0]):
         # PI control loop [Id_ref, Iq_ref] => [Vd, Vq]
-        d_cmd = d_ref - d_act  # d_pid(d_act)
-        q_cmd = q_ref - q_act  # q_pid(q_act)
+        d_cmd = d_act - d_ref  # d_pid(d_act)
+        q_cmd = q_act - q_ref  # q_pid(q_act)
 
         # Push through the inverse park transform [Vd, Vq] => [Va, Vb]
         u[0, :], u[1, :] = inv_park_transform(motor.rotor_angle(), d_cmd, q_cmd)
 
+        implement the actual control loop from the paper....
+
         # Step through the model
-        motor.step(u=u, dt=0.001)
+        motor.step(u=u, dt=step)
 
         # Log some data
-        rotor_speed_data[:, idx] = np.rad2deg(motor.rotor_angle())
+        rotor_speed_data[:, idx] = motor.system_output().item(0)
 
         # Push through the park transform [Ia, Ib] => [Id, Iq]
         output = motor.system_output()

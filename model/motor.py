@@ -137,10 +137,9 @@ class MotorV2:
 
     def __init__(self):
         # Constants
-        self.Rs = 18.0e-3  # Stator resistance
-        self.Ls = 12.8e-6  # Stator inductance
-        self.W_max = 2100  # ~20k RPM
-        self.num_inner_loop_samples = 5
+        self.Rs = 18.0e-3   # Stator resistance
+        self.Ls = 40.8e-3   # Stator inductance
+        self.psi = 0.146    # Rotor flux
 
         # Estimations
         self.hW = 0.0       # Estimated rotor speed in radians/sec
@@ -158,13 +157,6 @@ class MotorV2:
         self.zdot = np.ndarray((2, 1), dtype=float)
         self.z = np.ndarray((2, 1), dtype=float)
         self.hx = np.ndarray((2, 1), dtype=float)
-        self.D = np.ndarray((2, 2), dtype=float)
-        self.L = np.ndarray((2, 2), dtype=float)
-        self.F = np.ndarray((2, 2), dtype=float)
-        self.G = np.ndarray((2, 2), dtype=float)
-
-        # General Variables
-        self._inner_sample_num = 0
         self._h_theta_last = 0.0
 
     def initialize(self) -> None:
@@ -198,28 +190,7 @@ class MotorV2:
         self.zdot = np.zeros(self.zdot.shape)
         self.z = np.zeros(self.z.shape)
         self.hx = np.zeros(self.hx.shape)
-        self._update_observer_matrices()
 
-    def _cmn_matrix(self) -> np.ndarray:
-        tmp = np.ndarray((2, 2), dtype=float)
-        tmp[0][0] = self.d
-        tmp[0][1] = -self.hW
-        tmp[1][0] = self.hW
-        tmp[1][1] = self.d
-
-        return tmp
-
-    def _update_observer_matrices(self) -> None:
-        tmp = self._cmn_matrix()
-
-        self.D = self.d * np.eye(2)
-        self.L = self.Ls * tmp
-        self.F = (self.Rs + self.Ls) * tmp
-        self.G = -1.0 * tmp
-
-    @property
-    def d(self) -> float:
-        return 0  # (-self.Rs / self.Ls) * 5.0  # (5.0 + (15.0 / self.W_max) * abs(self.hW))
 
     def step(self, u: np.ndarray, dt: float) -> None:
         """
@@ -242,30 +213,29 @@ class MotorV2:
         self.x = self.xdot * dt
         self.y = self.C @ self.x
 
-        # Step the observer forward by one iteration
-        Dz = self.D @ self.z
-        Fy = (self.Rs + self.d * self.Ls) * self._cmn_matrix() @ self.y
-        Gu = self._cmn_matrix() @ u
-        self.zdot = Dz + Fy - Gu
+        # ----------------------------------------------------
+        L_ia = self.Ls * self.x.item(0)
+        L_ib = self.Ls * self.x.item(1)
+        R_ia = self.Rs * self.x.item(0)
+        R_ib = self.Rs * self.x.item(1)
+        gamma_half = 2500 * 0.5
+
+        error = pow(self.psi, 2) - pow((self.z.item(0) - L_ia), 2) + pow((self.z.item(1) - L_ib), 2)
+        if error > 0.0:
+            error = 0.0
+
+        self.zdot[0, :] = u.item(0) - R_ia + gamma_half * (self.z.item(0) - L_ia) * error
+        self.zdot[1, :] = u.item(1) - R_ib + gamma_half * (self.z.item(1) - L_ib) * error
+
         self.z = self.zdot * dt
 
-        # Step the observer output
-        self.hx = self.z + self.L @ self.y
+        mag = np.sqrt(pow(self.z.item(0), 2) + pow(self.z.item(1), 2))
+        if mag < (self.psi * 0.5):
+            self.z *= 1.1
 
-        # Check if it's time to do outer loop calculations
-        self._inner_sample_num += 1
-        if self._inner_sample_num >= self.num_inner_loop_samples:
-            T_est = self.num_inner_loop_samples * dt
-            self._inner_sample_num = 0
-
-            # Calculate the rotor angle: arctan2(Ed, Eq)
-            self.hTheta = np.arctan2(self.hx.item(1), self.hx.item(0))
-            if self.hW < 0.0:
-                self.hTheta += np.pi
-
-            # Calculate the rotor speed
-            self.hW = (self.hTheta - self._h_theta_last) / T_est
-            self._h_theta_last = self.hTheta
+        self.hTheta = np.arctan2((self.z.item(1) - L_ib), (self.z.item(0) - L_ia))
+        self.hW = (self.hTheta - self._h_theta_last) / dt
+        self._h_theta_last = self.hTheta
 
     def system_output(self) -> np.ndarray:
         return self.y
