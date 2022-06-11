@@ -140,6 +140,7 @@ class MotorV2:
         self.Rs = 18.0e-3   # Stator resistance
         self.Ls = 40.8e-3   # Stator inductance
         self.psi = 0.146    # Rotor flux
+        self.P = 6          # Number of rotor poles
 
         # Estimations
         self.hW = 0.0       # Estimated rotor speed in radians/sec
@@ -158,6 +159,14 @@ class MotorV2:
         self.z = np.ndarray((2, 1), dtype=float)
         self.hx = np.ndarray((2, 1), dtype=float)
         self._h_theta_last = 0.0
+
+        # Speed Estimator
+        self.w1_dot = 0
+        self.w2_dot = 0
+        self.w1 = 0
+        self.w2 = 0
+        self.Kp = 20
+        self.Ki = 5
 
     def initialize(self) -> None:
         # Initialize the state vector, its derivative, and the output vector
@@ -190,7 +199,6 @@ class MotorV2:
         self.zdot = np.zeros(self.zdot.shape)
         self.z = np.zeros(self.z.shape)
         self.hx = np.zeros(self.hx.shape)
-
 
     def step(self, u: np.ndarray, dt: float) -> None:
         """
@@ -233,9 +241,16 @@ class MotorV2:
         if mag < (self.psi * 0.5):
             self.z *= 1.1
 
+        # Angle estimate
         self.hTheta = np.arctan2((self.z.item(1) - L_ib), (self.z.item(0) - L_ia))
-        self.hW = (self.hTheta - self._h_theta_last) / dt
-        self._h_theta_last = self.hTheta
+
+        # Speed observer
+        self.w1_dot = self.Kp * (self.hTheta - self.w1) + self.Ki * self.w2
+        self.w2_dot = self.hTheta - self.w1
+        self.w1 = self.w1_dot * dt
+        self.w2 = self.w2_dot * dt
+
+        self.hW = self.Kp * (self.hTheta - self.w1) + self.Ki * self.w2
 
     def system_output(self) -> np.ndarray:
         return self.y
@@ -243,11 +258,14 @@ class MotorV2:
     def system_state(self) -> np.ndarray:
         return self.x
 
-    def rotor_angle(self) -> float:
+    def rotor_angle_deg(self) -> float:
+        return np.rad2deg(self.hTheta)
+
+    def rotor_angle_rad(self) -> float:
         return self.hTheta
 
-    def rotor_speed(self) -> float:
-        return self.hW
+    def rotor_speed_rpm(self) -> float:
+        return self.hW * (60/2*np.pi) * 2/self.P
 
 
 if __name__ == "__main__":

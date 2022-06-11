@@ -86,38 +86,44 @@ def main2():
     motor.initialize()
 
     step = 30e-6
-    time = np.arange(0, 0.001, step)
+    time = np.arange(0, 0.100, step)
     rotor_speed_data = np.zeros((1, time.shape[0]), dtype=float)
 
     u = np.zeros((2, 1))
 
-    d_act = 0
-    q_act = 0
-    d_pid = PID(1, 0.1, 0.0, setpoint=0.0)
-    q_pid = PID(1, 0.1, 0.0, setpoint=1.0)
+    id_act = 0
+    iq_act = 0
+    id_pid = PID(1, 0.1, 0.0, setpoint=0.0)
+    iq_pid = PID(1, 0.1, 0.0, setpoint=0.0)
+    rpm_pid = PID(1, 0.1, 0.0, setpoint=0.0)
 
-    d_ref = 0.0
-    q_ref = 0.5
+    rpm_desired = 100
 
     for idx in range(time.shape[0]):
+        # Speed control loop
+        rpm_error = rpm_desired - motor.rotor_speed_rpm()
+        iq_ref = rpm_pid(rpm_error)
+        id_ref = 0
+
         # PI control loop [Id_ref, Iq_ref] => [Vd, Vq]
-        d_cmd = d_act - d_ref  # d_pid(d_act)
-        q_cmd = q_act - q_ref  # q_pid(q_act)
+        id_cmd = id_pid(id_ref - id_act)
+        iq_cmd = iq_pid(iq_ref - iq_act)
 
-        # Push through the inverse park transform [Vd, Vq] => [Va, Vb]
-        u[0, :], u[1, :] = inv_park_transform(motor.rotor_angle(), d_cmd, q_cmd)
+        # Calculate vd
+        u[0, :] = id_cmd - (iq_act * motor.Ls * motor.hW)
 
-        implement the actual control loop from the paper....
+        # Calculate vq
+        u[1, :] = iq_cmd + (motor.hW * motor.psi) + (motor.hW * motor.Ls * id_act)
 
         # Step through the model
         motor.step(u=u, dt=step)
 
         # Log some data
-        rotor_speed_data[:, idx] = motor.system_output().item(0)
+        rotor_speed_data[:, idx] = motor.rotor_angle_rad()
 
         # Push through the park transform [Ia, Ib] => [Id, Iq]
         output = motor.system_output()
-        d_act, q_act = park_transform(motor.rotor_angle(), output.item(0), output.item(1))
+        id_act, iq_act = park_transform(motor.hTheta, output.item(0), output.item(1))
 
     # Plot the output
     fig, ax = plt.subplots()
