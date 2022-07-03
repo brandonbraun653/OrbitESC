@@ -76,8 +76,6 @@ namespace Orbit::ADC
       voltage = s_adc_driver->toVoltage( raw_sample );
       LOG_INFO( "Phase CT: %1.3fv\r\n", voltage );
     }
-
-    s_adc_driver->startSequence();
   }
 
 }  // namespace Orbit::ADC

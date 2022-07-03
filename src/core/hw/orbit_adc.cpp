@@ -83,10 +83,10 @@ namespace Orbit::ADC
 
     /* Core configuration */
     adc_cfg.clear();
+    adc_cfg.defaultSampleCycles = 1000;
     adc_cfg.bmISREnable         = Chimera::ADC::Interrupt::NONE;
     adc_cfg.clockPrescale       = Chimera::ADC::Prescaler::DIV_2;
     adc_cfg.clockSource         = Chimera::Clock::Bus::SYSCLK;
-    adc_cfg.defaultSampleCycles = 1000;
     adc_cfg.oversampleRate      = Chimera::ADC::Oversampler::OS_NONE;
     adc_cfg.periph              = Chimera::ADC::Peripheral::ADC_0;
     adc_cfg.resolution          = Chimera::ADC::Resolution::BIT_12;
@@ -104,12 +104,14 @@ namespace Orbit::ADC
     seq.clear();
     seq.channels    = &s_adc_channels;
     seq.numChannels = 4;
-    seq.seqMode     = Chimera::ADC::SamplingMode::ONE_SHOT;
+    seq.seqMode     = Chimera::ADC::SamplingMode::TRIGGER;
+    seq.trigMode    = Chimera::ADC::TriggerMode::BOTH_EDGE;
+    seq.trigChannel = 14; // Regular channel, TIM15_TRGO
 
     RT_HARD_ASSERT( Chimera::Status::OK == adc->configSequence( seq ) );
 
     /*-------------------------------------------------------------------------
-    Kick off the DMA based sampling of the pins
+    Kick off the ADC sequence sampling
     -------------------------------------------------------------------------*/
     adc->startSequence();
   }

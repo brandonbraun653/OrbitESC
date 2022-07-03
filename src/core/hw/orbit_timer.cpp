@@ -25,6 +25,7 @@ namespace Orbit::TIMER
   Public Data
   ---------------------------------------------------------------------------*/
   Chimera::Timer::PWM::Driver PWMDriver;
+  Chimera::Timer::Trigger::Master ADCTrigger;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -32,7 +33,7 @@ namespace Orbit::TIMER
   void powerUp()
   {
     /*-------------------------------------------------------------------------
-    Configure the GPIO
+    Configure the GPIO for PWM output
     -------------------------------------------------------------------------*/
     Chimera::GPIO::PinInit pin_cfg;
 
@@ -53,19 +54,32 @@ namespace Orbit::TIMER
     /*-------------------------------------------------------------------------
     Configure the PWM timer
     -------------------------------------------------------------------------*/
-    Chimera::Timer::PWM::DriverConfig cfg;
-    cfg.clear();
-    cfg.polarity               = Chimera::Timer::PWM::Polarity::ACTIVE_HIGH;
-    cfg.safeIOLevel            = Chimera::GPIO::State::HIGH;
-    cfg.coreCfg.instance       = Chimera::Timer::Instance::TIMER16;
-    cfg.coreCfg.baseFreq       = 1'000'000.0f;
-    cfg.coreCfg.clockSource    = Chimera::Clock::Bus::SYSCLK;
-    cfg.outputChannel          = Chimera::Timer::Channel::CHANNEL_1;
-    cfg.dutyCycle              = 50.0f;
-    cfg.frequency              = 10000.0f;
+    Chimera::Timer::PWM::DriverConfig pwm_cfg;
+    pwm_cfg.clear();
+    pwm_cfg.polarity               = Chimera::Timer::PWM::Polarity::ACTIVE_HIGH;
+    pwm_cfg.safeIOLevel            = Chimera::GPIO::State::HIGH;
+    pwm_cfg.coreCfg.instance       = Chimera::Timer::Instance::TIMER16;
+    pwm_cfg.coreCfg.baseFreq       = 1'000'000.0f;
+    pwm_cfg.coreCfg.clockSource    = Chimera::Clock::Bus::SYSCLK;
+    pwm_cfg.outputChannel          = Chimera::Timer::Channel::CHANNEL_1;
+    pwm_cfg.dutyCycle              = 50.0f;
+    pwm_cfg.frequency              = 10000.0f;
 
-    auto cfg_result = PWMDriver.init( cfg );
+    RT_HARD_ASSERT( Chimera::Status::OK == PWMDriver.init( pwm_cfg ) );
     PWMDriver.enableOutput();
+
+    /*-------------------------------------------------------------------------
+    Configure the ADC sample timer
+    -------------------------------------------------------------------------*/
+    Chimera::Timer::Trigger::MasterConfig trig_cfg;
+    trig_cfg.clear();
+    trig_cfg.trigFreq               = 30'000.0f;
+    trig_cfg.coreConfig.instance    = Chimera::Timer::Instance::TIMER15;
+    trig_cfg.coreConfig.baseFreq    = 1'000'000.0f;
+    trig_cfg.coreConfig.clockSource = Chimera::Clock::Bus::SYSCLK;
+
+    RT_HARD_ASSERT( Chimera::Status::OK == ADCTrigger.init( trig_cfg ) );
+    ADCTrigger.enable();
   }
 
 }  // namespace Orbit::TIMER

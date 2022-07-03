@@ -66,7 +66,8 @@ namespace Orbit::CAN
 
       switch ( unique_id )
       {
-        case 0x0043002e:
+        case 0x0043002E:
+        case 0x005A002D:
           s_this_node = NodeId::NODE_0;
           break;
 
