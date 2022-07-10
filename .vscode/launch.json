@@ -11,7 +11,10 @@
       "interface": "swd",
       "device": "STM32L432KB",
       "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32L4x2.svd",
-      "gdbPath": "/usr/bin/arm-none-eabi-gdb"
+      "gdbPath": "/usr/bin/arm-none-eabi-gdb",
+      "postLaunchCommands": [
+        "source ${workspaceFolder}/.gdbinit"
+      ]
     },
     {
       "name": "Black Magic Probe",
@@ -24,6 +27,9 @@
       "device": "STM32L432KB",
       "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32L4x2.svd",
       "gdbPath": "/usr/bin/arm-none-eabi-gdb",
+      "postLaunchCommands": [
+        "source ${workspaceFolder}/.gdbinit"
+      ],
       "BMPGDBSerialPort": "/dev/ttyACM0",
       "preRestartCommands": [
           "enable breakpoint"

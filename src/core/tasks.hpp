@@ -26,8 +26,9 @@ namespace Orbit::Tasks
   ---------------------------------------------------------------------------*/
   enum PrjTaskId : uint8_t
   {
-    TASK_IDLE,    /**< Background task */
-    TASK_HWM,     /**< Hardware manager */
+    TASK_IDLE,     /**< Background task */
+    TASK_HWM,      /**< Hardware manager */
+    TASK_CTRL_SYS, /**< Control system task */
 
     TASK_NUM_OPTIONS,
     TASK_UNKNOWN

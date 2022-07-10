@@ -84,11 +84,11 @@ namespace Orbit::ADC
     /* Core configuration */
     adc_cfg.clear();
     adc_cfg.defaultSampleCycles = 1000;
-    adc_cfg.bmISREnable         = Chimera::ADC::Interrupt::NONE;
+    adc_cfg.bmISREnable         = Chimera::ADC::Interrupt::EOC_SEQUENCE;
     adc_cfg.clockPrescale       = Chimera::ADC::Prescaler::DIV_2;
     adc_cfg.clockSource         = Chimera::Clock::Bus::SYSCLK;
     adc_cfg.oversampleRate      = Chimera::ADC::Oversampler::OS_NONE;
-    adc_cfg.periph              = Chimera::ADC::Peripheral::ADC_0;
+    adc_cfg.periph              = IO::Analog::peripheral;
     adc_cfg.resolution          = Chimera::ADC::Resolution::BIT_12;
     adc_cfg.transferMode        = Chimera::ADC::TransferMode::DMA;
 
@@ -105,8 +105,10 @@ namespace Orbit::ADC
     seq.channels    = &s_adc_channels;
     seq.numChannels = 4;
     seq.seqMode     = Chimera::ADC::SamplingMode::TRIGGER;
-    seq.trigMode    = Chimera::ADC::TriggerMode::BOTH_EDGE;
-    seq.trigChannel = 14; // Regular channel, TIM15_TRGO
+    seq.trigMode    = Chimera::ADC::TriggerMode::RISING_EDGE;
+    seq.trigChannel = 14; // Regular channel, TIM15_TRGO0
+    // seq.trigMode    = Chimera::ADC::TriggerMode::RISING_EDGE;
+    // seq.trigChannel = 10; // Regular channel, TIM1_TRGO2
 
     RT_HARD_ASSERT( Chimera::Status::OK == adc->configSequence( seq ) );
 

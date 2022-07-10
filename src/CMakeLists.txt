@@ -5,6 +5,7 @@ include("${COMMON_TOOL_ROOT}/cmake/utility/embedded.cmake")
 # -----------------------------------------------------------------------------
 add_subdirectory(config/bsp)
 add_subdirectory(core)
+add_subdirectory(control)
 
 # -----------------------------------------------------------------------------
 # Project Libraries
@@ -14,7 +15,7 @@ gen_intf_lib_variants(
     embedded_core_libs
   LIBRARIES
     thor_cmn_cm4_rel
-    thor_hld_adc_dbg
+    thor_hld_adc_rel
     thor_hld_can_rel
     thor_hld_clock_rel
     thor_hld_dma_rel
@@ -24,12 +25,12 @@ gen_intf_lib_variants(
     thor_hld_interrupt_rel
     thor_hld_spi_rel
     thor_hld_system_rel
-    thor_hld_timer_dbg
+    thor_hld_timer_rel
     thor_hld_uart_rel
     thor_hld_usart_rel
     thor_hld_usb_rel
     thor_hld_watchdog_rel
-    thor_lld_intf_adc_dbg
+    thor_lld_intf_adc_rel
     thor_lld_intf_can_rel
     thor_lld_intf_dma_rel
     thor_lld_intf_exti_rel
@@ -39,7 +40,7 @@ gen_intf_lib_variants(
     thor_lld_intf_rcc_rel
     thor_lld_intf_spi_rel
     thor_lld_intf_sys_rel
-    thor_lld_intf_timer_dbg
+    thor_lld_intf_timer_rel
     thor_lld_intf_usart_rel
     thor_lld_intf_usb_rel
     thor_lld_intf_watchdog_rel
@@ -47,7 +48,7 @@ gen_intf_lib_variants(
     thor_lld_stm32l4_can_rel
     thor_lld_stm32l4_crs_rel
     thor_lld_stm32l4_des_rel
-    thor_lld_stm32l4_dma_rel
+    thor_lld_stm32l4_dma_dbg
     thor_lld_stm32l4_exti_rel
     thor_lld_stm32l4_flash_rel
     thor_lld_stm32l4_gpio_rel
@@ -106,13 +107,14 @@ target_link_libraries(OrbitESC PRIVATE
   lib_orbit_cfg_bsp
   lib_orbit_com
   lib_orbit_core
+  lib_orbit_ctrl
   lib_orbit_hw
   lib_orbit_runtime
   lib_orbit_tasks
 
   # Submodule Libraries
-  chimera_core_dbg
-  aurora_libs_dbg
+  chimera_core_rel
+  aurora_libs_rel
 
   # Target Properties
   prj_device_target

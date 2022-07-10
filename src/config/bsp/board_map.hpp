@@ -42,14 +42,15 @@ namespace Orbit::IO
 
   namespace Analog
   {
-    static constexpr Chimera::GPIO::PinInit CommonAnalogCfg = { .alternate = Chimera::GPIO::Alternate::NONE,
-                                                                .drive     = Chimera::GPIO::Drive::ANALOG,
-                                                                .pin       = 0,
-                                                                .port      = Chimera::GPIO::Port::UNKNOWN_PORT,
-                                                                .pull      = Chimera::GPIO::Pull::NO_PULL,
-                                                                .state     = Chimera::GPIO::State::HIGH,
-                                                                .threaded  = true,
-                                                                .validity  = false };
+    static constexpr Chimera::ADC::Peripheral peripheral      = Chimera::ADC::Peripheral::ADC_0;
+    static constexpr Chimera::GPIO::PinInit   CommonAnalogCfg = { .alternate = Chimera::GPIO::Alternate::NONE,
+                                                                  .drive     = Chimera::GPIO::Drive::ANALOG,
+                                                                  .pin       = 0,
+                                                                  .port      = Chimera::GPIO::Port::UNKNOWN_PORT,
+                                                                  .pull      = Chimera::GPIO::Pull::NO_PULL,
+                                                                  .state     = Chimera::GPIO::State::HIGH,
+                                                                  .threaded  = true,
+                                                                  .validity  = false };
 
     /*-------------------------------------------------------------------------
     Phase A

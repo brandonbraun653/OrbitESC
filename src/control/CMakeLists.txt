@@ -2,11 +2,9 @@ include("${COMMON_TOOL_ROOT}/cmake/utility/embedded.cmake")
 
 gen_static_lib_variants(
   TARGET
-    lib_orbit_tasks
+    lib_orbit_ctrl
   SOURCES
-    tsk_ctrl_sys.cpp
-    tsk_idle.cpp
-    tsk_hwm.cpp
+    foc_driver.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc
