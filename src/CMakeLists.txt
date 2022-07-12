@@ -44,11 +44,11 @@ gen_intf_lib_variants(
     thor_lld_intf_usart_rel
     thor_lld_intf_usb_rel
     thor_lld_intf_watchdog_rel
-    thor_lld_stm32l4_adc_dbg
+    thor_lld_stm32l4_adc_rel
     thor_lld_stm32l4_can_rel
     thor_lld_stm32l4_crs_rel
     thor_lld_stm32l4_des_rel
-    thor_lld_stm32l4_dma_dbg
+    thor_lld_stm32l4_dma_rel
     thor_lld_stm32l4_exti_rel
     thor_lld_stm32l4_flash_rel
     thor_lld_stm32l4_gpio_rel
@@ -137,7 +137,7 @@ if(Toolchain::HAS_GCC_ARM_NONE_EABI)
 
     # Threading Library
     freertos_intf_inc_all
-    freertos_core_dbg
+    freertos_core_rel
     freertos_port
     freertos_heap
     freertos_heap_4_rel

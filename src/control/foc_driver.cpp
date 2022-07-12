@@ -71,3 +71,23 @@ namespace Orbit::Control
   }
 
 }    // namespace Orbit::Control
+
+
+
+
+/*
+Notes and Ideas:
+
+- Dynamically adjust the PWM slicing frequency based on the system input voltage. This drives the theoretical maximum
+  performance of the current controller. Can optimize for power dissipation or complete sine wave approximation. Could use
+  sine wave control at lower speeds and then move into coarser control as speed increases.
+
+    - System kV estimator (drives predictions of ISR limits)
+    - Programmable kV "hint"
+    - Measure runtime ISR speed and adjust sine approximation based on real performance limits.
+
+  Ideally this will extend the control range of the ESC to very high kV/battery systems while also achieving the efficiency
+  of sinusoidal drives.
+
+    - Limiting factors will be overall system bandwidth. Acceleration may be a problem.
+*/
