@@ -61,7 +61,7 @@ namespace Orbit::Control
     mPrvState.adc_samples[ 0 ] = isr.samples[ 0 ];
     mPrvState.adc_samples[ 1 ] = isr.samples[ 1 ];
     mPrvState.adc_samples[ 2 ] = isr.samples[ 2 ];
-    mPrvState.adc_samples[ 3 ] = isr.samples[ 3 ];
+    //mPrvState.adc_samples[ 3 ] = isr.samples[ 3 ];
 
   }
 

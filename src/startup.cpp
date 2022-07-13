@@ -14,6 +14,7 @@ Includes
 #include <Chimera/common>
 #include <Chimera/thread>
 #include <src/core/tasks.hpp>
+#include <Thor/lld/common/cortex-m4/debug.hpp>
 
 #if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
 #include "SEGGER_SYSVIEW.h"
@@ -51,6 +52,8 @@ Public Functions
 -----------------------------------------------------------------------------*/
 int main()
 {
+  CortexM4::Debug::enableCounter();
+
   /*---------------------------------------------------------------------------
   Perform peripheral driver system initialization
   ---------------------------------------------------------------------------*/
