@@ -72,7 +72,7 @@ namespace Orbit::Control
     };
 
     Chimera::ADC::Driver_rPtr mADCDriver;
-    Chimera::Timer::TriPhasePWM::Driver mTimerDriver;
+    Chimera::Timer::Inverter::Driver mTimerDriver;
 
     InternalState mPrvState;
   };
