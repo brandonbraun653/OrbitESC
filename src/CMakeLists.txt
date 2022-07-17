@@ -25,7 +25,7 @@ gen_intf_lib_variants(
     thor_hld_interrupt_rel
     thor_hld_spi_rel
     thor_hld_system_rel
-    thor_hld_timer_rel
+    thor_hld_timer_dbg
     thor_hld_uart_rel
     thor_hld_usart_rel
     thor_hld_usb_rel
@@ -40,7 +40,7 @@ gen_intf_lib_variants(
     thor_lld_intf_rcc_rel
     thor_lld_intf_spi_rel
     thor_lld_intf_sys_rel
-    thor_lld_intf_timer_rel
+    thor_lld_intf_timer_dbg
     thor_lld_intf_usart_rel
     thor_lld_intf_usb_rel
     thor_lld_intf_watchdog_rel
@@ -113,7 +113,7 @@ target_link_libraries(OrbitESC PRIVATE
   lib_orbit_tasks
 
   # Submodule Libraries
-  chimera_core_rel
+  chimera_core_dbg
   aurora_libs_rel
 
   # Target Properties

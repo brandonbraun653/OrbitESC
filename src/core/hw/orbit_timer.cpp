@@ -116,14 +116,15 @@ namespace Orbit::TIMER
     -------------------------------------------------------------------------*/
     Chimera::Timer::PWM::DriverConfig pwm_cfg;
     pwm_cfg.clear();
-    pwm_cfg.polarity               = Chimera::Timer::PWM::Polarity::ACTIVE_HIGH;
-    pwm_cfg.safeIOLevel            = Chimera::GPIO::State::HIGH;
-    pwm_cfg.coreCfg.instance       = Chimera::Timer::Instance::TIMER16;
-    pwm_cfg.coreCfg.baseFreq       = 1'000'000.0f;
-    pwm_cfg.coreCfg.clockSource    = Chimera::Clock::Bus::SYSCLK;
-    pwm_cfg.outputChannel          = Chimera::Timer::Channel::CHANNEL_1;
-    pwm_cfg.dutyCycle              = 50.0f;
-    pwm_cfg.frequency              = 10000.0f;
+    pwm_cfg.polarity            = Chimera::Timer::PWM::Polarity::ACTIVE_HIGH;
+    pwm_cfg.safeIOLevel         = Chimera::GPIO::State::HIGH;
+    pwm_cfg.coreCfg.instance    = Chimera::Timer::Instance::TIMER16;
+    pwm_cfg.coreCfg.baseFreq    = 1'000'000.0f;
+    pwm_cfg.coreCfg.clockSource = Chimera::Clock::Bus::SYSCLK;
+    pwm_cfg.channel             = Chimera::Timer::Channel::CHANNEL_1;
+    pwm_cfg.output              = Chimera::Timer::Output::OUTPUT_1P;
+    pwm_cfg.dutyCycle           = 50.0f;
+    pwm_cfg.frequency           = 10000.0f;
 
     RT_HARD_ASSERT( Chimera::Status::OK == PWMDriver.init( pwm_cfg ) );
     PWMDriver.enableOutput();
