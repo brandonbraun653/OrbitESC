@@ -106,9 +106,8 @@ namespace Orbit::ADC
     seq.numChannels = 4;
     seq.seqMode     = Chimera::ADC::SamplingMode::TRIGGER;
     seq.trigMode    = Chimera::ADC::TriggerMode::RISING_EDGE;
-    seq.trigChannel = 14; // Regular channel, TIM15_TRGO0
-    // seq.trigMode    = Chimera::ADC::TriggerMode::RISING_EDGE;
-    // seq.trigChannel = 10; // Regular channel, TIM1_TRGO2
+    // seq.trigChannel = 14; // Regular channel, TIM15_TRGO0
+    seq.trigChannel = 10; // Regular channel, TIM1_TRGO2
 
     RT_HARD_ASSERT( Chimera::Status::OK == adc->configSequence( seq ) );
 

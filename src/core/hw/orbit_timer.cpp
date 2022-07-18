@@ -48,7 +48,7 @@ namespace Orbit::TIMER
                               .validity  = true },
                             { // Inverter High Side Phase A
                               .alternate = Chimera::GPIO::Alternate::TIM1_CH1,
-                              .drive     = Chimera::GPIO::Drive::OUTPUT_PUSH_PULL,
+                              .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
                               .pin       = IO::Timer::pinT1Ch1,
                               .port      = IO::Timer::portT1Ch1,
                               .pull      = Chimera::GPIO::Pull::PULL_DN,
@@ -57,7 +57,7 @@ namespace Orbit::TIMER
                               .validity  = true },
                             { // Inverter High Side Phase B
                               .alternate = Chimera::GPIO::Alternate::TIM1_CH2,
-                              .drive     = Chimera::GPIO::Drive::OUTPUT_PUSH_PULL,
+                              .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
                               .pin       = IO::Timer::pinT1Ch2,
                               .port      = IO::Timer::portT1Ch2,
                               .pull      = Chimera::GPIO::Pull::PULL_DN,
@@ -66,7 +66,7 @@ namespace Orbit::TIMER
                               .validity  = true },
                             { // Inverter High Side Phase C
                               .alternate = Chimera::GPIO::Alternate::TIM1_CH3,
-                              .drive     = Chimera::GPIO::Drive::OUTPUT_PUSH_PULL,
+                              .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
                               .pin       = IO::Timer::pinT1Ch3,
                               .port      = IO::Timer::portT1Ch3,
                               .pull      = Chimera::GPIO::Pull::PULL_DN,
@@ -75,7 +75,7 @@ namespace Orbit::TIMER
                               .validity  = true },
                             { // Inverter Low Side Phase A
                               .alternate = Chimera::GPIO::Alternate::TIM1_CH1N,
-                              .drive     = Chimera::GPIO::Drive::OUTPUT_PUSH_PULL,
+                              .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
                               .pin       = IO::Timer::pinT1Ch1N,
                               .port      = IO::Timer::portT1Ch1N,
                               .pull      = Chimera::GPIO::Pull::PULL_DN,
@@ -84,7 +84,7 @@ namespace Orbit::TIMER
                               .validity  = true },
                             { // Inverter Low Side Phase B
                               .alternate = Chimera::GPIO::Alternate::TIM1_CH2N,
-                              .drive     = Chimera::GPIO::Drive::OUTPUT_PUSH_PULL,
+                              .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
                               .pin       = IO::Timer::pinT1Ch2N,
                               .port      = IO::Timer::portT1Ch2N,
                               .pull      = Chimera::GPIO::Pull::PULL_DN,
@@ -93,7 +93,7 @@ namespace Orbit::TIMER
                               .validity  = true },
                             { // Inverter Low Side Phase C
                               .alternate = Chimera::GPIO::Alternate::TIM1_CH3N,
-                              .drive     = Chimera::GPIO::Drive::OUTPUT_PUSH_PULL,
+                              .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
                               .pin       = IO::Timer::pinT1Ch3N,
                               .port      = IO::Timer::portT1Ch3N,
                               .pull      = Chimera::GPIO::Pull::PULL_DN,

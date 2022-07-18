@@ -60,13 +60,14 @@ namespace Orbit::Control
     pwm_cfg.clear();
     pwm_cfg.coreCfg.instance    = Chimera::Timer::Instance::TIMER1;
     pwm_cfg.coreCfg.clockSource = Chimera::Clock::Bus::SYSCLK;
-    pwm_cfg.coreCfg.baseFreq    = 1'000'000.0f;
+    pwm_cfg.coreCfg.baseFreq    = 40'000'000.0f;
+    pwm_cfg.coreCfg.tolerance   = 1.0f;
     pwm_cfg.adcPeripheral       = cfg.adcSource;
     pwm_cfg.adcTriggerOffsetNs  = 50.0f;
     pwm_cfg.adcTriggerSignal    = Chimera::Timer::Trigger::Signal::TRIG_SIG_5;
     pwm_cfg.breakIOLevel        = Chimera::GPIO::State::LOW;
     pwm_cfg.deadTimeNs          = 250.0f;
-    pwm_cfg.pwmFrequency        = 40'000.0f;
+    pwm_cfg.pwmFrequency        = 12'000.0f;
 
     RT_HARD_ASSERT( Chimera::Status::OK == mTimerDriver.init( pwm_cfg ) );
 
