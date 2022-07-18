@@ -11,6 +11,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <cmath>
 #include <Chimera/adc>
 #include <src/control/foc_driver.hpp>
 #include <src/config/bsp/board_map.hpp>
@@ -80,11 +81,22 @@ namespace Orbit::Control
 
   void FOC::dma_isr_current_controller( const Chimera::ADC::InterruptDetail &isr )
   {
-    mPrvState.adc_samples[ 0 ] = isr.samples[ 0 ];
-    mPrvState.adc_samples[ 1 ] = isr.samples[ 1 ];
-    mPrvState.adc_samples[ 2 ] = isr.samples[ 2 ];
-    //mPrvState.adc_samples[ 3 ] = isr.samples[ 3 ];
+    static float a = 0.0f;
+    static float b = 0.0f;
+    static float c = 0.0f;
 
+    // mPrvState.adc_samples[ 0 ] = isr.samples[ 0 ];
+    // mPrvState.adc_samples[ 1 ] = isr.samples[ 1 ];
+    // mPrvState.adc_samples[ 2 ] = isr.samples[ 2 ];
+
+
+    mTimerDriver.setPhaseDutyCycle( ( ( sinf( a ) * 0.5 ) + 0.5f ) * 100.0f,  ( ( sinf( b ) * 0.5 ) + 0.5f ) * 100.0f,  ( ( sinf( c ) * 0.5 ) + 0.5f ) * 100.0f );
+
+    a += 0.001f;
+    if ( a == 2.0f * static_cast<float>( M_PI ) )
+    {
+      a = 0.0f;
+    }
   }
 
 
