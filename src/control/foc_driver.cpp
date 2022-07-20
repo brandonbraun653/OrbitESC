@@ -68,11 +68,11 @@ namespace Orbit::Control
     pwm_cfg.adcTriggerSignal    = Chimera::Timer::Trigger::Signal::TRIG_SIG_5;
     pwm_cfg.breakIOLevel        = Chimera::GPIO::State::LOW;
     pwm_cfg.deadTimeNs          = 250.0f;
-    pwm_cfg.pwmFrequency        = 12'000.0f;
+    pwm_cfg.pwmFrequency        = 20'000.0f;
 
     RT_HARD_ASSERT( Chimera::Status::OK == mTimerDriver.init( pwm_cfg ) );
 
-    mTimerDriver.setPhaseDutyCycle( 25.0f, 50.0f, 75.0f );
+    mTimerDriver.setPhaseDutyCycle( 10.0f, 10.0f, 10.0f );
     mTimerDriver.enableOutput();
 
     return 0;
@@ -81,21 +81,20 @@ namespace Orbit::Control
 
   void FOC::dma_isr_current_controller( const Chimera::ADC::InterruptDetail &isr )
   {
-    static float a = 0.0f;
-    static float b = 0.0f;
-    static float c = 0.0f;
+    static uint32_t cycle_count = 0;
+    static uint32_t phase       = 0;
 
-    // mPrvState.adc_samples[ 0 ] = isr.samples[ 0 ];
-    // mPrvState.adc_samples[ 1 ] = isr.samples[ 1 ];
-    // mPrvState.adc_samples[ 2 ] = isr.samples[ 2 ];
-
-
-    mTimerDriver.setPhaseDutyCycle( ( ( sinf( a ) * 0.5 ) + 0.5f ) * 100.0f,  ( ( sinf( b ) * 0.5 ) + 0.5f ) * 100.0f,  ( ( sinf( c ) * 0.5 ) + 0.5f ) * 100.0f );
-
-    a += 0.001f;
-    if ( a == 2.0f * static_cast<float>( M_PI ) )
+    cycle_count++;
+    if ( cycle_count >= 100 )
     {
-      a = 0.0f;
+      cycle_count = 0;
+      mTimerDriver.setForwardCommState( phase );
+
+      phase++;
+      if ( phase >= 6 )
+      {
+        phase = 0;
+      }
     }
   }
 
@@ -105,8 +104,6 @@ namespace Orbit::Control
   }
 
 }    // namespace Orbit::Control
-
-
 
 
 /*
