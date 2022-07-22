@@ -63,9 +63,6 @@ namespace Orbit::Boot
     timer and will continue indefinitely.
     -------------------------------------------------------------------------*/
     *( ( uint32_t * )DBGMCU_APB2FZR_ADDR ) &= ~DBGMCU_TIM1_STOP_EN;
-
-    // TODO REMOVE ME! This one stops the timer. Used for very early development with no power stage.
-    *( ( uint32_t * )DBGMCU_APB2FZR_ADDR ) |= DBGMCU_TIM15_STOP_EN;
   }
 
 
@@ -87,7 +84,7 @@ namespace Orbit::Boot
     Orbit::GPIO::powerUp();
     Orbit::I2C::powerUp();
     Orbit::TIMER::powerUp();
-    Orbit::USART::powerUp();
+    //Orbit::USART::powerUp();
   }
 
 

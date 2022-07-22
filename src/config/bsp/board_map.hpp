@@ -53,32 +53,25 @@ namespace Orbit::IO
                                                                   .validity  = false };
 
     /*-------------------------------------------------------------------------
-    Phase A
+    Phase A Current
     -------------------------------------------------------------------------*/
-    static constexpr Chimera::GPIO::Pin    pinPhaseA  = 0;
+    static constexpr Chimera::GPIO::Pin    pinPhaseA  = 3;
     static constexpr Chimera::GPIO::Port   portPhaseA = Chimera::GPIO::Port::PORTA;
-    static constexpr Chimera::ADC::Channel adcPhaseA  = Chimera::ADC::Channel::ADC_CH_5;
+    static constexpr Chimera::ADC::Channel adcPhaseA  = Chimera::ADC::Channel::ADC_CH_8;
 
     /*-------------------------------------------------------------------------
-    Phase B
+    Phase B Current
     -------------------------------------------------------------------------*/
-    static constexpr Chimera::GPIO::Pin    pinPhaseB  = 1;
+    static constexpr Chimera::GPIO::Pin    pinPhaseB  = 4;
     static constexpr Chimera::GPIO::Port   portPhaseB = Chimera::GPIO::Port::PORTA;
-    static constexpr Chimera::ADC::Channel adcPhaseB  = Chimera::ADC::Channel::ADC_CH_6;
-
-    /*-----------------------------------------------------------------------------
-    Phase C
-    -----------------------------------------------------------------------------*/
-    static constexpr Chimera::GPIO::Pin    pinPhaseC  = 4;
-    static constexpr Chimera::GPIO::Port   portPhaseC = Chimera::GPIO::Port::PORTA;
-    static constexpr Chimera::ADC::Channel adcPhaseC  = Chimera::ADC::Channel::ADC_CH_9;
+    static constexpr Chimera::ADC::Channel adcPhaseB  = Chimera::ADC::Channel::ADC_CH_9;
 
     /*-------------------------------------------------------------------------
-    Three Phase Center Tap
+    Supply Voltage
     -------------------------------------------------------------------------*/
-    static constexpr Chimera::GPIO::Pin    pinCenterTap  = 5;
-    static constexpr Chimera::GPIO::Port   portCenterTap = Chimera::GPIO::Port::PORTA;
-    static constexpr Chimera::ADC::Channel adcCenterTap  = Chimera::ADC::Channel::ADC_CH_10;
+    static constexpr Chimera::GPIO::Pin    pinVSupply  = 5;
+    static constexpr Chimera::GPIO::Port   portVSupply = Chimera::GPIO::Port::PORTA;
+    static constexpr Chimera::ADC::Channel adcVSupply  = Chimera::ADC::Channel::ADC_CH_10;
 
   }    // namespace Analog
 

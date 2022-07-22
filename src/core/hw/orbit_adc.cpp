@@ -31,7 +31,7 @@ namespace Orbit::ADC
     Chimera::GPIO::PinInit     pin_cfg;
 
     /*-------------------------------------------------------------------------
-    Phase A GPIO Config
+    Phase A Current GPIO Config
     -------------------------------------------------------------------------*/
     pin_cfg          = IO::Analog::CommonAnalogCfg;
     pin_cfg.port     = IO::Analog::portPhaseA;
@@ -42,7 +42,7 @@ namespace Orbit::ADC
     RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
 
     /*-------------------------------------------------------------------------
-    Phase B GPIO Config
+    Phase B Current GPIO Config
     -------------------------------------------------------------------------*/
     pin_cfg          = IO::Analog::CommonAnalogCfg;
     pin_cfg.port     = IO::Analog::portPhaseB;
@@ -53,22 +53,11 @@ namespace Orbit::ADC
     RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
 
     /*-------------------------------------------------------------------------
-    Phase C GPIO Config
+    Power Supply Voltage GPIO Config
     -------------------------------------------------------------------------*/
     pin_cfg          = IO::Analog::CommonAnalogCfg;
-    pin_cfg.port     = IO::Analog::portPhaseC;
-    pin_cfg.pin      = IO::Analog::pinPhaseC;
-    pin_cfg.validity = true;
-
-    gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
-    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
-
-    /*-------------------------------------------------------------------------
-    Three Phase Center Tap GPIO Config
-    -------------------------------------------------------------------------*/
-    pin_cfg          = IO::Analog::CommonAnalogCfg;
-    pin_cfg.port     = IO::Analog::portCenterTap;
-    pin_cfg.pin      = IO::Analog::pinCenterTap;
+    pin_cfg.port     = IO::Analog::portVSupply;
+    pin_cfg.pin      = IO::Analog::pinVSupply;
     pin_cfg.validity = true;
 
     gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
@@ -98,15 +87,13 @@ namespace Orbit::ADC
     /* Configure the sequence conversion */
     s_adc_channels[ 0 ] = IO::Analog::adcPhaseA;
     s_adc_channels[ 1 ] = IO::Analog::adcPhaseB;
-    s_adc_channels[ 2 ] = IO::Analog::adcPhaseC;
-    s_adc_channels[ 3 ] = IO::Analog::adcCenterTap;
+    s_adc_channels[ 2 ] = IO::Analog::adcVSupply;
 
     seq.clear();
     seq.channels    = &s_adc_channels;
-    seq.numChannels = 4;
+    seq.numChannels = 3;
     seq.seqMode     = Chimera::ADC::SamplingMode::TRIGGER;
     seq.trigMode    = Chimera::ADC::TriggerMode::RISING_EDGE;
-    // seq.trigChannel = 14; // Regular channel, TIM15_TRGO0
     seq.trigChannel = 10; // Regular channel, TIM1_TRGO2
 
     RT_HARD_ASSERT( Chimera::Status::OK == adc->configSequence( seq ) );

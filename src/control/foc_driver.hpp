@@ -23,16 +23,21 @@ Includes
 namespace Orbit::Control
 {
   /*---------------------------------------------------------------------------
+  Aliases
+  ---------------------------------------------------------------------------*/
+  using fpADCCountsToVolts = float ( * )( uint16_t, float );
+
+  /*---------------------------------------------------------------------------
   Enumerations
   ---------------------------------------------------------------------------*/
-  enum class ADCChannel
+  enum ADCChannel
   {
-    MOTOR_PHASE_A_CURRENT,
-    MOTOR_PHASE_B_CURRENT,
-    MOTOR_SUPPLY_VOLTAGE,
+    ADC_CH_MOTOR_PHASE_A_CURRENT,
+    ADC_CH_MOTOR_PHASE_B_CURRENT,
+    ADC_CH_MOTOR_SUPPLY_VOLTAGE,
 
-    NUM_OPTIONS,
-    INVALID
+    ADC_CH_NUM_OPTIONS,
+    ADC_CH_INVALID
   };
 
 
@@ -41,7 +46,55 @@ namespace Orbit::Control
   ---------------------------------------------------------------------------*/
   struct FOCConfig
   {
-    Chimera::ADC::Peripheral adcSource;
+    Chimera::ADC::Peripheral adcSource; /**< Which ADC peripheral to use */
+
+    /*-------------------------------------------------------------------------
+    Constants that directly convert between ADC least significant bit voltages
+    and the associated SI units.
+    -------------------------------------------------------------------------*/
+    fpADCCountsToVolts phaseACurrentConv; /**< ADC counts -> Amperes for phase A */
+    fpADCCountsToVolts phaseBCurrentConv; /**< ADC counts -> Amperes for phase B */
+    fpADCCountsToVolts supplyVoltageConv; /**< ADC counts -> Volts for power supply */
+
+    void clear()
+    {
+      adcSource         = Chimera::ADC::Peripheral::UNKNOWN;
+      phaseACurrentConv = nullptr;
+      phaseBCurrentConv = nullptr;
+      supplyVoltageConv = nullptr;
+    }
+  };
+
+
+  struct ADCData
+  {
+    float phaseACurrent; /**< Phase A current in Amps */
+    float phaseBCurrent; /**< Phase B current in Amps */
+    float supplyVoltage; /**< Supply voltage in Volts */
+
+    void clear()
+    {
+      phaseACurrent = 0.0f;
+      phaseBCurrent = 0.0f;
+      supplyVoltage = 0.0f;
+    }
+  };
+
+
+  struct InternalState
+  {
+    ADCData adcData;
+    float   adcDCOffsets[ ADC_CH_NUM_OPTIONS ];
+
+    void clear()
+    {
+      adcData.clear();
+
+      for ( auto i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
+      {
+        adcDCOffsets[ i ] = 0.0f;
+      }
+    }
   };
 
   /*---------------------------------------------------------------------------
@@ -61,21 +114,24 @@ namespace Orbit::Control
 
     int setSpeedRef( const float ref );
 
+    /**
+     * @brief Gets the last data collected from the ADC
+     *
+     * @param data  The data to fill with the last ADC data
+     */
+    void lastADCData( ADCData &data );
+
   protected:
     void dma_isr_current_controller( const Chimera::ADC::InterruptDetail &isr );
     void timer_isr_speed_controller();
 
   private:
-    struct InternalState
-    {
-      uint16_t adc_samples[ EnumValue( ADCChannel::NUM_OPTIONS ) ];
-    };
-
-    Chimera::ADC::Driver_rPtr mADCDriver;
+    Chimera::ADC::Driver_rPtr        mADCDriver;
     Chimera::Timer::Inverter::Driver mTimerDriver;
 
     InternalState mPrvState;
+    FOCConfig     mConfig;
   };
-}  // namespace Orbit::FOC
+}    // namespace Orbit::Control
 
-#endif  /* !ORBIT_ESC_FOC_CONTROL_HPP */
+#endif /* !ORBIT_ESC_FOC_CONTROL_HPP */

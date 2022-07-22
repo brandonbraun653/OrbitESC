@@ -23,7 +23,6 @@ namespace Orbit::Control
   ---------------------------------------------------------------------------*/
   FOC::FOC()
   {
-    memset( &mPrvState, 0, sizeof( mPrvState ) );
   }
 
   FOC::~FOC()
@@ -34,16 +33,21 @@ namespace Orbit::Control
 
   int FOC::initialize( const FOCConfig &cfg )
   {
-    /*
-    Assumes a few things are set up:
-      - ADC/Timer/DMA are configured to always run on debugger connection
-      - HW fully initialized
-      - Interrupt priorities are set properly
+    /*-------------------------------------------------------------------------
+    Validate the configuration
+    -------------------------------------------------------------------------*/
+    if( !cfg.phaseACurrentConv || !cfg.phaseBCurrentConv || !cfg.supplyVoltageConv )
+    {
+      return -1;
+    }
 
-    Things To Do:
-      - Use local memory for the ADC DMA transfer. Don't want to look up from a queue in an ISR.
-      - Set up ISRs for execution with DMA EOT and periodic Timer events.
-    */
+    /*-------------------------------------------------------------------------
+    Initialize the FOC state
+    -------------------------------------------------------------------------*/
+    mPrvState.clear();
+    mConfig.clear();
+
+    mConfig = cfg;
 
     /*-------------------------------------------------------------------------
     Link the ADC's DMA end-of-transfer interrupt to this class's ISR handler
@@ -52,6 +56,17 @@ namespace Orbit::Control
 
     mADCDriver = Chimera::ADC::getDriver( cfg.adcSource );
     mADCDriver->onInterrupt( Chimera::ADC::Interrupt::EOC_SEQUENCE, callback );
+
+    /*-------------------------------------------------------------------------
+    Get the DC offset of current shunt resistors when the motor is at rest
+    -------------------------------------------------------------------------*/
+    Chimera::ADC::Sample sample;
+
+    sample = mADCDriver->sampleChannel( Orbit::IO::Analog::adcPhaseA );
+    mPrvState.adcDCOffsets[ ADC_CH_MOTOR_PHASE_A_CURRENT ] = mADCDriver->toVoltage( sample );
+
+    sample = mADCDriver->sampleChannel( Orbit::IO::Analog::adcPhaseB );
+    mPrvState.adcDCOffsets[ ADC_CH_MOTOR_PHASE_B_CURRENT ] = mADCDriver->toVoltage( sample );
 
     /*-------------------------------------------------------------------------
     Configure the Advanced Timer for center-aligned 3-phase PWM
@@ -68,7 +83,7 @@ namespace Orbit::Control
     pwm_cfg.adcTriggerSignal    = Chimera::Timer::Trigger::Signal::TRIG_SIG_5;
     pwm_cfg.breakIOLevel        = Chimera::GPIO::State::LOW;
     pwm_cfg.deadTimeNs          = 250.0f;
-    pwm_cfg.pwmFrequency        = 20'000.0f;
+    pwm_cfg.pwmFrequency        = 24'000.0f;
 
     RT_HARD_ASSERT( Chimera::Status::OK == mTimerDriver.init( pwm_cfg ) );
 
@@ -81,6 +96,19 @@ namespace Orbit::Control
 
   void FOC::dma_isr_current_controller( const Chimera::ADC::InterruptDetail &isr )
   {
+    /*-------------------------------------------------------------------------
+    Convert ADC counts into the associated measured signals
+    -------------------------------------------------------------------------*/
+    mPrvState.adcData.phaseACurrent = mConfig.phaseACurrentConv( isr.samples[ ADC_CH_MOTOR_PHASE_A_CURRENT ],
+                                                                 mPrvState.adcDCOffsets[ ADC_CH_MOTOR_PHASE_A_CURRENT ] );
+    mPrvState.adcData.phaseBCurrent = mConfig.phaseBCurrentConv( isr.samples[ ADC_CH_MOTOR_PHASE_B_CURRENT ],
+                                                                 mPrvState.adcDCOffsets[ ADC_CH_MOTOR_PHASE_B_CURRENT ] );
+    mPrvState.adcData.supplyVoltage = mConfig.supplyVoltageConv( isr.samples[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ],
+                                                                 mPrvState.adcDCOffsets[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ] );
+
+    /*-------------------------------------------------------------------------
+    Update commutation for testing
+    -------------------------------------------------------------------------*/
     static uint32_t cycle_count = 0;
     static uint32_t phase       = 0;
 

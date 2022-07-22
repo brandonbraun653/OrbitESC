@@ -50,32 +50,6 @@ namespace Orbit::ADC
     /*-------------------------------------------------------------------------
     Pull the latest data off the bus
     -------------------------------------------------------------------------*/
-    Chimera::ADC::Sample raw_sample;
-    float voltage = 0.0f;
-
-    if( s_adc_driver->nextSeqSample( IO::Analog::adcPhaseA, raw_sample ) )
-    {
-      voltage = s_adc_driver->toVoltage( raw_sample );
-      LOG_INFO( "Phase A: %fv\r\n", voltage );
-    }
-
-    if( s_adc_driver->nextSeqSample( IO::Analog::adcPhaseB, raw_sample ) )
-    {
-      voltage = s_adc_driver->toVoltage( raw_sample );
-      LOG_INFO( "Phase B: %1.3fv\r\n", voltage );
-    }
-
-    if( s_adc_driver->nextSeqSample( IO::Analog::adcPhaseC, raw_sample ) )
-    {
-      voltage = s_adc_driver->toVoltage( raw_sample );
-      LOG_INFO( "Phase C: %1.3fv\r\n", voltage );
-    }
-
-    if( s_adc_driver->nextSeqSample( IO::Analog::adcCenterTap, raw_sample ) )
-    {
-      voltage = s_adc_driver->toVoltage( raw_sample );
-      LOG_INFO( "Phase CT: %1.3fv\r\n", voltage );
-    }
   }
 
 }  // namespace Orbit::ADC
