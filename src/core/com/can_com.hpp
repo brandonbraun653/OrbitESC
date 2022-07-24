@@ -24,24 +24,6 @@ Includes
 
 namespace Orbit::CAN
 {
-  /*---------------------------------------------------------------------------
-  Enumerations
-  ---------------------------------------------------------------------------*/
-  /**
-   * @brief Unique ID for a node in the ESC system
-   */
-  enum class NodeId : uint8_t
-  {
-    NODE_0,
-    NODE_1,
-    NODE_2,
-    NODE_3,
-    NODE_4,
-    NODE_5,
-    NODE_PC,
-
-    NUM_SUPPORTED_NODES
-  };
 
   /*---------------------------------------------------------------------------
   Structures
@@ -85,56 +67,6 @@ namespace Orbit::CAN
   /*---------------------------------------------------------------------------
   Message Data
   ---------------------------------------------------------------------------*/
-  namespace Message
-  {
-    enum _Number : uint8_t
-    {
-      /*-----------------------------------------------------------------------
-      Periodic Messages (Must go first)
-      -----------------------------------------------------------------------*/
-      MSG_PERIODIC_START = 0,
-      MSG_SYSTEM_TICK    = MSG_PERIODIC_START,
-
-      // Add more periodic messages here. Update "END" enum.
-      MSG_PERIODIC_END,
-
-      /*-----------------------------------------------------------------------
-      Async Messages
-      -----------------------------------------------------------------------*/
-      MSG_ASYNC_START = MSG_PERIODIC_END,
-      MSG_PING        = MSG_ASYNC_START,
-
-      // Add more async messages here. Update "END" enum.
-      MSG_ASYNC_END,
-
-      /*-----------------------------------------------------------------------
-      Summary of enumerated values
-      -----------------------------------------------------------------------*/
-      MSG_INVALID,
-      NUM_SUPPORTED_MSG = MSG_ASYNC_END,
-      NUM_PERIODIC_MSG  = MSG_PERIODIC_END - MSG_PERIODIC_START,
-      NUM_ASYNC_MSG     = MSG_ASYNC_END - MSG_ASYNC_START
-    };
-
-    /*-------------------------------------------------------------------------
-    Type Declarations
-    -------------------------------------------------------------------------*/
-    using SystemTick = MessageDefinition<_Internal::PLSystemTick, MSG_SYSTEM_TICK, 0x15, 1000>;
-    using Ping       = MessageDefinition<_Internal::PLPing, MSG_PING, 0x10>;
-
-    /*-------------------------------------------------------------------------
-    Public Functions
-    -------------------------------------------------------------------------*/
-    static constexpr uint8_t periodicOffset( const uint8_t x )
-    {
-      return ( ( x >= MSG_PERIODIC_END ) || ( x < MSG_PERIODIC_START ) ) ? MSG_INVALID : ( x - MSG_PERIODIC_START );
-    }
-
-    static constexpr uint8_t asyncOffset( const uint8_t x )
-    {
-      return ( ( x >= MSG_ASYNC_END ) || ( x < MSG_ASYNC_START ) ) ? MSG_INVALID : ( x - MSG_ASYNC_START );
-    }
-  }    // namespace Message
 
 
   /*---------------------------------------------------------------------------
