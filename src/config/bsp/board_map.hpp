@@ -16,6 +16,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/adc>
+#include <Chimera/can>
 #include <Chimera/exti>
 #include <Chimera/gpio>
 #include <Chimera/i2c>
@@ -78,6 +79,8 @@ namespace Orbit::IO
 
   namespace CAN
   {
+    static constexpr Chimera::CAN::Channel channel = Chimera::CAN::Channel::CAN0;
+
     /*-----------------------------------------------------------------------------
     GPIO
     -----------------------------------------------------------------------------*/

@@ -4,6 +4,6 @@ from pyorbit.messages import NodeID
 from loguru import logger
 
 if __name__ == "__main__":
-    esc = OrbitESC(can_device="can0", bit_rate=100000)
+    esc = OrbitESC(can_device="can0", bit_rate=1000000)
     esc.connect(node_id=NodeID.NODE_0)
     esc.shutdown()

@@ -16,7 +16,6 @@ Includes
 #include <Chimera/gpio>
 #include <src/core/hw/orbit_can.hpp>
 #include <src/config/bsp/board_map.hpp>
-#include <src/core/com/can_com.hpp>
 
 
 namespace Orbit::CAN
@@ -36,6 +35,10 @@ namespace Orbit::CAN
   static Chimera::CAN::BasicFrame s_tx_frame_buffer[ CAN_FRAME_BUF_SIZE ];
   static Chimera::CAN::BasicFrame s_rx_frame_buffer[ CAN_FRAME_BUF_SIZE ];
 
+  /*---------------------------------------------------------------------------
+  Public Data
+  ---------------------------------------------------------------------------*/
+  Chimera::CAN::Driver_rPtr CANDriver;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -43,7 +46,6 @@ namespace Orbit::CAN
   void powerUp()
   {
     Chimera::GPIO::Driver_rPtr pin = nullptr;
-    Chimera::CAN::Driver_rPtr  can = nullptr;
     Chimera::CAN::DriverConfig cfg;
 
     /*-------------------------------------------------------------------------
@@ -88,15 +90,15 @@ namespace Orbit::CAN
     cfg.HWInit.rxBuffer           = s_rx_frame_buffer;
     cfg.HWInit.rxElements         = ARRAY_COUNT( s_rx_frame_buffer );
     cfg.HWInit.samplePointPercent = 0.875f;
-    cfg.HWInit.baudRate           = 100000;
+    cfg.HWInit.baudRate           = 1000000;
     cfg.HWInit.timeQuanta         = 16;
     cfg.HWInit.resyncJumpWidth    = 1;
     cfg.HWInit.maxBaudError       = 0.05;
 
-    can = Chimera::CAN::getDriver( cfg.HWInit.channel );
-    RT_HARD_ASSERT( can != nullptr );
-    RT_HARD_ASSERT( Chimera::Status::OK == can->open( cfg ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == can->filter( s_filter_list, ARRAY_COUNT( s_filter_list ) ) );
+    CANDriver = Chimera::CAN::getDriver( cfg.HWInit.channel );
+    RT_HARD_ASSERT( CANDriver != nullptr );
+    RT_HARD_ASSERT( Chimera::Status::OK == CANDriver->open( cfg ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == CANDriver->filter( s_filter_list, ARRAY_COUNT( s_filter_list ) ) );
   }
 
 }    // namespace Orbit::CAN

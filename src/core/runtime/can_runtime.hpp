@@ -16,8 +16,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/can>
-#include <src/core/com/can_com.hpp>
-
+#include <src/core/com/can_message.hpp>
 
 namespace Orbit::CAN
 {

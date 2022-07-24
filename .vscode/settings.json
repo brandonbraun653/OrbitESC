@@ -122,7 +122,11 @@
     "event": "cpp",
     "can": "cpp",
     "callback": "cpp",
-    "i2c": "cpp"
+    "i2c": "cpp",
+    "adc": "cpp",
+    "des": "cpp",
+    "startup": "cpp",
+    "usb": "cpp"
   },
   "peacock.color": "#f9e64f",
   "cSpell.words": [
@@ -159,6 +163,7 @@
     "gwin",
     "iarp",
     "igpio",
+    "imessage",
     "intf",
     "ireference",
     "ispi",
@@ -166,6 +171,7 @@
     "iwdg",
     "kbps",
     "map",
+    "millis",
     "mosi",
     "netif",
     "nlohmann",

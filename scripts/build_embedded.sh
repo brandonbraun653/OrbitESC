@@ -1,3 +1,3 @@
 ncpu=$(nproc)
-echo "Building OrbitESC with $ncpu threads"
-cmake --build ./../build --target OrbitESC -j$ncpu
+echo "Building OrbitESC"
+cmake --build ./../build --target OrbitESC -j12
