@@ -208,5 +208,18 @@
     "statusBarItem.remoteForeground": "#15202b"
   },
   "cortex-debug.variableUseNaturalFormat": false,
-  "cortex-debug.showRTOS": false
+  "cortex-debug.showRTOS": false,
+  "C_Cpp.exclusionPolicy": "checkFilesAndFolders",
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/__pycache__": true,
+    "**/.conda": true,
+    "**/build": true,
+    "**/.idea": true,
+  }
 }

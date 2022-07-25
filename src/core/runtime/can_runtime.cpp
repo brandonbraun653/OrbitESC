@@ -38,7 +38,8 @@ namespace Orbit::CAN
   /*---------------------------------------------------------------------------
   Periodic Message Declarations
   ---------------------------------------------------------------------------*/
-  static Message::SystemTick s_msg_system_tick;
+  static Message::SystemTick         s_msg_system_tick;
+  static Message::PowerSupplyVoltage s_msg_power_supply_voltage;
 
   /*---------------------------------------------------------------------------
   Router Declarations
@@ -84,8 +85,14 @@ namespace Orbit::CAN
     Register update functions for periodic messages
     -------------------------------------------------------------------------*/
     /* System Tick */
-    auto func = Chimera::Function::Opaque::create<Message::SystemTick, &Message::SystemTick::update>( s_msg_system_tick );
-    s_can_server.registerPeriodic( func, s_msg_system_tick.period() );
+    auto sys_tick_func =
+        Chimera::Function::Opaque::create<Message::SystemTick, &Message::SystemTick::update>( s_msg_system_tick );
+    s_can_server.registerPeriodic( sys_tick_func, s_msg_system_tick.period() );
+
+    /* Power Supply Voltage */
+    auto pwr_supply_func = Chimera::Function::Opaque::create<Message::PowerSupplyVoltage, &Message::PowerSupplyVoltage::update>(
+        s_msg_power_supply_voltage );
+    s_can_server.registerPeriodic( pwr_supply_func, s_msg_power_supply_voltage.period() );
 
     /*-------------------------------------------------------------------------
     Register the routers

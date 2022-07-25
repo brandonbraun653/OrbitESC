@@ -87,3 +87,10 @@ class SystemTick(BaseMessage):
                 ("tick", c_uint32)]
     _period_ = 1000
     _id_ = 0x15
+
+
+class PowerSupplyVoltage(BaseMessage):
+    _fields_ = [("hdr", SystemID),
+                ("vdd", c_uint32)]
+    _period_ = 100
+    _id_ = 0x20

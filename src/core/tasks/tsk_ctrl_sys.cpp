@@ -20,11 +20,6 @@ Includes
 namespace Orbit::Tasks::CTRLSYS
 {
   /*---------------------------------------------------------------------------
-  Constants
-  ---------------------------------------------------------------------------*/
-
-
-  /*---------------------------------------------------------------------------
   Static Functions
   ---------------------------------------------------------------------------*/
   /**
@@ -84,7 +79,6 @@ namespace Orbit::Tasks::CTRLSYS
     /*-------------------------------------------------------------------------
     Initialize the CTRLSYS drivers
     -------------------------------------------------------------------------*/
-    Orbit::Control::FOC foc;
     Orbit::Control::FOCConfig cfg;
 
     cfg.supplyVoltageConv = adcCountsToDCBusVoltage;
@@ -94,7 +88,7 @@ namespace Orbit::Tasks::CTRLSYS
 
     cfg.adcSource = Chimera::ADC::Peripheral::ADC_0;
 
-    foc.initialize( cfg );
+    Orbit::Control::FOCDriver.initialize( cfg );
 
     /*-------------------------------------------------------------------------
     Run the CTRLSYS thread

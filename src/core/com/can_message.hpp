@@ -26,6 +26,8 @@ namespace Orbit::CAN::Message
   {
     MSG_SYSTEM_TICK = 0x15,
     MSG_PING        = 0x10,
+
+    MSG_ADC_VDD   = 0x20,
   };
 
 
@@ -64,6 +66,22 @@ namespace Orbit::CAN::Message
   };
 
 
+  /**
+   * @brief ADC power supply voltage reading
+   */
+  class PowerSupplyVoltage : public Attributes<PowerSupplyVoltage, MSG_ADC_VDD, 100>
+  {
+  public:
+    __packed_struct Payload
+    {
+      Header   hdr; /**< Message Header */
+      uint32_t vdd; /**< Voltage in microvolts */
+    }
+    payload;
+
+    void update() final override;
+  };
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
@@ -85,7 +103,7 @@ namespace Orbit::CAN::Message
 
   static constexpr size_t numPeriodicMessageTypes()
   {
-    return calcPeriodicMessageTypes<Ping, SystemTick>();
+    return calcPeriodicMessageTypes<Ping, SystemTick, PowerSupplyVoltage>();
   }
 
 }    // namespace Orbit::CAN::Message

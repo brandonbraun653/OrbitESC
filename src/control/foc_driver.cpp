@@ -19,6 +19,11 @@ Includes
 namespace Orbit::Control
 {
   /*---------------------------------------------------------------------------
+  Public Data
+  ---------------------------------------------------------------------------*/
+  FOC FOCDriver;
+
+  /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
   FOC::FOC()
@@ -91,6 +96,12 @@ namespace Orbit::Control
     mTimerDriver.enableOutput();
 
     return 0;
+  }
+
+
+  void FOC::lastADCData( ADCData &data )
+  {
+    data = mPrvState.adcData;
   }
 
 
