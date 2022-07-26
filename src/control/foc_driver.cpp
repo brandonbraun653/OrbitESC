@@ -107,15 +107,17 @@ namespace Orbit::Control
 
   void FOC::dma_isr_current_controller( const Chimera::ADC::InterruptDetail &isr )
   {
+    // Need to sanitize the ADC data and account for offsets
+
     /*-------------------------------------------------------------------------
     Convert ADC counts into the associated measured signals
     -------------------------------------------------------------------------*/
-    mPrvState.adcData.phaseACurrent = mConfig.phaseACurrentConv( isr.samples[ ADC_CH_MOTOR_PHASE_A_CURRENT ],
-                                                                 mPrvState.adcDCOffsets[ ADC_CH_MOTOR_PHASE_A_CURRENT ] );
-    mPrvState.adcData.phaseBCurrent = mConfig.phaseBCurrentConv( isr.samples[ ADC_CH_MOTOR_PHASE_B_CURRENT ],
-                                                                 mPrvState.adcDCOffsets[ ADC_CH_MOTOR_PHASE_B_CURRENT ] );
-    mPrvState.adcData.supplyVoltage = mConfig.supplyVoltageConv( isr.samples[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ],
-                                                                 mPrvState.adcDCOffsets[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ] );
+    // mPrvState.adcData.phaseACurrent = mConfig.phaseACurrentConv( isr.samples[ ADC_CH_MOTOR_PHASE_A_CURRENT ],
+    //                                                              mPrvState.adcDCOffsets[ ADC_CH_MOTOR_PHASE_A_CURRENT ] );
+    // mPrvState.adcData.phaseBCurrent = mConfig.phaseBCurrentConv( isr.samples[ ADC_CH_MOTOR_PHASE_B_CURRENT ],
+    //                                                              mPrvState.adcDCOffsets[ ADC_CH_MOTOR_PHASE_B_CURRENT ] );
+    // mPrvState.adcData.supplyVoltage = mConfig.supplyVoltageConv( isr.samples[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ],
+    //                                                              mPrvState.adcDCOffsets[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ] );
 
     /*-------------------------------------------------------------------------
     Update commutation for testing

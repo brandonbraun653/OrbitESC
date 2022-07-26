@@ -35,7 +35,13 @@ namespace Orbit::Control
   /*---------------------------------------------------------------------------
   Aliases
   ---------------------------------------------------------------------------*/
-  using fpADCCountsToVolts = float ( * )( uint16_t, float );
+  /**
+   * @brief Function signature for a transfer function to convert ADC values to useful
+   *
+   * @param[in] vin   Input voltage measured by the ADC
+   * @return float    Output value of an arbitrary unit
+   */
+  using ADCTxfrFunc = float ( * )( float vin );
 
 
   /*---------------------------------------------------------------------------
@@ -63,9 +69,9 @@ namespace Orbit::Control
     Constants that directly convert between ADC least significant bit voltages
     and the associated SI units.
     -------------------------------------------------------------------------*/
-    fpADCCountsToVolts phaseACurrentConv; /**< ADC counts -> Amperes for phase A */
-    fpADCCountsToVolts phaseBCurrentConv; /**< ADC counts -> Amperes for phase B */
-    fpADCCountsToVolts supplyVoltageConv; /**< ADC counts -> Volts for power supply */
+    ADCTxfrFunc phaseACurrentConv; /**< ADC counts -> Amperes for phase A */
+    ADCTxfrFunc phaseBCurrentConv; /**< ADC counts -> Amperes for phase B */
+    ADCTxfrFunc supplyVoltageConv; /**< ADC counts -> Volts for power supply */
 
     void clear()
     {
