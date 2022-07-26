@@ -126,7 +126,8 @@
     "adc": "cpp",
     "des": "cpp",
     "startup": "cpp",
-    "usb": "cpp"
+    "usb": "cpp",
+    "assert": "cpp"
   },
   "peacock.color": "#f9e64f",
   "cSpell.words": [
