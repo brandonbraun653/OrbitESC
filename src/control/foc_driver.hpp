@@ -15,6 +15,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <array>
 #include <cstdint>
 #include <Chimera/common>
 #include <Chimera/adc>
@@ -43,7 +44,6 @@ namespace Orbit::Control
    */
   using ADCTxfrFunc = float ( * )( float vin );
 
-
   /*---------------------------------------------------------------------------
   Enumerations
   ---------------------------------------------------------------------------*/
@@ -63,53 +63,45 @@ namespace Orbit::Control
   ---------------------------------------------------------------------------*/
   struct FOCConfig
   {
-    Chimera::ADC::Peripheral adcSource; /**< Which ADC peripheral to use */
-
-    /*-------------------------------------------------------------------------
-    Constants that directly convert between ADC least significant bit voltages
-    and the associated SI units.
-    -------------------------------------------------------------------------*/
-    ADCTxfrFunc phaseACurrentConv; /**< ADC counts -> Amperes for phase A */
-    ADCTxfrFunc phaseBCurrentConv; /**< ADC counts -> Amperes for phase B */
-    ADCTxfrFunc supplyVoltageConv; /**< ADC counts -> Volts for power supply */
+    Chimera::ADC::Peripheral                    adcSource; /**< Which ADC peripheral to use */
+    std::array<ADCTxfrFunc, ADC_CH_NUM_OPTIONS> txfrFuncs; /**< Conversion functions for each ADC channel */
 
     void clear()
     {
-      adcSource         = Chimera::ADC::Peripheral::UNKNOWN;
-      phaseACurrentConv = nullptr;
-      phaseBCurrentConv = nullptr;
-      supplyVoltageConv = nullptr;
+      adcSource = Chimera::ADC::Peripheral::UNKNOWN;
+      txfrFuncs.fill( nullptr );
     }
   };
 
 
-  struct ADCData
+  struct ADCSensorData
   {
-    float phaseACurrent; /**< Phase A current in Amps */
-    float phaseBCurrent; /**< Phase B current in Amps */
-    float supplyVoltage; /**< Supply voltage in Volts */
+    float    measured;     /**< Raw ADC value */
+    float    converted;    /**< Converted raw value into meaningful data */
+    float    dcOffset;     /**< The DC offset of the ADC channel */
+    uint32_t sampleTimeUs; /**< The time in microseconds that the ADC sample was taken */
 
     void clear()
     {
-      phaseACurrent = 0.0f;
-      phaseBCurrent = 0.0f;
-      supplyVoltage = 0.0f;
+      measured     = 0.0f;
+      converted    = 0.0f;
+      dcOffset     = 0.0f;
+      sampleTimeUs = 0;
     }
   };
+
+  using ADCSensorBuffer = std::array<ADCSensorData, ADC_CH_NUM_OPTIONS>;
 
 
   struct InternalState
   {
-    ADCData adcData;
-    float   adcDCOffsets[ ADC_CH_NUM_OPTIONS ];
+    ADCSensorBuffer adcBuffer;
 
     void clear()
     {
-      adcData.clear();
-
-      for ( auto i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
+      for ( auto &data : adcBuffer )
       {
-        adcDCOffsets[ i ] = 0.0f;
+        data.clear();
       }
     }
   };
@@ -136,7 +128,7 @@ namespace Orbit::Control
      *
      * @param data  The data to fill with the last ADC data
      */
-    void lastADCData( ADCData &data );
+    void lastSensorData( ADCSensorBuffer &data );
 
   protected:
     void dma_isr_current_controller( const Chimera::ADC::InterruptDetail &isr );

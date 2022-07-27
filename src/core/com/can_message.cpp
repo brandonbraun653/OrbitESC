@@ -36,10 +36,10 @@ namespace Orbit::CAN::Message
   ---------------------------------------------------------------------------*/
   void PowerSupplyVoltage::update()
   {
-    Orbit::Control::ADCData adc;
-    Orbit::Control::FOCDriver.lastADCData( adc );
+    Orbit::Control::ADCSensorBuffer buffer;
+    Orbit::Control::FOCDriver.lastSensorData( buffer );
 
-    payload.vdd        = static_cast<uint32_t>( adc.supplyVoltage * 1e6f );
+    payload.vdd        = static_cast<uint32_t>( buffer[ Control::ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted * 1e6f );
     payload.hdr.nodeId = thisNode();
     this->send( CANDriver );
   }

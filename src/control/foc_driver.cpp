@@ -41,9 +41,9 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Validate the configuration
     -------------------------------------------------------------------------*/
-    if( !cfg.phaseACurrentConv || !cfg.phaseBCurrentConv || !cfg.supplyVoltageConv )
+    for ( auto &txfrFunc : cfg.txfrFuncs )
     {
-      return -1;
+      RT_DBG_ASSERT( txfrFunc != nullptr );
     }
 
     /*-------------------------------------------------------------------------
@@ -68,10 +68,10 @@ namespace Orbit::Control
     Chimera::ADC::Sample sample;
 
     sample = mADCDriver->sampleChannel( Orbit::IO::Analog::adcPhaseA );
-    mPrvState.adcDCOffsets[ ADC_CH_MOTOR_PHASE_A_CURRENT ] = mADCDriver->toVoltage( sample );
+    mPrvState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].dcOffset = mADCDriver->toVoltage( sample );
 
     sample = mADCDriver->sampleChannel( Orbit::IO::Analog::adcPhaseB );
-    mPrvState.adcDCOffsets[ ADC_CH_MOTOR_PHASE_B_CURRENT ] = mADCDriver->toVoltage( sample );
+    mPrvState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].dcOffset = mADCDriver->toVoltage( sample );
 
     /*-------------------------------------------------------------------------
     Configure the Advanced Timer for center-aligned 3-phase PWM
@@ -99,25 +99,29 @@ namespace Orbit::Control
   }
 
 
-  void FOC::lastADCData( ADCData &data )
+  void FOC::lastSensorData( ADCSensorBuffer &data )
   {
-    data = mPrvState.adcData;
+    data = mPrvState.adcBuffer;
   }
 
 
   void FOC::dma_isr_current_controller( const Chimera::ADC::InterruptDetail &isr )
   {
-    // Need to sanitize the ADC data and account for offsets
+    /*-------------------------------------------------------------------------
+    Convert the ADC data to measured values
+    -------------------------------------------------------------------------*/
+    static constexpr float COUNTS_TO_VOLTS = 3.3f / 4096.0f; // Vref = 3.3V, 12-bit ADC
+
+    for( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
+    {
+      mPrvState.adcBuffer[ i ].measured  = static_cast<float>( isr.samples[ i ] ) * COUNTS_TO_VOLTS;
+      mPrvState.adcBuffer[ i ].converted = mConfig.txfrFuncs[ i ]( mPrvState.adcBuffer[ i ].measured );
+    }
 
     /*-------------------------------------------------------------------------
-    Convert ADC counts into the associated measured signals
+    Calculate flux linkage
     -------------------------------------------------------------------------*/
-    // mPrvState.adcData.phaseACurrent = mConfig.phaseACurrentConv( isr.samples[ ADC_CH_MOTOR_PHASE_A_CURRENT ],
-    //                                                              mPrvState.adcDCOffsets[ ADC_CH_MOTOR_PHASE_A_CURRENT ] );
-    // mPrvState.adcData.phaseBCurrent = mConfig.phaseBCurrentConv( isr.samples[ ADC_CH_MOTOR_PHASE_B_CURRENT ],
-    //                                                              mPrvState.adcDCOffsets[ ADC_CH_MOTOR_PHASE_B_CURRENT ] );
-    // mPrvState.adcData.supplyVoltage = mConfig.supplyVoltageConv( isr.samples[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ],
-    //                                                              mPrvState.adcDCOffsets[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ] );
+
 
     /*-------------------------------------------------------------------------
     Update commutation for testing

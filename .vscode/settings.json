@@ -127,7 +127,8 @@
     "des": "cpp",
     "startup": "cpp",
     "usb": "cpp",
-    "assert": "cpp"
+    "assert": "cpp",
+    "csetjmp": "cpp"
   },
   "peacock.color": "#f9e64f",
   "cSpell.words": [
