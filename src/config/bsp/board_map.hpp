@@ -91,7 +91,7 @@ namespace Orbit::IO
   }    // namespace CAN
 
 
-  namespace DBG
+  namespace USART
   {
     /*-------------------------------------------------------------------------
     Serial
@@ -112,7 +112,7 @@ namespace Orbit::IO
     extern const Chimera::Serial::Config comConfig;
     extern const Chimera::GPIO::PinInit  txPinInit;
     extern const Chimera::GPIO::PinInit  rxPinInit;
-  }    // namespace DBG
+  }    // namespace USART
 
 
   namespace I2C

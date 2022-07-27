@@ -137,6 +137,7 @@ namespace Orbit::Control
   private:
     Chimera::ADC::Driver_rPtr        mADCDriver;
     Chimera::Timer::Inverter::Driver mTimerDriver;
+    Chimera::Timer::Trigger::Master  mSpeedCtrlTrigger;
 
     InternalState mPrvState;
     FOCConfig     mConfig;

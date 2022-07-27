@@ -24,15 +24,30 @@ namespace Orbit::CAN::Message
   ---------------------------------------------------------------------------*/
   enum Id : etl::message_id_t
   {
-    MSG_SYSTEM_TICK = 0x15,
-    MSG_PING        = 0x10,
+    /*-------------------------------------------------------------------------
+    Command and Control
+    -------------------------------------------------------------------------*/
+    MSG_PING             = 0x10,
+    MSG_ARM_DISARM_MOTOR = 0x11,
+    MSG_SET_MOTOR_SPEED  = 0x12,
+    MSG_GET_MOTOR_SPEED  = 0x13,
 
-    MSG_ADC_VDD   = 0x20,
+    /*-------------------------------------------------------------------------
+    System Data Measurements
+    -------------------------------------------------------------------------*/
+    MSG_ADC_VDD             = 0x20,
+    MSG_ADC_PHASE_A_CURRENT = 0x21,
+    MSG_ADC_PHASE_B_CURRENT = 0x22,
+
+    /*-------------------------------------------------------------------------
+    Periodic Data
+    -------------------------------------------------------------------------*/
+    MSG_SYSTEM_TICK = 0x50,
   };
 
 
   /*---------------------------------------------------------------------------
-  Message Classes
+  Asynchronous Messages
   ---------------------------------------------------------------------------*/
   /**
    * @brief Ping message to test the connection
@@ -49,6 +64,50 @@ namespace Orbit::CAN::Message
   };
 
 
+  /**
+   * @brief Arm/Disarm message to control the motor
+   */
+  class ArmDisarmMotor : public Attributes<ArmDisarmMotor, MSG_ARM_DISARM_MOTOR>
+  {
+  public:
+    __packed_struct Payload
+    {
+      Header  dst;       /**< Destination node */
+      uint8_t shouldArm; /**< Whether or not the motor should arm */
+    }
+    payload;
+  };
+
+
+  /**
+   * @brief Set the motor speed reference
+   */
+  class SetMotorSpeed : public Attributes<SetMotorSpeed, MSG_SET_MOTOR_SPEED>
+  {
+  public:
+    __packed_struct Payload
+    {
+      Header   dst;   /**< Destination node */
+      uint16_t speed; /**< Motor speed in RPM */
+    }
+    payload;
+  };
+
+
+  class GetMotorSpeed : public Attributes<GetMotorSpeed, MSG_GET_MOTOR_SPEED>
+  {
+  public:
+    __packed_struct Payload
+    {
+      Header dst; /**< Destination node */
+      Header src; /**< Source node */
+    }
+    payload;
+  };
+
+  /*---------------------------------------------------------------------------
+  Periodic TX Messages
+  ---------------------------------------------------------------------------*/
   /**
    * @brief System time of the ESC node
    */
@@ -74,8 +133,45 @@ namespace Orbit::CAN::Message
   public:
     __packed_struct Payload
     {
-      Header   hdr; /**< Message Header */
-      uint32_t vdd; /**< Voltage in microvolts */
+      Header   hdr;       /**< Message Header */
+      uint32_t timestamp; /**< Timestamp of the ADC reading in microseconds */
+      uint16_t vdd;       /**< Voltage in millivolts */
+    }
+    payload;
+
+    void update() final override;
+  };
+
+
+  /**
+   * @brief ADC phase A current reading
+   */
+  class PhaseACurrent : public Attributes<PhaseACurrent, MSG_ADC_PHASE_A_CURRENT, 100>
+  {
+  public:
+    __packed_struct Payload
+    {
+      Header   hdr;       /**< Message Header */
+      uint32_t timestamp; /**< Timestamp of the ADC reading in microseconds */
+      uint16_t current;   /**< Current in milliamps */
+    }
+    payload;
+
+    void update() final override;
+  };
+
+
+ /**
+   * @brief ADC phase B current reading
+   */
+  class PhaseBCurrent : public Attributes<PhaseBCurrent, MSG_ADC_PHASE_B_CURRENT, 100>
+  {
+  public:
+    __packed_struct Payload
+    {
+      Header   hdr;       /**< Message Header */
+      uint32_t timestamp; /**< Timestamp of the ADC reading in microseconds */
+      uint16_t current;   /**< Current in milliamps */
     }
     payload;
 

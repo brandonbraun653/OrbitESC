@@ -6,7 +6,9 @@ gen_static_lib_variants(
   SOURCES
     can_message.cpp
     can_server.cpp
+    routers/can_arm_router.cpp
     routers/can_ping_router.cpp
+    routers/can_speed_router.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc

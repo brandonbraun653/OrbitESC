@@ -24,8 +24,7 @@ namespace Orbit::TIMER
   /*---------------------------------------------------------------------------
   Public Data
   ---------------------------------------------------------------------------*/
-  Chimera::Timer::PWM::Driver PWMDriver;
-  Chimera::Timer::Trigger::Master ADCTrigger;
+  Chimera::Timer::PWM::Driver     PWMDriver;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -38,69 +37,70 @@ namespace Orbit::TIMER
     Configuration Table
     -------------------------------------------------------------------------*/
     const PinInit cfg[] = {
-                            // { // Heartbeat LED
-                            //   .alternate = Chimera::GPIO::Alternate::TIM16_CH1,
-                            //   .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
-                            //   .pin       = IO::GPIO::pinHeartbeat,
-                            //   .port      = IO::GPIO::portHeartbeat,
-                            //   .pull      = Chimera::GPIO::Pull::NO_PULL,
-                            //   .state     = Chimera::GPIO::State::LOW,
-                            //   .threaded  = true,
-                            //   .validity  = true },
-                            { // Inverter High Side Phase A
-                              .alternate = Chimera::GPIO::Alternate::TIM1_CH1,
-                              .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
-                              .pin       = IO::Timer::pinT1Ch1,
-                              .port      = IO::Timer::portT1Ch1,
-                              .pull      = Chimera::GPIO::Pull::PULL_DN,
-                              .state     = Chimera::GPIO::State::LOW,
-                              .threaded  = true,
-                              .validity  = true },
-                            { // Inverter High Side Phase B
-                              .alternate = Chimera::GPIO::Alternate::TIM1_CH2,
-                              .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
-                              .pin       = IO::Timer::pinT1Ch2,
-                              .port      = IO::Timer::portT1Ch2,
-                              .pull      = Chimera::GPIO::Pull::PULL_DN,
-                              .state     = Chimera::GPIO::State::LOW,
-                              .threaded  = true,
-                              .validity  = true },
-                            { // Inverter High Side Phase C
-                              .alternate = Chimera::GPIO::Alternate::TIM1_CH3,
-                              .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
-                              .pin       = IO::Timer::pinT1Ch3,
-                              .port      = IO::Timer::portT1Ch3,
-                              .pull      = Chimera::GPIO::Pull::PULL_DN,
-                              .state     = Chimera::GPIO::State::LOW,
-                              .threaded  = true,
-                              .validity  = true },
-                            { // Inverter Low Side Phase A
-                              .alternate = Chimera::GPIO::Alternate::TIM1_CH1N,
-                              .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
-                              .pin       = IO::Timer::pinT1Ch1N,
-                              .port      = IO::Timer::portT1Ch1N,
-                              .pull      = Chimera::GPIO::Pull::PULL_DN,
-                              .state     = Chimera::GPIO::State::LOW,
-                              .threaded  = true,
-                              .validity  = true },
-                            { // Inverter Low Side Phase B
-                              .alternate = Chimera::GPIO::Alternate::TIM1_CH2N,
-                              .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
-                              .pin       = IO::Timer::pinT1Ch2N,
-                              .port      = IO::Timer::portT1Ch2N,
-                              .pull      = Chimera::GPIO::Pull::PULL_DN,
-                              .state     = Chimera::GPIO::State::LOW,
-                              .threaded  = true,
-                              .validity  = true },
-                            { // Inverter Low Side Phase C
-                              .alternate = Chimera::GPIO::Alternate::TIM1_CH3N,
-                              .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
-                              .pin       = IO::Timer::pinT1Ch3N,
-                              .port      = IO::Timer::portT1Ch3N,
-                              .pull      = Chimera::GPIO::Pull::PULL_DN,
-                              .state     = Chimera::GPIO::State::LOW,
-                              .threaded  = true,
-                              .validity  = true }, };
+      // { // Heartbeat LED
+      //   .alternate = Chimera::GPIO::Alternate::TIM16_CH1,
+      //   .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
+      //   .pin       = IO::GPIO::pinHeartbeat,
+      //   .port      = IO::GPIO::portHeartbeat,
+      //   .pull      = Chimera::GPIO::Pull::NO_PULL,
+      //   .state     = Chimera::GPIO::State::LOW,
+      //   .threaded  = true,
+      //   .validity  = true },
+      { // Inverter High Side Phase A
+        .alternate = Chimera::GPIO::Alternate::TIM1_CH1,
+        .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
+        .pin       = IO::Timer::pinT1Ch1,
+        .port      = IO::Timer::portT1Ch1,
+        .pull      = Chimera::GPIO::Pull::PULL_DN,
+        .state     = Chimera::GPIO::State::LOW,
+        .threaded  = true,
+        .validity  = true },
+      { // Inverter High Side Phase B
+        .alternate = Chimera::GPIO::Alternate::TIM1_CH2,
+        .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
+        .pin       = IO::Timer::pinT1Ch2,
+        .port      = IO::Timer::portT1Ch2,
+        .pull      = Chimera::GPIO::Pull::PULL_DN,
+        .state     = Chimera::GPIO::State::LOW,
+        .threaded  = true,
+        .validity  = true },
+      { // Inverter High Side Phase C
+        .alternate = Chimera::GPIO::Alternate::TIM1_CH3,
+        .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
+        .pin       = IO::Timer::pinT1Ch3,
+        .port      = IO::Timer::portT1Ch3,
+        .pull      = Chimera::GPIO::Pull::PULL_DN,
+        .state     = Chimera::GPIO::State::LOW,
+        .threaded  = true,
+        .validity  = true },
+      { // Inverter Low Side Phase A
+        .alternate = Chimera::GPIO::Alternate::TIM1_CH1N,
+        .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
+        .pin       = IO::Timer::pinT1Ch1N,
+        .port      = IO::Timer::portT1Ch1N,
+        .pull      = Chimera::GPIO::Pull::PULL_DN,
+        .state     = Chimera::GPIO::State::LOW,
+        .threaded  = true,
+        .validity  = true },
+      { // Inverter Low Side Phase B
+        .alternate = Chimera::GPIO::Alternate::TIM1_CH2N,
+        .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
+        .pin       = IO::Timer::pinT1Ch2N,
+        .port      = IO::Timer::portT1Ch2N,
+        .pull      = Chimera::GPIO::Pull::PULL_DN,
+        .state     = Chimera::GPIO::State::LOW,
+        .threaded  = true,
+        .validity  = true },
+      { // Inverter Low Side Phase C
+        .alternate = Chimera::GPIO::Alternate::TIM1_CH3N,
+        .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
+        .pin       = IO::Timer::pinT1Ch3N,
+        .port      = IO::Timer::portT1Ch3N,
+        .pull      = Chimera::GPIO::Pull::PULL_DN,
+        .state     = Chimera::GPIO::State::LOW,
+        .threaded  = true,
+        .validity  = true },
+    };
 
     /*-------------------------------------------------------------------------
     Configure the GPIO
@@ -129,20 +129,6 @@ namespace Orbit::TIMER
 
     // RT_HARD_ASSERT( Chimera::Status::OK == PWMDriver.init( pwm_cfg ) );
     // PWMDriver.enableOutput();
-
-    /*-------------------------------------------------------------------------
-    Configure the ADC sample timer
-    TODO BMB: Replaced by the FOC controller?
-    -------------------------------------------------------------------------*/
-    // Chimera::Timer::Trigger::MasterConfig trig_cfg;
-    // trig_cfg.clear();
-    // trig_cfg.trigFreq               = 1000.0f;
-    // trig_cfg.coreConfig.instance    = Chimera::Timer::Instance::TIMER15;
-    // trig_cfg.coreConfig.baseFreq    = 1'000'000.0f;
-    // trig_cfg.coreConfig.clockSource = Chimera::Clock::Bus::SYSCLK;
-
-    // RT_HARD_ASSERT( Chimera::Status::OK == ADCTrigger.init( trig_cfg ) );
-    // ADCTrigger.enable();
   }
 
-}  // namespace Orbit::TIMER
+}    // namespace Orbit::TIMER

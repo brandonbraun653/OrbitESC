@@ -54,19 +54,19 @@ namespace Orbit::USART
     Configuration info for the serial object
     -------------------------------------------------------------------------*/
     IOPins pins;
-    pins.tx = IO::DBG::txPinInit;
-    pins.rx = IO::DBG::rxPinInit;
+    pins.tx = IO::USART::txPinInit;
+    pins.rx = IO::USART::rxPinInit;
 
-    Config cfg = IO::DBG::comConfig;
+    Config cfg = IO::USART::comConfig;
 
     /*-------------------------------------------------------------------------
     Create the serial object and initialize it
     -------------------------------------------------------------------------*/
     auto result = Chimera::Status::OK;
-    auto serial = Chimera::Serial::getDriver( IO::DBG::serialChannel );
+    auto serial = Chimera::Serial::getDriver( IO::USART::serialChannel );
     RT_HARD_ASSERT( serial );
 
-    result |= serial->assignHW( IO::DBG::serialChannel, pins );
+    result |= serial->assignHW( IO::USART::serialChannel, pins );
     result |= serial->configure( cfg );
     result |= serial->enableBuffering( SubPeripheral::TX, sTXCircularBuffer, sTXHWBuffer.data(), sTXHWBuffer.size() );
     result |= serial->enableBuffering( SubPeripheral::RX, sRXCircularBuffer, sRXHWBuffer.data(), sRXHWBuffer.size() );
@@ -80,7 +80,7 @@ namespace Orbit::USART
     Aurora::Logging::initialize();
     Aurora::Logging::setGlobalLogLevel( Aurora::Logging::Level::LVL_TRACE );
 
-    s_serial_sink.assignChannel( IO::DBG::serialChannel );
+    s_serial_sink.assignChannel( IO::USART::serialChannel );
     s_serial_sink.setLogLevel( Aurora::Logging::Level::LVL_TRACE );
     s_serial_sink.enable();
     s_serial_sink.setName( "HWLogger" );

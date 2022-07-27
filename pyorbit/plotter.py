@@ -125,7 +125,7 @@ class LivePlotter:
     def can_observer(self, can_msg: can.Message, timeout: bool) -> None:
         # Fill in the data
         msg = PowerSupplyVoltage().unpack(bytes(can_msg.data))
-        voltage = msg.vdd/1e6
+        voltage = msg.vdd/1e3
 
         self._accumulator.popleft()
         self._accumulator.append(voltage)

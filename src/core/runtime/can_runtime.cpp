@@ -40,11 +40,16 @@ namespace Orbit::CAN
   ---------------------------------------------------------------------------*/
   static Message::SystemTick         s_msg_system_tick;
   static Message::PowerSupplyVoltage s_msg_power_supply_voltage;
+  static Message::PhaseACurrent      s_msg_phase_a_current;
+  static Message::PhaseBCurrent      s_msg_phase_b_current;
 
   /*---------------------------------------------------------------------------
   Router Declarations
   ---------------------------------------------------------------------------*/
-  static Router::PingRouter s_ping_router;
+  static Router::PingRouter           s_ping_router;
+  static Router::ArmDisarmMotorRouter s_arm_disarm_motor_router;
+  static Router::SetMotorSpeedRouter  s_set_motor_speed_router;
+  static Router::GetMotorSpeedRouter  s_get_motor_speed_router;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -94,10 +99,23 @@ namespace Orbit::CAN
         s_msg_power_supply_voltage );
     s_can_server.registerPeriodic( pwr_supply_func, s_msg_power_supply_voltage.period() );
 
+    /* Phase A Current */
+    auto phase_a_current_func =
+        Chimera::Function::Opaque::create<Message::PhaseACurrent, &Message::PhaseACurrent::update>( s_msg_phase_a_current );
+    s_can_server.registerPeriodic( phase_a_current_func, s_msg_phase_a_current.period() );
+
+    /* Phase B Current */
+    auto phase_b_current_func =
+        Chimera::Function::Opaque::create<Message::PhaseBCurrent, &Message::PhaseBCurrent::update>( s_msg_phase_b_current );
+    s_can_server.registerPeriodic( phase_b_current_func, s_msg_phase_b_current.period() );
+
     /*-------------------------------------------------------------------------
     Register the routers
     -------------------------------------------------------------------------*/
     RT_HARD_ASSERT( s_can_server.subscribe( s_ping_router ) );
+    RT_HARD_ASSERT( s_can_server.subscribe( s_arm_disarm_motor_router ) );
+    RT_HARD_ASSERT( s_can_server.subscribe( s_set_motor_speed_router ) );
+    RT_HARD_ASSERT( s_can_server.subscribe( s_get_motor_speed_router ) );
   }
 
 

@@ -18,7 +18,7 @@ namespace Orbit::IO
   /*-------------------------------------------------------------------------------
   Debug Port
   -------------------------------------------------------------------------------*/
-  namespace DBG
+  namespace USART
   {
     const Chimera::Serial::Config comConfig = { .baud     = 115200,
                                                 .width    = Chimera::Serial::CharWid::CW_8BIT,
@@ -43,5 +43,5 @@ namespace Orbit::IO
                                                .state     = Chimera::GPIO::State::HIGH,
                                                .threaded  = false,
                                                .validity  = true };
-  }    // namespace DBG
+  }    // namespace USART
 }    // namespace Orbit::IO

@@ -86,11 +86,28 @@ class SystemTick(BaseMessage):
     _fields_ = [("src", SystemID),
                 ("tick", c_uint32)]
     _period_ = 1000
-    _id_ = 0x15
+    _id_ = 0x50
 
 
 class PowerSupplyVoltage(BaseMessage):
     _fields_ = [("hdr", SystemID),
-                ("vdd", c_uint32)]
+                ("timestamp", c_uint32),
+                ("vdd", c_uint16)]
     _period_ = 100
     _id_ = 0x20
+
+
+class PhaseACurrent(BaseMessage):
+    _fields_ = [("hdr", SystemID),
+                ("timestamp", c_uint32),
+                ("current", c_uint16)]
+    _period_ = 100
+    _id_ = 0x21
+
+
+class PhaseBCurrent(BaseMessage):
+    _fields_ = [("hdr", SystemID),
+                ("timestamp", c_uint32),
+                ("current", c_uint16)]
+    _period_ = 100
+    _id_ = 0x22

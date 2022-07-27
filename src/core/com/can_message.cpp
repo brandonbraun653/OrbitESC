@@ -30,7 +30,6 @@ namespace Orbit::CAN::Message
     this->send( CANDriver );
   }
 
-
   /*---------------------------------------------------------------------------
   Power Supply Voltage Update
   ---------------------------------------------------------------------------*/
@@ -39,8 +38,38 @@ namespace Orbit::CAN::Message
     Orbit::Control::ADCSensorBuffer buffer;
     Orbit::Control::FOCDriver.lastSensorData( buffer );
 
-    payload.vdd        = static_cast<uint32_t>( buffer[ Control::ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted * 1e6f );
+    payload.vdd        = static_cast<uint16_t>( buffer[ Control::ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted * 1e3f );
+    payload.timestamp  = buffer[ Control::ADC_CH_MOTOR_SUPPLY_VOLTAGE ].sampleTimeUs;
     payload.hdr.nodeId = thisNode();
     this->send( CANDriver );
   }
+
+  /*---------------------------------------------------------------------------
+  Phase A Current Update
+  ---------------------------------------------------------------------------*/
+  void PhaseACurrent::update()
+  {
+    Orbit::Control::ADCSensorBuffer buffer;
+    Orbit::Control::FOCDriver.lastSensorData( buffer );
+
+    payload.current    = static_cast<uint16_t>( buffer[ Control::ADC_CH_MOTOR_PHASE_A_CURRENT ].converted * 1e3f );
+    payload.timestamp  = buffer[ Control::ADC_CH_MOTOR_PHASE_A_CURRENT ].sampleTimeUs;
+    payload.hdr.nodeId = thisNode();
+    this->send( CANDriver );
+  }
+
+  /*---------------------------------------------------------------------------
+  Phase B Current Update
+  ---------------------------------------------------------------------------*/
+  void PhaseBCurrent::update()
+  {
+    Orbit::Control::ADCSensorBuffer buffer;
+    Orbit::Control::FOCDriver.lastSensorData( buffer );
+
+    payload.current    = static_cast<uint16_t>( buffer[ Control::ADC_CH_MOTOR_PHASE_B_CURRENT ].converted * 1e3f );
+    payload.timestamp  = buffer[ Control::ADC_CH_MOTOR_PHASE_B_CURRENT ].sampleTimeUs;
+    payload.hdr.nodeId = thisNode();
+    this->send( CANDriver );
+  }
+
 }    // namespace Orbit::CAN::Message

@@ -43,6 +43,7 @@ namespace Orbit::Control
     -------------------------------------------------------------------------*/
     for ( auto &txfrFunc : cfg.txfrFuncs )
     {
+      ( void )txfrFunc;
       RT_DBG_ASSERT( txfrFunc != nullptr );
     }
 
@@ -95,6 +96,22 @@ namespace Orbit::Control
     mTimerDriver.setPhaseDutyCycle( 10.0f, 10.0f, 10.0f );
     mTimerDriver.enableOutput();
 
+    /*-------------------------------------------------------------------------
+    Configure the Speed control outer loop update timer
+    -------------------------------------------------------------------------*/
+    auto isrFunc = Chimera::Function::Opaque::create<FOC, &FOC::timer_isr_speed_controller>( *this );
+
+    Chimera::Timer::Trigger::MasterConfig trig_cfg;
+    trig_cfg.clear();
+    trig_cfg.trigFreq               = 400.0f;
+    trig_cfg.coreConfig.instance    = Chimera::Timer::Instance::TIMER15;
+    trig_cfg.coreConfig.baseFreq    = 1'000'000.0f;
+    trig_cfg.coreConfig.clockSource = Chimera::Clock::Bus::SYSCLK;
+
+    RT_HARD_ASSERT( Chimera::Status::OK == mSpeedCtrlTrigger.init( trig_cfg ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == mSpeedCtrlTrigger.attachISR( isrFunc ) );
+    mSpeedCtrlTrigger.enable();
+
     return 0;
   }
 
@@ -112,10 +129,12 @@ namespace Orbit::Control
     -------------------------------------------------------------------------*/
     static constexpr float COUNTS_TO_VOLTS = 3.3f / 4096.0f; // Vref = 3.3V, 12-bit ADC
 
+    const uint32_t timestamp = Chimera::micros();
     for( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
     {
-      mPrvState.adcBuffer[ i ].measured  = static_cast<float>( isr.samples[ i ] ) * COUNTS_TO_VOLTS;
-      mPrvState.adcBuffer[ i ].converted = mConfig.txfrFuncs[ i ]( mPrvState.adcBuffer[ i ].measured );
+      mPrvState.adcBuffer[ i ].measured     = static_cast<float>( isr.samples[ i ] ) * COUNTS_TO_VOLTS;
+      mPrvState.adcBuffer[ i ].converted    = mConfig.txfrFuncs[ i ]( mPrvState.adcBuffer[ i ].measured );
+      mPrvState.adcBuffer[ i ].sampleTimeUs = timestamp;
     }
 
     /*-------------------------------------------------------------------------
