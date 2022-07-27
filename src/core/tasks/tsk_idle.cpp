@@ -38,13 +38,13 @@ namespace Orbit::Tasks::Idle
     Get the status/heartbeat pin and flash a quick boot up sequence
     -------------------------------------------------------------------------*/
     LOG_INFO( "Powering up OrbitESC\r\n" );
-    // auto pin = Chimera::GPIO::getDriver( IO::GPIO::portHeartbeat, IO::GPIO::pinHeartbeat );
-    // for ( auto x = 0; x < 8; x++ )
-    // {
-    //   pin->toggle();
-    //   Chimera::delayMilliseconds( 35 );
-    // }
-    // Chimera::delayMilliseconds( 500 );
+    auto pin = Chimera::GPIO::getDriver( IO::GPIO::portHeartbeat, IO::GPIO::pinHeartbeat );
+    for ( auto x = 0; x < 8; x++ )
+    {
+      pin->toggle();
+      Chimera::delayMilliseconds( 35 );
+    }
+    Chimera::delayMilliseconds( 500 );
 
     bool countUp = true;
     float dutyCycle = 0.0f;
@@ -54,42 +54,42 @@ namespace Orbit::Tasks::Idle
     -------------------------------------------------------------------------*/
     while ( 1 )
     {
-      // /*-----------------------------------------------------------------------
-      // High Pulse #1
-      // -----------------------------------------------------------------------*/
-      // pin->setState( Chimera::GPIO::State::HIGH );
-      // Chimera::delayMilliseconds( 100 );
-      // pin->setState( Chimera::GPIO::State::LOW );
-      // Chimera::delayMilliseconds( 100 );
+      /*-----------------------------------------------------------------------
+      High Pulse #1
+      -----------------------------------------------------------------------*/
+      pin->setState( Chimera::GPIO::State::HIGH );
+      Chimera::delayMilliseconds( 100 );
+      pin->setState( Chimera::GPIO::State::LOW );
+      Chimera::delayMilliseconds( 100 );
 
-      // /*-----------------------------------------------------------------------
-      // High Pulse #2
-      // -----------------------------------------------------------------------*/
-      // pin->setState( Chimera::GPIO::State::HIGH );
-      // Chimera::delayMilliseconds( 100 );
-      // pin->setState( Chimera::GPIO::State::LOW );
-      // Chimera::delayMilliseconds( 100 );
+      /*-----------------------------------------------------------------------
+      High Pulse #2
+      -----------------------------------------------------------------------*/
+      pin->setState( Chimera::GPIO::State::HIGH );
+      Chimera::delayMilliseconds( 100 );
+      pin->setState( Chimera::GPIO::State::LOW );
+      Chimera::delayMilliseconds( 100 );
 
-      // /*-----------------------------------------------------------------------
-      // Hold longer in the off state
-      // -----------------------------------------------------------------------*/
-      // Chimera::delayMilliseconds( 450 );
+      /*-----------------------------------------------------------------------
+      Hold longer in the off state
+      -----------------------------------------------------------------------*/
+      Chimera::delayMilliseconds( 450 );
 
-      Orbit::TIMER::PWMDriver.setDutyCycle( dutyCycle );
-      dutyCycle += countUp ? 1.0f : -1.0f;
+      // Orbit::TIMER::PWMDriver.setDutyCycle( dutyCycle );
+      // dutyCycle += countUp ? 1.0f : -1.0f;
 
-      if ( dutyCycle >= 100.0f )
-      {
-        dutyCycle = 99.0f;
-        countUp   = false;
-      }
-      else if ( dutyCycle <= 0.0f )
-      {
-        dutyCycle = 1.0f;
-        countUp   = true;
-      }
+      // if ( dutyCycle >= 100.0f )
+      // {
+      //   dutyCycle = 99.0f;
+      //   countUp   = false;
+      // }
+      // else if ( dutyCycle <= 0.0f )
+      // {
+      //   dutyCycle = 1.0f;
+      //   countUp   = true;
+      // }
 
-      Chimera::delayMilliseconds( 5 );
+      // Chimera::delayMilliseconds( 5 );
     }
   }
 }    // namespace Orbit::Tasks::Idle

@@ -106,7 +106,7 @@ class LivePlotter:
 
         self._figure.canvas.draw()
         self._blit_manager = BlitManager(self._figure.canvas, [self._line])
-        self._ax.set_ylim([0.0, 10.0])
+        self._ax.set_ylim([0.0, 25.0])
 
         self._plot_signal = Event()
 

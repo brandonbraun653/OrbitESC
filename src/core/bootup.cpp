@@ -84,7 +84,7 @@ namespace Orbit::Boot
     Orbit::GPIO::powerUp();
     Orbit::I2C::powerUp();
     Orbit::TIMER::powerUp();
-    //Orbit::USART::powerUp();
+    Orbit::USART::powerUp();
   }
 
 

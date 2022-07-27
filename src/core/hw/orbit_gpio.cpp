@@ -26,10 +26,31 @@ namespace Orbit::GPIO
   {
     using namespace Chimera::GPIO;
 
+    PinInit cfg;
+    Driver_rPtr pin = nullptr;
+
+    /*-------------------------------------------------------------------------
+    Heartbeat/Status LED
+    -------------------------------------------------------------------------*/
+    cfg.clear();
+    cfg.validity  = true;
+    cfg.threaded  = true;
+    cfg.alternate = Alternate::NONE;
+    cfg.drive     = Drive::OUTPUT_PUSH_PULL;
+    cfg.pin       = IO::GPIO::pinHeartbeat;
+    cfg.port      = IO::GPIO::portHeartbeat;
+    cfg.pull      = Pull::NO_PULL;
+    cfg.state     = State::LOW;
+
+    pin = getDriver( cfg.port, cfg.pin );
+    RT_HARD_ASSERT( pin != nullptr );
+    auto result = pin->init( cfg );
+    RT_HARD_ASSERT( Chimera::Status::OK == pin->init( cfg ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == pin->setState( State::LOW ) );
+
     /*-------------------------------------------------------------------------
     User Button
     -------------------------------------------------------------------------*/
-    PinInit cfg;
 
     cfg.clear();
     cfg.threaded  = true;
@@ -41,7 +62,7 @@ namespace Orbit::GPIO
     cfg.pull      = Chimera::GPIO::Pull::PULL_UP;
     cfg.state     = Chimera::GPIO::State::HIGH;
 
-    auto pin = getDriver( cfg.port, cfg.pin );
+    pin = getDriver( cfg.port, cfg.pin );
     RT_HARD_ASSERT( pin != nullptr );
     RT_HARD_ASSERT( Chimera::Status::OK == pin->init( cfg ) );
   }

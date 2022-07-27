@@ -30,8 +30,8 @@ namespace Orbit::IO
     /*-------------------------------------------------------------------------
     Status LED
     -------------------------------------------------------------------------*/
-    static constexpr Chimera::GPIO::Pin  pinHeartbeat  = 6;
-    static constexpr Chimera::GPIO::Port portHeartbeat = Chimera::GPIO::Port::PORTA;
+    static constexpr Chimera::GPIO::Pin  pinHeartbeat  = 14;
+    static constexpr Chimera::GPIO::Port portHeartbeat = Chimera::GPIO::Port::PORTC;
 
     /*-------------------------------------------------------------------------
     User Button
@@ -56,9 +56,9 @@ namespace Orbit::IO
     /*-------------------------------------------------------------------------
     Phase A Current
     -------------------------------------------------------------------------*/
-    static constexpr Chimera::GPIO::Pin    pinPhaseA  = 3;
+    static constexpr Chimera::GPIO::Pin    pinPhaseA  = 0;
     static constexpr Chimera::GPIO::Port   portPhaseA = Chimera::GPIO::Port::PORTA;
-    static constexpr Chimera::ADC::Channel adcPhaseA  = Chimera::ADC::Channel::ADC_CH_8;
+    static constexpr Chimera::ADC::Channel adcPhaseA  = Chimera::ADC::Channel::ADC_CH_5;
 
     /*-------------------------------------------------------------------------
     Phase B Current
