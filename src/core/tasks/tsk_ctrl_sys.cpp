@@ -57,7 +57,7 @@ namespace Orbit::Tasks::CTRLSYS
       if( isr_foc_flag )
       {
         isr_foc_flag = false;
-        LOG_INFO( "FOC ISR\r\n" );
+        //LOG_INFO( "FOC ISR\r\n" );
       }
       /*---------------------------------------------------------------------
       Pseudo attempt to run this task periodically

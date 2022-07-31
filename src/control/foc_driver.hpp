@@ -61,6 +61,55 @@ namespace Orbit::Control
   /*---------------------------------------------------------------------------
   Structures
   ---------------------------------------------------------------------------*/
+  struct EMFObserver
+  {
+    float Ts;   /**< Sampling time in seconds */
+
+    float d;   /**< Observer eigenvalue selection */
+    float z1;
+    float z1_dot;
+    float z2;
+    float z2_dot;
+
+    void clear()
+    {
+      z1     = 0.0f;
+      z1_dot = 0.0f;
+      z2     = 0.0f;
+      z2_dot = 0.0f;
+    }
+  };
+
+  struct MotorParameters
+  {
+    float Ls;   /**< Stator inductance in Henrys */
+    float Rs;   /**< Stator resistance in Ohms */
+
+    void clear()
+    {
+      Ls = 0.0f;
+      Rs = 0.0f;
+    }
+  };
+
+
+  struct MotorState
+  {
+    float posRad; /**< Position in radians */
+    float velRad; /**< Velocity in radians/second */
+    float accRad; /**< Acceleration in radians/second^2 */
+
+    float Id; /**< Current in Amps */
+    float Iq; /**< Current in Amps */
+
+    void clear()
+    {
+      posRad = 0.0f;
+      velRad = 0.0f;
+      accRad = 0.0f;
+    }
+  };
+
   struct FOCConfig
   {
     Chimera::ADC::Peripheral                    adcSource; /**< Which ADC peripheral to use */
@@ -96,6 +145,9 @@ namespace Orbit::Control
   struct InternalState
   {
     ADCSensorBuffer adcBuffer;
+    EMFObserver     emfObserver;
+    MotorParameters motorParams;
+    MotorState      motorState;
 
     void clear()
     {
@@ -103,6 +155,10 @@ namespace Orbit::Control
       {
         data.clear();
       }
+
+      emfObserver.clear();
+      motorParams.clear();
+      motorState.clear();
     }
   };
 
@@ -119,7 +175,7 @@ namespace Orbit::Control
     FOC();
     ~FOC();
 
-    int initialize( const FOCConfig &cfg );
+    int initialize( const FOCConfig &cfg, const MotorParameters &motorParams );
 
     int setSpeedRef( const float ref );
 
@@ -130,6 +186,13 @@ namespace Orbit::Control
      */
     void lastSensorData( ADCSensorBuffer &data );
 
+    /**
+     * @brief Gets a view of the internal state of the FOC driver
+     *
+     * @return const InternalState&
+     */
+    const InternalState& dbgGetState() const;
+
   protected:
     void dma_isr_current_controller( const Chimera::ADC::InterruptDetail &isr );
     void timer_isr_speed_controller();
@@ -139,7 +202,7 @@ namespace Orbit::Control
     Chimera::Timer::Inverter::Driver mTimerDriver;
     Chimera::Timer::Trigger::Master  mSpeedCtrlTrigger;
 
-    InternalState mPrvState;
+    InternalState mState;
     FOCConfig     mConfig;
   };
 }    // namespace Orbit::Control

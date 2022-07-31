@@ -40,7 +40,7 @@ namespace Orbit::Control
   }
 
 
-  int FOC::initialize( const FOCConfig &cfg )
+  int FOC::initialize( const FOCConfig &cfg, const MotorParameters &motorParams )
   {
     /*-------------------------------------------------------------------------
     Validate the configuration
@@ -54,10 +54,11 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Initialize the FOC state
     -------------------------------------------------------------------------*/
-    mPrvState.clear();
+    mState.clear();
     mConfig.clear();
 
     mConfig = cfg;
+    mState.motorParams = motorParams;
 
     /*-------------------------------------------------------------------------
     Link the ADC's DMA end-of-transfer interrupt to this class's ISR handler
@@ -73,10 +74,10 @@ namespace Orbit::Control
     Chimera::ADC::Sample sample;
 
     sample = mADCDriver->sampleChannel( Orbit::IO::Analog::adcPhaseA );
-    mPrvState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].dcOffset = mADCDriver->toVoltage( sample );
+    mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].dcOffset = mADCDriver->toVoltage( sample );
 
     sample = mADCDriver->sampleChannel( Orbit::IO::Analog::adcPhaseB );
-    mPrvState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].dcOffset = mADCDriver->toVoltage( sample );
+    mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].dcOffset = mADCDriver->toVoltage( sample );
 
     /*-------------------------------------------------------------------------
     Configure the Advanced Timer for center-aligned 3-phase PWM
@@ -122,7 +123,13 @@ namespace Orbit::Control
 
   void FOC::lastSensorData( ADCSensorBuffer &data )
   {
-    data = mPrvState.adcBuffer;
+    data = mState.adcBuffer;
+  }
+
+
+  const InternalState &FOC::dbgGetState() const
+  {
+    return mState;
   }
 
 
@@ -136,9 +143,9 @@ namespace Orbit::Control
     const uint32_t timestamp = Chimera::micros();
     for( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
     {
-      mPrvState.adcBuffer[ i ].measured     = static_cast<float>( isr.samples[ i ] ) * COUNTS_TO_VOLTS;
-      mPrvState.adcBuffer[ i ].converted    = mConfig.txfrFuncs[ i ]( mPrvState.adcBuffer[ i ].measured );
-      mPrvState.adcBuffer[ i ].sampleTimeUs = timestamp;
+      mState.adcBuffer[ i ].measured     = static_cast<float>( isr.samples[ i ] ) * COUNTS_TO_VOLTS;
+      mState.adcBuffer[ i ].converted    = mConfig.txfrFuncs[ i ]( mState.adcBuffer[ i ].measured );
+      mState.adcBuffer[ i ].sampleTimeUs = timestamp;
     }
 
     /*-------------------------------------------------------------------------
