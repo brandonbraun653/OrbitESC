@@ -13,10 +13,13 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/adc>
 #include <Chimera/thread>
+#include <Aurora/logging>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_ctrl_sys.hpp>
 #include <src/control/foc_driver.hpp>
 #include <src/core/hw/drv8301.hpp>
+
+volatile bool isr_foc_flag;
 
 namespace Orbit::Tasks::CTRLSYS
 {
@@ -42,6 +45,7 @@ namespace Orbit::Tasks::CTRLSYS
 
     cfg.adcSource = Chimera::ADC::Peripheral::ADC_0;
 
+    isr_foc_flag = false;
     Orbit::Control::FOCDriver.initialize( cfg );
 
     /*-------------------------------------------------------------------------
@@ -50,6 +54,11 @@ namespace Orbit::Tasks::CTRLSYS
     size_t wake_up_tick = Chimera::millis();
     while ( 1 )
     {
+      if( isr_foc_flag )
+      {
+        isr_foc_flag = false;
+        LOG_INFO( "FOC ISR\r\n" );
+      }
       /*---------------------------------------------------------------------
       Pseudo attempt to run this task periodically
       ---------------------------------------------------------------------*/

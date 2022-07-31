@@ -12,9 +12,13 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <cmath>
+#include <Aurora/logging>
 #include <Chimera/adc>
+#include <Thor/lld/interface/inc/timer>
 #include <src/control/foc_driver.hpp>
 #include <src/config/bsp/board_map.hpp>
+
+extern volatile bool isr_foc_flag;
 
 namespace Orbit::Control
 {
@@ -99,17 +103,17 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Configure the Speed control outer loop update timer
     -------------------------------------------------------------------------*/
-    auto isrFunc = Chimera::Function::Opaque::create<FOC, &FOC::timer_isr_speed_controller>( *this );
+    Chimera::Function::Opaque isrFunc = Chimera::Function::Opaque::create<FOC, &FOC::timer_isr_speed_controller>( *this );
 
     Chimera::Timer::Trigger::MasterConfig trig_cfg;
     trig_cfg.clear();
-    trig_cfg.trigFreq               = 400.0f;
-    trig_cfg.coreConfig.instance    = Chimera::Timer::Instance::TIMER15;
-    trig_cfg.coreConfig.baseFreq    = 1'000'000.0f;
+    trig_cfg.trigFreq               = 10.0f;
+    trig_cfg.isrCallback            = isrFunc;
+    trig_cfg.coreConfig.instance    = Chimera::Timer::Instance::TIMER2;
+    trig_cfg.coreConfig.baseFreq    = 100'000.0f;
     trig_cfg.coreConfig.clockSource = Chimera::Clock::Bus::SYSCLK;
 
     RT_HARD_ASSERT( Chimera::Status::OK == mSpeedCtrlTrigger.init( trig_cfg ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == mSpeedCtrlTrigger.attachISR( isrFunc ) );
     mSpeedCtrlTrigger.enable();
 
     return 0;
@@ -165,6 +169,10 @@ namespace Orbit::Control
 
   void FOC::timer_isr_speed_controller()
   {
+    mSpeedCtrlTrigger.ackISR();
+
+    isr_foc_flag = true;
+    // Reset the timer interrupt flag...
   }
 
 }    // namespace Orbit::Control

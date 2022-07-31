@@ -212,6 +212,8 @@
   "cortex-debug.variableUseNaturalFormat": false,
   "cortex-debug.showRTOS": false,
   "C_Cpp.exclusionPolicy": "checkFilesAndFolders",
+  "C_Cpp.intelliSenseMemoryLimit": 8192,
+  "C_Cpp.default.intelliSenseMode": "linux-gcc-arm",
   "files.exclude": {
     "**/.git": true,
     "**/.svn": true,
