@@ -63,13 +63,14 @@ namespace Orbit::Control
   ---------------------------------------------------------------------------*/
   struct EMFObserver
   {
-    float Ts;   /**< Sampling time in seconds */
-
     float d;   /**< Observer eigenvalue selection */
     float z1;
     float z1_dot;
     float z2;
     float z2_dot;
+    float Ed_est; /**< Estimated back-EMF on the D axis */
+    float Eq_est; /**< Estimated back-EMF on the Q axis */
+    float last_update_us; /**< Time of last update in microseconds */
 
     void clear()
     {
@@ -77,6 +78,18 @@ namespace Orbit::Control
       z1_dot = 0.0f;
       z2     = 0.0f;
       z2_dot = 0.0f;
+    }
+  };
+
+  struct OmegaEstimator
+  {
+    float pos_est_prev;      /**< Last known rotor position in radians */
+    float last_update_us; /**< Time of last update in microseconds */
+
+    void clear()
+    {
+      pos_est_prev = 0.0f;
+      last_update_us = 0.0f;
     }
   };
 
@@ -95,18 +108,36 @@ namespace Orbit::Control
 
   struct MotorState
   {
-    float posRad; /**< Position in radians */
-    float velRad; /**< Velocity in radians/second */
-    float accRad; /**< Acceleration in radians/second^2 */
+    /*-------------------------------------------------------------------------
+    Estimated Quantities
+    -------------------------------------------------------------------------*/
+    float posEstRad; /**< Position in radians */
+    float velEstRad; /**< Velocity in radians/second */
+    float accEstRad; /**< Acceleration in radians/second^2 */
 
-    float Id; /**< Current in Amps */
-    float Iq; /**< Current in Amps */
+    /*-------------------------------------------------------------------------
+    Measured Quantities
+    -------------------------------------------------------------------------*/
+    float Vdd; /**< Supply voltage in volts */
+    float Id;  /**< Current in Amps */
+    float Iq;  /**< Current in Amps */
+
+    /*-------------------------------------------------------------------------
+    Controller Outputs
+    -------------------------------------------------------------------------*/
+    float Vd; /**< Commanded output voltage on the D axis */
+    float Vq; /**< Commanded output voltage on the Q axis */
 
     void clear()
     {
-      posRad = 0.0f;
-      velRad = 0.0f;
-      accRad = 0.0f;
+      posEstRad = 0.0f;
+      velEstRad = 0.0f;
+      accEstRad = 0.0f;
+      Vdd       = 0.0f;
+      Id        = 0.0f;
+      Iq        = 0.0f;
+      Vd        = 0.0f;
+      Vq        = 0.0f;
     }
   };
 
@@ -146,6 +177,7 @@ namespace Orbit::Control
   {
     ADCSensorBuffer adcBuffer;
     EMFObserver     emfObserver;
+    OmegaEstimator  speedEstimator;
     MotorParameters motorParams;
     MotorState      motorState;
 
@@ -157,6 +189,7 @@ namespace Orbit::Control
       }
 
       emfObserver.clear();
+      speedEstimator.clear();
       motorParams.clear();
       motorState.clear();
     }
@@ -204,6 +237,13 @@ namespace Orbit::Control
 
     InternalState mState;
     FOCConfig     mConfig;
+
+    /**
+     * @brief Calculates back-EMF estimates along the D and Q axes
+     *
+     * @param dt  The time in seconds since the last call to this function
+     */
+    void stepEMFObserver( const float dt );
   };
 }    // namespace Orbit::Control
 

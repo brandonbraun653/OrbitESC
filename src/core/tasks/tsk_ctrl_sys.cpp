@@ -38,15 +38,17 @@ namespace Orbit::Tasks::CTRLSYS
     -------------------------------------------------------------------------*/
     Orbit::Control::FOCConfig cfg;
 
+    cfg.adcSource = Chimera::ADC::Peripheral::ADC_0;
     cfg.txfrFuncs[ Control::ADC_CH_MOTOR_SUPPLY_VOLTAGE ]  = BoostXL::adc_to_bus_voltage;
     cfg.txfrFuncs[ Control::ADC_CH_MOTOR_PHASE_A_CURRENT ] = BoostXL::adc_to_phase_current;
     cfg.txfrFuncs[ Control::ADC_CH_MOTOR_PHASE_B_CURRENT ] = BoostXL::adc_to_phase_current;
 
-
-    cfg.adcSource = Chimera::ADC::Peripheral::ADC_0;
+    Orbit::Control::MotorParameters params;
+    params.Rs = 0.01f;
+    params.Ls = 380.0f * 1e-3f;
 
     isr_foc_flag = false;
-    Orbit::Control::FOCDriver.initialize( cfg );
+    Orbit::Control::FOCDriver.initialize( cfg, params );
 
     /*-------------------------------------------------------------------------
     Run the CTRLSYS thread

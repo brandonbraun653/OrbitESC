@@ -11,12 +11,13 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <cmath>
 #include <Aurora/logging>
 #include <Chimera/adc>
-#include <Thor/lld/interface/inc/timer>
-#include <src/control/foc_driver.hpp>
+#include <cmath>
 #include <src/config/bsp/board_map.hpp>
+#include <src/control/foc_driver.hpp>
+#include <src/control/foc_math.hpp>
+#include <Thor/lld/interface/inc/timer>
 
 extern volatile bool isr_foc_flag;
 
@@ -78,6 +79,11 @@ namespace Orbit::Control
 
     sample = mADCDriver->sampleChannel( Orbit::IO::Analog::adcPhaseB );
     mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].dcOffset = mADCDriver->toVoltage( sample );
+
+    /*-------------------------------------------------------------------------
+    Initialize eigenvalues for the current controller
+    -------------------------------------------------------------------------*/
+    mState.emfObserver.d = ( -motorParams.Rs / motorParams.Ls ) * 5.0f;
 
     /*-------------------------------------------------------------------------
     Configure the Advanced Timer for center-aligned 3-phase PWM
@@ -149,12 +155,49 @@ namespace Orbit::Control
     }
 
     /*-------------------------------------------------------------------------
-    Calculate flux linkage
+    Move the sampled phase currents through the Clarke-Park transform
     -------------------------------------------------------------------------*/
+    const auto clarke = Math::clarke_transform( mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].converted,
+                                                mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].converted );
 
+    const auto park = Math::park_transform( clarke, mState.motorState.posEstRad );
 
     /*-------------------------------------------------------------------------
-    Update commutation for testing
+    Calculate the estimated rotor position
+    -------------------------------------------------------------------------*/
+    /* Update the motor state data from previous calculations */
+    mState.motorState.Iq  = park.q;
+    mState.motorState.Id  = park.d;
+    mState.motorState.Vdd = mState.adcBuffer[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted;
+
+    /* Step the EMF observer */
+    const float dt = static_cast<float>( timestamp - mState.emfObserver.last_update_us ) * 1e6f;
+    stepEMFObserver( dt );
+    mState.emfObserver.last_update_us = timestamp;
+
+    /* Calculate the estimated rotor position (Eq. 18) */
+    mState.motorState.posEstRad = Math::fast_atan2_with_norm( -mState.emfObserver.Ed_est, mState.emfObserver.Eq_est );
+    if ( mState.motorState.velEstRad < 0.0f )
+    {
+      mState.motorState.posEstRad += Math::M_PI_F;
+    }
+
+    /*-------------------------------------------------------------------------
+    Update the commanded controller output states
+    -------------------------------------------------------------------------*/
+    // Inverse park clarke transform from Vq, Vd.
+    // mTimerDriver.setPhaseDutyCycle( 10.0f, 10.0f, 10.0f );
+
+    /*-------------------------------------------------------------------------
+    Perform commutation
+    -------------------------------------------------------------------------*/
+    // Use position estimate to determine the next commutation state. I'm going
+    // to guess dividing 2PI into six sectors where each sector represents
+    // 60 degrees of rotation. The main question is how to determine which phase
+    // correctly corresponds to the current position estimate?
+
+    /*-------------------------------------------------------------------------
+    Static commutation for testing
     -------------------------------------------------------------------------*/
     static uint32_t cycle_count = 0;
     static uint32_t phase       = 0;
@@ -178,8 +221,62 @@ namespace Orbit::Control
   {
     mSpeedCtrlTrigger.ackISR();
 
+    /*-------------------------------------------------------------------------
+    Update estimate of the rotor speed
+    -------------------------------------------------------------------------*/
+    const size_t timestamp = Chimera::micros();
+    const float  dTheta    = mState.motorState.posEstRad - mState.speedEstimator.pos_est_prev;
+    const float  wdt       = static_cast<float>( timestamp - mState.speedEstimator.last_update_us ) * 1e6f;
+
+    mState.motorState.velEstRad = dTheta / wdt;
+
+    /*-----------------------------------------------------------------------
+    Update tracking variables
+    -----------------------------------------------------------------------*/
+    mState.speedEstimator.pos_est_prev   = mState.motorState.posEstRad;
+    mState.speedEstimator.last_update_us = timestamp;
+
+
     isr_foc_flag = true;
     // Reset the timer interrupt flag...
+  }
+
+
+  void FOC::stepEMFObserver( const float dt )
+  {
+    /*-------------------------------------------------------------------------
+    Alias equation variables to make everything easier to read
+    -------------------------------------------------------------------------*/
+    const float d = mState.emfObserver.d;
+    const float Ls = mState.motorParams.Ls;
+    const float Rs = mState.motorParams.Rs;
+    const float Wr = mState.motorState.velEstRad;
+    const float Iq = mState.motorState.Iq;
+    const float Id = mState.motorState.Id;
+    const float Vq = mState.motorState.Vq;
+    const float Vd = mState.motorState.Vd;
+
+    /*-------------------------------------------------------------------------
+    Update the D-Q axis observer state space model (Eq. 11)
+    -------------------------------------------------------------------------*/
+    const float q_tmp = ( ( Rs + ( d * Ls ) ) * Iq ) - Vq;
+    const float d_tmp = ( ( Rs + ( d * Ls ) ) * Id ) - Vd;
+
+    mState.emfObserver.z1_dot = ( d * dt * mState.emfObserver.z1 ) + dt * ( ( d * q_tmp ) - ( Wr * d_tmp ) );
+    mState.emfObserver.z2_dot = ( d * dt * mState.emfObserver.z2 ) + dt * ( ( Wr * q_tmp ) + ( d * d_tmp ) );
+
+    /*-------------------------------------------------------------------------
+    Calculate the estimated EMF (Eq. 12)
+    -------------------------------------------------------------------------*/
+    mState.emfObserver.Eq_est = mState.emfObserver.z1_dot + ( d * Ls * Iq ) - ( Ls * Wr * Id );
+    mState.emfObserver.Ed_est = mState.emfObserver.z2_dot + ( Ls * Wr * Iq ) + ( d * Ls * Id );
+
+    /*-------------------------------------------------------------------------
+    Update the EMF observer state. Note that Z1 dot already has the sample
+    time baked in from Equation 11.
+    -------------------------------------------------------------------------*/
+    mState.emfObserver.z1 = mState.emfObserver.z1_dot;
+    mState.emfObserver.z2 = mState.emfObserver.z2_dot;
   }
 
 }    // namespace Orbit::Control

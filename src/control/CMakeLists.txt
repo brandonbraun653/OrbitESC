@@ -5,6 +5,8 @@ gen_static_lib_variants(
     lib_orbit_ctrl
   SOURCES
     foc_driver.cpp
+    foc_control.cpp
+    foc_math.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc
