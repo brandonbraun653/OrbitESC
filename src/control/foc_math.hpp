@@ -25,6 +25,7 @@ namespace Orbit::Control::Math
   ---------------------------------------------------------------------------*/
   static constexpr float ONE_OVER_SQRT3 = 0.57735026918962576451f;
   static constexpr float TWO_OVER_SQRT3 = 1.15470053837925152902f;
+  static constexpr float SQRT3_OVER_2   = 0.86602540378443864676f;
   static constexpr float M_PI_F         = static_cast<float>( M_PI );
 
   /*---------------------------------------------------------------------------
@@ -126,6 +127,27 @@ namespace Orbit::Control::Math
    */
   ParkSpace park_transform( const ClarkeSpace &clarke, const float angle_est );
 
-}    // namespace Orbit::Control
+  /**
+   * @brief Computes the inverse Park transform of the Park space input
+   * @see https://www.ti.com/lit/an/bpra048/bpra048.pdf
+   *
+   * @param park        Park space data to transform
+   * @param angle_est   Estimated angle of the motor
+   * @return ClarkeSpace
+   */
+  ClarkeSpace inverse_park_transform( const ParkSpace &park, const float angle_est );
+
+  /**
+   * @brief Computes the inverse Clarke transform of the Clarke space input
+   * @see https://www.ti.com/lit/an/bpra048/bpra048.pdf
+   *
+   * @param clarke  Clarke space data to transform
+   * @param a       Output pointer to store the phase A data
+   * @param b      Output pointer to store the phase B data
+   * @param c       Output pointer to store the phase C data
+   * @return void
+   */
+  void inverse_clarke_transform( const ClarkeSpace &clark, float *const a, float *const b, float *const c );
+}    // namespace Orbit::Control::Math
 
 #endif /* !ORBIT_ESC_FOC_MATH_HPP */

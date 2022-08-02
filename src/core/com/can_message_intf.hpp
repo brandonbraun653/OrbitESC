@@ -31,8 +31,9 @@ namespace Orbit::CAN::Message
    */
   struct Header
   {
-    NodeId  nodeId : 3; /**< Describes the ESC that generated a message */
-    uint8_t _pad : 5;   /**< Reserved for future use */
+    uint8_t nodeId : 3; /**< Describes the ESC that generated a message */
+    uint8_t size : 3;   /**< Number of bytes in the message */
+    uint8_t _pad : 2;   /**< Reserved for future use */
   };
   static_assert( sizeof( Header ) == sizeof( uint8_t ) );
 

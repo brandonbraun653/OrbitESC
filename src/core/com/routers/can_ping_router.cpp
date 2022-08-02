@@ -33,7 +33,7 @@ namespace Orbit::CAN::Router
 
     /* Reverse the source/destinations */
     pong.payload.dst.nodeId = msg.payload.src.nodeId;
-    pong.payload.src.nodeId = thisNode();
+    pong.payload.src.nodeId = EnumValue( thisNode() );
 
     /* Re-pack and ship it back */
     pong.pack( tx_frame );

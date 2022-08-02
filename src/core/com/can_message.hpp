@@ -43,6 +43,12 @@ namespace Orbit::CAN::Message
     Periodic Data
     -------------------------------------------------------------------------*/
     MSG_SYSTEM_TICK = 0x50,
+
+    /*-------------------------------------------------------------------------
+    Miscellaneous Messages
+    -------------------------------------------------------------------------*/
+    MSG_STREAM_BOOKEND = 0x60,  /**< Start/stop of stream messages */
+    MSG_STREAM_DATA    = 0x61,  /**< Data payload for a stream */
   };
 
 
@@ -101,6 +107,33 @@ namespace Orbit::CAN::Message
     {
       Header dst; /**< Destination node */
       Header src; /**< Source node */
+    }
+    payload;
+  };
+
+
+  class StreamBookend : public Attributes<StreamBookend, MSG_STREAM_BOOKEND>
+  {
+  public:
+    __packed_struct Payload
+    {
+      Header   src;   /**< Source node */
+      uint8_t  type;  /**< Type of stream */
+      uint16_t bytes; /**< Number of bytes in the stream */
+    }
+    payload;
+  };
+
+
+  class StreamData : public Attributes<StreamData, MSG_STREAM_DATA>
+  {
+  public:
+    __packed_struct Payload
+    {
+      Header  src;       /**< Source node */
+      uint8_t type;      /**< Type of stream */
+      uint8_t frame;     /**< Frame number of the stream */
+      uint8_t data[ 5 ]; /**< Variable data amount  */
     }
     payload;
   };

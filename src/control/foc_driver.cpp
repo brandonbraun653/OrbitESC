@@ -185,7 +185,13 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Update the commanded controller output states
     -------------------------------------------------------------------------*/
-    // Inverse park clarke transform from Vq, Vd.
+    const Math::ParkSpace park_space{.d = mState.motorState.Vd, .q = mState.motorState.Vq };
+
+    auto invPark = Math::inverse_park_transform( park_space, mState.motorState.posEstRad );
+    float a, b, c;
+
+    Math::inverse_clarke_transform( invPark, &a, &b, &c );
+
     // mTimerDriver.setPhaseDutyCycle( 10.0f, 10.0f, 10.0f );
 
     /*-------------------------------------------------------------------------

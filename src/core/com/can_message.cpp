@@ -26,7 +26,7 @@ namespace Orbit::CAN::Message
   void SystemTick::update()
   {
     payload.tick       = static_cast<uint32_t>( Chimera::millis() );
-    payload.hdr.nodeId = thisNode();
+    payload.hdr.nodeId = EnumValue( thisNode() );
     this->send( CANDriver );
   }
 
@@ -40,7 +40,7 @@ namespace Orbit::CAN::Message
 
     payload.vdd        = static_cast<uint16_t>( buffer[ Control::ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted * 1e3f );
     payload.timestamp  = buffer[ Control::ADC_CH_MOTOR_SUPPLY_VOLTAGE ].sampleTimeUs;
-    payload.hdr.nodeId = thisNode();
+    payload.hdr.nodeId = EnumValue( thisNode() );
     this->send( CANDriver );
   }
 
@@ -54,7 +54,7 @@ namespace Orbit::CAN::Message
 
     payload.current    = static_cast<uint16_t>( buffer[ Control::ADC_CH_MOTOR_PHASE_A_CURRENT ].converted * 1e3f );
     payload.timestamp  = buffer[ Control::ADC_CH_MOTOR_PHASE_A_CURRENT ].sampleTimeUs;
-    payload.hdr.nodeId = thisNode();
+    payload.hdr.nodeId = EnumValue( thisNode() );
     this->send( CANDriver );
   }
 
@@ -68,7 +68,7 @@ namespace Orbit::CAN::Message
 
     payload.current    = static_cast<uint16_t>( buffer[ Control::ADC_CH_MOTOR_PHASE_B_CURRENT ].converted * 1e3f );
     payload.timestamp  = buffer[ Control::ADC_CH_MOTOR_PHASE_B_CURRENT ].sampleTimeUs;
-    payload.hdr.nodeId = thisNode();
+    payload.hdr.nodeId = EnumValue( thisNode() );
     this->send( CANDriver );
   }
 

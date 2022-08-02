@@ -124,4 +124,29 @@ namespace Orbit::Control::Math
     /* clang-format on */
   }
 
+
+  ClarkeSpace inverse_park_transform( const ParkSpace &park, const float angle_est )
+  {
+    /*-------------------------------------------------------------------------
+    Cache the sine/cosine of the angle estimate
+    -------------------------------------------------------------------------*/
+    float sin, cos;
+    fast_sin_cos( angle_est, &sin, &cos );
+
+    /*-------------------------------------------------------------------------
+    Inverse Park transform
+    -------------------------------------------------------------------------*/
+    /* clang-format off */
+    return { .alpha = ( park.d * cos ) - ( park.q * sin ),
+             .beta  = ( park.d * sin ) + ( park.q * cos ) };
+    /* clang-format on */
+  }
+
+
+  void inverse_clarke_transform( const ClarkeSpace &clark, float *const a, float *const b, float *const c )
+  {
+    *a = clark.alpha;
+    *b = -0.5f * clark.alpha + clark.beta * SQRT3_OVER_2;
+    *c = -0.5f * clark.alpha - clark.beta * SQRT3_OVER_2;
+  }
 }    // namespace Orbit::Control::Math
