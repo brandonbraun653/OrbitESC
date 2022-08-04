@@ -42,6 +42,7 @@ namespace Orbit::CAN
   static Message::PowerSupplyVoltage s_msg_power_supply_voltage;
   static Message::PhaseACurrent      s_msg_phase_a_current;
   static Message::PhaseBCurrent      s_msg_phase_b_current;
+  static Message::MotorSpeed         s_msg_motor_speed;
 
   /*---------------------------------------------------------------------------
   Router Declarations
@@ -49,7 +50,6 @@ namespace Orbit::CAN
   static Router::PingRouter           s_ping_router;
   static Router::ArmDisarmMotorRouter s_arm_disarm_motor_router;
   static Router::SetMotorSpeedRouter  s_set_motor_speed_router;
-  static Router::GetMotorSpeedRouter  s_get_motor_speed_router;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -109,13 +109,17 @@ namespace Orbit::CAN
         Chimera::Function::Opaque::create<Message::PhaseBCurrent, &Message::PhaseBCurrent::update>( s_msg_phase_b_current );
     s_can_server.registerPeriodic( phase_b_current_func, s_msg_phase_b_current.period() );
 
+    /* Motor Speed */
+    auto motor_speed_func =
+        Chimera::Function::Opaque::create<Message::MotorSpeed, &Message::MotorSpeed::update>( s_msg_motor_speed );
+    s_can_server.registerPeriodic( motor_speed_func, s_msg_motor_speed.period() );
+
     /*-------------------------------------------------------------------------
     Register the routers
     -------------------------------------------------------------------------*/
     RT_HARD_ASSERT( s_can_server.subscribe( s_ping_router ) );
     RT_HARD_ASSERT( s_can_server.subscribe( s_arm_disarm_motor_router ) );
     RT_HARD_ASSERT( s_can_server.subscribe( s_set_motor_speed_router ) );
-    RT_HARD_ASSERT( s_can_server.subscribe( s_get_motor_speed_router ) );
   }
 
 

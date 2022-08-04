@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from ctypes import *
 from enum import IntEnum
+from typing import Any
+from loguru import logger
 
 
 class NodeID(IntEnum):
@@ -70,6 +72,20 @@ class BaseMessage(Structure):
         """
         return bytes(self)
 
+    def get_keyed_data(self, key: str) -> Any:
+        """
+        Simple lookup function for message types to retrieve arbitrary information
+        Args:
+            key: Which instance attribute to get
+
+        Returns:
+            Data associated with the key, else None
+        """
+        if hasattr(self, key):
+            return getattr(self, key)
+        else:
+            logger.error(f"Object {repr(self)} has no attribute {key}")
+
 
 class SystemID(BaseMessage):
     _fields_ = [("node_id", c_uint8, 3),
@@ -111,3 +127,12 @@ class PhaseBCurrent(BaseMessage):
                 ("current", c_uint16)]
     _period_ = 100
     _id_ = 0x22
+
+
+class MotorSpeed(BaseMessage):
+    _fields_ = [("hdr", SystemID),
+                ("tick", c_uint32),
+                ("speed", c_uint16)]
+
+    _period_ = 100
+    _id_ = 0x23

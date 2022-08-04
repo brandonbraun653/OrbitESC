@@ -39,23 +39,4 @@ namespace Orbit::CAN::Router
     /* Do nothing */
   }
 
-
-  /*---------------------------------------------------------------------------
-  GetMotorSpeed
-  ---------------------------------------------------------------------------*/
-  GetMotorSpeedRouter::GetMotorSpeedRouter() : message_router( Message::MSG_GET_MOTOR_SPEED )
-  {
-  }
-
-  void GetMotorSpeedRouter::on_receive( const Message::GetMotorSpeed &msg )
-  {
-    Chimera::CAN::BasicFrame tx_frame;
-    // Get the current speed reference and ship it back populated
-  }
-
-  void GetMotorSpeedRouter::on_receive_unknown( const etl::imessage &msg )
-  {
-    /* Do nothing */
-  }
-
 }  // namespace Orbit::CAN

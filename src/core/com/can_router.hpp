@@ -47,13 +47,6 @@ namespace Orbit::CAN::Router
     void on_receive_unknown( const etl::imessage &msg );
   };
 
-  class GetMotorSpeedRouter : public etl::message_router<GetMotorSpeedRouter, Message::GetMotorSpeed>
-  {
-  public:
-    GetMotorSpeedRouter();
-    void on_receive( const Message::GetMotorSpeed &msg );
-    void on_receive_unknown( const etl::imessage &msg );
-  };
 }    // namespace Orbit::CAN::Router
 
 #endif /* !ORBIT_CAN_ROUTERS_HPP */

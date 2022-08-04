@@ -18,6 +18,12 @@ Includes
 #include <cmath>
 #include <cstdint>
 
+/*-----------------------------------------------------------------------------
+Macros
+-----------------------------------------------------------------------------*/
+#define US_TO_SEC( x ) ( static_cast<float>( x ) / 1e6f )
+#define RAD_TO_RPM( rad ) ( rad * static_cast<float>( 60.0 / ( 2.0 * M_PI ) ) )
+
 namespace Orbit::Control::Math
 {
   /*---------------------------------------------------------------------------

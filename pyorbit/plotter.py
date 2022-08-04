@@ -10,14 +10,12 @@
 
 import time
 import can
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from threading import Event
 from collections import deque
 from pyorbit.pipe import MessageObserver
-from pyorbit.messages import PowerSupplyVoltage
-from loguru import logger
+from pyorbit.messages import BaseMessage
 
 
 class BlitManager:
@@ -96,38 +94,79 @@ class BlitManager:
 
 
 class LivePlotter:
+    """ """
 
-    def __init__(self, arb_id: int, sample_history: int = 50):
-        self._accumulator = deque(np.zeros(sample_history))
-        self._observer = MessageObserver(func=self.can_observer, arbitration_id=arb_id, persistent=True)
+    TIME_AXIS = 0
+    DATA_AXIS = 1
 
-        self._figure, self._ax = plt.subplots()
-        (self._line,) = self._ax.plot(self._accumulator, animated=True)
-
-        self._figure.canvas.draw()
-        self._blit_manager = BlitManager(self._figure.canvas, [self._line])
-        self._ax.set_ylim([0.0, 25.0])
-
+    def __init__(self, message: BaseMessage, attr_key: str, time_key: str = None, sample_history: int = 50):
+        """
+        Args:
+            message: Prototype message to use for plotting
+            attr_key: Which attribute to plot from the message
+            time_key: If the message contains some kind of time information, what key is it under?
+            sample_history: How much data to store
+        """
+        self._accumulator = deque(np.zeros((2, sample_history)))
+        self._observer = MessageObserver(func=self.can_observer, arbitration_id=message.id(), persistent=True)
+        self._message = message
+        self._attr_key = attr_key
+        self._time_key = time_key
         self._plot_signal = Event()
+
+        # Initial configuration of the figure
+        self._figure, self._ax = plt.subplots()
+        (self._line,) = self._ax.plot(self._accumulator[LivePlotter.TIME_AXIS][:],
+                                      self._accumulator[LivePlotter.DATA_AXIS][:], animated=True)
+        self._figure.canvas.draw()
+
+        # Attach the figure to the BlitManager
+        self._blit_manager = BlitManager(self._figure.canvas, [self._line])
 
     @property
     def observer_handle(self) -> MessageObserver:
         return self._observer
 
-    def redraw_from_main(self):
+    def live_animate(self):
         while True:
+            # Wait to receive the update signal
             self._plot_signal.wait(1.0)
             self._plot_signal.clear()
-            self._line.set_ydata(self._accumulator)
+
+            # Pull out the raw data
+            ydata = self._accumulator[LivePlotter.DATA_AXIS][:]
+            xdata = self._accumulator[LivePlotter.TIME_AXIS][:]
+
+            # Auto-range the graph and set the data values
+            self._ax.set_ylim([min(ydata) * 1.1, max(ydata) * 1.25])
+            self._line.set_ydata(ydata)
+            self._line.set_xdata(xdata)
+
+            # Redraw!
             self._blit_manager.update()
-            logger.debug("Plot new data")
 
     def can_observer(self, can_msg: can.Message, timeout: bool) -> None:
-        # Fill in the data
-        msg = PowerSupplyVoltage().unpack(bytes(can_msg.data))
-        voltage = msg.vdd/1e3
+        """
+        Observer to receive some data from the CAN bus
+        Args:
+            can_msg: Message that was received
+            timeout: If the message timed out
 
+        Returns:
+            None
+        """
+        # Convert the binary data in to the specific message structure
+        self._message.unpack(bytes(can_msg.data))
+
+        # Get the timestamp used for plotting
+        time_data = time.time()
+        if self._time_key:
+            time_data = self._message.get_keyed_data(self._time_key)
+
+        # Get the real data being plotted
+        real_data = self._message.get_keyed_data(self._attr_key)
+
+        # Insert the data into the buffer, then trigger redraw
         self._accumulator.popleft()
-        self._accumulator.append(voltage)
+        self._accumulator.append(np.array([[real_data], [time_data]]))
         self._plot_signal.set()
-

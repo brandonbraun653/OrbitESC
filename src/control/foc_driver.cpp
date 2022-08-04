@@ -171,7 +171,7 @@ namespace Orbit::Control
     mState.motorState.Vdd = mState.adcBuffer[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted;
 
     /* Step the EMF observer */
-    const float dt = static_cast<float>( timestamp - mState.emfObserver.last_update_us ) * 1e6f;
+    const float dt = US_TO_SEC( timestamp - mState.emfObserver.last_update_us );
     stepEMFObserver( dt );
     mState.emfObserver.last_update_us = timestamp;
 
@@ -232,7 +232,7 @@ namespace Orbit::Control
     -------------------------------------------------------------------------*/
     const size_t timestamp = Chimera::micros();
     const float  dTheta    = mState.motorState.posEstRad - mState.speedEstimator.pos_est_prev;
-    const float  wdt       = static_cast<float>( timestamp - mState.speedEstimator.last_update_us ) * 1e6f;
+    const float  wdt       = US_TO_SEC( timestamp - mState.speedEstimator.last_update_us );
 
     mState.motorState.velEstRad = dTheta / wdt;
 

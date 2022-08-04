@@ -30,25 +30,21 @@ namespace Orbit::CAN::Message
     MSG_PING             = 0x10,
     MSG_ARM_DISARM_MOTOR = 0x11,
     MSG_SET_MOTOR_SPEED  = 0x12,
-    MSG_GET_MOTOR_SPEED  = 0x13,
-
-    /*-------------------------------------------------------------------------
-    System Data Measurements
-    -------------------------------------------------------------------------*/
-    MSG_ADC_VDD             = 0x20,
-    MSG_ADC_PHASE_A_CURRENT = 0x21,
-    MSG_ADC_PHASE_B_CURRENT = 0x22,
 
     /*-------------------------------------------------------------------------
     Periodic Data
     -------------------------------------------------------------------------*/
-    MSG_SYSTEM_TICK = 0x50,
+    MSG_PRDC_ADC_VDD             = 0x20,
+    MSG_PRDC_ADC_PHASE_A_CURRENT = 0x21,
+    MSG_PRDC_ADC_PHASE_B_CURRENT = 0x22,
+    MSG_PRDC_MOTOR_SPEED         = 0x23,
+    MSG_PRDC_SYSTEM_TICK         = 0x50,
 
     /*-------------------------------------------------------------------------
     Miscellaneous Messages
     -------------------------------------------------------------------------*/
-    MSG_STREAM_BOOKEND = 0x60,  /**< Start/stop of stream messages */
-    MSG_STREAM_DATA    = 0x61,  /**< Data payload for a stream */
+    MSG_STREAM_BOOKEND = 0x60, /**< Start/stop of stream messages */
+    MSG_STREAM_DATA    = 0x61, /**< Data payload for a stream */
   };
 
 
@@ -100,18 +96,6 @@ namespace Orbit::CAN::Message
   };
 
 
-  class GetMotorSpeed : public Attributes<GetMotorSpeed, MSG_GET_MOTOR_SPEED>
-  {
-  public:
-    __packed_struct Payload
-    {
-      Header dst; /**< Destination node */
-      Header src; /**< Source node */
-    }
-    payload;
-  };
-
-
   class StreamBookend : public Attributes<StreamBookend, MSG_STREAM_BOOKEND>
   {
   public:
@@ -144,7 +128,7 @@ namespace Orbit::CAN::Message
   /**
    * @brief System time of the ESC node
    */
-  class SystemTick : public Attributes<SystemTick, MSG_SYSTEM_TICK, 1000>
+  class SystemTick : public Attributes<SystemTick, MSG_PRDC_SYSTEM_TICK, 1000>
   {
   public:
     __packed_struct Payload
@@ -161,7 +145,7 @@ namespace Orbit::CAN::Message
   /**
    * @brief ADC power supply voltage reading
    */
-  class PowerSupplyVoltage : public Attributes<PowerSupplyVoltage, MSG_ADC_VDD, 100>
+  class PowerSupplyVoltage : public Attributes<PowerSupplyVoltage, MSG_PRDC_ADC_VDD, 100>
   {
   public:
     __packed_struct Payload
@@ -179,7 +163,7 @@ namespace Orbit::CAN::Message
   /**
    * @brief ADC phase A current reading
    */
-  class PhaseACurrent : public Attributes<PhaseACurrent, MSG_ADC_PHASE_A_CURRENT, 100>
+  class PhaseACurrent : public Attributes<PhaseACurrent, MSG_PRDC_ADC_PHASE_A_CURRENT, 100>
   {
   public:
     __packed_struct Payload
@@ -194,10 +178,10 @@ namespace Orbit::CAN::Message
   };
 
 
- /**
+  /**
    * @brief ADC phase B current reading
    */
-  class PhaseBCurrent : public Attributes<PhaseBCurrent, MSG_ADC_PHASE_B_CURRENT, 100>
+  class PhaseBCurrent : public Attributes<PhaseBCurrent, MSG_PRDC_ADC_PHASE_B_CURRENT, 100>
   {
   public:
     __packed_struct Payload
@@ -205,6 +189,24 @@ namespace Orbit::CAN::Message
       Header   hdr;       /**< Message Header */
       uint32_t timestamp; /**< Timestamp of the ADC reading in microseconds */
       uint16_t current;   /**< Current in milliamps */
+    }
+    payload;
+
+    void update() final override;
+  };
+
+
+  /**
+   * @brief Estimated motor speed in RPM
+   */
+  class MotorSpeed : public Attributes<MotorSpeed, MSG_PRDC_MOTOR_SPEED, 100>
+  {
+  public:
+    __packed_struct Payload
+    {
+      Header   hdr;   /**< Message header */
+      uint32_t tick;  /**< System time in milliseconds */
+      uint16_t speed; /**< Motor speed in RPM */
     }
     payload;
 

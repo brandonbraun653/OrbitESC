@@ -14,6 +14,7 @@ Includes
 #include <Chimera/common>
 #include <src/config/bsp/board_map.hpp>
 #include <src/control/foc_driver.hpp>
+#include <src/control/foc_math.hpp>
 #include <src/core/com/can_message.hpp>
 #include <src/core/hw/orbit_can.hpp>
 #include <src/core/runtime/can_runtime.hpp>
@@ -68,6 +69,19 @@ namespace Orbit::CAN::Message
 
     payload.current    = static_cast<uint16_t>( buffer[ Control::ADC_CH_MOTOR_PHASE_B_CURRENT ].converted * 1e3f );
     payload.timestamp  = buffer[ Control::ADC_CH_MOTOR_PHASE_B_CURRENT ].sampleTimeUs;
+    payload.hdr.nodeId = EnumValue( thisNode() );
+    this->send( CANDriver );
+  }
+
+  /*---------------------------------------------------------------------------
+  Motor Speed Update
+  ---------------------------------------------------------------------------*/
+  void MotorSpeed::update()
+  {
+    const float speed_in_rad = Orbit::Control::FOCDriver.dbgGetState().motorState.velEstRad;
+
+    payload.speed      = static_cast<uint16_t>( RAD_TO_RPM( speed_in_rad ) );
+    payload.tick       = Chimera::millis();
     payload.hdr.nodeId = EnumValue( thisNode() );
     this->send( CANDriver );
   }
