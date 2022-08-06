@@ -15,11 +15,15 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <array>
-#include <cstdint>
-#include <Chimera/common>
-#include <Chimera/adc>
-#include <Chimera/timer>
+#include <src/control/foc_data.hpp>
+#include <src/control/modes/sys_mode_armed.hpp>
+#include <src/control/modes/sys_mode_base.hpp>
+#include <src/control/modes/sys_mode_fault.hpp>
+#include <src/control/modes/sys_mode_idle.hpp>
+#include <src/control/modes/sys_mode_park.hpp>
+#include <src/control/modes/sys_mode_ramp.hpp>
+#include <src/control/modes/sys_mode_run.hpp>
+
 
 namespace Orbit::Control
 {
@@ -34,113 +38,8 @@ namespace Orbit::Control
   extern FOC FOCDriver;
 
   /*---------------------------------------------------------------------------
-  Aliases
-  ---------------------------------------------------------------------------*/
-  /**
-   * @brief Function signature for a transfer function to convert ADC values to useful
-   *
-   * @param[in] vin   Input voltage measured by the ADC
-   * @return float    Output value of an arbitrary unit
-   */
-  using ADCTxfrFunc = float ( * )( float vin );
-
-  /*---------------------------------------------------------------------------
-  Enumerations
-  ---------------------------------------------------------------------------*/
-  enum ADCChannel
-  {
-    ADC_CH_MOTOR_PHASE_A_CURRENT,
-    ADC_CH_MOTOR_PHASE_B_CURRENT,
-    ADC_CH_MOTOR_SUPPLY_VOLTAGE,
-
-    ADC_CH_NUM_OPTIONS,
-    ADC_CH_INVALID
-  };
-
-
-  /*---------------------------------------------------------------------------
   Structures
   ---------------------------------------------------------------------------*/
-  struct EMFObserver
-  {
-    float d;   /**< Observer eigenvalue selection */
-    float z1;
-    float z1_dot;
-    float z2;
-    float z2_dot;
-    float Ed_est; /**< Estimated back-EMF on the D axis */
-    float Eq_est; /**< Estimated back-EMF on the Q axis */
-    float last_update_us; /**< Time of last update in microseconds */
-
-    void clear()
-    {
-      z1     = 0.0f;
-      z1_dot = 0.0f;
-      z2     = 0.0f;
-      z2_dot = 0.0f;
-    }
-  };
-
-  struct OmegaEstimator
-  {
-    float pos_est_prev;      /**< Last known rotor position in radians */
-    float last_update_us; /**< Time of last update in microseconds */
-
-    void clear()
-    {
-      pos_est_prev = 0.0f;
-      last_update_us = 0.0f;
-    }
-  };
-
-  struct MotorParameters
-  {
-    float Ls;   /**< Stator inductance in Henrys */
-    float Rs;   /**< Stator resistance in Ohms */
-
-    void clear()
-    {
-      Ls = 0.0f;
-      Rs = 0.0f;
-    }
-  };
-
-
-  struct MotorState
-  {
-    /*-------------------------------------------------------------------------
-    Estimated Quantities
-    -------------------------------------------------------------------------*/
-    float posEstRad; /**< Position in radians */
-    float velEstRad; /**< Velocity in radians/second */
-    float accEstRad; /**< Acceleration in radians/second^2 */
-
-    /*-------------------------------------------------------------------------
-    Measured Quantities
-    -------------------------------------------------------------------------*/
-    float Vdd; /**< Supply voltage in volts */
-    float Id;  /**< Current in Amps */
-    float Iq;  /**< Current in Amps */
-
-    /*-------------------------------------------------------------------------
-    Controller Outputs
-    -------------------------------------------------------------------------*/
-    float Vd; /**< Commanded output voltage on the D axis */
-    float Vq; /**< Commanded output voltage on the Q axis */
-
-    void clear()
-    {
-      posEstRad = 0.0f;
-      velEstRad = 0.0f;
-      accEstRad = 0.0f;
-      Vdd       = 0.0f;
-      Id        = 0.0f;
-      Iq        = 0.0f;
-      Vd        = 0.0f;
-      Vq        = 0.0f;
-    }
-  };
-
   struct FOCConfig
   {
     Chimera::ADC::Peripheral                    adcSource; /**< Which ADC peripheral to use */
@@ -153,47 +52,6 @@ namespace Orbit::Control
     }
   };
 
-
-  struct ADCSensorData
-  {
-    float    measured;     /**< Raw ADC value */
-    float    converted;    /**< Converted raw value into meaningful data */
-    float    dcOffset;     /**< The DC offset of the ADC channel */
-    uint32_t sampleTimeUs; /**< The time in microseconds that the ADC sample was taken */
-
-    void clear()
-    {
-      measured     = 0.0f;
-      converted    = 0.0f;
-      dcOffset     = 0.0f;
-      sampleTimeUs = 0;
-    }
-  };
-
-  using ADCSensorBuffer = std::array<ADCSensorData, ADC_CH_NUM_OPTIONS>;
-
-
-  struct InternalState
-  {
-    ADCSensorBuffer adcBuffer;
-    EMFObserver     emfObserver;
-    OmegaEstimator  speedEstimator;
-    MotorParameters motorParams;
-    MotorState      motorState;
-
-    void clear()
-    {
-      for ( auto &data : adcBuffer )
-      {
-        data.clear();
-      }
-
-      emfObserver.clear();
-      speedEstimator.clear();
-      motorParams.clear();
-      motorState.clear();
-    }
-  };
 
   /*---------------------------------------------------------------------------
   Classes
@@ -208,9 +66,63 @@ namespace Orbit::Control
     FOC();
     ~FOC();
 
+    /**
+     * @brief Power up the FOC library
+     *
+     * @param cfg           Configuration data for the FOC library
+     * @param motorParams   Motor parameters for the motor being controlled
+     * @return int
+     */
     int initialize( const FOCConfig &cfg, const MotorParameters &motorParams );
 
+    /**
+     * @brief Move from an idle state to prepared for running
+     *
+     * @return int
+     */
+    int arm();
+
+    /**
+     * @brief Revert to SW idle state and disable all motor control outputs
+     *
+     * @return int
+     */
+    int disarm();
+
+    /**
+     * @brief Start closed loop control of motor speed
+     * @note Requires the motor to be armed
+     *
+     * @return int
+     */
+    int engage();
+
+    /**
+     * @brief Stop controlling motor speed and revert to arm mode
+     * @note Requires controller to be engaged
+     *
+     * @return int
+     */
+    int disengage();
+
+    /**
+     * @brief Set a new speed reference for the motor
+     * @note Requires arm or engage mode
+     *
+     * Assigns a new set-point for the motor control system. Only takes physical effect on
+     * the motor once the system is engaged.
+     *
+     * @param ref        New speed reference in rpm
+     * @return int
+     */
     int setSpeedRef( const float ref );
+
+    /**
+     * @brief Instructs an emergency halt of the motor
+     *
+     * @return int
+     */
+    int emergencyStop();
 
     /**
      * @brief Gets the last data collected from the ADC
@@ -222,21 +134,44 @@ namespace Orbit::Control
     /**
      * @brief Gets a view of the internal state of the FOC driver
      *
-     * @return const InternalState&
+     * @return const SuperState&
      */
-    const InternalState& dbgGetState() const;
+    const SuperState &dbgGetState() const;
 
   protected:
+    /**
+     * @brief Interrupt handler for the ADC
+     *
+     * @param isr   Data from the ADC interrupt
+     */
     void dma_isr_current_controller( const Chimera::ADC::InterruptDetail &isr );
+
+    /**
+     * @brief Interrupt handler for a periodic timer to do the speed control loop
+     */
     void timer_isr_speed_controller();
+
+    /*-------------------------------------------------------------------------
+    State Machine Variables
+    -------------------------------------------------------------------------*/
+    FSMMotorControl    mFSM;        /**< Root controller instance */
+    State::Idle        mIdleState;  /**< Idle state controller */
+    State::Armed       mArmedState; /**< Armed state controller */
+    State::Fault       mFaultState; /**< Fault state controller */
+    State::EngagedPark mParkState;  /**< Park state controller */
+    State::EngagedRamp mRampState;  /**< Ramp state controller */
+    State::EngagedRun  mRunState;   /**< Run state controller */
+
+    /* Track the available instances */
+    std::array<etl::ifsm_state *, StateId::NUM_STATES> mFSMStateArray;
 
   private:
     Chimera::ADC::Driver_rPtr        mADCDriver;
     Chimera::Timer::Inverter::Driver mTimerDriver;
     Chimera::Timer::Trigger::Master  mSpeedCtrlTrigger;
 
-    InternalState mState;
-    FOCConfig     mConfig;
+    SuperState mState;
+    FOCConfig  mConfig;
 
     /**
      * @brief Calculates back-EMF estimates along the D and Q axes

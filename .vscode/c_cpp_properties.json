@@ -116,7 +116,8 @@
                 "${defaultIncludePaths}",
                 "${thorIncludePaths_HLD}",
                 "${thorIncludePaths_LLD_Intf}",
-                "${thorIncludePaths_LLD_L4}"
+                "${thorIncludePaths_LLD_L4}",
+                "${workspaceFolder}/lib/Aurora/lib/embedded_template_library/etl/include"
             ],
             "defines": [
                 "${defaultDefines}",
@@ -127,8 +128,7 @@
             ],
             "compilerPath": "${arm_none_eabi_path}",
             "cStandard": "gnu17",
-            "cppStandard": "gnu++20",
-            "configurationProvider": "ms-vscode.cmake-tools"
+            "cppStandard": "gnu++20"
         },
         {
             "name": "Simulator Development",

@@ -107,17 +107,19 @@ class LivePlotter:
             time_key: If the message contains some kind of time information, what key is it under?
             sample_history: How much data to store
         """
-        self._accumulator = deque(np.zeros((2, sample_history)))
-        self._observer = MessageObserver(func=self.can_observer, arbitration_id=message.id(), persistent=True)
+        self._y_axis = deque(np.zeros(sample_history))
+        self._x_axis = deque(np.zeros(sample_history))
+        self._observer = MessageObserver(func=self.can_observer, arb_id=message.id(), persistent=True)
         self._message = message
         self._attr_key = attr_key
         self._time_key = time_key
         self._plot_signal = Event()
+        self._start_time = time.time()
 
         # Initial configuration of the figure
         self._figure, self._ax = plt.subplots()
-        (self._line,) = self._ax.plot(self._accumulator[LivePlotter.TIME_AXIS][:],
-                                      self._accumulator[LivePlotter.DATA_AXIS][:], animated=True)
+        # (self._line,) = self._ax.plot(self._y_axis, animated=True)
+        (self._line,) = self._ax.plot(self._x_axis, self._y_axis, animated=True)
         self._figure.canvas.draw()
 
         # Attach the figure to the BlitManager
@@ -133,14 +135,12 @@ class LivePlotter:
             self._plot_signal.wait(1.0)
             self._plot_signal.clear()
 
-            # Pull out the raw data
-            ydata = self._accumulator[LivePlotter.DATA_AXIS][:]
-            xdata = self._accumulator[LivePlotter.TIME_AXIS][:]
+            self._line.set_ydata(self._y_axis)
+            self._line.set_xdata(self._x_axis)
 
             # Auto-range the graph and set the data values
-            self._ax.set_ylim([min(ydata) * 1.1, max(ydata) * 1.25])
-            self._line.set_ydata(ydata)
-            self._line.set_xdata(xdata)
+            self._ax.set_ylim(ymin=min(self._y_axis) * 0.90, ymax=max(self._y_axis) * 1.1)
+            self._ax.set_xlim(xmin=min(self._x_axis), xmax=max(self._x_axis))
 
             # Redraw!
             self._blit_manager.update()
@@ -159,7 +159,7 @@ class LivePlotter:
         self._message.unpack(bytes(can_msg.data))
 
         # Get the timestamp used for plotting
-        time_data = time.time()
+        time_data = time.time() - self._start_time
         if self._time_key:
             time_data = self._message.get_keyed_data(self._time_key)
 
@@ -167,6 +167,8 @@ class LivePlotter:
         real_data = self._message.get_keyed_data(self._attr_key)
 
         # Insert the data into the buffer, then trigger redraw
-        self._accumulator.popleft()
-        self._accumulator.append(np.array([[real_data], [time_data]]))
+        self._y_axis.popleft()
+        self._x_axis.popleft()
+        self._y_axis.append(real_data)
+        self._x_axis.append(time_data)
         self._plot_signal.set()

@@ -10,9 +10,10 @@
 
 from __future__ import annotations
 
+import can
 from ctypes import *
 from enum import IntEnum
-from typing import Any
+from typing import Any, Union
 from loguru import logger
 
 
@@ -47,7 +48,7 @@ class BaseMessage(Structure):
         """
         return cls._id_
 
-    def unpack(self, buffer: bytes) -> BaseMessage:
+    def unpack(self, buffer: Union[bytes, can.Message]) -> BaseMessage:
         """
         Takes a buffer of data and unpacks it into the structure fields
         Args:
@@ -56,6 +57,9 @@ class BaseMessage(Structure):
         Returns:
             None
         """
+        if isinstance(buffer, can.Message):
+            buffer = bytes(buffer.data)
+
         if len(buffer) < sizeof(self):
             raise ValueError(f"Buffer is too small to populate {self}")
         elif not isinstance(buffer, bytes):
@@ -101,7 +105,7 @@ class Ping(BaseMessage):
 class SystemTick(BaseMessage):
     _fields_ = [("src", SystemID),
                 ("tick", c_uint32)]
-    _period_ = 1000
+    _period_ = 1.0
     _id_ = 0x50
 
 
@@ -109,15 +113,21 @@ class PowerSupplyVoltage(BaseMessage):
     _fields_ = [("hdr", SystemID),
                 ("timestamp", c_uint32),
                 ("vdd", c_uint16)]
-    _period_ = 100
+    _period_ = 0.1
     _id_ = 0x20
+
+    def get_keyed_data(self, key: str) -> Any:
+        if key == "vdd":
+            return self.vdd / 1e3
+        elif key == "timestamp":
+            return self.timestamp / 1e6
 
 
 class PhaseACurrent(BaseMessage):
     _fields_ = [("hdr", SystemID),
                 ("timestamp", c_uint32),
                 ("current", c_uint16)]
-    _period_ = 100
+    _period_ = 0.1
     _id_ = 0x21
 
 
@@ -125,7 +135,7 @@ class PhaseBCurrent(BaseMessage):
     _fields_ = [("hdr", SystemID),
                 ("timestamp", c_uint32),
                 ("current", c_uint16)]
-    _period_ = 100
+    _period_ = 0.1
     _id_ = 0x22
 
 
@@ -134,5 +144,5 @@ class MotorSpeed(BaseMessage):
                 ("tick", c_uint32),
                 ("speed", c_uint16)]
 
-    _period_ = 100
+    _period_ = 0.1
     _id_ = 0x23

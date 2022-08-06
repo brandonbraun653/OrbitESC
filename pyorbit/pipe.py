@@ -24,18 +24,18 @@ from threading import Thread, RLock, Event
 class MessageObserver:
     """ Custom observer handle for reacting to a received CAN id """
 
-    def __init__(self, func: Callable[[Union[can.Message, None], bool], None], arbitration_id: int,
+    def __init__(self, func: Callable[[Union[can.Message, None], bool], None], arb_id: int,
                  timeout: Union[float, int, None] = None,
                  persistent: bool = False):
         """
         Args:
             func: Function to invoke upon receiving a message with the configured arbitration id
-            arbitration_id: CAN arbitration ID to register against
+            arb_id: CAN arbitration ID to register against
             timeout: How long the observer should stay active (None == Indefinite)
             persistent: Should the observer stay registered once triggered?
         """
         self.observer_function = func
-        self.arbitration_id = arbitration_id
+        self.arbitration_id = arb_id
         self.timeout = timeout
         self.persistent = persistent
         self.start_time = time.time()
@@ -163,7 +163,7 @@ class CANPipe:
             wake_up.set()
 
         # Register the observer for the ping message response
-        observer = MessageObserver(func=notifier_observer, arbitration_id=Ping.id(), timeout=0.5)
+        observer = MessageObserver(func=notifier_observer, arb_id=Ping.id(), timeout=0.5)
         self.subscribe(observer)
 
         # Send the ping to the destination node

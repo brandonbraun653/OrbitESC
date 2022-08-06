@@ -123,6 +123,23 @@ namespace Orbit::Control
     RT_HARD_ASSERT( Chimera::Status::OK == mSpeedCtrlTrigger.init( trig_cfg ) );
     mSpeedCtrlTrigger.enable();
 
+    /*-------------------------------------------------------------------------
+    Initialize the finite state machine
+    -------------------------------------------------------------------------*/
+    /* Fill the state array with the class objects */
+    mFSMStateArray.fill( nullptr );
+    mFSMStateArray[ StateId::IDLE ]         = &mIdleState;
+    mFSMStateArray[ StateId::ARMED ]        = &mArmedState;
+    mFSMStateArray[ StateId::FAULT ]        = &mFaultState;
+    mFSMStateArray[ StateId::ENGAGED_PARK ] = &mParkState;
+    mFSMStateArray[ StateId::ENGAGED_RAMP ] = &mRampState;
+    mFSMStateArray[ StateId::ENGAGED_RUN ]  = &mRunState;
+
+    /* Initialize the FSM. First state will be StateId::IDLE. */
+    mFSM.attachControllerData( &mState );
+    mFSM.set_states( mFSMStateArray.data(), mFSMStateArray.size() );
+    mFSM.start();
+
     return 0;
   }
 
@@ -133,7 +150,7 @@ namespace Orbit::Control
   }
 
 
-  const InternalState &FOC::dbgGetState() const
+  const SuperState &FOC::dbgGetState() const
   {
     return mState;
   }
