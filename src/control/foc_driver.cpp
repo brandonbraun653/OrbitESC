@@ -144,6 +144,42 @@ namespace Orbit::Control
   }
 
 
+  int FOC::arm()
+  {
+
+  }
+
+
+  int FOC::disarm()
+  {
+
+  }
+
+
+  int FOC::engage()
+  {
+
+  }
+
+
+  int FOC::disengage()
+  {
+
+  }
+
+
+  int FOC::setSpeedRef( const float ref )
+  {
+
+  }
+
+
+  int FOC::emergencyStop()
+  {
+
+  }
+
+
   void FOC::lastSensorData( ADCSensorBuffer &data )
   {
     data = mState.adcBuffer;
