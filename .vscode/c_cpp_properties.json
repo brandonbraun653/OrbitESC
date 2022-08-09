@@ -107,7 +107,7 @@
         ],
         "defaultEmbeddedCStandard": "gnu17",
         "defaultEmbeddedCppStandard": "gnu++20",
-        "arm_none_eabi_path": "~/toolchain/gcc-arm-none-eabi-9-2020-q2-update/bin/arm-none-eabi-gcc"
+        "arm_none_eabi_path": "~/toolchain/xpack-arm-none-eabi-gcc-11.2.1-1.2/bin/arm-none-eabi-gcc"
     },
     "configurations": [
         {

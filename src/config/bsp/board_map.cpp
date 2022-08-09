@@ -20,7 +20,7 @@ namespace Orbit::IO
   -------------------------------------------------------------------------------*/
   namespace USART
   {
-    const Chimera::Serial::Config comConfig = { .baud     = 115200,
+    const Chimera::Serial::Config comConfig = { .baud     = 921600,
                                                 .width    = Chimera::Serial::CharWid::CW_8BIT,
                                                 .parity   = Chimera::Serial::Parity::PAR_NONE,
                                                 .stopBits = Chimera::Serial::StopBits::SBITS_ONE,

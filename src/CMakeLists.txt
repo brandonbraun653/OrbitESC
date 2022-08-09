@@ -74,6 +74,8 @@ gen_intf_lib_variants(
     aurora_core
     aurora_database
     aurora_datastore
+    aurora_filesystem_core
+    aurora_filesystem_eefs_driver
     aurora_logging
     aurora_memory
   EXPORT_DIR
@@ -108,6 +110,7 @@ target_link_libraries(OrbitESC PRIVATE
   lib_orbit_com_rel
   lib_orbit_core_rel
   lib_orbit_ctrl_rel_dbg
+  lib_orbit_data_rel_dbg
   lib_orbit_hw_rel
   lib_orbit_runtime_rel
   lib_orbit_tasks_rel
