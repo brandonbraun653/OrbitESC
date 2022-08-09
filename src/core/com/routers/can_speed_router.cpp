@@ -28,7 +28,7 @@ namespace Orbit::CAN::Router
 
   void SetMotorSpeedRouter::on_receive( const Message::SetMotorSpeed &msg )
   {
-    Chimera::CAN::BasicFrame tx_frame;
+    // Chimera::CAN::BasicFrame tx_frame;
     // Send ACK
     // Set the new speed reference
   }

@@ -44,7 +44,6 @@ namespace Orbit::GPIO
 
     pin = getDriver( cfg.port, cfg.pin );
     RT_HARD_ASSERT( pin != nullptr );
-    auto result = pin->init( cfg );
     RT_HARD_ASSERT( Chimera::Status::OK == pin->init( cfg ) );
     RT_HARD_ASSERT( Chimera::Status::OK == pin->setState( State::LOW ) );
 

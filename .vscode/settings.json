@@ -137,6 +137,7 @@
     "dcmi",
     "debouncer",
     "debouncing",
+    "EEFS",
     "EEPROM",
     "exti",
     "fifo",

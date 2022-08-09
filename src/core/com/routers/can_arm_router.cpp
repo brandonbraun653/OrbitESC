@@ -28,7 +28,7 @@ namespace Orbit::CAN::Router
 
   void ArmDisarmMotorRouter::on_receive( const Message::ArmDisarmMotor &msg )
   {
-    Chimera::CAN::BasicFrame tx_frame;
+    // Chimera::CAN::BasicFrame tx_frame;
     // Send ACK
     // Set the new arm reference
   }
