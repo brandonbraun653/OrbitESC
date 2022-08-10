@@ -19,6 +19,7 @@ Includes
 #include <etl/circular_buffer.h>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/bootup.hpp>
+#include <src/core/data/orbit_data.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_can.hpp>
 #include <src/core/hw/orbit_gpio.hpp>
@@ -85,6 +86,11 @@ namespace Orbit::Boot
     Orbit::I2C::powerUp();
     Orbit::TIMER::powerUp();
     Orbit::USART::powerUp();
+
+    /*-------------------------------------------------------------------------
+    Power up more complex system components
+    -------------------------------------------------------------------------*/
+    Orbit::Data::initialize();
   }
 
 

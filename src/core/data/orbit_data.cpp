@@ -19,6 +19,11 @@ Includes
 namespace Orbit::Data
 {
   /*---------------------------------------------------------------------------
+  Static Data
+  ---------------------------------------------------------------------------*/
+  static Aurora::FileSystem::EEPROM::MBRCache<12, 0x00> s_mbr_cache;
+
+  /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   bool initialize()
@@ -26,7 +31,13 @@ namespace Orbit::Data
     /*-------------------------------------------------------------------------
     Configure the file system backend
     -------------------------------------------------------------------------*/
-    Aurora::FileSystem::EEPROM::attachDevice( 0x53, Aurora::Flash::EEPROM::Chip::AT24C02, IO::I2C::channel );
+    Aurora::FileSystem::EEPROM::FSConfig cfg;
+    cfg.address  = 0x53;
+    cfg.channel  = IO::I2C::channel;
+    cfg.device   = Aurora::Flash::EEPROM::Chip::AT24C02;
+    cfg.mbrCache = &s_mbr_cache;
+
+    Aurora::FileSystem::EEPROM::configure( cfg );
 
     /*-------------------------------------------------------------------------
     Power on the file system
