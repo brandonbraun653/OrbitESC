@@ -13,7 +13,7 @@ python
 import os,subprocess,sys
 
 # Uncomment to figure out which python version your GDB is using
-# print(sys.version)
+print(sys.version)
 
 # Execute a Python using the user's shell and pull out the sys.path (for site-packages)
 paths = subprocess.check_output('python3 -c "import os,sys;print(os.linesep.join(sys.path).strip())"',shell=True).decode("utf-8").split()
@@ -22,5 +22,5 @@ sys.path.extend(paths)
 end
 
 # Import PyCortexMDebug
-source lib/CommonTools/PyCortexMDebug/scripts/gdb.py
-svd lib/CommonTools/svd/STM32L4x2.svd
+# source lib/CommonTools/PyCortexMDebug/scripts/gdb.py
+# svd lib/CommonTools/svd/STM32L4x2.svd
