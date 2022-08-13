@@ -51,6 +51,24 @@
         "cwd": "${workspaceFolder}/scripts"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "Dump Sections",
+      "type":"shell",
+      "command": "arm-none-eabi-objdump -w -d --section=.text OrbitESC > sections.txt",
+      "options": {
+        "cwd": "${workspaceFolder}/artifacts/last_build_version"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Dump Largest Symbols",
+      "type":"shell",
+      "command": "arm-none-eabi-nm --print-size --size-sort --reverse-sort OrbitESC > sizes.txt",
+      "options": {
+        "cwd": "${workspaceFolder}/artifacts/last_build_version"
+      },
+      "problemMatcher": []
     }
   ]
 }

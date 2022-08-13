@@ -49,6 +49,9 @@ class OrbitESC:
     def com_pipe(self) -> CANPipe:
         return self._data_pipe
 
+    def ping(self) -> bool:
+        return self.com_pipe.ping(self._dst_node)
+
     def arm(self) -> None:
         pass
 

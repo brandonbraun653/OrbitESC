@@ -19,6 +19,10 @@ Includes
 #include <src/control/foc_math.hpp>
 #include <Thor/lld/interface/inc/timer>
 
+#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
+#include "SEGGER_SYSVIEW.h"
+#endif
+
 extern volatile bool isr_foc_flag;
 
 namespace Orbit::Control
@@ -194,6 +198,8 @@ namespace Orbit::Control
 
   void FOC::dma_isr_current_controller( const Chimera::ADC::InterruptDetail &isr )
   {
+    SEGGER_SYSVIEW_RecordEnterISR();
+
     /*-------------------------------------------------------------------------
     Convert the ADC data to measured values
     -------------------------------------------------------------------------*/
@@ -273,6 +279,8 @@ namespace Orbit::Control
         phase = 0;
       }
     }
+
+    SEGGER_SYSVIEW_RecordExitISR();
   }
 
 

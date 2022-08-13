@@ -15,5 +15,6 @@ if __name__ == "__main__":
 
     esc = OrbitESC(dst_node=NodeID.NODE_0)
     esc.com_pipe.subscribe(plotter.observer_handle)
+    esc.ping()
 
     time.sleep(5)

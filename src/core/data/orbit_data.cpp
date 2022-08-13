@@ -31,13 +31,13 @@ namespace Orbit::Data
     /*-------------------------------------------------------------------------
     Initialize the EEPROM driver
     -------------------------------------------------------------------------*/
-    Aurora::Flash::EEPROM::DeviceConfig cfg;
-    cfg.clear();
-    cfg.whichChip     = Aurora::Flash::EEPROM::Chip::AT24C02;
-    cfg.deviceAddress = 0x53;
-    cfg.i2cChannel    = IO::I2C::channel;
+    // Aurora::Flash::EEPROM::DeviceConfig cfg;
+    // cfg.clear();
+    // cfg.whichChip     = Aurora::Flash::EEPROM::Chip::AT24C02;
+    // cfg.deviceAddress = 0x53;
+    // cfg.i2cChannel    = IO::I2C::channel;
 
-    RT_HARD_ASSERT( sEEPROMFlash.configure( cfg ) );
+    // RT_HARD_ASSERT( sEEPROMFlash.configure( cfg ) );
 
     /*-------------------------------------------------------------------------
     Power on the file system
