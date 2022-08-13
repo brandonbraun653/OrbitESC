@@ -12,7 +12,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/logging>
-#include <Aurora/filesystem>
+#include <Aurora/memory>
 #include <src/core/data/orbit_data.hpp>
 #include <src/config/bsp/board_map.hpp>
 
@@ -21,7 +21,7 @@ namespace Orbit::Data
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static Aurora::FileSystem::EEPROM::MBRCache<12, 0x00> s_mbr_cache;
+  static Aurora::Flash::EEPROM::Driver sEEPROMFlash; /**< Flash memory driver supporting the file system */
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -29,29 +29,20 @@ namespace Orbit::Data
   bool initialize()
   {
     /*-------------------------------------------------------------------------
-    Configure the file system backend
+    Initialize the EEPROM driver
     -------------------------------------------------------------------------*/
-    Aurora::FileSystem::EEPROM::FSConfig cfg;
-    cfg.address  = 0x53;
-    cfg.channel  = IO::I2C::channel;
-    cfg.device   = Aurora::Flash::EEPROM::Chip::AT24C02;
-    cfg.mbrCache = &s_mbr_cache;
+    Aurora::Flash::EEPROM::DeviceConfig cfg;
+    cfg.clear();
+    cfg.whichChip     = Aurora::Flash::EEPROM::Chip::AT24C02;
+    cfg.deviceAddress = 0x53;
+    cfg.i2cChannel    = IO::I2C::channel;
 
-    Aurora::FileSystem::EEPROM::configure( cfg );
+    RT_HARD_ASSERT( sEEPROMFlash.configure( cfg ) );
 
     /*-------------------------------------------------------------------------
     Power on the file system
     -------------------------------------------------------------------------*/
-    Aurora::FileSystem::attachImplementation( &Aurora::FileSystem::EEPROM::implementation );
 
-    int result = Aurora::FileSystem::mount();
-    if( result != 0 )
-    {
-      LOG_ERROR( "Failed to mount the EEFS file system: %d\r\n", result );
-      return false;
-    }
-
-    return true;
   }
 
 }    // namespace Orbit::Data

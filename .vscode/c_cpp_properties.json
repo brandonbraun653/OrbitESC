@@ -140,8 +140,7 @@
             ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "gnu17",
-            "cppStandard": "gnu++20",
-            "configurationProvider": "ms-vscode.cmake-tools"
+            "cppStandard": "gnu++20"
         }
     ],
     "version": 4
