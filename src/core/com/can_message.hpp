@@ -254,7 +254,7 @@ namespace Orbit::CAN::Message
 
   static constexpr size_t numPeriodicMessageTypes()
   {
-    return calcPeriodicMessageTypes<SystemTick, SystemMode, PowerSupplyVoltage>();
+    return calcPeriodicMessageTypes<SystemTick, SystemMode, PowerSupplyVoltage, PhaseACurrent, PhaseBCurrent, MotorSpeed>();
   }
 
 }    // namespace Orbit::CAN::Message

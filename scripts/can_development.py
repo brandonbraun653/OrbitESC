@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 
 
 if __name__ == "__main__":
-    # plotter = LivePlotter(message=MotorSpeed(), attr_key="speed", time_key="tick")
-    plotter = LivePlotter(message=PowerSupplyVoltage(), attr_key="vdd")
+    plotter = LivePlotter(message=MotorSpeed(), attr_key="speed", time_key="tick")
+    # plotter = LivePlotter(message=PowerSupplyVoltage(), attr_key="vdd")
     plt.show(block=False)
 
     esc = OrbitESC(dst_node=NodeID.NODE_0)
