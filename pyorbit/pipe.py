@@ -10,15 +10,19 @@
 
 import atexit
 import can
+import copy
+import inspect
 import re
+import sched
 import subprocess
 import time
 import uuid
+import queue
 from ifconfigparser import IfconfigParser
 from loguru import logger
-from typing import Callable, List, Union
-from pyorbit.messages import NodeID, Ping
-from threading import Thread, RLock, Event
+from typing import Any, Callable, Dict, List, Type, Union
+from threading import Thread, RLock, Event, Condition
+from pyorbit.messages import BaseMessage
 
 
 class MessageObserver:
@@ -41,6 +45,114 @@ class MessageObserver:
         self.start_time = time.time()
 
 
+class MessageQueue:
+    """ Listener utility for holding CAN messages as they arrive """
+
+    def __init__(self, msg: Any, qty: int = 0, timeout: Union[float, int, None] = None):
+        """
+        Args:
+            msg: An object or class type derived from BaseMessage
+            qty: How many messages to accumulate. If zero, accumulates infinite messages.
+            timeout: How long to allow the accumulator to grab new messages. If None, listen forever.
+        """
+        # Sanity check the input message prototype. Assumes that the type will be trivially constructible
+        # in the case a class type is passed in.
+        if inspect.isclass(msg):
+            instantiated_msg = msg()
+        else:
+            instantiated_msg = msg
+
+        if not isinstance(instantiated_msg, BaseMessage):
+            raise ValueError(f"Class prototype [{type(instantiated_msg).__name__}] must be derived from BaseMessage")
+
+        # All good. Initialize the rest of the class.
+        self._msg_type = instantiated_msg.__class__  # type: Type[BaseMessage]
+        self._qty = qty
+        self._timeout = timeout
+        self._msg_queue = queue.Queue(maxsize=qty)  # type: "Queue[BaseMessage]"
+        self._uuid = uuid.uuid4()
+        self._data_ready_event = Event()
+        self._observer_instance = MessageObserver(func=self._message_observer, arb_id=self._msg_type.id(),
+                                                  timeout=self._timeout, persistent=True)
+
+    @property
+    def expired(self) -> bool:
+        """
+        Checks to see if the queue's lifetime has expired
+        Returns:
+            True if expired, False if not
+        """
+        if self._timeout and ((time.time() - self._observer_instance.start_time) > self._timeout):
+            # Unblock any thread waiting on timeouts
+            self._data_ready_event.set()
+            return True
+        else:
+            return False
+
+    @property
+    def unique_id(self) -> uuid.UUID:
+        return self._uuid
+
+    @property
+    def observer(self) -> MessageObserver:
+        return self._observer_instance
+
+    def await_fulfillment_or_timeout(self) -> None:
+        """
+        Blocks current thread until notification is sent
+        Returns:
+            None
+        """
+        self._data_ready_event.wait()
+        self._data_ready_event.clear()
+
+    def get_messages(self, flush: bool = True) -> List[can.Message]:
+        """
+        Retrieves all messages in the subscription queue
+        Args:
+            flush: If true, empties the queue of data
+
+        Returns:
+            All available CAN messages
+        """
+        if self._msg_queue.empty():
+            return []
+
+        if flush:
+            return [self._msg_queue.get() for _ in range(self._msg_queue.qsize())]
+        else:
+            return list(self._msg_queue)
+
+    def _message_observer(self, msg: can.Message, timeout: bool) -> None:
+        """
+        Observer to accept new messages and push them into the queue
+        Args:
+            msg: Message received
+            timeout: Whether the message timed out
+
+        Returns:
+            None
+        """
+        # Handle timeout and bad input conditions
+        if timeout or not msg:
+            return
+
+        # Don't listen to the wrong message or if timeout has elapsed
+        if (msg.arbitration_id != self._msg_type.id()) or self.expired:
+            return
+
+        try:
+            # Guarantee message insertion if it exists
+            msg_object = self._msg_type().unpack(msg)
+            self._msg_queue.put(msg_object, block=False)
+
+            # Check fulfillment of quantity requirements
+            if (self._qty == 0) or (self._msg_queue.qsize() >= self._qty):
+                self._data_ready_event.set()
+        except queue.Full:
+            logger.trace(f"Message queue full: {repr(self._uuid)}")
+
+
 class CANPipe:
     """ Interface to a number of ESC nodes communicating over CAN bus """
 
@@ -61,6 +173,9 @@ class CANPipe:
         self._reader_thread = Thread(target=self._can_message_handler)
         self._rx_observers = {"active_ids": []}
         self._periodic_messages = []
+
+        # Subscription data
+        self._subscriptions = {}  # type: Dict[uuid.UUID, MessageQueue]
 
         # Kick things off!
         self._reader_thread.start()
@@ -93,7 +208,27 @@ class CANPipe:
         self._reader_thread.join()
         self._default_reader.stop()
 
-    def subscribe(self, observer: MessageObserver) -> uuid.UUID:
+    def subscribe(self, msg: Any, qty: int = 0, timeout: Union[int, float, None] = None) -> uuid.UUID:
+        """
+        Creates a subscription to the given CAN message type. In the background, the subscription
+        will accumulate messages in a queue for later retrieval.
+
+        Args:
+            msg: An object or class type derived from BaseMessage
+            qty: How many messages to receive. If zero, accept infinite messages.
+            timeout: How long in seconds to wait for "qty" of messages to arrive
+
+        Returns:
+            Unique ID of the subscription
+        """
+        with self._data_lock:
+            q = MessageQueue(msg=msg, qty=qty, timeout=timeout)
+            self._subscriptions[q.unique_id] = q
+            self._add_new_observer(unique_id=q.unique_id, observer=q.observer)
+
+        return q.unique_id
+
+    def subscribe_observer(self, observer: MessageObserver) -> uuid.UUID:
         """
         Adds an observer into the OrbitESC runtime message parsing infrastructure
 
@@ -103,26 +238,16 @@ class CANPipe:
         Returns:
             Unique identifier for the registered observer
         """
-        with self._data_lock:
-            # Register the observer against the UUID
-            new_uuid = uuid.uuid4()
-            self._rx_observers[new_uuid] = observer
-
-            # Add to the arbitration id observer list
-            if observer.arbitration_id not in self._rx_observers.keys():
-                self._rx_observers[observer.arbitration_id] = []
-                self._rx_observers["active_ids"].append(observer.arbitration_id)
-
-            self._rx_observers[observer.arbitration_id].append(observer)
-            observer.start_time = time.time()
+        new_uuid = uuid.uuid4()
+        self._add_new_observer(unique_id=new_uuid, observer=observer)
 
         return new_uuid
 
     def unsubscribe(self, unique_id: uuid.UUID) -> None:
         """
-        Removes an observer from registration
+        Removes an observer or subscription from registration
         Args:
-            unique_id: ID of the observer to remove
+            unique_id: ID of the observer/subscription to remove
 
         Returns:
             None
@@ -130,7 +255,7 @@ class CANPipe:
         with self._data_lock:
             if unique_id in self._rx_observers.keys():
                 # Remove the observer as registered with the unique ID
-                observer = self._rx_observers[unique_id]   # type: MessageObserver
+                observer = self._rx_observers[unique_id]  # type: MessageObserver
                 self._rx_observers.pop(unique_id, None)
 
                 # Remove the observer from the CAN arbitration ID list
@@ -141,43 +266,40 @@ class CANPipe:
                 except ValueError:
                     pass
 
-    def ping(self, node_id: NodeID) -> bool:
+            if unique_id in self._subscriptions.keys():
+                self._subscriptions.pop(unique_id)
+
+    def get_subscription_data(self, unique_id: uuid.UUID, block: bool = True, flush: bool = True,
+                              terminate: bool = False) -> List[can.Message]:
         """
-        Communicates with the desired to node to see if it's alive
+        Gets all data associated with a subscription
         Args:
-            node_id: Which node to talk with
+            unique_id: ID returned from the subscription
+            block: Wait for the subscription's data quantity to arrive or timeout to expire
+            flush: Optionally flush the data from the subscription queue
+            terminate: Unsubscribe from the associated CAN message
 
         Returns:
-            True if the node responds, False if not
+            List of messages enqueued for the subscription
         """
-        success = False
-        wake_up = Event()
+        try:
+            # Wait for the data to arrive or timeout to occur?
+            if block:
+                self._subscriptions[unique_id].await_fulfillment_or_timeout()
 
-        def notifier_observer(can_msg: can.Message, timeout: bool):
-            nonlocal success, node_id
+            # Grab the data. Might not be anything there.
+            sub_data = self._subscriptions[unique_id].get_messages(flush=flush)
 
-            if can_msg:
-                ping_msg = Ping().unpack(bytes(can_msg.data))
-                success = (ping_msg.src.node_id == node_id and not timeout)
+            # Unregister the subscription with the observer infrastructure? Renders the unique_id useless.
+            if terminate:
+                self.unsubscribe(unique_id)
 
-            wake_up.set()
+            return sub_data
+        except KeyError as e:
+            logger.error(f"{repr(e)}")
 
-        # Register the observer for the ping message response
-        observer = MessageObserver(func=notifier_observer, arb_id=Ping.id(), timeout=0.5)
-        self.subscribe(observer)
-
-        # Send the ping to the destination node
-        ping = Ping()
-        ping.dst.node_id = node_id
-        ping.src.node_id = NodeID.NODE_PC
-        msg = can.Message(arbitration_id=ping.id(), data=ping.pack())
-        logger.debug(f"Sending ping to node {node_id}")
-        self.bus.send(msg)
-
-        # Wait for the message to arrive or timeout
-        wake_up.wait(timeout=None)
-        logger.debug(f"Ping {'received' if success else 'not received'} from node {node_id}")
-        return success
+        # Default return value
+        return []
 
     def _can_message_handler(self) -> None:
         """
@@ -229,11 +351,42 @@ class CANPipe:
             None
         """
         with self._data_lock:
-            while msg := self._default_reader.get_message(timeout=0.0):     # type: Union[can.Message, None]
+            while msg := self._default_reader.get_message(timeout=0.0):  # type: Union[can.Message, None]
                 # Skip if not registered
                 if msg.arbitration_id not in self._rx_observers.keys():
                     continue
 
                 # Invoke all registered observers for this message
                 for cb in self._rx_observers[msg.arbitration_id]:
-                    cb.observer_function(can_msg=msg, timeout=False)
+                    cb.observer_function(msg, False)
+
+    def _add_new_observer(self, unique_id: uuid.UUID, observer: MessageObserver) -> None:
+        """
+        Adds a new observer to the RX listeners
+
+        Args:
+            unique_id: Unique ID of the observer
+            observer: Observer object being registered
+
+        Returns:
+            None
+        """
+        with self._data_lock:
+            # Map the UniqueID <-> Observer Object
+            self._rx_observers[unique_id] = observer
+
+            # Register the arbitration IDs to the actively listened to ID list
+            if observer.arbitration_id not in self._rx_observers.keys():
+                self._rx_observers[observer.arbitration_id] = []
+                self._rx_observers["active_ids"].append(observer.arbitration_id)
+
+            # Link the observer to the arbitration ID
+            self._rx_observers[observer.arbitration_id].append(observer)
+            observer.start_time = time.time()
+
+
+if __name__ == "__main__":
+    from pyorbit.messages import SystemID
+
+    MessageQueue(msg=SystemID)
+    MessageQueue(msg=SystemID())

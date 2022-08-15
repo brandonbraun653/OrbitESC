@@ -20,27 +20,27 @@ namespace Orbit::Control::State
   ---------------------------------------------------------------------------*/
   etl::fsm_state_id_t Armed::on_enter_state()
   {
-    return StateId::ARMED;
+    return ModeId::ARMED;
   }
 
   etl::fsm_state_id_t Armed::on_event( const MsgEmergencyHalt &msg )
   {
-    return StateId::ARMED;
+    return ModeId::ARMED;
   }
 
   etl::fsm_state_id_t Armed::on_event( const MsgDisarm &msg )
   {
-    return StateId::ARMED;
+    return ModeId::ARMED;
   }
 
   etl::fsm_state_id_t Armed::on_event( const MsgAlign &msg )
   {
-    return StateId::ARMED;
+    return ModeId::ARMED;
   }
 
   etl::fsm_state_id_t Armed::on_event( const MsgFault &msg )
   {
-    return StateId::ARMED;
+    return ModeId::ARMED;
   }
 
   etl::fsm_state_id_t Armed::on_event_unknown( const etl::imessage &msg )

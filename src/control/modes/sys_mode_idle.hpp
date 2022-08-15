@@ -22,7 +22,7 @@ namespace Orbit::Control::State
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
-  class Idle : public etl::fsm_state<FSMMotorControl, Idle, StateId::IDLE, MsgEmergencyHalt, MsgArm, MsgFault>
+  class Idle : public etl::fsm_state<FSMMotorControl, Idle, ModeId::IDLE, MsgEmergencyHalt, MsgArm, MsgFault>
   {
   public:
     etl::fsm_state_id_t on_enter_state();

@@ -22,7 +22,7 @@ namespace Orbit::Control::State
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
-  class EngagedRamp : public etl::fsm_state<FSMMotorControl, EngagedRamp, StateId::ENGAGED_RAMP, MsgEmergencyHalt, MsgDisengage,
+  class EngagedRamp : public etl::fsm_state<FSMMotorControl, EngagedRamp, ModeId::ENGAGED_RAMP, MsgEmergencyHalt, MsgDisengage,
                                             MsgRun, MsgFault>
   {
   public:

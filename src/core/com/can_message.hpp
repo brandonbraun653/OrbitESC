@@ -16,6 +16,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <src/core/com/can_message_intf.hpp>
+#include <etl/fsm.h>
 
 namespace Orbit::CAN::Message
 {
@@ -33,12 +34,14 @@ namespace Orbit::CAN::Message
 
     /*-------------------------------------------------------------------------
     Periodic Data
+      Note: Don't forget to update numPeriodicMessageTypes()
     -------------------------------------------------------------------------*/
     MSG_PRDC_ADC_VDD             = 0x20,
     MSG_PRDC_ADC_PHASE_A_CURRENT = 0x21,
     MSG_PRDC_ADC_PHASE_B_CURRENT = 0x22,
     MSG_PRDC_MOTOR_SPEED         = 0x23,
     MSG_PRDC_SYSTEM_TICK         = 0x50,
+    MSG_PRDC_SYSTEM_MODE         = 0x51,
 
     /*-------------------------------------------------------------------------
     Miscellaneous Messages
@@ -143,6 +146,23 @@ namespace Orbit::CAN::Message
 
 
   /**
+   * @brief System mode of the ESC node
+   */
+  class SystemMode : public Attributes<SystemMode, MSG_PRDC_SYSTEM_MODE, 250>
+  {
+  public:
+    __packed_struct Payload
+    {
+      Header              hdr;  /**< Message Header */
+      etl::fsm_state_id_t mode; /**< Current system mode Orbit::Control::ModeId */
+    }
+    payload;
+
+    void update() final override;
+  };
+
+
+  /**
    * @brief ADC power supply voltage reading
    */
   class PowerSupplyVoltage : public Attributes<PowerSupplyVoltage, MSG_PRDC_ADC_VDD, 100>
@@ -234,7 +254,7 @@ namespace Orbit::CAN::Message
 
   static constexpr size_t numPeriodicMessageTypes()
   {
-    return calcPeriodicMessageTypes<Ping, SystemTick, PowerSupplyVoltage>();
+    return calcPeriodicMessageTypes<SystemTick, SystemMode, PowerSupplyVoltage>();
   }
 
 }    // namespace Orbit::CAN::Message

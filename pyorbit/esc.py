@@ -12,10 +12,10 @@ import atexit
 import can
 import time
 from loguru import logger
-from pyorbit.messages import NodeID, SystemTick
 from threading import Event, Thread
 from typing import Any, Union
 from pyorbit.pipe import CANPipe, MessageObserver
+from pyorbit.messages import NodeID, Ping, SystemTick
 
 
 class OrbitESC:
@@ -40,7 +40,7 @@ class OrbitESC:
         self._bkgd_thread.start()
 
         # Register known observers
-        self.com_pipe.subscribe(MessageObserver(func=self._observer_esc_tick, arb_id=SystemTick.id(), persistent=True))
+        self.com_pipe.subscribe_observer(MessageObserver(func=self._observer_esc_tick, arb_id=SystemTick.id(), persistent=True))
 
         # Register the cleanup method
         atexit.register(self._destroy)
@@ -50,7 +50,27 @@ class OrbitESC:
         return self._data_pipe
 
     def ping(self) -> bool:
-        return self.com_pipe.ping(self._dst_node)
+        """
+        Communicates with the desired to node to see if it's alive
+        Returns:
+            True if the node responds, False if not
+        """
+
+        # Set up subscription for the expected response
+        sub_id = self.com_pipe.subscribe(msg=Ping, qty=1, timeout=3.0)
+
+        # Send the ping to the destination node
+        ping = Ping()
+        ping.dst.node_id = self._dst_node
+        ping.src.node_id = NodeID.NODE_PC
+
+        logger.debug(f"Sending ping to node {self._dst_node}")
+        self.com_pipe.bus.send(ping.as_bus_msg())
+
+        # Wait for the message to arrive or timeout
+        rx_msg = self.com_pipe.get_subscription_data(sub_id, terminate=True)
+        logger.debug(f"Ping {'received' if bool(rx_msg) else 'not received'} from node {self._dst_node}")
+        return bool(rx_msg)
 
     def arm(self) -> None:
         pass

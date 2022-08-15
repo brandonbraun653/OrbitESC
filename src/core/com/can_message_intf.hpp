@@ -80,7 +80,7 @@ namespace Orbit::CAN::Message
 
     static constexpr uint32_t _foldExprPeriodicCounter()
     {
-      return PERIOD_MS ? 1u : 0u;
+      return isPeriodic() ? 1u : 0u;
     }
 
     /**

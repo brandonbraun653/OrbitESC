@@ -22,7 +22,7 @@ namespace Orbit::Control::State
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
-  class Armed : public etl::fsm_state<FSMMotorControl, Armed, StateId::ARMED, MsgEmergencyHalt, MsgDisarm, MsgAlign, MsgFault>
+  class Armed : public etl::fsm_state<FSMMotorControl, Armed, ModeId::ARMED, MsgEmergencyHalt, MsgDisarm, MsgAlign, MsgFault>
   {
   public:
     etl::fsm_state_id_t on_enter_state();

@@ -23,7 +23,7 @@ namespace Orbit::Control::State
   State Class
   ---------------------------------------------------------------------------*/
   class EngagedRun
-      : public etl::fsm_state<FSMMotorControl, EngagedRun, StateId::ENGAGED_RUN, MsgEmergencyHalt, MsgDisengage, MsgFault>
+      : public etl::fsm_state<FSMMotorControl, EngagedRun, ModeId::ENGAGED_RUN, MsgEmergencyHalt, MsgDisengage, MsgFault>
   {
   public:
     etl::fsm_state_id_t on_enter_state();

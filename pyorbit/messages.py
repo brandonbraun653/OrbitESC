@@ -76,6 +76,14 @@ class BaseMessage(Structure):
         """
         return bytes(self)
 
+    def as_bus_msg(self) -> can.Message:
+        """
+        Translates the current object into a formatted CAN bus message
+        Returns:
+            Message object ready for transmission
+        """
+        return can.Message(arbitration_id=self.id(), data=self.pack())
+
     def get_keyed_data(self, key: str) -> Any:
         """
         Simple lookup function for message types to retrieve arbitrary information

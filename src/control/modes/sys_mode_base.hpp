@@ -34,6 +34,7 @@ namespace Orbit::Control
   /**
    * @brief Events that can cause a state transition
    */
+  using EventId_t = etl::message_id_t;
   struct EventId
   {
     enum
@@ -54,7 +55,8 @@ namespace Orbit::Control
   /**
    * @brief States the motor control system can be in
    */
-  struct StateId
+  using ModeId_t = etl::fsm_state_id_t;
+  struct ModeId
   {
     enum
     {
@@ -136,20 +138,20 @@ namespace Orbit::Control
   Public Functions
   ---------------------------------------------------------------------------*/
   /**
-   * @brief Gets a stringified name of the EventId
+   * @brief Gets a stringified name of the event
    *
    * @param event   Which event to get the name of
    * @return const std::string_view&
    */
-  const std::string_view &getMessageString( const etl::message_id_t event );
+  const std::string_view &getMessageString( const EventId_t event );
 
   /**
-   * @brief Gets a stringified name of the state ID
+   * @brief Gets a stringified name of the mode
    *
-   * @param state   Which state to look up
+   * @param state   Which mode to look up
    * @return const std::string_view&
    */
-  const std::string_view &getStateString( const etl::fsm_state_id_t state );
+  const std::string_view &getModeString( const ModeId_t mode );
 
 }    // namespace Orbit::Control
 

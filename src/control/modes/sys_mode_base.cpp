@@ -43,7 +43,7 @@ namespace Orbit::Control
   static_assert( s_event_names[ EventId::DISENGAGE ] == "DISENGAGE", "Event name mismatch" );
   static_assert( s_event_names[ EventId::FAULT ] == "FAULT", "Event name mismatch" );
 
-  static constexpr std::array<std::string_view, StateId::NUM_STATES> s_state_names = {
+  static constexpr std::array<std::string_view, ModeId::NUM_STATES> s_state_names = {
     /* clang-format off */
     "IDLE",
     "ARMED",
@@ -54,27 +54,27 @@ namespace Orbit::Control
     /* clang-format on */
   };
 
-  static_assert( s_state_names[ StateId::IDLE ] == "IDLE", "State name mismatch" );
-  static_assert( s_state_names[ StateId::ARMED ] == "ARMED", "State name mismatch" );
-  static_assert( s_state_names[ StateId::ENGAGED_PARK ] == "PARK", "State name mismatch" );
-  static_assert( s_state_names[ StateId::ENGAGED_RAMP ] == "RAMP", "State name mismatch" );
-  static_assert( s_state_names[ StateId::ENGAGED_RUN ] == "RUN", "State name mismatch" );
-  static_assert( s_state_names[ StateId::FAULT ] == "FAULT", "State name mismatch" );
+  static_assert( s_state_names[ ModeId::IDLE ] == "IDLE", "State name mismatch" );
+  static_assert( s_state_names[ ModeId::ARMED ] == "ARMED", "State name mismatch" );
+  static_assert( s_state_names[ ModeId::ENGAGED_PARK ] == "PARK", "State name mismatch" );
+  static_assert( s_state_names[ ModeId::ENGAGED_RAMP ] == "RAMP", "State name mismatch" );
+  static_assert( s_state_names[ ModeId::ENGAGED_RUN ] == "RUN", "State name mismatch" );
+  static_assert( s_state_names[ ModeId::FAULT ] == "FAULT", "State name mismatch" );
 
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
-  const std::string_view &getMessageString( const etl::message_id_t event )
+  const std::string_view &getMessageString( const EventId_t event )
   {
     RT_DBG_ASSERT( event < s_event_names.size() );
     return s_event_names[ event ];
   }
 
 
-  const std::string_view &getStateString( const etl::fsm_state_id_t state )
+  const std::string_view &getModeString( const ModeId_t mode )
   {
-    RT_DBG_ASSERT( state < s_state_names.size() );
-    return s_state_names[ state ];
+    RT_DBG_ASSERT( mode < s_state_names.size() );
+    return s_state_names[ mode ];
   }
 
   /*---------------------------------------------------------------------------
@@ -90,7 +90,7 @@ namespace Orbit::Control
   void FSMMotorControl::logUnhandledMessage( const etl::imessage &msg )
   {
     LOG_WARN( "%s message not handled from state %s\r\n", getMessageString( msg.get_message_id() ),
-              getStateString( get_state_id() ) );
+              getModeString( get_state_id() ) );
   }
 
 }    // namespace Orbit::Control

@@ -20,25 +20,25 @@ namespace Orbit::Control::State
   ---------------------------------------------------------------------------*/
   etl::fsm_state_id_t Fault::on_enter_state()
   {
-    return StateId::FAULT;
+    return ModeId::FAULT;
   }
 
 
   etl::fsm_state_id_t Fault::on_event( const MsgEmergencyHalt &msg )
   {
-    return StateId::FAULT;
+    return ModeId::FAULT;
   }
 
 
   etl::fsm_state_id_t Fault::on_event( const MsgArm &msg )
   {
-    return StateId::FAULT;
+    return ModeId::FAULT;
   }
 
 
   etl::fsm_state_id_t Fault::on_event( const MsgFault &msg )
   {
-    return StateId::FAULT;
+    return ModeId::FAULT;
   }
 
 

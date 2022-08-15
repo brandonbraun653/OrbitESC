@@ -138,6 +138,13 @@ namespace Orbit::Control
      */
     const SuperState &dbgGetState() const;
 
+    /**
+     * @brief Gets the current system mode of the FOC driver
+     *
+     * @return ModeId_t
+     */
+    ModeId_t currentMode() const;
+
   protected:
     /**
      * @brief Interrupt handler for the ADC
@@ -163,7 +170,7 @@ namespace Orbit::Control
     State::EngagedRun  mRunState;   /**< Run state controller */
 
     /* Track the available instances */
-    std::array<etl::ifsm_state *, StateId::NUM_STATES> mFSMStateArray;
+    std::array<etl::ifsm_state *, ModeId::NUM_STATES> mFSMStateArray;
 
   private:
     Chimera::ADC::Driver_rPtr        mADCDriver;

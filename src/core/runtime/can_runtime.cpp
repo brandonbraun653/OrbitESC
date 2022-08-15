@@ -39,6 +39,7 @@ namespace Orbit::CAN
   Periodic Message Declarations
   ---------------------------------------------------------------------------*/
   static Message::SystemTick         s_msg_system_tick;
+  static Message::SystemMode         s_msg_system_mode;
   static Message::PowerSupplyVoltage s_msg_power_supply_voltage;
   static Message::PhaseACurrent      s_msg_phase_a_current;
   static Message::PhaseBCurrent      s_msg_phase_b_current;
@@ -93,6 +94,11 @@ namespace Orbit::CAN
     auto sys_tick_func =
         Chimera::Function::Opaque::create<Message::SystemTick, &Message::SystemTick::update>( s_msg_system_tick );
     s_can_server.registerPeriodic( sys_tick_func, s_msg_system_tick.period() );
+
+    /* System Mode */
+    auto sys_mode_func =
+        Chimera::Function::Opaque::create<Message::SystemMode, &Message::SystemMode::update>( s_msg_system_mode );
+    s_can_server.registerPeriodic( sys_mode_func, s_msg_system_mode.period() );
 
     /* Power Supply Voltage */
     auto pwr_supply_func = Chimera::Function::Opaque::create<Message::PowerSupplyVoltage, &Message::PowerSupplyVoltage::update>(

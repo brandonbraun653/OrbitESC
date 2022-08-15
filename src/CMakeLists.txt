@@ -105,8 +105,8 @@ target_link_libraries(OrbitESC PRIVATE
 
   # Project Libraries
   lib_orbit_cfg_bsp_rel
-  lib_orbit_com_rel
-  lib_orbit_core_rel
+  lib_orbit_com_rel_dbg
+  lib_orbit_core_rel_dbg
   lib_orbit_ctrl_rel_dbg
   lib_orbit_data_rel_dbg
   lib_orbit_hw_rel

@@ -20,31 +20,31 @@ namespace Orbit::Control::State
   ---------------------------------------------------------------------------*/
   etl::fsm_state_id_t EngagedRamp::on_enter_state()
   {
-    return StateId::ENGAGED_RAMP;
+    return ModeId::ENGAGED_RAMP;
   }
 
 
   etl::fsm_state_id_t EngagedRamp::on_event( const MsgEmergencyHalt &msg )
   {
-    return StateId::ENGAGED_RAMP;
+    return ModeId::ENGAGED_RAMP;
   }
 
 
   etl::fsm_state_id_t EngagedRamp::on_event( const MsgDisengage &msg )
   {
-    return StateId::ENGAGED_RAMP;
+    return ModeId::ENGAGED_RAMP;
   }
 
 
   etl::fsm_state_id_t EngagedRamp::on_event( const MsgRun &msg )
   {
-    return StateId::ENGAGED_RAMP;
+    return ModeId::ENGAGED_RAMP;
   }
 
 
   etl::fsm_state_id_t EngagedRamp::on_event( const MsgFault &msg )
   {
-    return StateId::ENGAGED_RAMP;
+    return ModeId::ENGAGED_RAMP;
   }
 
 

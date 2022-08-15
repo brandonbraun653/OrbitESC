@@ -132,14 +132,14 @@ namespace Orbit::Control
     -------------------------------------------------------------------------*/
     /* Fill the state array with the class objects */
     mFSMStateArray.fill( nullptr );
-    mFSMStateArray[ StateId::IDLE ]         = &mIdleState;
-    mFSMStateArray[ StateId::ARMED ]        = &mArmedState;
-    mFSMStateArray[ StateId::FAULT ]        = &mFaultState;
-    mFSMStateArray[ StateId::ENGAGED_PARK ] = &mParkState;
-    mFSMStateArray[ StateId::ENGAGED_RAMP ] = &mRampState;
-    mFSMStateArray[ StateId::ENGAGED_RUN ]  = &mRunState;
+    mFSMStateArray[ ModeId::IDLE ]         = &mIdleState;
+    mFSMStateArray[ ModeId::ARMED ]        = &mArmedState;
+    mFSMStateArray[ ModeId::FAULT ]        = &mFaultState;
+    mFSMStateArray[ ModeId::ENGAGED_PARK ] = &mParkState;
+    mFSMStateArray[ ModeId::ENGAGED_RAMP ] = &mRampState;
+    mFSMStateArray[ ModeId::ENGAGED_RUN ]  = &mRunState;
 
-    /* Initialize the FSM. First state will be StateId::IDLE. */
+    /* Initialize the FSM. First state will be ModeId::IDLE. */
     mFSM.attachControllerData( &mState );
     mFSM.set_states( mFSMStateArray.data(), mFSMStateArray.size() );
     mFSM.start();
@@ -193,6 +193,12 @@ namespace Orbit::Control
   const SuperState &FOC::dbgGetState() const
   {
     return mState;
+  }
+
+
+  ModeId_t FOC::currentMode() const
+  {
+    return mFSM.get_state_id();
   }
 
 

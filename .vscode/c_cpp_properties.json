@@ -128,8 +128,7 @@
             ],
             "compilerPath": "${arm_none_eabi_path}",
             "cStandard": "gnu17",
-            "cppStandard": "gnu++20",
-            "configurationProvider": "ms-vscode.cmake-tools"
+            "cppStandard": "gnu++20"
         },
         {
             "name": "Simulator Development",

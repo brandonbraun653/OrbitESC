@@ -21,25 +21,25 @@ namespace Orbit::Control::State
   etl::fsm_state_id_t Idle::on_enter_state()
   {
     LOG_INFO( "Entering Idle state\r\n" );
-    return StateId::IDLE;
+    return ModeId::IDLE;
   }
 
 
   etl::fsm_state_id_t Idle::on_event( const MsgEmergencyHalt &msg )
   {
-    return StateId::IDLE;
+    return ModeId::IDLE;
   }
 
 
   etl::fsm_state_id_t Idle::on_event( const MsgArm &msg )
   {
-    return StateId::IDLE;
+    return ModeId::IDLE;
   }
 
 
   etl::fsm_state_id_t Idle::on_event( const MsgFault &msg )
   {
-    return StateId::IDLE;
+    return ModeId::IDLE;
   }
 
 

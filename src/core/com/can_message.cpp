@@ -32,6 +32,16 @@ namespace Orbit::CAN::Message
   }
 
   /*---------------------------------------------------------------------------
+  System Mode Update
+  ---------------------------------------------------------------------------*/
+  void SystemMode::update()
+  {
+    payload.mode       = Orbit::Control::FOCDriver.currentMode();
+    payload.hdr.nodeId = EnumValue( thisNode() );
+    this->send( CANDriver );
+  }
+
+  /*---------------------------------------------------------------------------
   Power Supply Voltage Update
   ---------------------------------------------------------------------------*/
   void PowerSupplyVoltage::update()

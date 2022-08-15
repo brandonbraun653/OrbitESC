@@ -20,25 +20,25 @@ namespace Orbit::Control::State
   ---------------------------------------------------------------------------*/
   etl::fsm_state_id_t EngagedRun::on_enter_state()
   {
-    return StateId::ENGAGED_RUN;
+    return ModeId::ENGAGED_RUN;
   }
 
 
   etl::fsm_state_id_t EngagedRun::on_event( const MsgEmergencyHalt &msg )
   {
-    return StateId::ENGAGED_RUN;
+    return ModeId::ENGAGED_RUN;
   }
 
 
   etl::fsm_state_id_t EngagedRun::on_event( const MsgDisengage &msg )
   {
-    return StateId::ENGAGED_RUN;
+    return ModeId::ENGAGED_RUN;
   }
 
 
   etl::fsm_state_id_t EngagedRun::on_event( const MsgFault &msg )
   {
-    return StateId::ENGAGED_RUN;
+    return ModeId::ENGAGED_RUN;
   }
 
 
