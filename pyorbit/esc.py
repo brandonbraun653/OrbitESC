@@ -36,11 +36,12 @@ class OrbitESC:
         # Start up the background thread
         self._kill_signal = Event()
         self._notify_signal = Event()
-        self._bkgd_thread = Thread(target=self.__background_thread)
+        self._bkgd_thread = Thread(target=self._background_thread, daemon=True,
+                                   name=f"OrbitESC_BackgroundThread_Node{dst_node}")
         self._bkgd_thread.start()
 
         # Register known observers
-        self.com_pipe.subscribe_observer(MessageObserver(func=self._observer_esc_tick, arb_id=SystemTick.id(), persistent=True))
+        self.com_pipe.subscribe_observer(MessageObserver(func=self._observer_esc_tick, arb_id=SystemTick.id()))
 
         # Register the cleanup method
         atexit.register(self._destroy)
@@ -55,7 +56,6 @@ class OrbitESC:
         Returns:
             True if the node responds, False if not
         """
-
         # Set up subscription for the expected response
         sub_id = self.com_pipe.subscribe(msg=Ping, qty=1, timeout=3.0)
 
@@ -103,9 +103,10 @@ class OrbitESC:
             None
         """
         logger.debug(f"Tearing down OrbitESC for node {self._dst_node}")
+        self._kill_signal.set()
         self._data_pipe.shutdown()
 
-    def __background_thread(self) -> None:
+    def _background_thread(self) -> None:
         """
         General purpose thread to handle background tasks that help with processing the ESC data
         Returns:
@@ -119,8 +120,15 @@ class OrbitESC:
                 logger.warning(f"Node {self._dst_node} is offline")
                 self._online = False
 
-    def _observer_esc_tick(self, can_msg: can.Message, timeout: bool) -> None:
-        """ Looks for the SystemTick of the registered node to determine online/offline status """
+    def _observer_esc_tick(self, can_msg: can.Message) -> None:
+        """
+        Looks for the SystemTick of the registered node to determine online/offline status
+        Args:
+            can_msg: Received CAN bus message
+
+        Returns:
+            None
+        """
         msg = SystemTick().unpack(can_msg)
 
         if msg.src.node_id == self._dst_node:
@@ -128,4 +136,3 @@ class OrbitESC:
             if not self._online:
                 logger.info(f"Node {self._dst_node} is online")
                 self._online = True
-

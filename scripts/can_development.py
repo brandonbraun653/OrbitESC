@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     plotter = LivePlotter(message=MotorSpeed(), attr_key="speed", time_key="tick")
     # plotter = LivePlotter(message=PowerSupplyVoltage(), attr_key="vdd")
-    plt.show(block=False)
+    # plt.show(block=False)
 
     esc = OrbitESC(dst_node=NodeID.NODE_0)
     esc.com_pipe.subscribe_observer(plotter.observer_handle)
@@ -23,5 +23,5 @@ if __name__ == "__main__":
     time.sleep(1)
     esc.ping()
 
-    plotter.live_animate()
-    time.sleep(5)
+    # plotter.live_animate()
+    # time.sleep(5)

@@ -109,7 +109,7 @@ class LivePlotter:
         """
         self._y_axis = deque(np.zeros(sample_history))
         self._x_axis = deque(np.zeros(sample_history))
-        self._observer = MessageObserver(func=self.can_observer, arb_id=message.id(), persistent=True)
+        self._observer = MessageObserver(func=self.can_observer, arb_id=message.id())
         self._message = message
         self._attr_key = attr_key
         self._time_key = time_key
@@ -145,12 +145,11 @@ class LivePlotter:
             # Redraw!
             self._blit_manager.update()
 
-    def can_observer(self, can_msg: can.Message, timeout: bool) -> None:
+    def can_observer(self, can_msg: can.Message) -> None:
         """
         Observer to receive some data from the CAN bus
         Args:
             can_msg: Message that was received
-            timeout: If the message timed out
 
         Returns:
             None
