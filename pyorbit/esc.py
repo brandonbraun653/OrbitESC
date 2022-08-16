@@ -15,10 +15,40 @@ import can
 import time
 from enum import IntEnum
 from loguru import logger
+from functools import wraps
 from threading import Event, Thread
-from typing import Any, List, Union
+from typing import Any, Callable, List, Union
 from pyorbit.pipe import CANPipe, MessageObserver
 from pyorbit.messages import NodeID, Ping, SystemTick, SystemMode, SetSystemMode
+from pyorbit.exceptions import NotOnlineException
+
+
+def online_checker(method: Callable) -> Any:
+    """
+    Decorator to check that the OrbitESC node is online before allowing a method
+    call to proceed. This prevents duplicate code on a variety of methods.
+
+    Args:
+        method: Function to invoke
+
+    Returns:
+        Whatever the method to invoke returns
+
+    References:
+        https://stackoverflow.com/a/36944992/8341975
+    """
+    @wraps(method)
+    def _impl(self: OrbitESC, *method_args, **method_kwargs):
+        # Ensure this decorator is only used on OrbitESC classes
+        assert isinstance(self, OrbitESC)
+        if not self.is_online:
+            raise NotOnlineException()
+
+        # Execute the function as normal
+        method_output = method(self, *method_args, **method_kwargs)
+        return method_output
+
+    return _impl
 
 
 class OrbitESC:
@@ -84,6 +114,11 @@ class OrbitESC:
     def com_pipe(self) -> CANPipe:
         return self._data_pipe
 
+    @property
+    def is_online(self) -> bool:
+        return self._online
+
+    @online_checker
     def ping(self) -> bool:
         """
         Communicates with the desired to node to see if it's alive
@@ -106,6 +141,7 @@ class OrbitESC:
         logger.debug(f"Ping {'received' if bool(rx_msg) else 'not received'} from node {self._dst_node}")
         return bool(rx_msg)
 
+    @online_checker
     def switch_mode(self, mode: OrbitESC.Mode) -> bool:
         """
         Attempts to switch the ESC into the desired mode
@@ -127,9 +163,11 @@ class OrbitESC:
         msg.dst.node_id = self._dst_node
         msg.mode = mode.value
 
+        # Send out the command
         logger.debug(f"Switching to {str(mode)} mode")
         self.com_pipe.bus.send(msg.as_bus_msg())
 
+        # Look through all available messages to find the mode switch occurred
         rx_msgs = self.com_pipe.get_subscription_data(sub_id, block=True, terminate=True)
         for msg in rx_msgs:
             if msg.mode == mode.value:
@@ -139,6 +177,7 @@ class OrbitESC:
         logger.warning(f"Failed switch to {str(mode)} mode")
         return False
 
+    @online_checker
     def get_mode(self) -> Union[OrbitESC.Mode, None]:
         """
         Returns:
@@ -152,16 +191,19 @@ class OrbitESC:
         else:
             return OrbitESC.Mode(rx_msg[0].mode)
 
-    def emergency_stop(self, all_nodes: bool = False) -> None:
-        pass
-
+    @online_checker
     def set_speed_reference(self, rpm: Union[float, int]) -> None:
         pass
 
+    @online_checker
+    def set_config(self, key: int, value: Union[float, int, str]):
+        pass
+
+    @online_checker
     def get_config(self, key: int) -> Any:
         pass
 
-    def set_config(self, key: int, value: Union[float, int, str]):
+    def emergency_stop(self, all_nodes: bool = False) -> None:
         pass
 
     def _destroy(self) -> None:

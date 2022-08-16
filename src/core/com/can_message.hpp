@@ -28,20 +28,23 @@ namespace Orbit::CAN::Message
     /*-------------------------------------------------------------------------
     Command and Control
     -------------------------------------------------------------------------*/
-    MSG_PING            = 0x10,
-    MSG_SET_SYSTEM_MODE = 0x11,
-    MSG_SET_MOTOR_SPEED = 0x12,
+    MSG_PING            = 0x10, /**< Simple PING to see if the node is alive */
+    MSG_SET_SYSTEM_MODE = 0x11, /**< Command a mode switch*/
+    MSG_SET_MOTOR_SPEED = 0x12, /**< Set the motor speed */
+    MSG_SET_CONFIG_DATA = 0x13, /**< Assignment of config data */
+    MSG_GET_CONFIG_DATA = 0x14, /**< Request for config data from the board */
+    MSG_RSP_CONFIG_DATA = 0x15, /**< Response to MSG_GET_CONFIG_DATA */
 
     /*-------------------------------------------------------------------------
     Periodic Data
       Note: Don't forget to update numPeriodicMessageTypes()
     -------------------------------------------------------------------------*/
-    MSG_PRDC_ADC_VDD             = 0x20,
-    MSG_PRDC_ADC_PHASE_A_CURRENT = 0x21,
-    MSG_PRDC_ADC_PHASE_B_CURRENT = 0x22,
-    MSG_PRDC_MOTOR_SPEED         = 0x23,
-    MSG_PRDC_SYSTEM_TICK         = 0x50,
-    MSG_PRDC_SYSTEM_MODE         = 0x51,
+    MSG_PRDC_ADC_VDD             = 0x20,  /**< Power supply voltage */
+    MSG_PRDC_ADC_PHASE_A_CURRENT = 0x21,  /**< Phase A current */
+    MSG_PRDC_ADC_PHASE_B_CURRENT = 0x22,  /**< Phase B current */
+    MSG_PRDC_MOTOR_SPEED         = 0x23,  /**< Current motor speed */
+    MSG_PRDC_SYSTEM_TICK         = 0x50,  /**< Current system tick */
+    MSG_PRDC_SYSTEM_MODE         = 0x51,  /**< Current system mode */
 
     /*-------------------------------------------------------------------------
     Miscellaneous Messages
@@ -54,9 +57,6 @@ namespace Orbit::CAN::Message
   /*---------------------------------------------------------------------------
   Asynchronous Messages
   ---------------------------------------------------------------------------*/
-  /**
-   * @brief Ping message to test the connection
-   */
   class Ping : public Attributes<Ping, MSG_PING>
   {
   public:
@@ -69,9 +69,6 @@ namespace Orbit::CAN::Message
   };
 
 
-  /**
-   * @brief Arm/Disarm message to control the motor
-   */
   class SetSystemMode : public Attributes<SetSystemMode, MSG_SET_SYSTEM_MODE>
   {
   public:
@@ -84,9 +81,6 @@ namespace Orbit::CAN::Message
   };
 
 
-  /**
-   * @brief Set the motor speed reference
-   */
   class SetMotorSpeed : public Attributes<SetMotorSpeed, MSG_SET_MOTOR_SPEED>
   {
   public:
@@ -94,6 +88,44 @@ namespace Orbit::CAN::Message
     {
       Header   dst;   /**< Destination node */
       uint16_t speed; /**< Motor speed in RPM */
+    }
+    payload;
+  };
+
+
+  class SetConfigData : public Attributes<SetConfigData, MSG_SET_CONFIG_DATA>
+  {
+  public:
+    __packed_struct Payload
+    {
+      Header  dst;       /**< Destination node */
+      uint8_t id;        /**< Configuration ID */
+      uint8_t data[ 6 ]; /**< Configuration data */
+    }
+    payload;
+  };
+
+
+  class GetConfigData : public Attributes<GetConfigData, MSG_GET_CONFIG_DATA>
+  {
+  public:
+    __packed_struct Payload
+    {
+      Header  dst;       /**< Destination node */
+      uint8_t id;        /**< Configuration ID */
+    }
+    payload;
+  };
+
+
+  class RspConfigData : public Attributes<RspConfigData, MSG_RSP_CONFIG_DATA>
+  {
+  public:
+    __packed_struct Payload
+    {
+      Header  src;       /**< Destination node */
+      uint8_t id;        /**< Configuration ID */
+      uint8_t data[ 6 ]; /**< Configuration data */
     }
     payload;
   };

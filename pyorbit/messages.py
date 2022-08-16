@@ -128,6 +128,32 @@ class SetSystemMode(BaseMessage):
     _id_ = 0x11
 
 
+class SetMotorSpeed(BaseMessage):
+    _fields_ = [("dst", Header),
+                ("speed", c_uint16)]
+    _id_ = 0x12
+
+
+class SetConfigData(BaseMessage):
+    _fields_ = [("dst", Header),
+                ("id", c_uint8),
+                ("data", c_uint8 * 6)]
+    _id_ = 0x13
+
+
+class GetConfigData(BaseMessage):
+    _fields_ = [("dst", Header),
+                ("id", c_uint8)]
+    _id_ = 0x14
+
+
+class RspConfigData(BaseMessage):
+    _fields_ = [("src", Header),
+                ("id", c_uint8),
+                ("data", c_uint8 * 6)]
+    _id_ = 0x15
+
+
 # -----------------------------------------------------------------------------
 # Periodic Messages
 # -----------------------------------------------------------------------------
