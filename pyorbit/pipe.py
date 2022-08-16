@@ -20,7 +20,7 @@ import uuid
 import queue
 from ifconfigparser import IfconfigParser
 from loguru import logger
-from typing import Any, Callable, Dict, List, Type, Union
+from typing import Any, Callable, Dict, List, Tuple, Type, Union
 from threading import Thread, RLock, Event, Condition
 from pyorbit.messages import BaseMessage
 
@@ -28,20 +28,17 @@ from pyorbit.messages import BaseMessage
 class MessageObserver:
     """ Custom observer handle for reacting to a received CAN id """
 
-    def __init__(self, func: Callable[[Union[can.Message, None], bool], None], arb_id: int,
-                 timeout: Union[float, int, None] = None,
-                 persistent: bool = False):
+    def __init__(self, func: Callable[[Union[can.Message, None]], None], arb_id: int,
+                 timeout: Union[float, int] = 0):
         """
         Args:
             func: Function to invoke upon receiving a message with the configured arbitration id
             arb_id: CAN arbitration ID to register against
-            timeout: How long the observer should stay active (None == Indefinite)
-            persistent: Should the observer stay registered once triggered?
+            timeout: How long the observer should stay active (zero == Indefinite)
         """
         self.observer_function = func
         self.arbitration_id = arb_id
         self.timeout = timeout
-        self.persistent = persistent
         self.start_time = time.time()
 
 
@@ -75,6 +72,8 @@ class MessageQueue:
         self._observer_instance = MessageObserver(func=self._message_observer, arb_id=self._msg_type.id(),
                                                   timeout=self._timeout, persistent=True)
 
+        logger.trace(f"Subscription {str(self._uuid)}: Instantiated")
+
     @property
     def expired(self) -> bool:
         """
@@ -84,6 +83,7 @@ class MessageQueue:
         """
         if self._timeout and ((time.time() - self._observer_instance.start_time) > self._timeout):
             # Unblock any thread waiting on timeouts
+            logger.trace(f"Subscription {str(self._uuid)}: Expired")
             self._data_ready_event.set()
             return True
         else:
@@ -123,21 +123,16 @@ class MessageQueue:
         else:
             return list(self._msg_queue)
 
-    def _message_observer(self, msg: can.Message, timeout: bool) -> None:
+    def _message_observer(self, msg: can.Message) -> None:
         """
         Observer to accept new messages and push them into the queue
         Args:
             msg: Message received
-            timeout: Whether the message timed out
 
         Returns:
             None
         """
         # Handle timeout and bad input conditions
-        if timeout or not msg:
-            return
-
-        # Don't listen to the wrong message or if timeout has elapsed
         if (msg.arbitration_id != self._msg_type.id()) or self.expired:
             return
 
@@ -145,12 +140,94 @@ class MessageQueue:
             # Guarantee message insertion if it exists
             msg_object = self._msg_type().unpack(msg)
             self._msg_queue.put(msg_object, block=False)
+            logger.trace(f"Subscription {str(self._uuid)}: RX message")
 
             # Check fulfillment of quantity requirements
             if (self._qty == 0) or (self._msg_queue.qsize() >= self._qty):
+                logger.trace(f"Subscription {str(self._uuid)}: Queue limits met")
                 self._data_ready_event.set()
         except queue.Full:
-            logger.trace(f"Message queue full: {repr(self._uuid)}")
+            logger.trace(f"Subscription {str(self._uuid)}: Queue full")
+
+
+class ObserverManager:
+
+    def __init__(self):
+        self._lock = RLock()
+        self._dispatch_map = {}    # type: Dict[int, List[MessageObserver]]
+        self._registry = {}  # type: Dict[uuid.UUID, MessageObserver]
+
+    def add_observer(self, arb_id: int, observer: MessageObserver) -> uuid.UUID:
+        """
+        Adds a new observer of the given arbitration ID
+        Args:
+            arb_id: The CAN bus arbitration ID to register the observer against
+            observer: The observer being registered
+
+        Returns:
+            Unique ID of the observer/arb_id combination as understood by the observer
+        """
+        with self._lock:
+            # Initialize a new arbitration ID to register observers against
+            if arb_id not in self._dispatch_map.keys():
+                self._dispatch_map[arb_id] = []
+
+            # Allocate the new observer entry
+            new_id = uuid.uuid4()
+            self._registry[new_id] = observer
+            self._dispatch_map[arb_id].append(observer)
+
+            return new_id
+
+    def remove_observer(self, unique_id: uuid.UUID) -> None:
+        """
+        Removes an observer identified by a unique id
+        Args:
+            unique_id: The ID associated with the observer
+
+        Returns:
+            None
+        """
+        with self._lock:
+            if unique_id not in self._registry.keys():
+                return
+
+            # Look up the tags used for registration
+            observer = self._registry[unique_id]
+
+            # Remove the registration
+            self._dispatch_map[observer.arbitration_id].remove(observer)
+            self._registry.pop(unique_id)
+
+    def accept(self, message: can.Message) -> None:
+        """
+        Accepts a new CAN message to distribute to all registered observers
+        Args:
+            message: Observed message
+
+        Returns:
+            None
+        """
+        with self._lock:
+            try:
+                for cb in self._dispatch_map[message.arbitration_id]:
+                    cb.observer_function(message)
+            except KeyError:
+                pass    # No registered observers
+
+    def prune(self) -> None:
+        """
+        Removes timed out observers from active registration
+        Returns:
+            None
+        """
+        with self._lock:
+            for key in list(self._registry.keys()):
+                observer = self._registry[key]
+
+                if observer.timeout and ((time.time() - observer.start_time) > observer.timeout):
+                    logger.trace(f"Observer timeout for CAN id {observer.arbitration_id}::{str(key)}")
+                    del self._registry[key]
 
 
 class CANPipe:
@@ -163,7 +240,12 @@ class CANPipe:
             bit_rate: Effective CAN bus communication speed
         """
         # CAN related variables
-        self._bus = can.ThreadSafeBus(bustype='socketcan', channel=can_device, bitrate=bit_rate)
+        try:
+            self._bus = can.ThreadSafeBus(bustype='socketcan', channel=can_device, bitrate=bit_rate)
+        except OSError as e:
+            logger.warning(f"Device {can_device} not found. Creating virtual CAN device.")
+            self._bus = can.interface.Bus("virtual_" + can_device, bustype='virtual')
+
         self._default_reader = can.BufferedReader()
         self._message_notifier = can.Notifier(self._bus, [self._default_reader])
 
@@ -334,6 +416,9 @@ class CANPipe:
                 # Check the timeouts
                 for observer in self._rx_observers[active_id]:  # type: MessageObserver
                     if observer.timeout and (time.time() - observer.start_time > observer.timeout):
+
+                        # TODO: Fix me! Split observers into their own class. Having this split method is for the birds.
+                        logger.trace(f"Observer timeout")
                         observer.observer_function(None, True)
 
                         # Mark for removal if not a persistent registration
