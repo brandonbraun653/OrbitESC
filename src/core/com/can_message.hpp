@@ -28,9 +28,9 @@ namespace Orbit::CAN::Message
     /*-------------------------------------------------------------------------
     Command and Control
     -------------------------------------------------------------------------*/
-    MSG_PING             = 0x10,
-    MSG_ARM_DISARM_MOTOR = 0x11,
-    MSG_SET_MOTOR_SPEED  = 0x12,
+    MSG_PING            = 0x10,
+    MSG_SET_SYSTEM_MODE = 0x11,
+    MSG_SET_MOTOR_SPEED = 0x12,
 
     /*-------------------------------------------------------------------------
     Periodic Data
@@ -72,13 +72,13 @@ namespace Orbit::CAN::Message
   /**
    * @brief Arm/Disarm message to control the motor
    */
-  class ArmDisarmMotor : public Attributes<ArmDisarmMotor, MSG_ARM_DISARM_MOTOR>
+  class SetSystemMode : public Attributes<SetSystemMode, MSG_SET_SYSTEM_MODE>
   {
   public:
     __packed_struct Payload
     {
-      Header  dst;       /**< Destination node */
-      uint8_t shouldArm; /**< Whether or not the motor should arm */
+      Header              dst;  /**< Destination node */
+      etl::fsm_state_id_t mode; /**< New mode to switch into Orbit::Control::ModeId */
     }
     payload;
   };

@@ -116,7 +116,7 @@ class MessageQueue:
         self._data_ready_event.wait()
         self._data_ready_event.clear()
 
-    def get_messages(self, flush: bool = True) -> List[can.Message]:
+    def get_messages(self, flush: bool = True) -> List[BaseMessage]:
         """
         Retrieves all messages in the subscription queue
         Args:
@@ -362,7 +362,7 @@ class CANPipe:
             pass
 
     def get_subscription_data(self, unique_id: uuid.UUID, block: bool = True, flush: bool = True,
-                              terminate: bool = False) -> List[can.Message]:
+                              terminate: bool = False) -> List[BaseMessage]:
         """
         Gets all data associated with a subscription
         Args:

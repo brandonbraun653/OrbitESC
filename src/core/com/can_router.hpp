@@ -31,11 +31,11 @@ namespace Orbit::CAN::Router
     void on_receive_unknown( const etl::imessage &msg );
   };
 
-  class ArmDisarmMotorRouter : public etl::message_router<ArmDisarmMotorRouter, Message::ArmDisarmMotor>
+  class SetSystemModeRouter : public etl::message_router<SetSystemModeRouter, Message::SetSystemMode>
   {
   public:
-    ArmDisarmMotorRouter();
-    void on_receive( const Message::ArmDisarmMotor &msg );
+    SetSystemModeRouter();
+    void on_receive( const Message::SetSystemMode &msg );
     void on_receive_unknown( const etl::imessage &msg );
   };
 

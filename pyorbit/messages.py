@@ -27,6 +27,12 @@ class NodeID(IntEnum):
     NODE_PC = 6
 
 
+class Header(Structure):
+    _fields_ = [("node_id", c_uint8, 3),
+                ("size", c_uint8, 3),
+                ("_pad", c_uint8, 2)]
+
+
 class BaseMessage(Structure):
     _pack_ = 1
     _period_ = 0
@@ -47,6 +53,14 @@ class BaseMessage(Structure):
             CAN bus ID of the message
         """
         return cls._id_
+
+    @classmethod
+    def rate(cls) -> float:
+        """
+        Returns:
+            Rate of the message in seconds
+        """
+        return cls._period_
 
     def unpack(self, buffer: Union[bytes, can.Message]) -> BaseMessage:
         """
@@ -99,26 +113,40 @@ class BaseMessage(Structure):
             logger.error(f"Object {repr(self)} has no attribute {key}")
 
 
-class SystemID(BaseMessage):
-    _fields_ = [("node_id", c_uint8, 3),
-                ("_pad", c_uint8, 5)]
-
-
+# -----------------------------------------------------------------------------
+# Asynchronous Messages
+# -----------------------------------------------------------------------------
 class Ping(BaseMessage):
-    _fields_ = [("dst", SystemID),
-                ("src", SystemID)]
+    _fields_ = [("dst", Header),
+                ("src", Header)]
     _id_ = 0x10
 
 
+class SetSystemMode(BaseMessage):
+    _fields = [("dst", Header),
+               ("mode", c_uint8)]
+    _id_ = 0x11
+
+
+# -----------------------------------------------------------------------------
+# Periodic Messages
+# -----------------------------------------------------------------------------
 class SystemTick(BaseMessage):
-    _fields_ = [("src", SystemID),
+    _fields_ = [("src", Header),
                 ("tick", c_uint32)]
     _period_ = 1.0
     _id_ = 0x50
 
 
+class SystemMode(BaseMessage):
+    _fields_ = [("hdr", Header),
+                ("mode", c_uint8)]
+    _period_ = 0.250
+    _id_ = 0x51
+
+
 class PowerSupplyVoltage(BaseMessage):
-    _fields_ = [("hdr", SystemID),
+    _fields_ = [("hdr", Header),
                 ("timestamp", c_uint32),
                 ("vdd", c_uint16)]
     _period_ = 0.1
@@ -132,7 +160,7 @@ class PowerSupplyVoltage(BaseMessage):
 
 
 class PhaseACurrent(BaseMessage):
-    _fields_ = [("hdr", SystemID),
+    _fields_ = [("hdr", Header),
                 ("timestamp", c_uint32),
                 ("current", c_uint16)]
     _period_ = 0.1
@@ -140,7 +168,7 @@ class PhaseACurrent(BaseMessage):
 
 
 class PhaseBCurrent(BaseMessage):
-    _fields_ = [("hdr", SystemID),
+    _fields_ = [("hdr", Header),
                 ("timestamp", c_uint32),
                 ("current", c_uint16)]
     _period_ = 0.1
@@ -148,7 +176,7 @@ class PhaseBCurrent(BaseMessage):
 
 
 class MotorSpeed(BaseMessage):
-    _fields_ = [("hdr", SystemID),
+    _fields_ = [("hdr", Header),
                 ("tick", c_uint32),
                 ("speed", c_uint16)]
 

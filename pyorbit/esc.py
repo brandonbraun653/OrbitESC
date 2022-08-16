@@ -8,19 +8,53 @@
 #   07/24/2022 | Brandon Braun | brandonbraun653@gmail.com
 # **********************************************************************************************************************
 
+from __future__ import annotations
+
 import atexit
 import can
 import time
+from enum import IntEnum
 from loguru import logger
 from threading import Event, Thread
-from typing import Any, Union
+from typing import Any, List, Union
 from pyorbit.pipe import CANPipe, MessageObserver
-from pyorbit.messages import NodeID, Ping, SystemTick
+from pyorbit.messages import NodeID, Ping, SystemTick, SystemMode, SetSystemMode
 
 
 class OrbitESC:
 
-    def __init__(self, dst_node: NodeID, this_node: NodeID = NodeID.NODE_PC, device: str = "can0", bit_rate: int = 1000000):
+    class Mode(IntEnum):
+        """ Mimics the ModeId_t enumeration in sys_mode_base.hpp """
+        Idle = 0
+        Armed = 1
+        Park = 2
+        Ramp = 3
+        Run = 4
+        Fault = 5
+
+        def __str__(self):
+            mapping = { OrbitESC.Mode.Idle.value: "Idle",
+                        OrbitESC.Mode.Armed.value: "Armed",
+                        OrbitESC.Mode.Park.value: "Park",
+                        OrbitESC.Mode.Ramp.value: "Ramp",
+                        OrbitESC.Mode.Run.value: "Run",
+                        OrbitESC.Mode.Fault.value: "Fault"}
+
+            try:
+                return mapping[self.value]
+            except KeyError:
+                return "Unknown"
+
+        @classmethod
+        def switchable_modes(cls) -> List[OrbitESC.Mode]:
+            """
+            Returns:
+                List of modes that can be directly switched into
+            """
+            return [cls.Idle, cls.Armed, cls.Run, cls.Fault]
+
+    def __init__(self, dst_node: NodeID, this_node: NodeID = NodeID.NODE_PC, device: str = "can0",
+                 bit_rate: int = 1000000):
         """
         Args:
             this_node: Node to communicate as
@@ -72,17 +106,51 @@ class OrbitESC:
         logger.debug(f"Ping {'received' if bool(rx_msg) else 'not received'} from node {self._dst_node}")
         return bool(rx_msg)
 
-    def arm(self) -> None:
-        pass
+    def switch_mode(self, mode: OrbitESC.Mode) -> bool:
+        """
+        Attempts to switch the ESC into the desired mode
+        Args:
+            mode: Which mode to go into
 
-    def disarm(self) -> None:
-        pass
+        Returns:
+            True if the switch was successful, False if not
+        """
+        if mode not in OrbitESC.Mode.switchable_modes():
+            logger.warning(f"Cannot switch directly into {str(mode)} mode")
+            return False
 
-    def engage(self) -> None:
-        pass
+        # Set up subscription for the expected response
+        sub_id = self.com_pipe.subscribe(msg=SystemMode, timeout=3.0)
 
-    def disengage(self) -> None:
-        pass
+        # Set up the mode switch command
+        msg = SetSystemMode()
+        msg.dst.node_id = self._dst_node
+        msg.mode = mode.value
+
+        logger.debug(f"Switching to {str(mode)} mode")
+        self.com_pipe.bus.send(msg.as_bus_msg())
+
+        rx_msgs = self.com_pipe.get_subscription_data(sub_id, block=True, terminate=True)
+        for msg in rx_msgs:
+            if msg.mode == mode.value:
+                logger.debug(f"Mode switch success")
+                return True
+
+        logger.warning(f"Failed switch to {str(mode)} mode")
+        return False
+
+    def get_mode(self) -> Union[OrbitESC.Mode, None]:
+        """
+        Returns:
+            Current mode announced by the ESC
+        """
+        sub_id = self.com_pipe.subscribe(msg=SystemMode, qty=1, timeout=SystemMode.rate() * 5)
+        rx_msg = self.com_pipe.get_subscription_data(sub_id, terminate=True)
+
+        if not rx_msg:
+            return None
+        else:
+            return OrbitESC.Mode(rx_msg[0].mode)
 
     def emergency_stop(self, all_nodes: bool = False) -> None:
         pass

@@ -49,7 +49,7 @@ namespace Orbit::CAN
   Router Declarations
   ---------------------------------------------------------------------------*/
   static Router::PingRouter           s_ping_router;
-  static Router::ArmDisarmMotorRouter s_arm_disarm_motor_router;
+  static Router::SetSystemModeRouter  s_set_system_mode_router;
   static Router::SetMotorSpeedRouter  s_set_motor_speed_router;
 
   /*---------------------------------------------------------------------------
@@ -124,7 +124,7 @@ namespace Orbit::CAN
     Register the routers
     -------------------------------------------------------------------------*/
     RT_HARD_ASSERT( s_can_server.subscribe( s_ping_router ) );
-    RT_HARD_ASSERT( s_can_server.subscribe( s_arm_disarm_motor_router ) );
+    RT_HARD_ASSERT( s_can_server.subscribe( s_set_system_mode_router ) );
     RT_HARD_ASSERT( s_can_server.subscribe( s_set_motor_speed_router ) );
   }
 
