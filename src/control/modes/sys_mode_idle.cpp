@@ -33,13 +33,13 @@ namespace Orbit::Control::State
 
   etl::fsm_state_id_t Idle::on_event( const MsgArm &msg )
   {
-    return ModeId::IDLE;
+    return ModeId::ARMED;
   }
 
 
   etl::fsm_state_id_t Idle::on_event( const MsgFault &msg )
   {
-    return ModeId::IDLE;
+    return ModeId::FAULT;
   }
 
 

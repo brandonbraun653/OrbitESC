@@ -156,7 +156,7 @@ class OrbitESC:
             return False
 
         # Set up subscription for the expected response
-        sub_id = self.com_pipe.subscribe(msg=SystemMode, timeout=3.0)
+        sub_id = self.com_pipe.subscribe(msg=SystemMode, timeout=1.0)
 
         # Set up the mode switch command
         msg = SetSystemMode()

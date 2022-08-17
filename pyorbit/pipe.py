@@ -446,7 +446,6 @@ class CANPipe:
                 for key in removed:
                     try:
                         self._subscriptions[key].notify_expiry()
-                        del self._subscriptions[key]
                     except KeyError:
                         continue
 
