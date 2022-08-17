@@ -150,37 +150,42 @@ namespace Orbit::Control
 
   int FOC::arm()
   {
-
+    mFSM.receive( MsgArm() );
+    return this->currentMode() == ModeId::ARMED ? 0 : -1;
   }
 
 
   int FOC::disarm()
   {
-
+    mFSM.receive( MsgDisarm() );
+    return 0;
   }
 
 
   int FOC::engage()
   {
-
+    mFSM.receive( MsgAlign() );
+    return 0;
   }
 
 
   int FOC::disengage()
   {
-
+    mFSM.receive( MsgDisengage() );
+    return 0;
   }
 
 
   int FOC::setSpeedRef( const float ref )
   {
-
+    return 0;
   }
 
 
   int FOC::emergencyStop()
   {
-
+    mFSM.receive( MsgEmergencyHalt() );
+    return 0;
   }
 
 

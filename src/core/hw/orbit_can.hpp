@@ -53,6 +53,14 @@ namespace Orbit::CAN
    */
   void powerUp();
 
+  /**
+   * @brief Get a node id's name as a string
+   *
+   * @param id  Which ID to look up
+   * @return const std::string_view&
+   */
+  const std::string_view& getNodeName( const NodeId id );
+
 }    // namespace Orbit::CAN
 
 #endif /* !ORBIT_ESC_CAN_HPP */

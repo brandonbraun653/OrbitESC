@@ -9,7 +9,7 @@ from loguru import logger
 
 if __name__ == "__main__":
     logger.remove()
-    logger.add(sys.stderr, level="DEBUG")
+    logger.add(sys.stderr, level="TRACE")
 
     plotter = LivePlotter(message=MotorSpeed(), attr_key="speed", time_key="tick")
     # plotter = LivePlotter(message=PowerSupplyVoltage(), attr_key="vdd")
@@ -22,6 +22,6 @@ if __name__ == "__main__":
     esc.ping()
     mode = esc.get_mode()
     logger.info(f"ESC is currently in {str(mode)} mode")
-    esc.switch_mode(OrbitESC.Mode.Run)
+    esc.switch_mode(OrbitESC.Mode.Armed)
     # plotter.live_animate()
     # time.sleep(5)

@@ -51,13 +51,6 @@ namespace Orbit::Tasks::HWM
     auto eeprom = Aurora::Flash::EEPROM::Driver();
     eeprom.configure( cfg );
 
-    const char * hello = "helloworld";
-    bool rw_flag = true;
-    size_t last_write = Chimera::millis();
-    uint8_t read_buf[ 50 ];
-    size_t rw_address = 123;
-
-
     /*-------------------------------------------------------------------------
     Run the HWM thread
     -------------------------------------------------------------------------*/

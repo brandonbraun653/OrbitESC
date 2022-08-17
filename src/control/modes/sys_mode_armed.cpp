@@ -20,6 +20,7 @@ namespace Orbit::Control::State
   ---------------------------------------------------------------------------*/
   etl::fsm_state_id_t Armed::on_enter_state()
   {
+    LOG_INFO( "Entering Armed state\r\n" );
     return ModeId::ARMED;
   }
 

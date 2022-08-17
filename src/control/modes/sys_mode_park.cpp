@@ -20,6 +20,7 @@ namespace Orbit::Control::State
   ---------------------------------------------------------------------------*/
   etl::fsm_state_id_t EngagedPark::on_enter_state()
   {
+    LOG_INFO( "Entering Park state\r\n" );
     return ModeId::ENGAGED_PARK;
   }
 

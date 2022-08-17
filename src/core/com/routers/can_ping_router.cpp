@@ -11,6 +11,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Aurora/logging>
 #include <src/core/com/can_message.hpp>
 #include <src/core/com/can_router.hpp>
 #include <src/core/hw/orbit_can.hpp>
@@ -38,6 +39,8 @@ namespace Orbit::CAN::Router
     /* Re-pack and ship it back */
     pong.pack( tx_frame );
     CANDriver->send( tx_frame );
+
+    LOG_INFO( "ACK ping from %s\r\n", getNodeName( static_cast<NodeId>( msg.payload.src.nodeId ) ).data() );
   }
 
 

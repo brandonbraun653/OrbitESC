@@ -14,8 +14,9 @@ Includes
 #include <Chimera/can>
 #include <Chimera/common>
 #include <Chimera/gpio>
-#include <src/core/hw/orbit_can.hpp>
 #include <src/config/bsp/board_map.hpp>
+#include <src/core/hw/orbit_can.hpp>
+#include <string_view>
 
 
 namespace Orbit::CAN
@@ -34,6 +35,9 @@ namespace Orbit::CAN
   ---------------------------------------------------------------------------*/
   static Chimera::CAN::BasicFrame s_tx_frame_buffer[ CAN_FRAME_BUF_SIZE ];
   static Chimera::CAN::BasicFrame s_rx_frame_buffer[ CAN_FRAME_BUF_SIZE ];
+  static const std::array<std::string_view, EnumValue( NodeId::NUM_SUPPORTED_NODES ) + 1u> s_node_names = {
+    "Node 0", "Node 1", "Node 2", "Node 3", "Node 4", "Node 5", "PC", "Unknown"
+  };
 
   /*---------------------------------------------------------------------------
   Public Data
@@ -99,6 +103,19 @@ namespace Orbit::CAN
     RT_HARD_ASSERT( CANDriver != nullptr );
     RT_HARD_ASSERT( Chimera::Status::OK == CANDriver->open( cfg ) );
     RT_HARD_ASSERT( Chimera::Status::OK == CANDriver->filter( s_filter_list, ARRAY_COUNT( s_filter_list ) ) );
+  }
+
+
+  const std::string_view& getNodeName( const NodeId id )
+  {
+    if( id < NodeId::NUM_SUPPORTED_NODES )
+    {
+      return s_node_names[ EnumValue( id ) ];
+    }
+    else
+    {
+      return s_node_names.back();
+    }
   }
 
 }    // namespace Orbit::CAN

@@ -44,12 +44,13 @@ class MessageObserver:
 class MessageQueue:
     """ Listener utility for holding CAN messages as they arrive """
 
-    def __init__(self, msg: Any, qty: int = 0, timeout: Union[float, int, None] = None):
+    def __init__(self, msg: Any, qty: int = 0, timeout: Union[float, int] = 0, verbose: bool = False):
         """
         Args:
             msg: An object or class type derived from BaseMessage
             qty: How many messages to accumulate. If zero, accumulates infinite messages.
-            timeout: How long to allow the accumulator to grab new messages. If None, listen forever.
+            timeout: How long to allow the accumulator to grab new messages. If zero, listen forever.
+            verbose: Optionally log behavior
         """
         # Sanity check the input message prototype. Assumes that the type will be trivially constructible
         # in the case a class type is passed in.
@@ -66,14 +67,26 @@ class MessageQueue:
         self._arb_id = instantiated_msg.id()
         self._qty = qty
         self._timeout = timeout
+        self._verbose = verbose
         self._msg_queue = queue.Queue(maxsize=qty)
         self._uuid = uuid.UUID(int=0)
-        self._data_ready_event = Event()
+        self._event = Event()
+        self._filled = False
         self._observer_instance = MessageObserver(func=self._message_observer, arb_id=self._msg_type.id(),
                                                   timeout=self._timeout)
 
     def __del__(self):
-        logger.trace(f"Subscription {str(self._uuid)}: Terminated")
+        self.notify_expiry()
+        time.sleep(0.1)
+        logger.trace(f"Subscription {str(self._uuid)}: Terminated") if self._verbose else None
+
+    @property
+    def persistent(self) -> bool:
+        """
+        Returns:
+            If the subscription never ends unless forcefully terminated
+        """
+        return self._qty == 0 and self._timeout == 0
 
     @property
     def expired(self) -> bool:
@@ -82,12 +95,15 @@ class MessageQueue:
         Returns:
             True if expired, False if not
         """
-        if self._timeout and ((time.time() - self._observer_instance.start_time) > self._timeout):
-            # Unblock any thread waiting on timeouts
-            self._data_ready_event.set()
-            return True
-        else:
-            return False
+        return self._timeout and ((time.time() - self._observer_instance.start_time) > self._timeout)
+
+    @property
+    def threshold_met(self) -> bool:
+        """
+        Returns:
+            True if the queue is full, otherwise False
+        """
+        return self._msg_queue.full()
 
     @property
     def unique_id(self) -> uuid.UUID:
@@ -104,17 +120,6 @@ class MessageQueue:
     @property
     def observer(self) -> MessageObserver:
         return self._observer_instance
-
-    def await_fulfillment_or_timeout(self) -> None:
-        """
-        Blocks current thread until notification is sent as a result of subscription data
-        fulfillment or the subscription times out.
-
-        Returns:
-            None
-        """
-        self._data_ready_event.wait()
-        self._data_ready_event.clear()
 
     def get_messages(self, flush: bool = True) -> List[BaseMessage]:
         """
@@ -133,6 +138,37 @@ class MessageQueue:
         else:
             return list(self._msg_queue)
 
+    def notify_expiry(self) -> None:
+        """
+        External wakeup injection to notify that a message has expired. Allows an external
+        thread of control to monitor the expiration state of this MessageQueue. The alternative
+        would be spawning a thread per queue, which is a bit wasteful.
+
+        Returns:
+            None
+        """
+        self._event.set()
+
+    def await_fulfillment_or_timeout(self) -> None:
+        """
+        Blocking function that only returns once the subscription's conditions are met.
+            1. Subscription has timed out
+            2. Subscription is looking for "qty" of packets and that qty exists
+            3. Subscription is persistent, in which case will return immediately
+
+        Returns:
+            None
+        """
+        # Return immediately on any condition of the queue already meeting its termination requirements
+        if self.persistent or self.expired or self.threshold_met:
+            return
+
+        # Block until something wakes this thread. Could be a timeout or queue fulfillment.
+        # If the timeout occurs while the queue threshold isn't met, it relies on an external controller
+        # to signal the timeout event, otherwise this would block forever.
+        self._event.wait()
+        self._event.clear()
+
     def _message_observer(self, msg: can.Message) -> None:
         """
         Observer to accept new messages and push them into the queue
@@ -146,18 +182,17 @@ class MessageQueue:
         if (msg.arbitration_id != self._msg_type.id()) or self.expired:
             return
 
+        # Attempt to insert the new message into the queue
         try:
-            # Guarantee message insertion if it exists
             msg_object = self._msg_type().unpack(msg)
             self._msg_queue.put(msg_object, block=False)
-            logger.trace(f"Subscription {str(self._uuid)}: RX message")
 
-            # Check fulfillment of quantity requirements
-            if (self._qty == 0) or (self._msg_queue.qsize() >= self._qty):
-                logger.trace(f"Subscription {str(self._uuid)}: Queue limits met")
-                self._data_ready_event.set()
+            if self._qty != 0 and self._msg_queue.full():
+                self._event.set()
+
         except queue.Full:
-            logger.trace(f"Subscription {str(self._uuid)}: Queue full")
+            logger.trace(f"Subscription {str(self._uuid)}: Queue full") if self._verbose else None
+            self._event.set()
 
 
 class ObserverManager:
@@ -241,7 +276,8 @@ class ObserverManager:
                 observer = self._registry[key]
 
                 if observer.timeout and ((time.time() - observer.start_time) > observer.timeout):
-                    logger.trace(f"Observer timeout for CAN id {observer.arbitration_id}::{str(key)}")
+                    logger.trace(f"Observer timeout of {observer.timeout} seconds for CAN arbitration id "
+                                 f"{observer.arbitration_id}. Removing {str(key)}.")
                     del self._registry[key]
                     removed_ids.append(key)
 
@@ -409,6 +445,7 @@ class CANPipe:
             with self._data_lock:
                 for key in removed:
                     try:
+                        self._subscriptions[key].notify_expiry()
                         del self._subscriptions[key]
                     except KeyError:
                         continue

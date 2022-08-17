@@ -108,14 +108,22 @@ namespace Orbit::CAN
         {
           case Message::MSG_PING: {
             Message::Ping ping;
-            ping.pack( frame );
+            ping.unpack( frame );
 
             this->receive( ping );
           }
           break;
 
+          case Message::MSG_SET_SYSTEM_MODE: {
+            Message::SetSystemMode set_system_mode;
+            set_system_mode.unpack( frame );
+
+            this->receive( set_system_mode );
+          }
+          break;
+
           default:
-            LOG_ERROR( "Unhandled CAN message: 0x%X", frame.id );
+            LOG_ERROR( "CANServer received unhandled message: 0x%X\r\n", frame.id );
             break;
         }
       }

@@ -123,7 +123,7 @@ class Ping(BaseMessage):
 
 
 class SetSystemMode(BaseMessage):
-    _fields = [("dst", Header),
+    _fields_ = [("dst", Header),
                ("mode", c_uint8)]
     _id_ = 0x11
 

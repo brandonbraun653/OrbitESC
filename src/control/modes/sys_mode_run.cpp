@@ -20,6 +20,7 @@ namespace Orbit::Control::State
   ---------------------------------------------------------------------------*/
   etl::fsm_state_id_t EngagedRun::on_enter_state()
   {
+    LOG_INFO( "Entering Run state\r\n" );
     return ModeId::ENGAGED_RUN;
   }
 
