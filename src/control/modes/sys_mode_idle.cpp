@@ -18,6 +18,12 @@ namespace Orbit::Control::State
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
+  void Idle::on_exit_state()
+  {
+    LOG_INFO( "Exiting Idle state\r\n" );
+  }
+
+
   etl::fsm_state_id_t Idle::on_enter_state()
   {
     LOG_INFO( "Entering Idle state\r\n" );
@@ -33,6 +39,7 @@ namespace Orbit::Control::State
 
   etl::fsm_state_id_t Idle::on_event( const MsgArm &msg )
   {
+    LOG_INFO( "Got Arm event\r\n" );
     return ModeId::ARMED;
   }
 

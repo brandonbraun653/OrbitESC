@@ -18,6 +18,11 @@ namespace Orbit::Control::State
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
+  void EngagedRamp::on_exit_state()
+  {
+    LOG_INFO( "Exiting Ramp state\r\n" );
+  }
+
   etl::fsm_state_id_t EngagedRamp::on_enter_state()
   {
     LOG_INFO( "Entering Ramp state\r\n" );

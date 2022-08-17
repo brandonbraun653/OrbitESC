@@ -36,7 +36,7 @@ namespace Orbit::CAN
   static Chimera::CAN::BasicFrame s_tx_frame_buffer[ CAN_FRAME_BUF_SIZE ];
   static Chimera::CAN::BasicFrame s_rx_frame_buffer[ CAN_FRAME_BUF_SIZE ];
   static const std::array<std::string_view, EnumValue( NodeId::NUM_SUPPORTED_NODES ) + 1u> s_node_names = {
-    "Node 0", "Node 1", "Node 2", "Node 3", "Node 4", "Node 5", "PC", "Unknown"
+    "Node 0", "Node 1", "Node 2", "Node 3", "PC", "All", "Unknown"
   };
 
   /*---------------------------------------------------------------------------

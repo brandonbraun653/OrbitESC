@@ -34,6 +34,7 @@ namespace Orbit::CAN::Message
     MSG_SET_CONFIG_DATA = 0x13, /**< Assignment of config data */
     MSG_GET_CONFIG_DATA = 0x14, /**< Request for config data from the board */
     MSG_RSP_CONFIG_DATA = 0x15, /**< Response to MSG_GET_CONFIG_DATA */
+    MSG_EMERGENCY_HALT  = 0x16, /**< Command to safe-state the ESC */
 
     /*-------------------------------------------------------------------------
     Periodic Data
@@ -126,6 +127,16 @@ namespace Orbit::CAN::Message
       Header  src;       /**< Destination node */
       uint8_t id;        /**< Configuration ID */
       uint8_t data[ 6 ]; /**< Configuration data */
+    }
+    payload;
+  };
+
+
+  class EmergencyHalt : public Attributes<EmergencyHalt, MSG_EMERGENCY_HALT>
+  {
+    __packed_struct Payload
+    {
+      Header dst; /**< Destination node */
     }
     payload;
   };

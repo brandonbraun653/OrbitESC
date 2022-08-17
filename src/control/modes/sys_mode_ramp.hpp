@@ -26,7 +26,8 @@ namespace Orbit::Control::State
                                             MsgRun, MsgFault>
   {
   public:
-    etl::fsm_state_id_t on_enter_state();
+    void on_exit_state() final override;
+    etl::fsm_state_id_t on_enter_state() final override;
     etl::fsm_state_id_t on_event( const MsgEmergencyHalt & );
     etl::fsm_state_id_t on_event( const MsgDisengage & );
     etl::fsm_state_id_t on_event( const MsgRun & );

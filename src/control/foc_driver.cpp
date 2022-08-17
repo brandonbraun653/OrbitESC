@@ -151,28 +151,30 @@ namespace Orbit::Control
   int FOC::arm()
   {
     mFSM.receive( MsgArm() );
-    return this->currentMode() == ModeId::ARMED ? 0 : -1;
+    return ( this->currentMode() == ModeId::ARMED ) ? 0 : -1;
   }
 
 
   int FOC::disarm()
   {
     mFSM.receive( MsgDisarm() );
-    return 0;
+    return ( this->currentMode() == ModeId::IDLE ) ? 0 : -1;
   }
 
 
   int FOC::engage()
   {
     mFSM.receive( MsgAlign() );
-    return 0;
+
+    auto mode = this->currentMode();
+    return ( ( mode == ModeId::ENGAGED_PARK ) || ( mode == ModeId::ENGAGED_RAMP ) || ( mode == ModeId::ENGAGED_RUN ) ) ? 0 : -1;
   }
 
 
   int FOC::disengage()
   {
     mFSM.receive( MsgDisengage() );
-    return 0;
+    return ( this->currentMode() == ModeId::ARMED ) ? 0 : -1;
   }
 
 
@@ -185,7 +187,7 @@ namespace Orbit::Control
   int FOC::emergencyStop()
   {
     mFSM.receive( MsgEmergencyHalt() );
-    return 0;
+    return ( this->currentMode() == ModeId::IDLE ) ? 0 : -1;
   }
 
 

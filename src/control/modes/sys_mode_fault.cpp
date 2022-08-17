@@ -18,6 +18,11 @@ namespace Orbit::Control::State
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
+  void Fault::on_exit_state()
+  {
+    LOG_INFO( "Exiting Fault state\r\n" );
+  }
+
   etl::fsm_state_id_t Fault::on_enter_state()
   {
     LOG_INFO( "Entering Fault state\r\n" );

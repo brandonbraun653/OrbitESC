@@ -18,6 +18,11 @@ namespace Orbit::Control::State
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
+  void EngagedRun::on_exit_state()
+  {
+    LOG_INFO( "Exiting Run state\r\n" );
+  }
+
   etl::fsm_state_id_t EngagedRun::on_enter_state()
   {
     LOG_INFO( "Entering Run state\r\n" );

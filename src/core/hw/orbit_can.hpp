@@ -33,9 +33,8 @@ namespace Orbit::CAN
     NODE_1,
     NODE_2,
     NODE_3,
-    NODE_4,
-    NODE_5,
     NODE_PC,
+    NODE_ALL,
 
     NUM_SUPPORTED_NODES
   };

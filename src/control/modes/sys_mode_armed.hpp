@@ -25,7 +25,8 @@ namespace Orbit::Control::State
   class Armed : public etl::fsm_state<FSMMotorControl, Armed, ModeId::ARMED, MsgEmergencyHalt, MsgDisarm, MsgAlign, MsgFault>
   {
   public:
-    etl::fsm_state_id_t on_enter_state();
+    void on_exit_state() final override;
+    etl::fsm_state_id_t on_enter_state() final override;
     etl::fsm_state_id_t on_event( const MsgEmergencyHalt & );
     etl::fsm_state_id_t on_event( const MsgDisarm & );
     etl::fsm_state_id_t on_event( const MsgAlign & );

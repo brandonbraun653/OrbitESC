@@ -18,6 +18,11 @@ namespace Orbit::Control::State
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
+  void Armed::on_exit_state()
+  {
+    LOG_INFO( "Exiting Armed state\r\n" );
+  }
+
   etl::fsm_state_id_t Armed::on_enter_state()
   {
     LOG_INFO( "Entering Armed state\r\n" );

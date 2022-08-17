@@ -22,9 +22,8 @@ class NodeID(IntEnum):
     NODE_1 = 1,
     NODE_2 = 2,
     NODE_3 = 3,
-    NODE_4 = 4,
-    NODE_5 = 5,
-    NODE_PC = 6
+    NODE_PC = 4,
+    NODE_ALL = 5
 
 
 class Header(Structure):
@@ -152,6 +151,11 @@ class RspConfigData(BaseMessage):
                 ("id", c_uint8),
                 ("data", c_uint8 * 6)]
     _id_ = 0x15
+
+
+class EmergencyHalt(BaseMessage):
+    _fields_ = [("dst", Header)]
+    _id_ = 0x16
 
 
 # -----------------------------------------------------------------------------

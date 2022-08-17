@@ -18,6 +18,11 @@ namespace Orbit::Control::State
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
+  void EngagedPark::on_exit_state()
+  {
+    LOG_INFO( "Exiting Park state\r\n" );
+  }
+
   etl::fsm_state_id_t EngagedPark::on_enter_state()
   {
     LOG_INFO( "Entering Park state\r\n" );
