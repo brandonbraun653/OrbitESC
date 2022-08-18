@@ -106,33 +106,6 @@ namespace Orbit::Control
   {
   };
 
-  /*---------------------------------------------------------------------------
-  Motor Control State Machine
-  ---------------------------------------------------------------------------*/
-  class FSMMotorControl : public etl::fsm
-  {
-  public:
-    FSMMotorControl() : fsm( MOTOR_STATE_ROUTER_ID ), mState( nullptr ){};
-    ~FSMMotorControl() = default;
-
-    /**
-     * @brief Inject the FOC controller state into the state machine
-     *
-     * @param state   The FOC controller state to inject
-     */
-    void attachControllerData( SuperState *const state );
-
-    /**
-     * @brief Common handler for logging unexpected messages in the current state
-     *
-     * @param msg   The event that was received
-     */
-    void logUnhandledMessage( const etl::imessage &msg );
-
-  private:
-    SuperState *mState; /**< Pointer to the FOC controller object's control data */
-  };
-
 
   /*---------------------------------------------------------------------------
   Public Functions

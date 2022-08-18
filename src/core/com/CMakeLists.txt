@@ -6,6 +6,7 @@ gen_static_lib_variants(
   SOURCES
     can_message.cpp
     can_server.cpp
+    routers/can_ehalt_router.cpp
     routers/can_mode_router.cpp
     routers/can_ping_router.cpp
     routers/can_speed_router.cpp

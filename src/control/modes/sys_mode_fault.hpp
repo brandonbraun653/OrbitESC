@@ -15,6 +15,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <src/control/foc_driver.hpp>
 #include <src/control/modes/sys_mode_base.hpp>
 
 namespace Orbit::Control::State
@@ -22,7 +23,7 @@ namespace Orbit::Control::State
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
-  class Fault : public etl::fsm_state<FSMMotorControl, Fault, ModeId::FAULT, MsgEmergencyHalt, MsgArm, MsgFault>
+  class Fault : public etl::fsm_state<FOC, Fault, ModeId::FAULT, MsgEmergencyHalt, MsgArm, MsgFault>
   {
   public:
     void on_exit_state() final override;

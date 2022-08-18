@@ -187,7 +187,11 @@ class MessageQueue:
             msg_object = self._msg_type().unpack(msg)
             self._msg_queue.put(msg_object, block=False)
 
-            if self._qty != 0 and self._msg_queue.full():
+            # No limit? Notify on any message received. Otherwise notify when the limit is reached
+            # or allow the timeout to expire.
+            if self._qty == 0:
+                self._event.set()
+            elif self._msg_queue.full():
                 self._event.set()
 
         except queue.Full:

@@ -46,6 +46,7 @@ namespace Orbit::CAN
   static Router::PingRouter           s_ping_router;
   static Router::SetSystemModeRouter  s_set_system_mode_router;
   static Router::SetMotorSpeedRouter  s_set_motor_speed_router;
+  static Router::EmergencyHaltRouter  s_emergency_halt_router;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -116,11 +117,12 @@ namespace Orbit::CAN
     s_can_server.registerPeriodic( motor_speed_func, s_msg_motor_speed.period() );
 
     /*-------------------------------------------------------------------------
-    Register the routers
+    Register the routers for incoming messages
     -------------------------------------------------------------------------*/
     RT_HARD_ASSERT( s_can_server.subscribe( s_ping_router ) );
     RT_HARD_ASSERT( s_can_server.subscribe( s_set_system_mode_router ) );
     RT_HARD_ASSERT( s_can_server.subscribe( s_set_motor_speed_router ) );
+    RT_HARD_ASSERT( s_can_server.subscribe( s_emergency_halt_router ) );
   }
 
 

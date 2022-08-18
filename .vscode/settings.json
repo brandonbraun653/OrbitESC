@@ -139,6 +139,7 @@
     "debouncing",
     "EEFS",
     "EEPROM",
+    "ehalt",
     "exti",
     "fifo",
     "flat",

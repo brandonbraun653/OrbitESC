@@ -23,5 +23,9 @@ if __name__ == "__main__":
     mode = esc.get_mode()
     logger.info(f"ESC is currently in {str(mode)} mode")
     esc.switch_mode(OrbitESC.Mode.Armed)
+
+    time.sleep(1)
+    esc.emergency_stop()
+
     # plotter.live_animate()
     # time.sleep(5)

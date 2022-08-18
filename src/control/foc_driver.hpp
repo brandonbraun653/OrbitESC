@@ -15,14 +15,10 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <etl/fsm.h>
+#include <etl/message.h>
 #include <src/control/foc_data.hpp>
-#include <src/control/modes/sys_mode_armed.hpp>
 #include <src/control/modes/sys_mode_base.hpp>
-#include <src/control/modes/sys_mode_fault.hpp>
-#include <src/control/modes/sys_mode_idle.hpp>
-#include <src/control/modes/sys_mode_park.hpp>
-#include <src/control/modes/sys_mode_ramp.hpp>
-#include <src/control/modes/sys_mode_run.hpp>
 
 
 namespace Orbit::Control
@@ -60,7 +56,7 @@ namespace Orbit::Control
    * @brief Brush-less dc motor control library implemented with FOC
    *
    */
-  class FOC
+  class FOC : public etl::fsm
   {
   public:
     FOC();
@@ -145,6 +141,13 @@ namespace Orbit::Control
      */
     ModeId_t currentMode() const;
 
+    /**
+     * @brief Common handler for logging unexpected messages in the current state
+     *
+     * @param msg   The event that was received
+     */
+    void logUnhandledMessage( const etl::imessage &msg );
+
   protected:
     /**
      * @brief Interrupt handler for the ADC
@@ -161,15 +164,6 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     State Machine Variables
     -------------------------------------------------------------------------*/
-    FSMMotorControl    mFSM;        /**< Root controller instance */
-    State::Idle        mIdleState;  /**< Idle state controller */
-    State::Armed       mArmedState; /**< Armed state controller */
-    State::Fault       mFaultState; /**< Fault state controller */
-    State::EngagedPark mParkState;  /**< Park state controller */
-    State::EngagedRamp mRampState;  /**< Ramp state controller */
-    State::EngagedRun  mRunState;   /**< Run state controller */
-
-    /* Track the available instances */
     std::array<etl::ifsm_state *, ModeId::NUM_STATES> mFSMStateArray;
 
   private:

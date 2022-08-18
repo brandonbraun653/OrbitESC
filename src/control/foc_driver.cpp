@@ -13,11 +13,18 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/logging>
 #include <Chimera/adc>
+#include <Thor/lld/interface/inc/timer>
 #include <cmath>
 #include <src/config/bsp/board_map.hpp>
 #include <src/control/foc_driver.hpp>
 #include <src/control/foc_math.hpp>
-#include <Thor/lld/interface/inc/timer>
+#include <src/control/modes/sys_mode_armed.hpp>
+#include <src/control/modes/sys_mode_base.hpp>
+#include <src/control/modes/sys_mode_fault.hpp>
+#include <src/control/modes/sys_mode_idle.hpp>
+#include <src/control/modes/sys_mode_park.hpp>
+#include <src/control/modes/sys_mode_ramp.hpp>
+#include <src/control/modes/sys_mode_run.hpp>
 
 #if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
 #include "SEGGER_SYSVIEW.h"
@@ -35,7 +42,7 @@ namespace Orbit::Control
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  FOC::FOC()
+  FOC::FOC() : fsm( MOTOR_STATE_ROUTER_ID )
   {
   }
 
@@ -62,7 +69,7 @@ namespace Orbit::Control
     mState.clear();
     mConfig.clear();
 
-    mConfig = cfg;
+    mConfig            = cfg;
     mState.motorParams = motorParams;
 
     /*-------------------------------------------------------------------------
@@ -78,10 +85,10 @@ namespace Orbit::Control
     -------------------------------------------------------------------------*/
     Chimera::ADC::Sample sample;
 
-    sample = mADCDriver->sampleChannel( Orbit::IO::Analog::adcPhaseA );
+    sample                                                    = mADCDriver->sampleChannel( Orbit::IO::Analog::adcPhaseA );
     mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].dcOffset = mADCDriver->toVoltage( sample );
 
-    sample = mADCDriver->sampleChannel( Orbit::IO::Analog::adcPhaseB );
+    sample                                                    = mADCDriver->sampleChannel( Orbit::IO::Analog::adcPhaseB );
     mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].dcOffset = mADCDriver->toVoltage( sample );
 
     /*-------------------------------------------------------------------------
@@ -130,19 +137,17 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Initialize the finite state machine
     -------------------------------------------------------------------------*/
-    /* Fill the state array with the class objects */
     mFSMStateArray.fill( nullptr );
-    mFSMStateArray[ ModeId::IDLE ]         = &mIdleState;
-    mFSMStateArray[ ModeId::ARMED ]        = &mArmedState;
-    mFSMStateArray[ ModeId::FAULT ]        = &mFaultState;
-    mFSMStateArray[ ModeId::ENGAGED_PARK ] = &mParkState;
-    mFSMStateArray[ ModeId::ENGAGED_RAMP ] = &mRampState;
-    mFSMStateArray[ ModeId::ENGAGED_RUN ]  = &mRunState;
+    mFSMStateArray[ ModeId::IDLE ]         = new State::Idle();
+    mFSMStateArray[ ModeId::ARMED ]        = new State::Armed();
+    mFSMStateArray[ ModeId::FAULT ]        = new State::Fault();
+    mFSMStateArray[ ModeId::ENGAGED_PARK ] = new State::EngagedPark();
+    mFSMStateArray[ ModeId::ENGAGED_RAMP ] = new State::EngagedRamp();
+    mFSMStateArray[ ModeId::ENGAGED_RUN ]  = new State::EngagedRun();
 
     /* Initialize the FSM. First state will be ModeId::IDLE. */
-    mFSM.attachControllerData( &mState );
-    mFSM.set_states( mFSMStateArray.data(), mFSMStateArray.size() );
-    mFSM.start();
+    this->set_states( mFSMStateArray.data(), mFSMStateArray.size() );
+    this->start();
 
     return 0;
   }
@@ -150,21 +155,21 @@ namespace Orbit::Control
 
   int FOC::arm()
   {
-    mFSM.receive( MsgArm() );
+    this->receive( MsgArm() );
     return ( this->currentMode() == ModeId::ARMED ) ? 0 : -1;
   }
 
 
   int FOC::disarm()
   {
-    mFSM.receive( MsgDisarm() );
+    this->receive( MsgDisarm() );
     return ( this->currentMode() == ModeId::IDLE ) ? 0 : -1;
   }
 
 
   int FOC::engage()
   {
-    mFSM.receive( MsgAlign() );
+    this->receive( MsgAlign() );
 
     auto mode = this->currentMode();
     return ( ( mode == ModeId::ENGAGED_PARK ) || ( mode == ModeId::ENGAGED_RAMP ) || ( mode == ModeId::ENGAGED_RUN ) ) ? 0 : -1;
@@ -173,7 +178,7 @@ namespace Orbit::Control
 
   int FOC::disengage()
   {
-    mFSM.receive( MsgDisengage() );
+    this->receive( MsgDisengage() );
     return ( this->currentMode() == ModeId::ARMED ) ? 0 : -1;
   }
 
@@ -186,7 +191,7 @@ namespace Orbit::Control
 
   int FOC::emergencyStop()
   {
-    mFSM.receive( MsgEmergencyHalt() );
+    this->receive( MsgEmergencyHalt() );
     return ( this->currentMode() == ModeId::IDLE ) ? 0 : -1;
   }
 
@@ -205,7 +210,14 @@ namespace Orbit::Control
 
   ModeId_t FOC::currentMode() const
   {
-    return mFSM.get_state_id();
+    return this->get_state_id();
+  }
+
+
+  void FOC::logUnhandledMessage( const etl::imessage &msg )
+  {
+    LOG_WARN( "%s message not handled from state %s\r\n", getMessageString( msg.get_message_id() ).data(),
+              getModeString( get_state_id() ).data() );
   }
 
 
@@ -216,10 +228,10 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Convert the ADC data to measured values
     -------------------------------------------------------------------------*/
-    static constexpr float COUNTS_TO_VOLTS = 3.3f / 4096.0f; // Vref = 3.3V, 12-bit ADC
+    static constexpr float COUNTS_TO_VOLTS = 3.3f / 4096.0f;    // Vref = 3.3V, 12-bit ADC
 
     const uint32_t timestamp = Chimera::micros();
-    for( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
+    for ( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
     {
       mState.adcBuffer[ i ].measured     = static_cast<float>( isr.samples[ i ] ) * COUNTS_TO_VOLTS;
       mState.adcBuffer[ i ].converted    = mConfig.txfrFuncs[ i ]( mState.adcBuffer[ i ].measured );
@@ -257,9 +269,9 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Update the commanded controller output states
     -------------------------------------------------------------------------*/
-    const Math::ParkSpace park_space{.d = mState.motorState.Vd, .q = mState.motorState.Vq };
+    const Math::ParkSpace park_space{ .d = mState.motorState.Vd, .q = mState.motorState.Vq };
 
-    auto invPark = Math::inverse_park_transform( park_space, mState.motorState.posEstRad );
+    auto  invPark = Math::inverse_park_transform( park_space, mState.motorState.posEstRad );
     float a, b, c;
 
     Math::inverse_clarke_transform( invPark, &a, &b, &c );
@@ -327,7 +339,7 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Alias equation variables to make everything easier to read
     -------------------------------------------------------------------------*/
-    const float d = mState.emfObserver.d;
+    const float d  = mState.emfObserver.d;
     const float Ls = mState.motorParams.Ls;
     const float Rs = mState.motorParams.Rs;
     const float Wr = mState.motorState.velEstRad;

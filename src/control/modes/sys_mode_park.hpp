@@ -15,6 +15,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <src/control/foc_driver.hpp>
 #include <src/control/modes/sys_mode_base.hpp>
 
 namespace Orbit::Control::State
@@ -22,7 +23,7 @@ namespace Orbit::Control::State
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
-  class EngagedPark : public etl::fsm_state<FSMMotorControl, EngagedPark, ModeId::ENGAGED_PARK, MsgEmergencyHalt, MsgDisengage,
+  class EngagedPark : public etl::fsm_state<FOC, EngagedPark, ModeId::ENGAGED_PARK, MsgEmergencyHalt, MsgDisengage,
                                             MsgRamp, MsgFault>
   {
   public:

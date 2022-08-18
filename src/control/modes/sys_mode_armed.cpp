@@ -31,7 +31,8 @@ namespace Orbit::Control::State
 
   etl::fsm_state_id_t Armed::on_event( const MsgEmergencyHalt &msg )
   {
-    return ModeId::ARMED;
+    // Submit the break event to the timer module
+    return ModeId::FAULT;
   }
 
   etl::fsm_state_id_t Armed::on_event( const MsgDisarm &msg )

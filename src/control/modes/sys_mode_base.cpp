@@ -77,20 +77,4 @@ namespace Orbit::Control
     return s_state_names[ mode ];
   }
 
-  /*---------------------------------------------------------------------------
-  Classes
-  ---------------------------------------------------------------------------*/
-  void FSMMotorControl::attachControllerData( SuperState *const state )
-  {
-    RT_DBG_ASSERT( state != nullptr );
-    mState = state;
-  }
-
-
-  void FSMMotorControl::logUnhandledMessage( const etl::imessage &msg )
-  {
-    LOG_WARN( "%s message not handled from state %s\r\n", getMessageString( msg.get_message_id() ),
-              getModeString( get_state_id() ) );
-  }
-
 }    // namespace Orbit::Control

@@ -122,6 +122,14 @@ namespace Orbit::CAN
           }
           break;
 
+          case Message::MSG_EMERGENCY_HALT: {
+            Message::EmergencyHalt emergency_halt;
+            emergency_halt.unpack( frame );
+
+            this->receive( emergency_halt );
+          }
+          break;
+
           default:
             LOG_ERROR( "CANServer received unhandled message: 0x%X\r\n", frame.id );
             break;

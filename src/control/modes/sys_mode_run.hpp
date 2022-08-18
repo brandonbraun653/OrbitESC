@@ -15,6 +15,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <src/control/foc_driver.hpp>
 #include <src/control/modes/sys_mode_base.hpp>
 
 namespace Orbit::Control::State
@@ -23,7 +24,7 @@ namespace Orbit::Control::State
   State Class
   ---------------------------------------------------------------------------*/
   class EngagedRun
-      : public etl::fsm_state<FSMMotorControl, EngagedRun, ModeId::ENGAGED_RUN, MsgEmergencyHalt, MsgDisengage, MsgFault>
+      : public etl::fsm_state<FOC, EngagedRun, ModeId::ENGAGED_RUN, MsgEmergencyHalt, MsgDisengage, MsgFault>
   {
   public:
     void on_exit_state() final override;

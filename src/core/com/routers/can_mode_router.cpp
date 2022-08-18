@@ -50,7 +50,7 @@ namespace Orbit::CAN::Router
         break;
 
       case ModeId::FAULT:
-        result = FOCDriver.emergencyStop();
+        result = FOCDriver.disengage();
         break;
 
       default:

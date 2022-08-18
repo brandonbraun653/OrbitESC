@@ -47,6 +47,14 @@ namespace Orbit::CAN::Router
     void on_receive_unknown( const etl::imessage &msg );
   };
 
+  class EmergencyHaltRouter : public etl::message_router<EmergencyHaltRouter, Message::EmergencyHalt>
+  {
+  public:
+    EmergencyHaltRouter();
+    void on_receive( const Message::EmergencyHalt &msg );
+    void on_receive_unknown( const etl::imessage &msg );
+  };
+
 }    // namespace Orbit::CAN::Router
 
 #endif /* !ORBIT_CAN_ROUTERS_HPP */

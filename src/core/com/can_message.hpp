@@ -134,6 +134,7 @@ namespace Orbit::CAN::Message
 
   class EmergencyHalt : public Attributes<EmergencyHalt, MSG_EMERGENCY_HALT>
   {
+  public:
     __packed_struct Payload
     {
       Header dst; /**< Destination node */

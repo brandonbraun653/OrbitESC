@@ -13,13 +13,14 @@ from __future__ import annotations
 import atexit
 import can
 import time
+import uuid
 from enum import IntEnum
 from loguru import logger
 from functools import wraps
 from threading import Event, Thread
 from typing import Any, Callable, List, Union
 from pyorbit.pipe import CANPipe, MessageObserver
-from pyorbit.messages import NodeID, Ping, SystemTick, SystemMode, SetSystemMode
+from pyorbit.messages import NodeID, Ping, SystemTick, SystemMode, SetSystemMode, EmergencyHalt
 from pyorbit.exceptions import NotOnlineException
 
 
@@ -168,14 +169,7 @@ class OrbitESC:
         self.com_pipe.bus.send(msg.as_bus_msg())
 
         # Look through all available messages to find the mode switch occurred
-        rx_msgs = self.com_pipe.get_subscription_data(sub_id, block=True, terminate=True)
-        for msg in rx_msgs:
-            if msg.mode == mode.value:
-                logger.debug(f"Mode switch success")
-                return True
-
-        logger.warning(f"Failed switch to {str(mode)} mode")
-        return False
+        return self._listen_for_mode_switch(sub_id=sub_id, mode=mode)
 
     @online_checker
     def get_mode(self) -> Union[OrbitESC.Mode, None]:
@@ -203,8 +197,35 @@ class OrbitESC:
     def get_config(self, key: int) -> Any:
         pass
 
-    def emergency_stop(self, all_nodes: bool = False) -> None:
-        pass
+    def emergency_stop(self, all_nodes: bool = False) -> bool:
+        """
+        Communicates an emergency halt message to the current node.
+        Args:
+            all_nodes: Optionally extend the message to include all nodes
+
+        Returns:
+            True if the connected ESC nodes were put into the expected safe state, else False
+        """
+        # Set up the message to transmit
+        msg = EmergencyHalt()
+        msg.dst.node_id = NodeID.NODE_ALL.value if all_nodes else self._dst_node
+
+        # Currently the ESC class doesn't track all nodes that are online, so tracking the
+        # state of each node to ensure a good transition to a safe state isn't feasible (yet).
+        if all_nodes:
+            logger.debug("Sending EmergencyHalt to all connected nodes")
+            self.com_pipe.bus.send(msg.as_bus_msg())
+            return True
+
+        # Listen for the mode status
+        sub_id = self.com_pipe.subscribe(msg=SystemMode, timeout=2.0)
+
+        # Send out the halt message
+        logger.debug(f"Sending EmergencyHalt to node {self._dst_node.value}")
+        self.com_pipe.bus.send(msg.as_bus_msg())
+
+        # Listen for the mode switch
+        return self._listen_for_mode_switch(sub_id=sub_id, mode=OrbitESC.Mode.Fault)
 
     def _destroy(self) -> None:
         """
@@ -246,3 +267,22 @@ class OrbitESC:
             if not self._online:
                 logger.info(f"Node {self._dst_node} is online")
                 self._online = True
+
+    def _listen_for_mode_switch(self, sub_id: uuid.UUID, mode: OrbitESC.Mode) -> bool:
+        """
+        Listens for the SystemMode packet to determine if a mode change has occurred
+        Args:
+            sub_id: Subscription ID associated with the mode switching event. Assumes a timeout exists.
+            mode: The expected new mode
+
+        Returns:
+            True if the mode was achieved, False if not
+        """
+        while rx_msgs := self.com_pipe.get_subscription_data(sub_id, block=True):
+            for msg in rx_msgs:
+                if msg.mode == mode.value:
+                    logger.debug(f"Mode switch success")
+                    return True
+
+        logger.warning(f"Failed switch to {str(mode)} mode")
+        return False
