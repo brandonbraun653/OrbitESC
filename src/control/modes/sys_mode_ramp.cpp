@@ -16,17 +16,36 @@ Includes
 namespace Orbit::Control::State
 {
   /*---------------------------------------------------------------------------
+  Constants
+  ---------------------------------------------------------------------------*/
+  static constexpr bool DEBUG_MODULE = true;
+
+  /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
   void EngagedRamp::on_exit_state()
   {
-    LOG_INFO( "Exiting Ramp state\r\n" );
+    LOG_TRACE_IF( DEBUG_MODULE, "Exiting RAMP state\r\n" );
   }
 
   etl::fsm_state_id_t EngagedRamp::on_enter_state()
   {
-    LOG_INFO( "Entering Ramp state\r\n" );
+    LOG_TRACE_IF( DEBUG_MODULE, "Entering RAMP state\r\n" );
     return ModeId::ENGAGED_RAMP;
+  }
+
+
+  etl::fsm_state_id_t EngagedRamp::on_event( const MsgRun &msg )
+  {
+    /*-------------------------------------------------------------------------
+    Prepare the run controller
+    -------------------------------------------------------------------------*/
+
+    /*-------------------------------------------------------------------------
+    Stop the ramp controller
+    -------------------------------------------------------------------------*/
+    // return ModeId::ENGAGED_RUN;
+    return this->No_State_Change; // TODO BMB: Remove this
   }
 
 
@@ -38,13 +57,7 @@ namespace Orbit::Control::State
 
   etl::fsm_state_id_t EngagedRamp::on_event( const MsgDisengage &msg )
   {
-    return ModeId::ENGAGED_RAMP;
-  }
-
-
-  etl::fsm_state_id_t EngagedRamp::on_event( const MsgRun &msg )
-  {
-    return ModeId::ENGAGED_RAMP;
+    return ModeId::ARMED;
   }
 
 

@@ -19,13 +19,13 @@ if __name__ == "__main__":
     esc.com_pipe.subscribe_observer(plotter.observer_handle)
 
     time.sleep(1)
-    esc.ping()
-    mode = esc.get_mode()
-    logger.info(f"ESC is currently in {str(mode)} mode")
-    esc.switch_mode(OrbitESC.Mode.Armed)
-
+    esc.switch_mode(OrbitESC.Mode.Idle)
     time.sleep(1)
-    esc.emergency_stop()
+    esc.switch_mode(OrbitESC.Mode.Armed)
+    time.sleep(1)
+    esc.switch_mode(OrbitESC.Mode.Run)
+    # time.sleep(5)
+    # esc.emergency_stop()
 
     # plotter.live_animate()
     # time.sleep(5)

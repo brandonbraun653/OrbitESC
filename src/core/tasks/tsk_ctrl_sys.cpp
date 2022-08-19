@@ -19,8 +19,6 @@ Includes
 #include <src/control/foc_driver.hpp>
 #include <src/core/hw/drv8301.hpp>
 
-volatile bool isr_foc_flag;
-
 namespace Orbit::Tasks::CTRLSYS
 {
   /*---------------------------------------------------------------------------
@@ -47,7 +45,6 @@ namespace Orbit::Tasks::CTRLSYS
     params.Rs = 0.01f;
     params.Ls = 380.0f * 1e-3f;
 
-    isr_foc_flag = false;
     Orbit::Control::FOCDriver.initialize( cfg, params );
 
     /*-------------------------------------------------------------------------
@@ -56,14 +53,14 @@ namespace Orbit::Tasks::CTRLSYS
     size_t wake_up_tick = Chimera::millis();
     while ( 1 )
     {
-      if( isr_foc_flag )
-      {
-        isr_foc_flag = false;
-        //LOG_INFO( "FOC ISR\r\n" );
-      }
-      /*---------------------------------------------------------------------
+      /*-----------------------------------------------------------------------
+      Run the main FOC loop
+      -----------------------------------------------------------------------*/
+      Orbit::Control::FOCDriver.run();
+
+      /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically
-      ---------------------------------------------------------------------*/
+      -----------------------------------------------------------------------*/
       Chimera::delayUntil( wake_up_tick + PERIOD_MS );
       wake_up_tick = Chimera::millis();
     }

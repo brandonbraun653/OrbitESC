@@ -22,7 +22,8 @@ Includes
 Macros
 -----------------------------------------------------------------------------*/
 #define US_TO_SEC( x ) ( static_cast<float>( x ) / 1e6f )
-#define RAD_TO_RPM( rad ) ( rad * static_cast<float>( 60.0 / ( 2.0 * M_PI ) ) )
+#define RAD_TO_RPM( rad ) ( static_cast<float>( rad ) * static_cast<float>( 60.0 / ( 2.0 * M_PI ) ) )
+#define RPM_TO_RAD( rpm ) ( ( static_cast<float>( rpm ) / 60.0f ) * static_cast<float>( 2.0 * M_PI ) )
 
 namespace Orbit::Control::Math
 {

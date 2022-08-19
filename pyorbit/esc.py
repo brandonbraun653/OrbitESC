@@ -20,7 +20,7 @@ from functools import wraps
 from threading import Event, Thread
 from typing import Any, Callable, List, Union
 from pyorbit.pipe import CANPipe, MessageObserver
-from pyorbit.messages import NodeID, Ping, SystemTick, SystemMode, SetSystemMode, EmergencyHalt
+from pyorbit.messages import NodeID, Ping, SystemTick, SystemMode, SetSystemMode, EmergencyHalt, SetMotorSpeed
 from pyorbit.exceptions import NotOnlineException
 
 
@@ -38,6 +38,7 @@ def online_checker(method: Callable) -> Any:
     References:
         https://stackoverflow.com/a/36944992/8341975
     """
+
     @wraps(method)
     def _impl(self: OrbitESC, *method_args, **method_kwargs):
         # Ensure this decorator is only used on OrbitESC classes
@@ -53,6 +54,7 @@ def online_checker(method: Callable) -> Any:
 
 
 class OrbitESC:
+    """ Core class for interacting/controlling an ESC over CAN bus """
 
     class Mode(IntEnum):
         """ Mimics the ModeId_t enumeration in sys_mode_base.hpp """
@@ -64,12 +66,12 @@ class OrbitESC:
         Fault = 5
 
         def __str__(self):
-            mapping = { OrbitESC.Mode.Idle.value: "Idle",
-                        OrbitESC.Mode.Armed.value: "Armed",
-                        OrbitESC.Mode.Park.value: "Park",
-                        OrbitESC.Mode.Ramp.value: "Ramp",
-                        OrbitESC.Mode.Run.value: "Run",
-                        OrbitESC.Mode.Fault.value: "Fault"}
+            mapping = {OrbitESC.Mode.Idle.value: "Idle",
+                       OrbitESC.Mode.Armed.value: "Armed",
+                       OrbitESC.Mode.Park.value: "Park",
+                       OrbitESC.Mode.Ramp.value: "Ramp",
+                       OrbitESC.Mode.Run.value: "Run",
+                       OrbitESC.Mode.Fault.value: "Fault"}
 
             try:
                 return mapping[self.value]
@@ -101,9 +103,9 @@ class OrbitESC:
         # Start up the background thread
         self._kill_signal = Event()
         self._notify_signal = Event()
-        self._bkgd_thread = Thread(target=self._background_thread, daemon=True,
-                                   name=f"OrbitESC_BackgroundThread_Node{dst_node}")
-        self._bkgd_thread.start()
+        self._thread = Thread(target=self._background_thread, daemon=True,
+                              name=f"OrbitESC_BackgroundThread_Node{dst_node}")
+        self._thread.start()
 
         # Register known observers
         self.com_pipe.subscribe_observer(MessageObserver(func=self._observer_esc_tick, arb_id=SystemTick.id()))
@@ -122,7 +124,7 @@ class OrbitESC:
     @online_checker
     def ping(self) -> bool:
         """
-        Communicates with the desired to node to see if it's alive
+        Communicates with the desired to node to check if it is alive
         Returns:
             True if the node responds, False if not
         """
@@ -187,7 +189,20 @@ class OrbitESC:
 
     @online_checker
     def set_speed_reference(self, rpm: Union[float, int]) -> None:
-        pass
+        """
+        Sets the speed reference used as the motor control set point
+        Args:
+            rpm: Desired RPM
+
+        Returns:
+            None
+        """
+        msg = SetMotorSpeed()
+        msg.dst.node_id = self._dst_node
+        msg.speed = rpm
+
+        logger.debug(f"Setting node {self._dst_node} rpm to: {rpm}")
+        self.com_pipe.bus.send(msg.as_bus_msg())
 
     @online_checker
     def set_config(self, key: int, value: Union[float, int, str]):

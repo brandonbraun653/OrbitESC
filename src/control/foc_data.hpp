@@ -94,6 +94,49 @@ namespace Orbit::Control
     }
   };
 
+
+  struct ParkControl
+  {
+    uint32_t startTime_ms;        /**< When the park controller started executing */
+    uint32_t lastUpdate_ms;       /**< Last time the controller was updated */
+    uint32_t activeComState;      /**< Which commutation state to align the rotor on */
+    uint32_t alignTime_ms;        /**< How long to run the park mode for in milliseconds */
+    uint32_t modulation_dt_ms;    /**< dt to toggle the output state in milliseconds */
+    float    phaseDutyCycle[ 3 ]; /**< Drive strength for each phase */
+    bool     outputEnabled;       /**< Enable/disable the power stage */
+
+    void clear()
+    {
+      memset( this, 0, sizeof( ParkControl ) );
+    }
+  };
+
+  struct RampControl
+  {
+    uint32_t startTime_ms;
+    uint32_t rampTime_ms;
+    uint32_t rampRate;
+
+    void clear()
+    {
+      memset( this, 0, sizeof( RampControl ) );
+    }
+  };
+
+  struct RunControl
+  {
+    /**
+     * Input Variables
+     */
+    float speedRefRad; /**< Reference speed in radians/second */
+
+
+    void clear()
+    {
+      memset( this, 0, sizeof( RunControl ) );
+    }
+  };
+
   struct ControllerData
   {
     /*-------------------------------------------------------------------------
@@ -111,21 +154,28 @@ namespace Orbit::Control
     float Iq;  /**< Current in Amps */
 
     /*-------------------------------------------------------------------------
-    Controller Outputs
+    Output Variables
     -------------------------------------------------------------------------*/
     float Vd; /**< Commanded output voltage on the D axis */
     float Vq; /**< Commanded output voltage on the Q axis */
 
+    /*-------------------------------------------------------------------------
+    Controller States
+    -------------------------------------------------------------------------*/
+    ParkControl park;
+    RampControl ramp;
+    RunControl run;
+
     void clear()
     {
-      posEstRad = 0.0f;
-      velEstRad = 0.0f;
-      accEstRad = 0.0f;
-      Vdd       = 0.0f;
-      Id        = 0.0f;
-      Iq        = 0.0f;
-      Vd        = 0.0f;
-      Vq        = 0.0f;
+      park.clear();
+
+      posEstRad   = 0.0f;
+      velEstRad   = 0.0f;
+      accEstRad   = 0.0f;
+      Vdd         = 0.0f;
+      Id          = 0.0f;
+      Iq          = 0.0f;
     }
   };
 
@@ -158,7 +208,7 @@ namespace Orbit::Control
     EMFObserver     emfObserver;
     OmegaEstimator  speedEstimator;
     MotorParameters motorParams;
-    ControllerData  motorState;
+    ControllerData  motorController;
 
     void clear()
     {
@@ -170,7 +220,7 @@ namespace Orbit::Control
       emfObserver.clear();
       speedEstimator.clear();
       motorParams.clear();
-      motorState.clear();
+      motorController.clear();
     }
   };
 }    // namespace Orbit::Control

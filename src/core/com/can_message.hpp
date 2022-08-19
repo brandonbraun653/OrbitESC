@@ -44,6 +44,7 @@ namespace Orbit::CAN::Message
     MSG_PRDC_ADC_PHASE_A_CURRENT = 0x21,  /**< Phase A current */
     MSG_PRDC_ADC_PHASE_B_CURRENT = 0x22,  /**< Phase B current */
     MSG_PRDC_MOTOR_SPEED         = 0x23,  /**< Current motor speed */
+    MSG_PRDC_SPEED_REF           = 0x24,  /**< Motor reference speed */
     MSG_PRDC_SYSTEM_TICK         = 0x50,  /**< Current system tick */
     MSG_PRDC_SYSTEM_MODE         = 0x51,  /**< Current system mode */
 
@@ -264,6 +265,23 @@ namespace Orbit::CAN::Message
    * @brief Estimated motor speed in RPM
    */
   class MotorSpeed : public Attributes<MotorSpeed, MSG_PRDC_MOTOR_SPEED, 100>
+  {
+  public:
+    __packed_struct Payload
+    {
+      Header   hdr;   /**< Message header */
+      uint32_t tick;  /**< System time in milliseconds */
+      uint16_t speed; /**< Motor speed in RPM */
+    }
+    payload;
+
+    void update() final override;
+  };
+
+  /**
+   * @brief Reference motor speed in RPM
+   */
+  class SpeedReference : public Attributes<SpeedReference, MSG_PRDC_SPEED_REF, 100>
   {
   public:
     __packed_struct Payload

@@ -123,7 +123,7 @@ class Ping(BaseMessage):
 
 class SetSystemMode(BaseMessage):
     _fields_ = [("dst", Header),
-               ("mode", c_uint8)]
+                ("mode", c_uint8)]
     _id_ = 0x11
 
 
@@ -212,3 +212,12 @@ class MotorSpeed(BaseMessage):
 
     _period_ = 0.1
     _id_ = 0x23
+
+
+class SpeedReference(BaseMessage):
+    _fields_ = [("hdr", Header),
+                ("tick", c_uint32),
+                ("speed", c_uint16)]
+
+    _period_ = 0.1
+    _id_ = 0x24

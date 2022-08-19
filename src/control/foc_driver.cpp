@@ -30,8 +30,6 @@ Includes
 #include "SEGGER_SYSVIEW.h"
 #endif
 
-extern volatile bool isr_foc_flag;
-
 namespace Orbit::Control
 {
   /*---------------------------------------------------------------------------
@@ -149,7 +147,32 @@ namespace Orbit::Control
     this->set_states( mFSMStateArray.data(), mFSMStateArray.size() );
     this->start();
 
+    /*-------------------------------------------------------------------------
+    Initialize the periodic behavior lookup table
+    https://stackoverflow.com/a/1486279/8341975
+    -------------------------------------------------------------------------*/
+    mRunFuncArray.fill( nullptr );
+    mRunFuncArray[ ModeId::ARMED ]        = &FOC::onArmed;
+    mRunFuncArray[ ModeId::FAULT ]        = &FOC::onFault;
+    mRunFuncArray[ ModeId::ENGAGED_PARK ] = &FOC::onPark;
+    mRunFuncArray[ ModeId::ENGAGED_RAMP ] = &FOC::onRamp;
+    mRunFuncArray[ ModeId::ENGAGED_RUN ]  = &FOC::onRun;
+
     return 0;
+  }
+
+
+  void FOC::run()
+  {
+    /*-------------------------------------------------------------------------
+    Nothing crazy, just map into the appropriate function for the current mode.
+    Should be a little faster/smaller than a switch case.
+    -------------------------------------------------------------------------*/
+    const auto mode = this->currentMode();
+    if ( mRunFuncArray[ mode ] )
+    {
+      ( this->*mRunFuncArray[ mode ] )();
+    }
   }
 
 
@@ -185,6 +208,7 @@ namespace Orbit::Control
 
   int FOC::setSpeedRef( const float ref )
   {
+    mState.motorController.run.speedRefRad = ref;
     return 0;
   }
 
@@ -226,55 +250,88 @@ namespace Orbit::Control
     SEGGER_SYSVIEW_RecordEnterISR();
 
     /*-------------------------------------------------------------------------
+    Grab a few pieces of information
+    -------------------------------------------------------------------------*/
+    const ModeId_t current_mode = static_cast<ModeId_t>( this->get_state_id() );
+    const uint32_t timestamp_us = Chimera::micros();
+
+    /*-------------------------------------------------------------------------
     Convert the ADC data to measured values
     -------------------------------------------------------------------------*/
     static constexpr float COUNTS_TO_VOLTS = 3.3f / 4096.0f;    // Vref = 3.3V, 12-bit ADC
 
-    const uint32_t timestamp = Chimera::micros();
     for ( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
     {
       mState.adcBuffer[ i ].measured     = static_cast<float>( isr.samples[ i ] ) * COUNTS_TO_VOLTS;
       mState.adcBuffer[ i ].converted    = mConfig.txfrFuncs[ i ]( mState.adcBuffer[ i ].measured );
-      mState.adcBuffer[ i ].sampleTimeUs = timestamp;
+      mState.adcBuffer[ i ].sampleTimeUs = timestamp_us;
     }
 
     /*-------------------------------------------------------------------------
-    Move the sampled phase currents through the Clarke-Park transform
+    Estimate the rotor position
     -------------------------------------------------------------------------*/
-    const auto clarke = Math::clarke_transform( mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].converted,
-                                                mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].converted );
-
-    const auto park = Math::park_transform( clarke, mState.motorState.posEstRad );
-
-    /*-------------------------------------------------------------------------
-    Calculate the estimated rotor position
-    -------------------------------------------------------------------------*/
-    /* Update the motor state data from previous calculations */
-    mState.motorState.Iq  = park.q;
-    mState.motorState.Id  = park.d;
-    mState.motorState.Vdd = mState.adcBuffer[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted;
-
-    /* Step the EMF observer */
-    const float dt = US_TO_SEC( timestamp - mState.emfObserver.last_update_us );
-    stepEMFObserver( dt );
-    mState.emfObserver.last_update_us = timestamp;
-
-    /* Calculate the estimated rotor position (Eq. 18) */
-    mState.motorState.posEstRad = Math::fast_atan2_with_norm( -mState.emfObserver.Ed_est, mState.emfObserver.Eq_est );
-    if ( mState.motorState.velEstRad < 0.0f )
+    if ( ( current_mode == ModeId::ENGAGED_RUN ) || ( current_mode == ModeId::ENGAGED_RAMP ) )
     {
-      mState.motorState.posEstRad += Math::M_PI_F;
+      /*-----------------------------------------------------------------------
+      Move the sampled phase currents through the Clarke-Park transform
+      -----------------------------------------------------------------------*/
+      const auto clarke = Math::clarke_transform( mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].converted,
+                                                  mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].converted );
+
+      const auto park = Math::park_transform( clarke, mState.motorController.posEstRad );
+
+      /*-----------------------------------------------------------------------
+      Do the estimation
+      -----------------------------------------------------------------------*/
+      /* Update the motor state data from previous calculations */
+      mState.motorController.Iq  = park.q;
+      mState.motorController.Id  = park.d;
+      mState.motorController.Vdd = mState.adcBuffer[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted;
+
+      /* Step the EMF observer */
+      const float dt = US_TO_SEC( timestamp_us - mState.emfObserver.last_update_us );
+      stepEMFObserver( dt );
+      mState.emfObserver.last_update_us = timestamp_us;
+
+      /* Calculate the estimated rotor position (Eq. 18) */
+      mState.motorController.posEstRad = Math::fast_atan2_with_norm( -mState.emfObserver.Ed_est, mState.emfObserver.Eq_est );
+      if ( mState.motorController.velEstRad < 0.0f )
+      {
+        mState.motorController.posEstRad += Math::M_PI_F;
+      }
     }
+
+    /*-------------------------------------------------------------------------
+    Based on the current state, decide how to drive the output stage
+    -------------------------------------------------------------------------*/
+    if ( current_mode == ModeId::ENGAGED_RUN ) {}
+    else if ( current_mode == ModeId::ENGAGED_RAMP ) {}
+    else if ( current_mode == ModeId::ENGAGED_PARK )
+    {
+      if ( mState.motorController.park.outputEnabled )
+      {
+        mTimerDriver.setPhaseDutyCycle( mState.motorController.park.phaseDutyCycle[ 0 ],
+                                        mState.motorController.park.phaseDutyCycle[ 1 ],
+                                        mState.motorController.park.phaseDutyCycle[ 2 ] );
+
+        mTimerDriver.setForwardCommState( mState.motorController.park.activeComState );
+      }
+      else
+      {
+        mTimerDriver.setForwardCommState( 0 );
+      }
+    }
+    // Else nothing useful to do
 
     /*-------------------------------------------------------------------------
     Update the commanded controller output states
     -------------------------------------------------------------------------*/
-    const Math::ParkSpace park_space{ .d = mState.motorState.Vd, .q = mState.motorState.Vq };
+    // const Math::ParkSpace park_space{ .d = mState.motorController.Vd, .q = mState.motorController.Vq };
 
-    auto  invPark = Math::inverse_park_transform( park_space, mState.motorState.posEstRad );
-    float a, b, c;
+    // auto  invPark = Math::inverse_park_transform( park_space, mState.motorController.posEstRad );
+    // float a, b, c;
 
-    Math::inverse_clarke_transform( invPark, &a, &b, &c );
+    // Math::inverse_clarke_transform( invPark, &a, &b, &c );
 
     // mTimerDriver.setPhaseDutyCycle( 10.0f, 10.0f, 10.0f );
 
@@ -289,21 +346,21 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Static commutation for testing
     -------------------------------------------------------------------------*/
-    static uint32_t cycle_count = 0;
-    static uint32_t phase       = 0;
+    // static uint32_t cycle_count = 0;
+    // static uint32_t phase       = 0;
 
-    cycle_count++;
-    if ( cycle_count >= 100 )
-    {
-      cycle_count = 0;
-      mTimerDriver.setForwardCommState( phase );
+    // cycle_count++;
+    // if ( cycle_count >= 100 )
+    // {
+    //   cycle_count = 0;
+    //   mTimerDriver.setForwardCommState( phase );
 
-      phase++;
-      if ( phase >= 6 )
-      {
-        phase = 0;
-      }
-    }
+    //   phase++;
+    //   if ( phase >= 6 )
+    //   {
+    //     phase = 0;
+    //   }
+    // }
 
     SEGGER_SYSVIEW_RecordExitISR();
   }
@@ -314,22 +371,28 @@ namespace Orbit::Control
     mSpeedCtrlTrigger.ackISR();
 
     /*-------------------------------------------------------------------------
+    Don't run the speed controller loop if not in closed loop control
+    -------------------------------------------------------------------------*/
+    if ( this->get_state_id() != EnumValue( ModeId::ENGAGED_RUN ) )
+    {
+      return;
+    }
+
+    /*-------------------------------------------------------------------------
     Update estimate of the rotor speed
     -------------------------------------------------------------------------*/
     const size_t timestamp = Chimera::micros();
-    const float  dTheta    = mState.motorState.posEstRad - mState.speedEstimator.pos_est_prev;
+    const float  dTheta    = mState.motorController.posEstRad - mState.speedEstimator.pos_est_prev;
     const float  wdt       = US_TO_SEC( timestamp - mState.speedEstimator.last_update_us );
 
-    mState.motorState.velEstRad = dTheta / wdt;
+    mState.motorController.velEstRad = dTheta / wdt;
 
     /*-----------------------------------------------------------------------
     Update tracking variables
     -----------------------------------------------------------------------*/
-    mState.speedEstimator.pos_est_prev   = mState.motorState.posEstRad;
+    mState.speedEstimator.pos_est_prev   = mState.motorController.posEstRad;
     mState.speedEstimator.last_update_us = timestamp;
 
-
-    isr_foc_flag = true;
     // Reset the timer interrupt flag...
   }
 
@@ -342,11 +405,11 @@ namespace Orbit::Control
     const float d  = mState.emfObserver.d;
     const float Ls = mState.motorParams.Ls;
     const float Rs = mState.motorParams.Rs;
-    const float Wr = mState.motorState.velEstRad;
-    const float Iq = mState.motorState.Iq;
-    const float Id = mState.motorState.Id;
-    const float Vq = mState.motorState.Vq;
-    const float Vd = mState.motorState.Vd;
+    const float Wr = mState.motorController.velEstRad;
+    const float Iq = mState.motorController.Iq;
+    const float Id = mState.motorController.Id;
+    const float Vq = mState.motorController.Vq;
+    const float Vd = mState.motorController.Vd;
 
     /*-------------------------------------------------------------------------
     Update the D-Q axis observer state space model (Eq. 11)
@@ -369,6 +432,66 @@ namespace Orbit::Control
     -------------------------------------------------------------------------*/
     mState.emfObserver.z1 = mState.emfObserver.z1_dot;
     mState.emfObserver.z2 = mState.emfObserver.z2_dot;
+  }
+
+
+  void FOC::onFault()
+  {
+  }
+
+  /**
+   * @brief Handles high level control of the ARMED state
+   */
+  void FOC::onArmed()
+  {
+    /*-------------------------------------------------------------------------
+    For now, don't do anything. In the future, this would be a great place for
+    motor parameter estimation and ADC tuning.
+    -------------------------------------------------------------------------*/
+  }
+
+
+  /**
+   * @brief Handles high level control of the ENGAGED_PARK state
+   *
+   * By the time this method has entered, the state machine controller will have
+   * initialized the Park control data. All this method has to do is control the
+   * temporal sequence for aligning the rotor, then transition to the next state.
+   */
+  void FOC::onPark()
+  {
+    ParkControl *const pCtrl        = &mState.motorController.park;
+    const uint32_t     current_time = Chimera::millis();
+
+    /*-------------------------------------------------------------------------
+    Has the alignment sequence run its course? Switch to the ramp phase.
+    -------------------------------------------------------------------------*/
+    if( ( current_time - pCtrl->startTime_ms ) > pCtrl->alignTime_ms )
+    {
+      this->receive( MsgRamp() );
+      RT_DBG_ASSERT( this->currentMode() == ModeId::ENGAGED_RAMP );
+    }
+
+    /*-------------------------------------------------------------------------
+    Otherwise, update the alignment controller
+    -------------------------------------------------------------------------*/
+    pCtrl->activeComState = 1;
+
+    if( ( current_time - pCtrl->lastUpdate_ms ) > pCtrl->modulation_dt_ms )
+    {
+      pCtrl->outputEnabled = !pCtrl->outputEnabled;
+      pCtrl->lastUpdate_ms = current_time;
+    }
+  }
+
+
+  void FOC::onRamp()
+  {
+  }
+
+
+  void FOC::onRun()
+  {
   }
 
 }    // namespace Orbit::Control

@@ -72,6 +72,12 @@ namespace Orbit::Control
     int initialize( const FOCConfig &cfg, const MotorParameters &motorParams );
 
     /**
+     * @brief Executes the high level controller
+     * @note Expects to be run periodically
+     */
+    void run();
+
+    /**
      * @brief Move from an idle state to prepared for running
      *
      * @return int
@@ -148,6 +154,18 @@ namespace Orbit::Control
      */
     void logUnhandledMessage( const etl::imessage &msg );
 
+
+    /*-------------------------------------------------------------------------
+    Public Data:
+      While not ideal, this allows the state machine to implement all the
+      transition details.
+    -------------------------------------------------------------------------*/
+    SuperState                       mState;            /**< Entire FOC subsystem state */
+    FOCConfig                        mConfig;           /**< Configuration data for the FOC library */
+    Chimera::ADC::Driver_rPtr        mADCDriver;        /**< ADC Hardware Driver */
+    Chimera::Timer::Inverter::Driver mTimerDriver;      /**< Motor drive timer */
+    Chimera::Timer::Trigger::Master  mSpeedCtrlTrigger; /**< Trigger for the speed control loop */
+
   protected:
     /**
      * @brief Interrupt handler for the ADC
@@ -161,18 +179,9 @@ namespace Orbit::Control
      */
     void timer_isr_speed_controller();
 
-    /*-------------------------------------------------------------------------
-    State Machine Variables
-    -------------------------------------------------------------------------*/
-    std::array<etl::ifsm_state *, ModeId::NUM_STATES> mFSMStateArray;
-
   private:
-    Chimera::ADC::Driver_rPtr        mADCDriver;
-    Chimera::Timer::Inverter::Driver mTimerDriver;
-    Chimera::Timer::Trigger::Master  mSpeedCtrlTrigger;
-
-    SuperState mState;
-    FOCConfig  mConfig;
+    std::array<etl::ifsm_state *, ModeId::NUM_STATES>  mFSMStateArray; /**< Storage for the FSM state controllers */
+    std::array<void ( FOC::* )( void ), ModeId::NUM_STATES> mRunFuncArray;  /**< Lookup for periodic state behavior */
 
     /**
      * @brief Calculates back-EMF estimates along the D and Q axes
@@ -180,6 +189,12 @@ namespace Orbit::Control
      * @param dt  The time in seconds since the last call to this function
      */
     void stepEMFObserver( const float dt );
+
+    void onFault();
+    void onArmed();
+    void onPark();
+    void onRamp();
+    void onRun();
   };
 }    // namespace Orbit::Control
 

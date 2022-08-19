@@ -15,6 +15,8 @@ Includes
 #include <src/core/com/can_router.hpp>
 #include <src/core/hw/orbit_can.hpp>
 #include <src/core/runtime/can_runtime.hpp>
+#include <src/control/foc_math.hpp>
+#include <src/control/foc_driver.hpp>
 
 namespace Orbit::CAN::Router
 {
@@ -28,9 +30,7 @@ namespace Orbit::CAN::Router
 
   void SetMotorSpeedRouter::on_receive( const Message::SetMotorSpeed &msg )
   {
-    // Chimera::CAN::BasicFrame tx_frame;
-    // Send ACK
-    // Set the new speed reference
+    Orbit::Control::FOCDriver.setSpeedRef( RPM_TO_RAD( msg.payload.speed ) );
   }
 
 

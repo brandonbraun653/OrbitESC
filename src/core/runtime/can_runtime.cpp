@@ -39,6 +39,7 @@ namespace Orbit::CAN
   static Message::PhaseACurrent      s_msg_phase_a_current;
   static Message::PhaseBCurrent      s_msg_phase_b_current;
   static Message::MotorSpeed         s_msg_motor_speed;
+  static Message::SpeedReference     s_msg_speed_reference;
 
   /*---------------------------------------------------------------------------
   Router Declarations
@@ -115,6 +116,11 @@ namespace Orbit::CAN
     auto motor_speed_func =
         Chimera::Function::Opaque::create<Message::MotorSpeed, &Message::MotorSpeed::update>( s_msg_motor_speed );
     s_can_server.registerPeriodic( motor_speed_func, s_msg_motor_speed.period() );
+
+    /* Speed Reference */
+    auto speed_ref_func =
+        Chimera::Function::Opaque::create<Message::SpeedReference, &Message::SpeedReference::update>( s_msg_speed_reference );
+    s_can_server.registerPeriodic( speed_ref_func, s_msg_speed_reference.period() );
 
     /*-------------------------------------------------------------------------
     Register the routers for incoming messages

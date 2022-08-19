@@ -130,6 +130,14 @@ namespace Orbit::CAN
           }
           break;
 
+          case Message::MSG_SET_MOTOR_SPEED: {
+            Message::SetMotorSpeed set_motor_speed;
+            set_motor_speed.unpack( frame );
+
+            this->receive( set_motor_speed );
+          }
+          break;
+
           default:
             LOG_ERROR( "CANServer received unhandled message: 0x%X\r\n", frame.id );
             break;

@@ -16,41 +16,63 @@ Includes
 namespace Orbit::Control::State
 {
   /*---------------------------------------------------------------------------
+  Constants
+  ---------------------------------------------------------------------------*/
+  static constexpr bool DEBUG_MODULE = true;
+
+  /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
   void EngagedPark::on_exit_state()
   {
-    LOG_INFO( "Exiting Park state\r\n" );
+    LOG_TRACE_IF( DEBUG_MODULE, "Exiting PARK state\r\n" );
   }
 
   etl::fsm_state_id_t EngagedPark::on_enter_state()
   {
-    LOG_INFO( "Entering Park state\r\n" );
-    return ModeId::ENGAGED_PARK;
-  }
-
-
-  etl::fsm_state_id_t EngagedPark::on_event( const MsgEmergencyHalt &msg )
-  {
-    return ModeId::ENGAGED_PARK;
-  }
-
-
-  etl::fsm_state_id_t EngagedPark::on_event( const MsgDisengage &msg )
-  {
+    LOG_TRACE_IF( DEBUG_MODULE, "Entered PARK state\r\n" );
     return ModeId::ENGAGED_PARK;
   }
 
 
   etl::fsm_state_id_t EngagedPark::on_event( const MsgRamp &msg )
   {
-    return ModeId::ENGAGED_PARK;
+    /*-------------------------------------------------------------------------
+    Prepare the ramp controller
+    -------------------------------------------------------------------------*/
+    LOG_ERROR( "Fill in the ramp state change\r\n" );
+
+    /*-------------------------------------------------------------------------
+    Stop the park controller
+    -------------------------------------------------------------------------*/
+    return ModeId::ENGAGED_RAMP;
+  }
+
+
+  etl::fsm_state_id_t EngagedPark::on_event( const MsgEmergencyHalt &msg )
+  {
+    /*-------------------------------------------------------------------------
+    Transition directly to the FAULT state. Let on_enter_state() do the work.
+    -------------------------------------------------------------------------*/
+    return ModeId::FAULT;
   }
 
 
   etl::fsm_state_id_t EngagedPark::on_event( const MsgFault &msg )
   {
-    return ModeId::ENGAGED_PARK;
+    /*-------------------------------------------------------------------------
+    Transition directly to the FAULT state. Let on_enter_state() do the work.
+    -------------------------------------------------------------------------*/
+    return ModeId::FAULT;
+  }
+
+
+  etl::fsm_state_id_t EngagedPark::on_event( const MsgDisengage &msg )
+  {
+    /*-------------------------------------------------------------------------
+    Transition directly to the ARMED state. Let on_enter_state() do the work.
+    -------------------------------------------------------------------------*/
+    return ModeId::ARMED;
   }
 
 

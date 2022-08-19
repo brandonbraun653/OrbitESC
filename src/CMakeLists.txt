@@ -115,7 +115,7 @@ target_link_libraries(OrbitESC PRIVATE
 
   # Submodule Libraries
   chimera_core_rel
-  aurora_libs_dbg
+  aurora_libs_rel
 
   # Target Properties
   prj_device_target
