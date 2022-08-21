@@ -16,7 +16,9 @@ Includes
 #include <Chimera/scheduler>
 #include <Chimera/system>
 #include <src/config/bsp/board_map.hpp>
+#include <src/core/com/can_async_message.hpp>
 #include <src/core/com/can_message.hpp>
+#include <src/core/com/can_periodic_message.hpp>
 #include <src/core/com/can_router.hpp>
 #include <src/core/com/can_server.hpp>
 #include <src/core/runtime/can_runtime.hpp>
@@ -48,6 +50,7 @@ namespace Orbit::CAN
   static Router::SetSystemModeRouter  s_set_system_mode_router;
   static Router::SetMotorSpeedRouter  s_set_motor_speed_router;
   static Router::EmergencyHaltRouter  s_emergency_halt_router;
+  static Router::SystemResetRouter    s_system_reset_router;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -129,6 +132,7 @@ namespace Orbit::CAN
     RT_HARD_ASSERT( s_can_server.subscribe( s_set_system_mode_router ) );
     RT_HARD_ASSERT( s_can_server.subscribe( s_set_motor_speed_router ) );
     RT_HARD_ASSERT( s_can_server.subscribe( s_emergency_halt_router ) );
+    RT_HARD_ASSERT( s_can_server.subscribe( s_system_reset_router ) );
   }
 
 

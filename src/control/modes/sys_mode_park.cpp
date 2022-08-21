@@ -12,6 +12,9 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <src/control/modes/sys_mode_park.hpp>
+#include <src/core/data/orbit_data_defaults.hpp>
+#include <src/core/tasks/tsk_ctrl_sys.hpp>
+#include <src/core/utility.hpp>
 
 namespace Orbit::Control::State
 {
@@ -40,10 +43,27 @@ namespace Orbit::Control::State
     /*-------------------------------------------------------------------------
     Prepare the ramp controller
     -------------------------------------------------------------------------*/
-    LOG_ERROR( "Fill in the ramp state change\r\n" );
+    RampControl *const pCtrl = &get_fsm_context().mState.motorController.ramp;
+    pCtrl->clear();
+
+    /* Set up static data */
+    pCtrl->comState            = Orbit::Data::DFLT_STATOR_ALIGN_COMM_PHASE;
+    pCtrl->phaseDutyCycle[ 0 ] = Orbit::Data::DFLT_RAMP_DRIVE_STRENGTH_PCT;
+    pCtrl->phaseDutyCycle[ 1 ] = Orbit::Data::DFLT_RAMP_DRIVE_STRENGTH_PCT;
+    pCtrl->phaseDutyCycle[ 2 ] = Orbit::Data::DFLT_RAMP_DRIVE_STRENGTH_PCT;
+
+    pCtrl->rampRate  = 2;    // RPM per Orbit::Tasks::CTRLSYS::PERIOD_MS
+    pCtrl->finalRPM  = 1000;
+    pCtrl->targetRPM = 5;
+    pCtrl->minDwellCycles =
+        Utility::comCycleCount( Data::DFLT_STATOR_PWM_FREQ_HZ, Data::DFLT_ROTOR_NUM_POLES, pCtrl->finalRPM );
+
+    /* Set up dynamic data */
+    pCtrl->cycleCount = 0;
+    pCtrl->cycleRef   = Utility::comCycleCount( Data::DFLT_STATOR_PWM_FREQ_HZ, Data::DFLT_ROTOR_NUM_POLES, pCtrl->targetRPM );
 
     /*-------------------------------------------------------------------------
-    Stop the park controller
+    Start the park controller
     -------------------------------------------------------------------------*/
     return ModeId::ENGAGED_RAMP;
   }

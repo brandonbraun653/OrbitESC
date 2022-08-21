@@ -51,7 +51,7 @@ namespace Orbit::Control::State
 
   etl::fsm_state_id_t EngagedRamp::on_event( const MsgEmergencyHalt &msg )
   {
-    return ModeId::ENGAGED_RAMP;
+    return ModeId::FAULT;
   }
 
 
@@ -63,7 +63,7 @@ namespace Orbit::Control::State
 
   etl::fsm_state_id_t EngagedRamp::on_event( const MsgFault &msg )
   {
-    return ModeId::ENGAGED_RAMP;
+    return ModeId::FAULT;
   }
 
 

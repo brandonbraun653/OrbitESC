@@ -17,6 +17,9 @@ if __name__ == "__main__":
 
     esc = OrbitESC(dst_node=NodeID.NODE_0)
     esc.com_pipe.subscribe_observer(plotter.observer_handle)
+    time.sleep(1)
+
+    esc.system_reset()
 
     time.sleep(1)
     esc.switch_mode(OrbitESC.Mode.Idle)
@@ -24,8 +27,8 @@ if __name__ == "__main__":
     esc.switch_mode(OrbitESC.Mode.Armed)
     time.sleep(1)
     esc.switch_mode(OrbitESC.Mode.Run)
-    # time.sleep(5)
-    # esc.emergency_stop()
+    time.sleep(10)
+    esc.emergency_stop()
 
     # plotter.live_animate()
     # time.sleep(5)

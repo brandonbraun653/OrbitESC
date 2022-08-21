@@ -1,9 +1,9 @@
 /******************************************************************************
  *  File Name:
- *    can_message.cpp
+ *    can_periodic_message.cpp
  *
  *  Description:
- *    Implementation details for CAN messages
+ *    Implementation details for periodic CAN messages
  *
  *  2022 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
@@ -16,6 +16,7 @@ Includes
 #include <src/control/foc_driver.hpp>
 #include <src/control/foc_math.hpp>
 #include <src/core/com/can_message.hpp>
+#include <src/core/com/can_periodic_message.hpp>
 #include <src/core/hw/orbit_can.hpp>
 #include <src/core/runtime/can_runtime.hpp>
 

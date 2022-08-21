@@ -179,6 +179,11 @@ namespace Orbit::Control
      */
     void timer_isr_speed_controller();
 
+    /**
+     * @brief Interrupt context handler to control rotor ramp from park to run
+     */
+    void isr_rotor_ramp_controller();
+
   private:
     std::array<etl::ifsm_state *, ModeId::NUM_STATES>  mFSMStateArray; /**< Storage for the FSM state controllers */
     std::array<void ( FOC::* )( void ), ModeId::NUM_STATES> mRunFuncArray;  /**< Lookup for periodic state behavior */

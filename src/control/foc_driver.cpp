@@ -25,6 +25,8 @@ Includes
 #include <src/control/modes/sys_mode_park.hpp>
 #include <src/control/modes/sys_mode_ramp.hpp>
 #include <src/control/modes/sys_mode_run.hpp>
+#include <src/core/data/orbit_data_defaults.hpp>
+#include <src/core/utility.hpp>
 
 #if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
 #include "SEGGER_SYSVIEW.h"
@@ -109,7 +111,7 @@ namespace Orbit::Control
     pwm_cfg.adcTriggerSignal    = Chimera::Timer::Trigger::Signal::TRIG_SIG_5;
     pwm_cfg.breakIOLevel        = Chimera::GPIO::State::LOW;
     pwm_cfg.deadTimeNs          = 250.0f;
-    pwm_cfg.pwmFrequency        = 24'000.0f;
+    pwm_cfg.pwmFrequency        = Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ * 2.0f; // TODO BMB: For some reason HW output is divided by 2
 
     RT_HARD_ASSERT( Chimera::Status::OK == mTimerDriver.init( pwm_cfg ) );
 
@@ -305,7 +307,14 @@ namespace Orbit::Control
     Based on the current state, decide how to drive the output stage
     -------------------------------------------------------------------------*/
     if ( current_mode == ModeId::ENGAGED_RUN ) {}
-    else if ( current_mode == ModeId::ENGAGED_RAMP ) {}
+    else if ( current_mode == ModeId::ENGAGED_RAMP )
+    {
+      mTimerDriver.setForwardCommState( mState.motorController.ramp.comState );
+      mTimerDriver.setPhaseDutyCycle( mState.motorController.ramp.phaseDutyCycle[ 0 ],
+                                      mState.motorController.ramp.phaseDutyCycle[ 1 ],
+                                      mState.motorController.ramp.phaseDutyCycle[ 2 ] );
+      isr_rotor_ramp_controller();
+    }
     else if ( current_mode == ModeId::ENGAGED_PARK )
     {
       if ( mState.motorController.park.outputEnabled )
@@ -343,25 +352,6 @@ namespace Orbit::Control
     // 60 degrees of rotation. The main question is how to determine which phase
     // correctly corresponds to the current position estimate?
 
-    /*-------------------------------------------------------------------------
-    Static commutation for testing
-    -------------------------------------------------------------------------*/
-    // static uint32_t cycle_count = 0;
-    // static uint32_t phase       = 0;
-
-    // cycle_count++;
-    // if ( cycle_count >= 100 )
-    // {
-    //   cycle_count = 0;
-    //   mTimerDriver.setForwardCommState( phase );
-
-    //   phase++;
-    //   if ( phase >= 6 )
-    //   {
-    //     phase = 0;
-    //   }
-    // }
-
     SEGGER_SYSVIEW_RecordExitISR();
   }
 
@@ -394,6 +384,31 @@ namespace Orbit::Control
     mState.speedEstimator.last_update_us = timestamp;
 
     // Reset the timer interrupt flag...
+  }
+
+
+  void FOC::isr_rotor_ramp_controller()
+  {
+    RampControl *const pCtrl = &mState.motorController.ramp;
+
+    pCtrl->cycleCount++;
+    if( pCtrl->cycleCount >= pCtrl->cycleRef )
+    {
+      /*-----------------------------------------------------------------------
+      Update the cycle references
+      -----------------------------------------------------------------------*/
+      pCtrl->cycleCount = 0;
+      pCtrl->cycleRef   = Utility::comCycleCount( Data::DFLT_STATOR_PWM_FREQ_HZ, Data::DFLT_ROTOR_NUM_POLES, pCtrl->targetRPM );
+
+      /*-----------------------------------------------------------------------
+      Update the commutation state
+      -----------------------------------------------------------------------*/
+      pCtrl->comState++;
+      if( pCtrl->comState >= 7 )
+      {
+        pCtrl->comState = 1;
+      }
+    }
   }
 
 
@@ -487,6 +502,25 @@ namespace Orbit::Control
 
   void FOC::onRamp()
   {
+    RampControl *const pCtrl = &mState.motorController.ramp;
+
+    /*-------------------------------------------------------------------------
+    Switch to the RUN controller if we've hit our target RPM.
+    -------------------------------------------------------------------------*/
+    if( pCtrl->targetRPM >= pCtrl->finalRPM )
+    {
+      // pCtrl->phaseDutyCycle[ 0 ] = 20.0f;
+      // pCtrl->phaseDutyCycle[ 1 ] = 20.0f;
+      // pCtrl->phaseDutyCycle[ 2 ] = 20.0f;
+      // this->receive( MsgRun() );
+      // RT_DBG_ASSERT( this->currentMode() == ModeId::ENGAGED_RUN );
+      return;
+    }
+
+    /*-------------------------------------------------------------------------
+    Otherwise update the controller reference
+    -------------------------------------------------------------------------*/
+    pCtrl->targetRPM += pCtrl->rampRate;
   }
 
 

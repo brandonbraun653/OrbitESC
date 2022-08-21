@@ -46,15 +46,15 @@ namespace Orbit::Control::State
     Prepare the Park controller to execute inside the ISR. Must be initialized
     before leaving this function as the ISR will cue off the state change.
     -------------------------------------------------------------------------*/
-    pCtl->activeComState      = 0;
+    pCtl->activeComState      = 0; // All outputs off
     pCtl->lastUpdate_ms       = Chimera::millis();
     pCtl->startTime_ms        = Chimera::millis();
     pCtl->alignTime_ms        = 3000;
     pCtl->modulation_dt_ms    = 150;
     pCtl->outputEnabled       = false;
-    pCtl->phaseDutyCycle[ 0 ] = 10.0f;
-    pCtl->phaseDutyCycle[ 1 ] = 10.0f;
-    pCtl->phaseDutyCycle[ 2 ] = 10.0f;
+    pCtl->phaseDutyCycle[ 0 ] = 15.0f;
+    pCtl->phaseDutyCycle[ 1 ] = 15.0f;
+    pCtl->phaseDutyCycle[ 2 ] = 15.0f;
 
     /*-------------------------------------------------------------------------
     Prime the power stage to be active but all outputs OFF

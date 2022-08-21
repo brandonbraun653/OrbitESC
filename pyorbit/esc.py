@@ -11,6 +11,8 @@
 from __future__ import annotations
 
 import atexit
+import copy
+
 import can
 import time
 import uuid
@@ -20,7 +22,8 @@ from functools import wraps
 from threading import Event, Thread
 from typing import Any, Callable, List, Union
 from pyorbit.pipe import CANPipe, MessageObserver
-from pyorbit.messages import NodeID, Ping, SystemTick, SystemMode, SetSystemMode, EmergencyHalt, SetMotorSpeed
+from pyorbit.messages import NodeID, Ping, SystemTick, SystemMode, SetSystemMode, EmergencyHalt, SetMotorSpeed, \
+    SystemReset
 from pyorbit.exceptions import NotOnlineException
 
 
@@ -99,6 +102,7 @@ class OrbitESC:
         self._data_pipe = CANPipe(can_device=device, bit_rate=bit_rate)
         self._online = False
         self._time_last_online = 0
+        self._last_tick = 0
 
         # Start up the background thread
         self._kill_signal = Event()
@@ -242,6 +246,46 @@ class OrbitESC:
         # Listen for the mode switch
         return self._listen_for_mode_switch(sub_id=sub_id, mode=OrbitESC.Mode.Fault)
 
+    def system_reset(self, all_nodes: bool = False) -> bool:
+        """
+        Instructs an ESC to do a full system reset
+        Args:
+            all_nodes: Optionally reset all nodes
+
+        Returns:
+            True if the reset occurred, False if not
+        """
+        # Set up the message to transmit
+        msg = SystemReset()
+        msg.dst.node_id = NodeID.NODE_ALL.value if all_nodes else self._dst_node
+
+        if all_nodes:
+            logger.debug("Sending reset message to all connected nodes")
+            self.com_pipe.bus.send(msg.as_bus_msg())
+
+            # See emergency_stop() for reasoning on why this is defaulted to True
+            return True
+
+        # Save off the last tick count, then ship the reset command
+        logger.debug(f"Sending SystemReset to node {self._dst_node.value}")
+        last_reset_tick = copy.copy(self._last_tick)
+        self.com_pipe.bus.send(msg.as_bus_msg())
+        time.sleep(0.250)
+
+        # Subscribe to the tick message to get the new value when rebooted. This time subscribe after the
+        # reset message is sent to prevent aliasing of messages from the last power cycle.
+        sub_id = self.com_pipe.subscribe(msg=SystemTick, qty=5, timeout=5.0)
+
+        # Get the reset information
+        if packets := self.com_pipe.get_subscription_data(sub_id, terminate=True):
+            for pkt in packets:
+                if pkt.tick < last_reset_tick:
+                    logger.info(f"Node {self._dst_node.value} was reset")
+                    return True
+
+        logger.warning(f"Failed to reset node {self._dst_node.value}")
+        return False
+
     def _destroy(self) -> None:
         """
         Teardown function for class cleanup
@@ -279,6 +323,7 @@ class OrbitESC:
 
         if msg.src.node_id == self._dst_node:
             self._time_last_online = time.time()
+            self._last_tick = msg.tick
             if not self._online:
                 logger.info(f"Node {self._dst_node} is online")
                 self._online = True

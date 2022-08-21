@@ -60,6 +60,19 @@ namespace Orbit::Control::Math
   Public Functions
   ---------------------------------------------------------------------------*/
   /**
+   * @brief Checks for "almost-equality" between floating point values
+   *
+   * @param x         First value to check
+   * @param y         Second value to check
+   * @param epsilon   Precision in the comparison
+   * @return bool     True if nearly equal, false otherwise
+   */
+  static constexpr bool is_nearly_equal( const float x, const float y, const float epsilon = 1e-5f )
+  {
+    return fabsf( x - y ) <= ( epsilon * fabsf( x ) );
+  }
+
+  /**
    * @brief Checks for NaN truthiness
    *
    * @param x     Number to check
@@ -155,6 +168,7 @@ namespace Orbit::Control::Math
    * @return void
    */
   void inverse_clarke_transform( const ClarkeSpace &clark, float *const a, float *const b, float *const c );
+
 }    // namespace Orbit::Control::Math
 
 #endif /* !ORBIT_ESC_FOC_MATH_HPP */

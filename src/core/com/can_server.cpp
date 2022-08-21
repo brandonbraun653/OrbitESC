@@ -13,8 +13,10 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/logging>
 #include <Chimera/can>
-#include <src/core/com/can_server.hpp>
+#include <src/core/com/can_async_message.hpp>
 #include <src/core/com/can_message.hpp>
+#include <src/core/com/can_periodic_message.hpp>
+#include <src/core/com/can_server.hpp>
 
 namespace Orbit::CAN
 {
@@ -135,6 +137,14 @@ namespace Orbit::CAN
             set_motor_speed.unpack( frame );
 
             this->receive( set_motor_speed );
+          }
+          break;
+
+          case Message::MSG_SYSTEM_RESET: {
+            Message::SystemReset system_reset;
+            system_reset.unpack( frame );
+
+            this->receive( system_reset );
           }
           break;
 

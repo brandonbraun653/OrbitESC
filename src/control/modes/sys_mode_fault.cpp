@@ -26,6 +26,7 @@ namespace Orbit::Control::State
   etl::fsm_state_id_t Fault::on_enter_state()
   {
     LOG_INFO( "Entering Fault state\r\n" );
+    get_fsm_context().mTimerDriver.emergencyBreak();
     return ModeId::FAULT;
   }
 

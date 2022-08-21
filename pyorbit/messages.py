@@ -158,6 +158,11 @@ class EmergencyHalt(BaseMessage):
     _id_ = 0x16
 
 
+class SystemReset(BaseMessage):
+    _fields_ = [("dst", Header)]
+    _id_ = 0x17
+
+
 # -----------------------------------------------------------------------------
 # Periodic Messages
 # -----------------------------------------------------------------------------

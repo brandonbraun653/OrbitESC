@@ -12,6 +12,7 @@ gen_static_lib_variants(
   SOURCES
     bootup.cpp
     tasks.cpp
+    utility.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc

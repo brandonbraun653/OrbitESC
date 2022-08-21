@@ -113,9 +113,26 @@ namespace Orbit::Control
 
   struct RampControl
   {
-    uint32_t startTime_ms;
-    uint32_t rampTime_ms;
-    uint32_t rampRate;
+    /*-------------------------------------------------------------------
+    Input Variables
+    -------------------------------------------------------------------*/
+    uint32_t rampRate;       /**< Ramp rate in RPM/update */
+    uint32_t finalRPM;       /**< End RPM value to achieve when ramp control is finished */
+    uint32_t targetRPM;      /**< Current desired RPM */
+    uint32_t minDwellCycles; /**< Minimum cycle events before target RPM can update */
+
+    /*-------------------------------------------------------------------
+    Working Variables (used inside ISR)
+    -------------------------------------------------------------------*/
+    uint32_t cycleCount; /**< How many times the inner loop ISR has been hit */
+    uint32_t cycleRef;   /**< Threshold for when to trigger a commutation update */
+    uint32_t currentRPM;
+
+    /*-------------------------------------------------------------------
+    Output Variables
+    -------------------------------------------------------------------*/
+    uint32_t comState;            /**< Current commutation state to drive */
+    float    phaseDutyCycle[ 3 ]; /**< Drive strength for each phase */
 
     void clear()
     {

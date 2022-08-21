@@ -16,6 +16,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <src/core/com/can_message.hpp>
+#include <src/core/com/can_async_message.hpp>
 #include <etl/message_router.h>
 
 namespace Orbit::CAN::Router
@@ -52,6 +53,14 @@ namespace Orbit::CAN::Router
   public:
     EmergencyHaltRouter();
     void on_receive( const Message::EmergencyHalt &msg );
+    void on_receive_unknown( const etl::imessage &msg );
+  };
+
+  class SystemResetRouter : public etl::message_router<SystemResetRouter, Message::SystemReset>
+  {
+  public:
+    SystemResetRouter();
+    void on_receive( const Message::SystemReset &msg );
     void on_receive_unknown( const etl::imessage &msg );
   };
 
