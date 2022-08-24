@@ -62,6 +62,15 @@
       "problemMatcher": []
     },
     {
+      "label": "Dump Sections -- Unmangled",
+      "type":"shell",
+      "command": "arm-none-eabi-objdump -w -d --demangle --section=.text OrbitESC > sections_unmangled.txt",
+      "options": {
+        "cwd": "${workspaceFolder}/artifacts/last_build_version"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "Dump Largest Symbols",
       "type":"shell",
       "command": "arm-none-eabi-nm --print-size --size-sort --reverse-sort OrbitESC > sizes.txt",
