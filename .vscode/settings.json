@@ -128,7 +128,8 @@
     "startup": "cpp",
     "usb": "cpp",
     "assert": "cpp",
-    "csetjmp": "cpp"
+    "csetjmp": "cpp",
+    "semaphore": "cpp"
   },
   "peacock.color": "#f9e64f",
   "cSpell.words": [
