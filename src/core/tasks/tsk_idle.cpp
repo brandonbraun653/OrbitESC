@@ -46,9 +46,6 @@ namespace Orbit::Tasks::Idle
     }
     Chimera::delayMilliseconds( 500 );
 
-    bool countUp = true;
-    float dutyCycle = 0.0f;
-
     /*-------------------------------------------------------------------------
     Main loop
     -------------------------------------------------------------------------*/
@@ -74,22 +71,6 @@ namespace Orbit::Tasks::Idle
       Hold longer in the off state
       -----------------------------------------------------------------------*/
       Chimera::delayMilliseconds( 450 );
-
-      // Orbit::TIMER::PWMDriver.setDutyCycle( dutyCycle );
-      // dutyCycle += countUp ? 1.0f : -1.0f;
-
-      // if ( dutyCycle >= 100.0f )
-      // {
-      //   dutyCycle = 99.0f;
-      //   countUp   = false;
-      // }
-      // else if ( dutyCycle <= 0.0f )
-      // {
-      //   dutyCycle = 1.0f;
-      //   countUp   = true;
-      // }
-
-      // Chimera::delayMilliseconds( 5 );
     }
   }
 }    // namespace Orbit::Tasks::Idle

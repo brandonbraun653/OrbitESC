@@ -39,8 +39,8 @@ namespace Orbit::USART
   static etl::circular_buffer<uint8_t, CircleBufSize> sRXCircularBuffer;
 
   // Logger Sink Handles
-  static Aurora::Logging::SerialSink s_serial_sink;
-  static Aurora::Logging::SinkHandle s_serial_handle;
+  static Aurora::Logging::SerialSink      s_serial_sink;
+  static Aurora::Logging::SinkHandle_rPtr s_serial_handle;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -81,13 +81,13 @@ namespace Orbit::USART
     Aurora::Logging::setGlobalLogLevel( Aurora::Logging::Level::LVL_TRACE );
 
     s_serial_sink.assignChannel( IO::USART::serialChannel );
-    s_serial_sink.setLogLevel( Aurora::Logging::Level::LVL_TRACE );
-    s_serial_sink.enable();
-    s_serial_sink.setName( "HWLogger" );
+    s_serial_sink.logLevel = Aurora::Logging::Level::LVL_TRACE;
+    s_serial_sink.enabled  = true;
+    s_serial_sink.name     = "HWLogger";
 
     if ( !s_serial_handle )
     {
-      s_serial_handle = Aurora::Logging::SinkHandle( &s_serial_sink );
+      s_serial_handle = Aurora::Logging::SinkHandle_rPtr( &s_serial_sink );
       registerSink( s_serial_handle );
     }
 
