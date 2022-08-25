@@ -8,6 +8,7 @@
             "${workspaceFolder}/lib/Aurora/lib/ctre/single-header",
             "${workspaceFolder}/lib/Aurora/lib/embedded_template_library/etl/include",
             "${workspaceFolder}/lib/Aurora/lib/littlefs/lfs",
+            "${workspaceFolder}/lib/Aurora/lib/nanoprintf",
             "${workspaceFolder}/lib/Aurora/lib/segger/Config",
             "${workspaceFolder}/lib/Aurora/lib/segger/SEGGER",
             "${workspaceFolder}/lib/Aurora/lib/segger/SEGGER/Syscalls",

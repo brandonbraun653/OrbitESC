@@ -73,7 +73,16 @@
     {
       "label": "Dump Largest Symbols",
       "type":"shell",
-      "command": "arm-none-eabi-nm --print-size --size-sort --reverse-sort OrbitESC > sizes.txt",
+      "command": "arm-none-eabi-nm --print-size --size-sort --reverse-sort OrbitESC > symbols.txt",
+      "options": {
+        "cwd": "${workspaceFolder}/artifacts/last_build_version"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Dump Largest Symbols -- Unmangled",
+      "type":"shell",
+      "command": "arm-none-eabi-nm --demangle --print-size --size-sort --reverse-sort OrbitESC > symbols_unmangled.txt",
       "options": {
         "cwd": "${workspaceFolder}/artifacts/last_build_version"
       },

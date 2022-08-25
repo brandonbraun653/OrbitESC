@@ -111,7 +111,8 @@ namespace Orbit::Control
     pwm_cfg.adcTriggerSignal    = Chimera::Timer::Trigger::Signal::TRIG_SIG_5;
     pwm_cfg.breakIOLevel        = Chimera::GPIO::State::LOW;
     pwm_cfg.deadTimeNs          = 250.0f;
-    pwm_cfg.pwmFrequency        = Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ * 2.0f; // TODO BMB: For some reason HW output is divided by 2
+    pwm_cfg.pwmFrequency =
+        Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ * 2.0f;    // TODO BMB: For some reason HW output is divided by 2
 
     RT_HARD_ASSERT( Chimera::Status::OK == mTimerDriver.init( pwm_cfg ) );
 
@@ -249,7 +250,9 @@ namespace Orbit::Control
 
   void FOC::dma_isr_current_controller( const Chimera::ADC::InterruptDetail &isr )
   {
+#if defined( SEGGER_SYS_VIEW )
     SEGGER_SYSVIEW_RecordEnterISR();
+#endif
 
     /*-------------------------------------------------------------------------
     Grab a few pieces of information
@@ -352,7 +355,9 @@ namespace Orbit::Control
     // 60 degrees of rotation. The main question is how to determine which phase
     // correctly corresponds to the current position estimate?
 
+#if defined( SEGGER_SYS_VIEW )
     SEGGER_SYSVIEW_RecordExitISR();
+#endif
   }
 
 
@@ -392,7 +397,7 @@ namespace Orbit::Control
     RampControl *const pCtrl = &mState.motorController.ramp;
 
     pCtrl->cycleCount++;
-    if( pCtrl->cycleCount >= pCtrl->cycleRef )
+    if ( pCtrl->cycleCount >= pCtrl->cycleRef )
     {
       /*-----------------------------------------------------------------------
       Update the cycle references
@@ -404,7 +409,7 @@ namespace Orbit::Control
       Update the commutation state
       -----------------------------------------------------------------------*/
       pCtrl->comState++;
-      if( pCtrl->comState >= 7 )
+      if ( pCtrl->comState >= 7 )
       {
         pCtrl->comState = 1;
       }
@@ -481,7 +486,7 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Has the alignment sequence run its course? Switch to the ramp phase.
     -------------------------------------------------------------------------*/
-    if( ( current_time - pCtrl->startTime_ms ) > pCtrl->alignTime_ms )
+    if ( ( current_time - pCtrl->startTime_ms ) > pCtrl->alignTime_ms )
     {
       this->receive( MsgRamp() );
       RT_DBG_ASSERT( this->currentMode() == ModeId::ENGAGED_RAMP );
@@ -492,7 +497,7 @@ namespace Orbit::Control
     -------------------------------------------------------------------------*/
     pCtrl->activeComState = 1;
 
-    if( ( current_time - pCtrl->lastUpdate_ms ) > pCtrl->modulation_dt_ms )
+    if ( ( current_time - pCtrl->lastUpdate_ms ) > pCtrl->modulation_dt_ms )
     {
       pCtrl->outputEnabled = !pCtrl->outputEnabled;
       pCtrl->lastUpdate_ms = current_time;
@@ -507,7 +512,7 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Switch to the RUN controller if we've hit our target RPM.
     -------------------------------------------------------------------------*/
-    if( pCtrl->targetRPM >= pCtrl->finalRPM )
+    if ( pCtrl->targetRPM >= pCtrl->finalRPM )
     {
       // pCtrl->phaseDutyCycle[ 0 ] = 20.0f;
       // pCtrl->phaseDutyCycle[ 1 ] = 20.0f;
