@@ -104,14 +104,14 @@ target_link_libraries(OrbitESC PRIVATE
   thor_intf_inc
 
   # Project Libraries
-  lib_orbit_cfg_bsp_rel
-  lib_orbit_com_rel_dbg
-  lib_orbit_core_rel_dbg
-  lib_orbit_ctrl_rel_dbg
-  lib_orbit_data_rel_dbg
-  lib_orbit_hw_rel
-  lib_orbit_runtime_rel
-  lib_orbit_tasks_rel
+  lib_orbit_cfg_bsp
+  lib_orbit_com
+  lib_orbit_core
+  lib_orbit_ctrl
+  lib_orbit_data
+  lib_orbit_hw
+  lib_orbit_runtime
+  lib_orbit_tasks
 
   # Submodule Libraries
   chimera_core_rel

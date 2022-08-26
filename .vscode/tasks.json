@@ -22,7 +22,7 @@
     {
       "label": "Configure Embedded Debug",
       "type": "shell",
-      "command": "cmake -DTOOLCHAIN=arm-none-eabi -DFREERTOS_THREADS=ON -DDEVICE_TARGET=stm32l432kb -DCMAKE_BUILD_TYPE=Debug ./../",
+      "command": "cmake -DTOOLCHAIN=arm-none-eabi -DFREERTOS_THREADS=ON -DDEVICE_TARGET=stm32l432kc -DCMAKE_BUILD_TYPE=Debug ./../",
       "dependsOn": [
         "CMake Clean"
       ],
@@ -34,7 +34,7 @@
     {
       "label": "Configure Embedded Release",
       "type": "shell",
-      "command": "cmake -DTOOLCHAIN=arm-none-eabi -DFREERTOS_THREADS=ON -DDEVICE_TARGET=stm32l432kb -DCMAKE_BUILD_TYPE=Release ./../",
+      "command": "cmake -DTOOLCHAIN=arm-none-eabi -DFREERTOS_THREADS=ON -DDEVICE_TARGET=stm32l432kc -DCMAKE_BUILD_TYPE=Release ./../",
       "dependsOn": [
         "CMake Clean"
       ],

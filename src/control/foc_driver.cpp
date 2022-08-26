@@ -255,21 +255,25 @@ namespace Orbit::Control
 #endif
 
     /*-------------------------------------------------------------------------
-    Grab a few pieces of information
-    -------------------------------------------------------------------------*/
-    const ModeId_t current_mode = static_cast<ModeId_t>( this->get_state_id() );
-    const uint32_t timestamp_us = Chimera::micros();
-
-    /*-------------------------------------------------------------------------
     Convert the ADC data to measured values
     -------------------------------------------------------------------------*/
     static constexpr float COUNTS_TO_VOLTS = 3.3f / 4096.0f;    // Vref = 3.3V, 12-bit ADC
+    const uint32_t timestamp_us = Chimera::micros();
 
     for ( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
     {
       mState.adcBuffer[ i ].measured     = static_cast<float>( isr.samples[ i ] ) * COUNTS_TO_VOLTS;
       mState.adcBuffer[ i ].converted    = mConfig.txfrFuncs[ i ]( mState.adcBuffer[ i ].measured );
       mState.adcBuffer[ i ].sampleTimeUs = timestamp_us;
+    }
+
+    /*-------------------------------------------------------------------------
+    Grab the current mode
+    -------------------------------------------------------------------------*/
+    ModeId_t current_mode = ModeId::NUM_STATES;
+    if ( this->is_started() )
+    {
+      current_mode = static_cast<ModeId_t>( this->get_state_id() );
     }
 
     /*-------------------------------------------------------------------------
