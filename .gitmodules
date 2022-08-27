@@ -19,3 +19,6 @@
 [submodule "lib/PyUtils"]
 	path = lib/PyUtils
 	url = https://github.com/brandonbraun653/PyUtils
+[submodule "hw/pcb/KiCadLib"]
+	path = hw/pcb/KiCadLib
+	url = https://github.com/brandonbraun653/KiCadLib.git

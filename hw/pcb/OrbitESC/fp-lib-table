@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name "Project Mosfets")(type "KiCad")(uri "${KIPRJMOD}/../KiCadLib/Mosfets")(options "")(descr ""))
+)
