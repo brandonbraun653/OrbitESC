@@ -443,6 +443,10 @@
     [
       "e5c7e094-5305-4041-9a38-3256d4457e28",
       "Power Supply"
+    ],
+    [
+      "fab13520-6434-44b2-b9df-0889567b0d71",
+      "USBCircuitry"
     ]
   ],
   "text_variables": {}

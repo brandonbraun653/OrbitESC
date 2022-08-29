@@ -691,7 +691,7 @@
   )
 
   (no_connect (at 201.93 66.04) (uuid 70756a6e-e143-4c76-959e-370aafaddf88))
-  (no_connect (at 201.93 68.58) (uuid 70756a6e-e143-4c76-959e-370aafaddf88))
+  (no_connect (at 201.93 68.58) (uuid 70756a6e-e143-4c76-959e-370aafaddf89))
 
   (wire (pts (xy 199.39 50.8) (xy 201.93 50.8))
     (stroke (width 0) (type default) (color 0 0 0 0))
