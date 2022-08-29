@@ -1,3 +1,4 @@
 (sym_lib_table
   (lib (name "Project Mosfets")(type "KiCad")(uri "${KIPRJMOD}/../KiCadLib/Mosfets/ProjectMosfets.kicad_sym")(options "")(descr ""))
+  (lib (name "GateDrivers")(type "KiCad")(uri "/home/brandon/git/projects/OrbitESC/hw/pcb/KiCadLib/GateDrivers.kicad_sym")(options "")(descr ""))
 )
