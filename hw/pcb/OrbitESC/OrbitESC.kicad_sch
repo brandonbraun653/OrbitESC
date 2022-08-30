@@ -488,9 +488,6 @@
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/d46610f9-5ec7-4597-a350-2c4dab734b37"
       (reference "#PWR039") (unit 1) (value "+3.3VADC") (footprint "")
     )
-    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/fab13520-6434-44b2-b9df-0889567b0d71/c5036dd6-752f-461e-a242-997f7b2aec98"
-      (reference "#PWR040") (unit 1) (value "VBUS") (footprint "")
-    )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/2f017ece-9ff4-409b-9c32-6e3116c0e01b"
       (reference "#PWR041") (unit 1) (value "+3.3V") (footprint "")
     )
@@ -499,6 +496,18 @@
     )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/fab13520-6434-44b2-b9df-0889567b0d71/741a0ea0-3149-497d-9f74-5ea510bbb877"
       (reference "#PWR043") (unit 1) (value "GNDD") (footprint "")
+    )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/fab13520-6434-44b2-b9df-0889567b0d71/67bd5350-20a7-4147-b131-8dbaeb266b86"
+      (reference "#PWR?") (unit 1) (value "GNDD") (footprint "")
+    )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/fab13520-6434-44b2-b9df-0889567b0d71/717b935d-eb56-4c2b-b1f2-a1c1017cb571"
+      (reference "#PWR?") (unit 1) (value "GNDD") (footprint "")
+    )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/fab13520-6434-44b2-b9df-0889567b0d71/9580e8f6-ca37-4479-8d56-d99f43244845"
+      (reference "#PWR?") (unit 1) (value "GNDD") (footprint "")
+    )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/fab13520-6434-44b2-b9df-0889567b0d71/b759a88e-5e47-4aab-b6b5-e80d88c67544"
+      (reference "#PWR?") (unit 1) (value "GNDD") (footprint "")
     )
     (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/f2efe7d0-4630-49c1-9621-c2f0af362af3"
       (reference "C1") (unit 1) (value "100nF") (footprint "Capacitor_SMD:C_0402_1005Metric")
@@ -796,6 +805,15 @@
     )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/fab13520-6434-44b2-b9df-0889567b0d71/053a0f3b-33c6-416c-9717-62cb815368b1"
       (reference "R49") (unit 1) (value "82k") (footprint "")
+    )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/fab13520-6434-44b2-b9df-0889567b0d71/2a420a97-7700-4aa7-a5c3-a2e2778d5c39"
+      (reference "R?") (unit 1) (value "5.1k") (footprint "Resistor_SMD:R_0402_1005Metric")
+    )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/fab13520-6434-44b2-b9df-0889567b0d71/2ac5d067-7279-4295-9b76-c12c28d6a33f"
+      (reference "R?") (unit 1) (value "5.1k") (footprint "Resistor_SMD:R_0402_1005Metric")
+    )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/fab13520-6434-44b2-b9df-0889567b0d71/6d02377e-7791-48e1-b58c-fe69858be5d5"
+      (reference "R?") (unit 1) (value "1.5k") (footprint "Resistor_SMD:R_0402_1005Metric")
     )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/fe777dc0-c7bb-43f4-b858-2861285291be"
       (reference "SW1") (unit 1) (value "Reset") (footprint "Button_Switch_SMD:SW_SPST_PTS810")
