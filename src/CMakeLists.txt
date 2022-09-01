@@ -28,7 +28,6 @@ gen_intf_lib_variants(
     thor_hld_timer_rel
     thor_hld_uart_rel
     thor_hld_usart_rel
-    thor_hld_usb_rel
     thor_hld_watchdog_rel
     thor_lld_intf_adc_rel
     thor_lld_intf_can_rel
@@ -42,7 +41,6 @@ gen_intf_lib_variants(
     thor_lld_intf_sys_rel
     thor_lld_intf_timer_rel
     thor_lld_intf_usart_rel
-    thor_lld_intf_usb_rel
     thor_lld_intf_watchdog_rel
     thor_lld_stm32l4_adc_rel
     thor_lld_stm32l4_can_rel
