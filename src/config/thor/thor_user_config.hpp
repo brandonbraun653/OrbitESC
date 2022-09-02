@@ -23,6 +23,7 @@ Peripheral Support
 #define DC_NEED_I2C   1
 #define DC_NEED_INT   1
 #define DC_NEED_TIMER 1
+#define DC_NEED_UART  1
 #define DC_NEED_USART 1
 #define DC_NEED_WDG   1
 
@@ -59,6 +60,10 @@ Configure High/Low level driver pairings
 
 #if DC_NEED_TIMER
 #define THOR_TIMER
+#endif
+
+#if DC_NEED_UART
+#define THOR_UART
 #endif
 
 #if DC_NEED_USART

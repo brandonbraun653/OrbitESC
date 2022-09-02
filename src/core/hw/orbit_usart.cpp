@@ -63,16 +63,18 @@ namespace Orbit::USART
     Create the serial object and initialize it
     -------------------------------------------------------------------------*/
     auto result = Chimera::Status::OK;
+    auto usart  = Chimera::USART::getDriver( IO::USART::serialChannel );
     auto serial = Chimera::Serial::getDriver( IO::USART::serialChannel );
-    RT_HARD_ASSERT( serial );
+    RT_HARD_ASSERT( serial && usart );
 
-    result |= serial->assignHW( IO::USART::serialChannel, pins );
-    result |= serial->configure( cfg );
-    result |= serial->enableBuffering( SubPeripheral::TX, sTXCircularBuffer, sTXHWBuffer.data(), sTXHWBuffer.size() );
-    result |= serial->enableBuffering( SubPeripheral::RX, sRXCircularBuffer, sRXHWBuffer.data(), sRXHWBuffer.size() );
+    result |= usart->assignHW( IO::USART::serialChannel, pins );
+    result |= usart->configure( cfg );
+    result |= usart->enableBuffering( SubPeripheral::TX, sTXCircularBuffer, sTXHWBuffer.data(), sTXHWBuffer.size() );
+    result |= usart->enableBuffering( SubPeripheral::RX, sRXCircularBuffer, sRXHWBuffer.data(), sRXHWBuffer.size() );
     RT_HARD_ASSERT( result == Chimera::Status::OK );
 
-    result = serial->begin( PeripheralMode::INTERRUPT, PeripheralMode::INTERRUPT );
+    result |= usart->begin( PeripheralMode::INTERRUPT, PeripheralMode::INTERRUPT );
+    result |= attach( Chimera::Peripheral::Type::PERIPH_USART, IO::USART::serialChannel );
 
     /*-------------------------------------------------------------------------
     Start the logging framework
@@ -97,7 +99,6 @@ namespace Orbit::USART
     Clear the terminal screen
     -------------------------------------------------------------------------*/
     serial->write( Aurora::Logging::Terminal::CmdClearScreen.data(), Aurora::Logging::Terminal::CmdClearScreen.size() );
-    serial->await( Chimera::Event::Trigger::TRIGGER_WRITE_COMPLETE, Chimera::Thread::TIMEOUT_BLOCK );
   }
 
 }    // namespace Orbit::USART
