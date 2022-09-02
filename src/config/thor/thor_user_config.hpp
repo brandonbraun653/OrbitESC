@@ -22,6 +22,7 @@ Peripheral Support
 #define DC_NEED_GPIO  1
 #define DC_NEED_I2C   1
 #define DC_NEED_INT   1
+#define DC_NEED_SPI   1
 #define DC_NEED_TIMER 1
 #define DC_NEED_UART  1
 #define DC_NEED_USART 1
@@ -56,6 +57,10 @@ Configure High/Low level driver pairings
 
 #if DC_NEED_INT
 #define THOR_INT
+#endif
+
+#if DC_NEED_SPI
+#define THOR_SPI
 #endif
 
 #if DC_NEED_TIMER
