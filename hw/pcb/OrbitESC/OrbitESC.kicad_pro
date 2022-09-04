@@ -447,6 +447,14 @@
     [
       "fab13520-6434-44b2-b9df-0889567b0d71",
       "USBCircuitry"
+    ],
+    [
+      "a504f446-cb03-44db-95bd-4eda6038bfb2",
+      "InputButton"
+    ],
+    [
+      "588c44ed-10d8-4cfd-a9dd-a18ee9f3e745",
+      "Status LEDs"
     ]
   ],
   "text_variables": {}
