@@ -1507,13 +1507,61 @@
       (reference "TH2") (unit 1) (value "10k NTC") (footprint "Resistor_SMD:R_0402_1005Metric")
     )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/137f4d9a-e221-4fee-bebc-adad168859c0"
-      (reference "TP?") (unit 1) (value "SDIO_CMD") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+      (reference "TP1") (unit 1) (value "SDIO_CMD") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/79844d57-af14-4c72-9a8d-76ce38da6cbf"
+      (reference "TP2") (unit 1) (value "SDIO_DATA_2") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/a7d75696-70b5-4bdf-808e-fc0d71c29209"
+      (reference "TP3") (unit 1) (value "SDIO_DATA_0") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/e0897465-615a-4bd0-a9ff-d56e56e2dfec"
+      (reference "TP4") (unit 1) (value "SDIO_CARD_DETECT") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/558d1498-20e1-4b77-bd37-53a3ea298dc7"
+      (reference "TP5") (unit 1) (value "NOR_nCS") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/6e9f815e-5ead-4451-9c5f-3176a34f5b9b"
+      (reference "TP6") (unit 1) (value "SDIO_DATA_3") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
     )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/6358822d-9877-440a-96fc-84a60a2f4507"
-      (reference "TP?") (unit 1) (value "TestPoint_Small") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+      (reference "TP7") (unit 1) (value "SDIO_CLK") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
     )
-    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/db7554e8-34bd-4c59-94f4-493ca4bd43a9"
-      (reference "TP?") (unit 1) (value "TestPoint_Small") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/bd795cd2-bfe6-4fde-a1a9-b431cf358e93"
+      (reference "TP8") (unit 1) (value "SDIO_DATA_1") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/aa20ce60-612c-4466-a577-98fc0c2bbbd4"
+      (reference "TP9") (unit 1) (value "NOR_MOSI") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/3c221e62-1139-4ef1-b21d-2aa4db6b6bab"
+      (reference "TP10") (unit 1) (value "NOR_SCK") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/93548364-0f7b-4ef0-8823-48130a4efa64"
+      (reference "TP11") (unit 1) (value "EEPROM_SDA") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/c1e3e416-9871-4e1a-9e12-4155528c4cc0"
+      (reference "TP12") (unit 1) (value "EEPROM_SCL") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/7ebfbfd7-8cdf-43f2-91ac-c1b3db49f6cb"
+      (reference "TP13") (unit 1) (value "NOR_MISO") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/2d495185-a1b4-490e-ba76-43d9bc0ac368"
+      (reference "TP14") (unit 1) (value "AH") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/d6cb682e-00b9-40b8-8b82-f82cf0240467"
+      (reference "TP15") (unit 1) (value "AL") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/8c475e99-42ba-42d7-a88f-b59ee9c687e6"
+      (reference "TP16") (unit 1) (value "BH") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/6786f71e-95e4-41d7-8710-352a19aba842"
+      (reference "TP17") (unit 1) (value "BL") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/baca67d6-a0fb-47f1-8d57-43cf64aad3dd"
+      (reference "TP18") (unit 1) (value "CH") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/e6d1d930-d60b-4d06-8655-d8dd853abc55"
+      (reference "TP19") (unit 1) (value "CL") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
     )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/f0ba4cd5-863f-4ae9-8be1-f4a25763ac7d"
       (reference "U1") (unit 1) (value "TLE9250X") (footprint "Package_SON:HVSON-8-1EP_3x3mm_P0.65mm_EP1.6x2.4mm")
