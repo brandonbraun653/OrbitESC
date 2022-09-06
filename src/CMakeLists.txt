@@ -121,7 +121,7 @@ target_link_libraries(OrbitESC PRIVATE
 )
 
 # Hardware Driver Model
-if(${DEVICE_TARGET} MATCHES "^stm32l4")
+if(${DEVICE_TARGET} MATCHES "^stm32[lf]4")
   target_link_libraries(OrbitESC PRIVATE embedded_core_libs)
 elseif(${DEVICE_TARGET} MATCHES "^sim")
   target_link_libraries(OrbitESC PRIVATE chimera_sim_core)
