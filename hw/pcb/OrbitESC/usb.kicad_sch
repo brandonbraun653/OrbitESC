@@ -888,7 +888,7 @@
     (property "Footprint" "Diode_SMD:D_0603_1608Metric" (id 2) (at 130.81 72.39 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (property "Datasheet" "https://datasheet.lcsc.com/lcsc/1811101510_Everlight-Elec-19-217-BHC-ZL1M2RY-3T_C72041.pdf" (id 3) (at 130.81 72.39 0)
+    (property "Datasheet" "~" (id 3) (at 130.81 72.39 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "JLCPCB" "C72041" (id 4) (at 130.81 72.39 90)
