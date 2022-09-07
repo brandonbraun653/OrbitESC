@@ -112,7 +112,7 @@
     },
     "configurations": [
         {
-            "name": "Embedded Development",
+            "name": "STM32L4 Development",
             "includePath": [
                 "${defaultIncludePaths}",
                 "${thorIncludePaths_HLD}",

@@ -14,6 +14,7 @@ gen_intf_lib_variants(
   TARGET
     embedded_core_libs
   LIBRARIES
+    thor_cfg_freertos_rel
     thor_cmn_cm4_rel
     thor_hld_adc_rel
     thor_hld_can_rel
@@ -42,6 +43,14 @@ gen_intf_lib_variants(
     thor_lld_intf_timer_rel
     thor_lld_intf_usart_rel
     thor_lld_intf_watchdog_rel
+  EXPORT_DIR
+    ${PROJECT_BINARY_DIR}/OrbitESC
+)
+
+gen_intf_lib_variants(
+  TARGET
+    stm32l4_libs
+  LIBRARIES
     thor_lld_stm32l4_adc_rel
     thor_lld_stm32l4_can_rel
     thor_lld_stm32l4_crs_rel
@@ -60,7 +69,33 @@ gen_intf_lib_variants(
     thor_lld_stm32l4_system_rel
     thor_lld_stm32l4_usart_rel
     thor_lld_stm32l4_wwdg_rel
-    thor_cfg_freertos_rel
+  EXPORT_DIR
+    ${PROJECT_BINARY_DIR}/OrbitESC
+)
+
+gen_intf_lib_variants(
+  TARGET
+    stm32f4_libs
+  LIBRARIES
+    thor_lld_stm32f4_adc
+    thor_lld_stm32f4_can
+    thor_lld_stm32f4_des
+    thor_lld_stm32f4_dma
+    thor_lld_stm32f4_exti
+    thor_lld_stm32f4_flash
+    thor_lld_stm32f4_gpio
+    thor_lld_stm32f4_i2c
+    thor_lld_stm32f4_interrupt
+    thor_lld_stm32f4_iwdg
+    thor_lld_stm32f4_power
+    thor_lld_stm32f4_rcc
+    thor_lld_stm32f4_spi
+    thor_lld_stm32f4_startup
+    thor_lld_stm32f4_system
+    thor_lld_stm32f4_timer
+    thor_lld_stm32f4_uart
+    thor_lld_stm32f4_usart
+    thor_lld_stm32f4_wwdg
   EXPORT_DIR
     ${PROJECT_BINARY_DIR}/OrbitESC
 )
@@ -123,6 +158,13 @@ target_link_libraries(OrbitESC PRIVATE
 # Hardware Driver Model
 if(${DEVICE_TARGET} MATCHES "^stm32[lf]4")
   target_link_libraries(OrbitESC PRIVATE embedded_core_libs)
+
+  if(${DEVICE_TARGET} MATCHES "^stm32l4")
+    target_link_libraries(OrbitESC PRIVATE stm32l4_libs)
+  elseif(${DEVICE_TARGET} MATCHES "^stm32f4")
+    target_link_libraries(OrbitESC PRIVATE stm32f4_libs)
+  endif()
+
 elseif(${DEVICE_TARGET} MATCHES "^sim")
   target_link_libraries(OrbitESC PRIVATE chimera_sim_core)
 else()
@@ -132,8 +174,6 @@ endif()
 
 if(Toolchain::HAS_GCC_ARM_NONE_EABI)
   target_link_libraries(OrbitESC PRIVATE
-    # Aurora
-
     # Threading Library
     freertos_intf_inc_all
     freertos_core_rel
