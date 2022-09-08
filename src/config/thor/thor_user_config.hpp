@@ -24,7 +24,7 @@ Peripheral Support
 #define DC_NEED_INT   1
 #define DC_NEED_SPI   1
 #define DC_NEED_TIMER 1
-#define DC_NEED_UART  1
+#define DC_NEED_UART  0
 #define DC_NEED_USART 1
 #define DC_NEED_WDG   1
 

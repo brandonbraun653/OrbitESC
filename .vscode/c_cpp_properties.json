@@ -60,7 +60,6 @@
             "${workspaceFolder}/lib/Thor/hld/timer",
             "${workspaceFolder}/lib/Thor/hld/uart",
             "${workspaceFolder}/lib/Thor/hld/usart",
-            "${workspaceFolder}/lib/Thor/hld/usb",
             "${workspaceFolder}/lib/Thor/hld/watchdog"
         ],
         "thorIncludePaths_LLD_Intf": [
@@ -85,6 +84,24 @@
             "${workspaceFolder}/lib/Thor/lld/stm32l4x/timer/variant",
             "${workspaceFolder}/lib/Thor/lld/stm32l4x/usart",
             "${workspaceFolder}/lib/Thor/lld/stm32l4x/wwdg"
+        ],
+        "thorIncludePaths_LLD_F4": [
+            "${workspaceFolder}/lib/Thor/lld/stm32f4x/adc",
+            "${workspaceFolder}/lib/Thor/lld/stm32f4x/des",
+            "${workspaceFolder}/lib/Thor/lld/stm32f4x/exti",
+            "${workspaceFolder}/lib/Thor/lld/stm32f4x/flash",
+            "${workspaceFolder}/lib/Thor/lld/stm32f4x/gpio",
+            "${workspaceFolder}/lib/Thor/lld/stm32f4x/interrupt",
+            "${workspaceFolder}/lib/Thor/lld/stm32f4x/iwdg",
+            "${workspaceFolder}/lib/Thor/lld/stm32f4x/power",
+            "${workspaceFolder}/lib/Thor/lld/stm32f4x/rcc",
+            "${workspaceFolder}/lib/Thor/lld/stm32f4x/spi",
+            "${workspaceFolder}/lib/Thor/lld/stm32f4x/startup",
+            "${workspaceFolder}/lib/Thor/lld/stm32f4x/system",
+            "${workspaceFolder}/lib/Thor/lld/stm32f4x/timer",
+            "${workspaceFolder}/lib/Thor/lld/stm32f4x/timer/variant",
+            "${workspaceFolder}/lib/Thor/lld/stm32f4x/usart",
+            "${workspaceFolder}/lib/Thor/lld/stm32f4x/wwdg"
         ],
         "defaultDefines": [
             "DEBUG",
@@ -125,6 +142,26 @@
                 "${defaultEmbeddedDefines}",
                 "STM32L432xx",
                 "TARGET_STM32L4",
+                "THOR_USER_CONFIG"
+            ],
+            "compilerPath": "${arm_none_eabi_path}",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++20"
+        },
+        {
+            "name": "STM32F4 Development",
+            "includePath": [
+                "${defaultIncludePaths}",
+                "${thorIncludePaths_HLD}",
+                "${thorIncludePaths_LLD_Intf}",
+                "${thorIncludePaths_LLD_F4}",
+                "${workspaceFolder}/lib/Aurora/lib/embedded_template_library/etl/include"
+            ],
+            "defines": [
+                "${defaultDefines}",
+                "${defaultEmbeddedDefines}",
+                "STM32F446xx",
+                "TARGET_STM32F4",
                 "THOR_USER_CONFIG"
             ],
             "compilerPath": "${arm_none_eabi_path}",
