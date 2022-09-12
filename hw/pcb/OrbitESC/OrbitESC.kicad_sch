@@ -549,14 +549,8 @@
     (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/44d1d2f9-de49-44fb-bdd9-307fa8675d15"
       (reference "#PWR012") (unit 1) (value "GND") (footprint "")
     )
-    (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/fa0ac5f5-d004-419a-b115-54c22a88c1b4"
-      (reference "#PWR013") (unit 1) (value "+3.3V") (footprint "")
-    )
     (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/e04ca39c-d198-4698-996d-53511439dc6d"
       (reference "#PWR014") (unit 1) (value "GNDD") (footprint "")
-    )
-    (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/2cd323d3-08da-4f57-b7c5-5bbfb18339bb"
-      (reference "#PWR015") (unit 1) (value "+3.3V") (footprint "")
     )
     (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/dbffa52d-9b51-42b0-985a-5d8c44fd3a3c"
       (reference "#PWR016") (unit 1) (value "GNDD") (footprint "")
@@ -933,6 +927,12 @@
     (path "/e5c7e094-5305-4041-9a38-3256d4457e28/e509faac-8fb9-40ff-a506-d58c80076e83"
       (reference "#PWR0140") (unit 1) (value "GNDD") (footprint "")
     )
+    (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/4e483b2a-04bd-403b-a05f-bafb43e65336"
+      (reference "#PWR0141") (unit 1) (value "+3.3VADC") (footprint "")
+    )
+    (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/cf2c541a-48fc-48ce-a948-457c3d84aa5b"
+      (reference "#PWR0142") (unit 1) (value "+3.3VADC") (footprint "")
+    )
     (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/f2efe7d0-4630-49c1-9621-c2f0af362af3"
       (reference "C1") (unit 1) (value "100nF") (footprint "Capacitor_SMD:C_0402_1005Metric")
     )
@@ -1119,12 +1119,6 @@
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/fab13520-6434-44b2-b9df-0889567b0d71/954d8cea-b8c0-4895-b769-50767c3b2c63"
       (reference "D5") (unit 1) (value "Blue LED") (footprint "Diode_SMD:D_0603_1608Metric")
     )
-    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/ee003461-e26d-4503-937e-a03568e33cde"
-      (reference "D6") (unit 1) (value "3.3V") (footprint "Diode_SMD:D_MiniMELF")
-    )
-    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/cf5ba427-3962-415c-b56a-d57870fbbf05"
-      (reference "D7") (unit 1) (value "3.3V") (footprint "Diode_SMD:D_MiniMELF")
-    )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/0f59dc2b-7db8-4d44-aebc-8ce94c4ca535"
       (reference "D8") (unit 1) (value "Yellow LED") (footprint "Diode_SMD:D_0603_1608Metric")
     )
@@ -1136,12 +1130,6 @@
     )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/b6bfcbde-869d-4b06-8d76-a9d83edee0f5"
       (reference "D11") (unit 1) (value "Yellow LED") (footprint "Diode_SMD:D_0603_1608Metric")
-    )
-    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/5899b873-4942-496c-ab1a-13dcf414a0b2"
-      (reference "D12") (unit 1) (value "3.3V") (footprint "Diode_SMD:D_MiniMELF")
-    )
-    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/eb2d5f09-fe9d-4124-8e18-3d93fef112c7"
-      (reference "D13") (unit 1) (value "3.3V") (footprint "Diode_SMD:D_MiniMELF")
     )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/fab13520-6434-44b2-b9df-0889567b0d71/c1381319-25ce-4db1-a937-183b9be6c5c6"
       (reference "D14") (unit 1) (value "Yellow LED") (footprint "Diode_SMD:D_0603_1608Metric")
