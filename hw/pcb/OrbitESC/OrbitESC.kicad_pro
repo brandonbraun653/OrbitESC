@@ -137,7 +137,7 @@
           "drill": 0.0
         },
         {
-          "diameter": 0.4,
+          "diameter": 0.45,
           "drill": 0.2
         },
         {
@@ -464,7 +464,7 @@
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.09,
-        "via_diameter": 0.4,
+        "via_diameter": 0.45,
         "via_drill": 0.2,
         "wire_width": 6.0
       }
@@ -543,10 +543,6 @@
     [
       "e5c7e094-5305-4041-9a38-3256d4457e28",
       "Power Supply"
-    ],
-    [
-      "fab13520-6434-44b2-b9df-0889567b0d71",
-      "USBCircuitry"
     ],
     [
       "a504f446-cb03-44db-95bd-4eda6038bfb2",
