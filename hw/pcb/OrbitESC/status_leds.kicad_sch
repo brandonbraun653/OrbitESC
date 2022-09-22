@@ -366,7 +366,7 @@
   )
 
   (no_connect (at 135.255 88.9) (uuid 2e86b1c9-4a37-48af-a0e6-4f945e040ff7))
-  (no_connect (at 135.255 83.82) (uuid 2e86b1c9-4a37-48af-a0e6-4f945e040ff7))
+  (no_connect (at 135.255 83.82) (uuid 2e86b1c9-4a37-48af-a0e6-4f945e040ff8))
 
   (wire (pts (xy 189.865 68.58) (xy 189.865 101.6))
     (stroke (width 0) (type default) (color 0 0 0 0))
