@@ -63,6 +63,8 @@ namespace Orbit::USART
     Create the serial object and initialize it
     -------------------------------------------------------------------------*/
     auto result = Chimera::Status::OK;
+    result |= attach( Chimera::Peripheral::Type::PERIPH_USART, IO::USART::serialChannel );
+
     auto usart  = Chimera::USART::getDriver( IO::USART::serialChannel );
     auto serial = Chimera::Serial::getDriver( IO::USART::serialChannel );
     RT_HARD_ASSERT( serial && usart );
@@ -74,7 +76,6 @@ namespace Orbit::USART
     RT_HARD_ASSERT( result == Chimera::Status::OK );
 
     result |= usart->begin( PeripheralMode::INTERRUPT, PeripheralMode::INTERRUPT );
-    result |= attach( Chimera::Peripheral::Type::PERIPH_USART, IO::USART::serialChannel );
 
     /*-------------------------------------------------------------------------
     Start the logging framework
