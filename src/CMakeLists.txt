@@ -21,7 +21,7 @@ gen_intf_lib_variants(
     thor_hld_clock_rel
     thor_hld_dma_rel
     thor_hld_exti_rel
-    thor_hld_gpio_rel_dbg
+    thor_hld_gpio_rel
     thor_hld_i2c_rel
     thor_hld_interrupt_rel
     thor_hld_spi_rel
@@ -34,7 +34,7 @@ gen_intf_lib_variants(
     thor_lld_intf_can_rel
     thor_lld_intf_dma_rel
     thor_lld_intf_exti_rel
-    thor_lld_intf_gpio_rel_dbg
+    thor_lld_intf_gpio_rel
     thor_lld_intf_i2c_rel
     thor_lld_intf_interrupt_rel
     thor_lld_intf_rcc_rel
@@ -58,7 +58,7 @@ gen_intf_lib_variants(
     thor_lld_stm32l4_dma_rel
     thor_lld_stm32l4_exti_rel
     thor_lld_stm32l4_flash_rel
-    thor_lld_stm32l4_gpio_rel_dbg
+    thor_lld_stm32l4_gpio_rel
     thor_lld_stm32l4_i2c_rel
     thor_lld_stm32l4_interrupt_rel
     thor_lld_stm32l4_iwdg_rel
@@ -137,15 +137,15 @@ target_link_libraries(OrbitESC PRIVATE
   # Project Libraries
   lib_orbit_cfg_bsp_rel
   lib_orbit_com_rel
-  lib_orbit_core_rel_dbg
+  lib_orbit_core_rel
   lib_orbit_ctrl_rel
   lib_orbit_data_rel
-  lib_orbit_hw_rel_dbg
+  lib_orbit_hw_rel
   lib_orbit_runtime_rel
   lib_orbit_tasks_rel
 
   # Submodule Libraries
-  chimera_core_rel_dbg
+  chimera_core_rel
   aurora_libs_rel
 
   # Target Properties
