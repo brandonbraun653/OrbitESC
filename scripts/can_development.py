@@ -15,7 +15,7 @@ if __name__ == "__main__":
     # plotter = LivePlotter(message=PowerSupplyVoltage(), attr_key="vdd")
     # plt.show(block=False)
 
-    esc = OrbitESC(dst_node=NodeID.NODE_0)
+    esc = OrbitESC(dst_node=NodeID.NODE_1)
     esc.com_pipe.subscribe_observer(plotter.observer_handle)
     time.sleep(1)
 

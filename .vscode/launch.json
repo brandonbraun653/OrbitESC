@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "J-Link",
+      "name": "J-Link STM32L432KB",
       "cwd": "${workspaceRoot}",
       "executable": "./artifacts/last_build_version/sys_image",
       "request": "launch",
@@ -10,6 +10,21 @@
       "servertype": "jlink",
       "interface": "swd",
       "device": "STM32L432KB",
+      "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32L4x2.svd",
+      "gdbPath": "/usr/bin/arm-none-eabi-gdb",
+      "postLaunchCommands": [
+        "source ${workspaceFolder}/.gdbinit"
+      ]
+    },
+    {
+      "name": "J-Link STM32L432KC",
+      "cwd": "${workspaceRoot}",
+      "executable": "./artifacts/last_build_version/sys_image",
+      "request": "launch",
+      "type": "cortex-debug",
+      "servertype": "jlink",
+      "interface": "swd",
+      "device": "STM32L432KC",
       "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32L4x2.svd",
       "gdbPath": "/usr/bin/arm-none-eabi-gdb",
       "postLaunchCommands": [

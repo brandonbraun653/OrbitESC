@@ -61,7 +61,7 @@ namespace Orbit::Tasks::HWM
       Process hardware drivers
       ---------------------------------------------------------------------*/
       Orbit::CAN::processCANBus();
-      // Orbit::ADC::processADC();
+      Orbit::ADC::processADC();
 
       // if ( ( Chimera::millis() - last_write ) > 1000 )
       // {
