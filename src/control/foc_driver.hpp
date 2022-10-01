@@ -188,11 +188,7 @@ namespace Orbit::Control
     std::array<etl::ifsm_state *, ModeId::NUM_STATES>  mFSMStateArray; /**< Storage for the FSM state controllers */
     std::array<void ( FOC::* )( void ), ModeId::NUM_STATES> mRunFuncArray;  /**< Lookup for periodic state behavior */
 
-    /**
-     * @brief Calculates back-EMF estimates along the D and Q axes
-     *
-     * @param dt  The time in seconds since the last call to this function
-     */
+
     void stepEMFObserver( const float dt );
 
     void onFault();

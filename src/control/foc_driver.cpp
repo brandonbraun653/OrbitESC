@@ -267,76 +267,73 @@ namespace Orbit::Control
       mState.adcBuffer[ i ].sampleTimeUs = timestamp_us;
     }
 
-    /*-------------------------------------------------------------------------
-    Grab the current mode
-    -------------------------------------------------------------------------*/
-    ModeId_t current_mode = ModeId::NUM_STATES;
-    if ( this->is_started() )
-    {
-      current_mode = static_cast<ModeId_t>( this->get_state_id() );
-    }
+    /**
+     * - Start with the physical system measurements
+     * - Using the last known speed and position estimates, calculate the dq_actual frame data
+     * - Generate the dq_error signals and push through their PID controllers
+     * - Using last known position estimates, do inverse park/clarke transform, generating PWM values for each phase
+     * - Using last known commutation state, apply PWM values to motor control output
+     */
 
     /*-------------------------------------------------------------------------
     Estimate the rotor position
     -------------------------------------------------------------------------*/
-    if ( ( current_mode == ModeId::ENGAGED_RUN ) || ( current_mode == ModeId::ENGAGED_RAMP ) )
-    {
+
       /*-----------------------------------------------------------------------
       Move the sampled phase currents through the Clarke-Park transform
       -----------------------------------------------------------------------*/
-      const auto clarke = Math::clarke_transform( mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].converted,
-                                                  mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].converted );
+      // const auto clarke = Math::clarke_transform( mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].converted,
+      //                                             mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].converted );
 
-      const auto park = Math::park_transform( clarke, mState.motorController.posEstRad );
+      // const auto park = Math::park_transform( clarke, mState.motorController.posEstRad );
 
-      /*-----------------------------------------------------------------------
-      Do the estimation
-      -----------------------------------------------------------------------*/
-      /* Update the motor state data from previous calculations */
-      mState.motorController.Iq  = park.q;
-      mState.motorController.Id  = park.d;
-      mState.motorController.Vdd = mState.adcBuffer[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted;
+      // /*-----------------------------------------------------------------------
+      // Do the estimation
+      // -----------------------------------------------------------------------*/
+      // /* Update the motor state data from previous calculations */
+      // mState.motorController.Iq  = park.q;
+      // mState.motorController.Id  = park.d;
+      // mState.motorController.Vdd = mState.adcBuffer[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted;
 
-      /* Step the EMF observer */
-      const float dt = US_TO_SEC( timestamp_us - mState.emfObserver.last_update_us );
-      stepEMFObserver( dt );
-      mState.emfObserver.last_update_us = timestamp_us;
+      // /* Step the EMF observer */
+      // const float dt = US_TO_SEC( timestamp_us - mState.emfObserver.last_update_us );
+      // stepEMFObserver( dt );
+      // mState.emfObserver.last_update_us = timestamp_us;
 
-      /* Calculate the estimated rotor position (Eq. 18) */
-      mState.motorController.posEstRad = Math::fast_atan2_with_norm( -mState.emfObserver.Ed_est, mState.emfObserver.Eq_est );
-      if ( mState.motorController.velEstRad < 0.0f )
-      {
-        mState.motorController.posEstRad += Math::M_PI_F;
-      }
-    }
+      // /* Calculate the estimated rotor position (Eq. 18) */
+      // mState.motorController.posEstRad = Math::fast_atan2_with_norm( -mState.emfObserver.Ed_est, mState.emfObserver.Eq_est );
+      // if ( mState.motorController.velEstRad < 0.0f )
+      // {
+      //   mState.motorController.posEstRad += Math::M_PI_F;
+      // }
 
     /*-------------------------------------------------------------------------
     Based on the current state, decide how to drive the output stage
     -------------------------------------------------------------------------*/
-    if ( current_mode == ModeId::ENGAGED_RUN ) {}
-    else if ( current_mode == ModeId::ENGAGED_RAMP )
-    {
-      mTimerDriver.setForwardCommState( mState.motorController.ramp.comState );
-      mTimerDriver.setPhaseDutyCycle( mState.motorController.ramp.phaseDutyCycle[ 0 ],
-                                      mState.motorController.ramp.phaseDutyCycle[ 1 ],
-                                      mState.motorController.ramp.phaseDutyCycle[ 2 ] );
-      isr_rotor_ramp_controller();
-    }
-    else if ( current_mode == ModeId::ENGAGED_PARK )
-    {
-      if ( mState.motorController.park.outputEnabled )
-      {
-        mTimerDriver.setPhaseDutyCycle( mState.motorController.park.phaseDutyCycle[ 0 ],
-                                        mState.motorController.park.phaseDutyCycle[ 1 ],
-                                        mState.motorController.park.phaseDutyCycle[ 2 ] );
+    // if ( current_mode == ModeId::ENGAGED_RUN ) {}
+    // else if ( current_mode == ModeId::ENGAGED_RAMP )
+    // {
+    //   mTimerDriver.setForwardCommState( mState.motorController.ramp.comState );
+    //   mTimerDriver.setPhaseDutyCycle( mState.motorController.ramp.phaseDutyCycle[ 0 ],
+    //                                   mState.motorController.ramp.phaseDutyCycle[ 1 ],
+    //                                   mState.motorController.ramp.phaseDutyCycle[ 2 ] );
+    //   isr_rotor_ramp_controller();
+    // }
+    // else if ( current_mode == ModeId::ENGAGED_PARK )
+    // {
+    //   if ( mState.motorController.park.outputEnabled )
+    //   {
+    //     mTimerDriver.setPhaseDutyCycle( mState.motorController.park.phaseDutyCycle[ 0 ],
+    //                                     mState.motorController.park.phaseDutyCycle[ 1 ],
+    //                                     mState.motorController.park.phaseDutyCycle[ 2 ] );
 
-        mTimerDriver.setForwardCommState( mState.motorController.park.activeComState );
-      }
-      else
-      {
-        mTimerDriver.setForwardCommState( 0 );
-      }
-    }
+    //     mTimerDriver.setForwardCommState( mState.motorController.park.activeComState );
+    //   }
+    //   else
+    //   {
+    //     mTimerDriver.setForwardCommState( 0 );
+    //   }
+    // }
     // Else nothing useful to do
 
     /*-------------------------------------------------------------------------
@@ -421,6 +418,12 @@ namespace Orbit::Control
   }
 
 
+  /**
+   * @brief Calculates back-EMF estimates along the D and Q axes
+   * @see https://ieeexplore.ieee.org/document/530286
+   *
+   * @param dt  The time in seconds since the last call to this function
+   */
   void FOC::stepEMFObserver( const float dt )
   {
     /*-------------------------------------------------------------------------

@@ -34,6 +34,18 @@ namespace Orbit::Control
    */
   using ADCTxfrFunc = float ( * )( float vin );
 
+  /**
+   * @brief Stores the current and last value of a number
+   *
+   * Intended for use with the discrete controllers that perform calculations
+   * on results from the previous iteration.
+   */
+  using AlgoHistVal = std::array<float, 2>;
+
+  /*---------------------------------------------------------------------------
+  Constants
+  ---------------------------------------------------------------------------*/
+
   /*---------------------------------------------------------------------------
   Enumerations
   ---------------------------------------------------------------------------*/
@@ -45,6 +57,15 @@ namespace Orbit::Control
 
     ADC_CH_NUM_OPTIONS,
     ADC_CH_INVALID
+  };
+
+  enum AlgoHistIdx
+  {
+    HIST_IDX_CURR = 0,
+    HIST_IDX_LAST = 1,
+
+    HIST_IDX_NUM_OPTIONS,
+    HIST_IDX_INVALID
   };
 
   /*---------------------------------------------------------------------------
@@ -159,9 +180,9 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Estimated Quantities
     -------------------------------------------------------------------------*/
-    float posEstRad; /**< Position in radians */
-    float velEstRad; /**< Velocity in radians/second */
-    float accEstRad; /**< Acceleration in radians/second^2 */
+    AlgoHistVal posEstRad; /**< Position in radians */
+    AlgoHistVal velEstRad; /**< Velocity in radians/second */
+    AlgoHistVal accEstRad; /**< Acceleration in radians/second^2 */
 
     /*-------------------------------------------------------------------------
     Measured Quantities
@@ -176,23 +197,22 @@ namespace Orbit::Control
     float Vd; /**< Commanded output voltage on the D axis */
     float Vq; /**< Commanded output voltage on the Q axis */
 
+
+
     /*-------------------------------------------------------------------------
-    Controller States
+    Position Update Functions
     -------------------------------------------------------------------------*/
-    ParkControl park;
-    RampControl ramp;
-    RunControl run;
+    void ( *openLoopPosUpdate )( ControllerData *const data );
+    void ( *closedLoopPosUpdate )( ControllerData *const data );
 
     void clear()
     {
-      park.clear();
-
-      posEstRad   = 0.0f;
-      velEstRad   = 0.0f;
-      accEstRad   = 0.0f;
-      Vdd         = 0.0f;
-      Id          = 0.0f;
-      Iq          = 0.0f;
+      posEstRad.fill( 0.0f );
+      velEstRad.fill( 0.0f );
+      accEstRad.fill( 0.0f );
+      Vdd = 0.0f;
+      Id  = 0.0f;
+      Iq  = 0.0f;
     }
   };
 
