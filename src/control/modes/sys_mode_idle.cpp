@@ -41,7 +41,7 @@ namespace Orbit::Control::State
     -------------------------------------------------------------------------*/
     get_fsm_context().mState.emfObserver.clear();
     get_fsm_context().mState.speedEstimator.clear();
-    get_fsm_context().mState.motorController.clear();
+    get_fsm_context().mState.motorCtl.clear();
 
     LOG_TRACE_IF( DEBUG_MODULE, "Entered Idle state\r\n" );
     return ModeId::IDLE;

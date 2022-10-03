@@ -43,7 +43,7 @@ namespace Orbit::Control::State
     /*-------------------------------------------------------------------------
     Prepare the ramp controller
     -------------------------------------------------------------------------*/
-    RampControl *const pCtrl = &get_fsm_context().mState.motorController.ramp;
+    RampControl *const pCtrl = &get_fsm_context().mState.motorCtl.ramp;
     pCtrl->clear();
 
     /* Set up static data */

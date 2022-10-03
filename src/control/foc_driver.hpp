@@ -172,7 +172,7 @@ namespace Orbit::Control
      *
      * @param isr   Data from the ADC interrupt
      */
-    void dma_isr_current_controller( const Chimera::ADC::InterruptDetail &isr );
+    void adcISRTxfrComplete( const Chimera::ADC::InterruptDetail &isr );
 
     /**
      * @brief Interrupt handler for a periodic timer to do the speed control loop
@@ -184,12 +184,16 @@ namespace Orbit::Control
      */
     void isr_rotor_ramp_controller();
 
+
+
   private:
     std::array<etl::ifsm_state *, ModeId::NUM_STATES>  mFSMStateArray; /**< Storage for the FSM state controllers */
     std::array<void ( FOC::* )( void ), ModeId::NUM_STATES> mRunFuncArray;  /**< Lookup for periodic state behavior */
 
 
     void stepEMFObserver( const float dt );
+    void stepIControl( const float dt );
+    void stepEstimator( const float dt );
 
     void onFault();
     void onArmed();

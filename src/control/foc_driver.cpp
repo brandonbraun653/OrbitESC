@@ -75,7 +75,7 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Link the ADC's DMA end-of-transfer interrupt to this class's ISR handler
     -------------------------------------------------------------------------*/
-    Chimera::ADC::ISRCallback callback = Chimera::ADC::ISRCallback::create<FOC, &FOC::dma_isr_current_controller>( *this );
+    Chimera::ADC::ISRCallback callback = Chimera::ADC::ISRCallback::create<FOC, &FOC::adcISRTxfrComplete>( *this );
 
     mADCDriver = Chimera::ADC::getDriver( cfg.adcSource );
     mADCDriver->onInterrupt( Chimera::ADC::Interrupt::EOC_SEQUENCE, callback );
@@ -211,7 +211,7 @@ namespace Orbit::Control
 
   int FOC::setSpeedRef( const float ref )
   {
-    mState.motorController.run.speedRefRad = ref;
+    mState.motorCtl.run.speedRefRad = ref;
     return 0;
   }
 
@@ -248,7 +248,7 @@ namespace Orbit::Control
   }
 
 
-  void FOC::dma_isr_current_controller( const Chimera::ADC::InterruptDetail &isr )
+  void FOC::adcISRTxfrComplete( const Chimera::ADC::InterruptDetail &isr )
   {
 #if defined( SEGGER_SYS_VIEW )
     SEGGER_SYSVIEW_RecordEnterISR();
@@ -259,6 +259,7 @@ namespace Orbit::Control
     -------------------------------------------------------------------------*/
     static constexpr float COUNTS_TO_VOLTS = 3.3f / 4096.0f;    // Vref = 3.3V, 12-bit ADC
     const uint32_t timestamp_us = Chimera::micros();
+    const float f_timestamp_us = static_cast<float>( timestamp_us );
 
     for ( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
     {
@@ -267,12 +268,49 @@ namespace Orbit::Control
       mState.adcBuffer[ i ].sampleTimeUs = timestamp_us;
     }
 
+    /*-------------------------------------------------------------------------
+    Gate the behavior of this ISR without stopping the Timer/ADC/DMA hardware
+    -------------------------------------------------------------------------*/
+    if( !mState.motorCtl.isrCtlActive )
+    {
+      return;
+    }
+
+    /*-------------------------------------------------------------------------
+    Update the cycle-by-cycle current control loop
+    -------------------------------------------------------------------------*/
+    const float cycle_dt = f_timestamp_us - mState.motorCtl.last_current_update_us;
+    stepIControl( cycle_dt );
+    mState.motorCtl.last_current_update_us = timestamp_us;
+
+    /*-------------------------------------------------------------------------
+    Update the Position/Speed estimators
+    -------------------------------------------------------------------------*/
+    const float estimate_dt = f_timestamp_us - mState.motorCtl.last_estimate_update_us;
+
+    if( estimate_dt >= mState.motorCtl.next_estimate_update_us )
+    {
+      mState.motorCtl.last_estimate_update_us = f_timestamp_us;
+      mState.motorCtl.next_estimate_update_us = 5.0f * f_timestamp_us;
+      stepEstimator( estimate_dt );
+    }
+
     /**
-     * - Start with the physical system measurements
-     * - Using the last known speed and position estimates, calculate the dq_actual frame data
-     * - Generate the dq_error signals and push through their PID controllers
-     * - Using last known position estimates, do inverse park/clarke transform, generating PWM values for each phase
-     * - Using last known commutation state, apply PWM values to motor control output
+     * Current Control Loop: (Ts)
+     *  - Start with the physical system measurements
+     *  - Using the last known speed and position estimates, calculate the dq_actual frame data
+     *  - Generate the dq_error signals and push through their PID controllers
+     *  - Using last known position estimates, do inverse park/clarke transform, generating PWM values for each phase
+     *  - Using last known commutation state, apply PWM values to motor control output
+     *
+     * Position/Speed/Commutation Update Loop: (5*Ts)
+     *  - Step the EMF observer to estimate the back EMF voltages in the dq frame
+     *  - Update the speed/position estimates
+     *    - If open loop control -> Use time integral of current set-point (Iqr)
+     *    - If closed loop ctrl  -> Use the back EMF estimates
+     *      - Pos:   Eq. 18
+     *      - Speed: Eq. 22
+     *  - Update the commutation state based on the current position and speed. (Is this best?)
      */
 
     /*-------------------------------------------------------------------------
@@ -378,15 +416,15 @@ namespace Orbit::Control
     Update estimate of the rotor speed
     -------------------------------------------------------------------------*/
     const size_t timestamp = Chimera::micros();
-    const float  dTheta    = mState.motorController.posEstRad - mState.speedEstimator.pos_est_prev;
+    const float  dTheta    = mState.motorCtl.posEstRad - mState.speedEstimator.pos_est_prev;
     const float  wdt       = US_TO_SEC( timestamp - mState.speedEstimator.last_update_us );
 
-    mState.motorController.velEstRad = dTheta / wdt;
+    mState.motorCtl.velEstRad = dTheta / wdt;
 
     /*-----------------------------------------------------------------------
     Update tracking variables
     -----------------------------------------------------------------------*/
-    mState.speedEstimator.pos_est_prev   = mState.motorController.posEstRad;
+    mState.speedEstimator.pos_est_prev   = mState.motorCtl.posEstRad;
     mState.speedEstimator.last_update_us = timestamp;
 
     // Reset the timer interrupt flag...
@@ -395,7 +433,7 @@ namespace Orbit::Control
 
   void FOC::isr_rotor_ramp_controller()
   {
-    RampControl *const pCtrl = &mState.motorController.ramp;
+    RampControl *const pCtrl = &mState.motorCtl.ramp;
 
     pCtrl->cycleCount++;
     if ( pCtrl->cycleCount >= pCtrl->cycleRef )
@@ -432,11 +470,11 @@ namespace Orbit::Control
     const float d  = mState.emfObserver.d;
     const float Ls = mState.motorParams.Ls;
     const float Rs = mState.motorParams.Rs;
-    const float Wr = mState.motorController.velEstRad;
-    const float Iq = mState.motorController.Iq;
-    const float Id = mState.motorController.Id;
-    const float Vq = mState.motorController.Vq;
-    const float Vd = mState.motorController.Vd;
+    const float Wr = mState.motorCtl.velEstRad;
+    const float Iq = mState.motorCtl.Iq;
+    const float Id = mState.motorCtl.Id;
+    const float Vq = mState.motorCtl.Vq;
+    const float Vd = mState.motorCtl.Vd;
 
     /*-------------------------------------------------------------------------
     Update the D-Q axis observer state space model (Eq. 11)
@@ -459,6 +497,18 @@ namespace Orbit::Control
     -------------------------------------------------------------------------*/
     mState.emfObserver.z1 = mState.emfObserver.z1_dot;
     mState.emfObserver.z2 = mState.emfObserver.z2_dot;
+  }
+
+
+  void FOC::stepIControl( const float dt )
+  {
+
+  }
+
+
+  void FOC::stepEstimator( const float dt )
+  {
+
   }
 
 
@@ -487,7 +537,7 @@ namespace Orbit::Control
    */
   void FOC::onPark()
   {
-    ParkControl *const pCtrl        = &mState.motorController.park;
+    ParkControl *const pCtrl        = &mState.motorCtl.park;
     const uint32_t     current_time = Chimera::millis();
 
     /*-------------------------------------------------------------------------
@@ -514,7 +564,7 @@ namespace Orbit::Control
 
   void FOC::onRamp()
   {
-    RampControl *const pCtrl = &mState.motorController.ramp;
+    RampControl *const pCtrl = &mState.motorCtl.ramp;
 
     /*-------------------------------------------------------------------------
     Switch to the RUN controller if we've hit our target RPM.

@@ -89,7 +89,7 @@ namespace Orbit::CAN::Message
   ---------------------------------------------------------------------------*/
   void MotorSpeed::update()
   {
-    const float speed_in_rad = Orbit::Control::FOCDriver.dbgGetState().motorController.velEstRad;
+    const float speed_in_rad = Orbit::Control::FOCDriver.dbgGetState().motorCtl.velEstRad;
 
     payload.speed      = static_cast<uint16_t>( RAD_TO_RPM( speed_in_rad ) );
     payload.tick       = Chimera::millis();
@@ -102,7 +102,7 @@ namespace Orbit::CAN::Message
   ---------------------------------------------------------------------------*/
   void SpeedReference::update()
   {
-    const float speed_in_rad = Orbit::Control::FOCDriver.dbgGetState().motorController.run.speedRefRad;
+    const float speed_in_rad = Orbit::Control::FOCDriver.dbgGetState().motorCtl.run.speedRefRad;
 
     payload.speed      = static_cast<uint16_t>( RAD_TO_RPM( speed_in_rad ) );
     payload.tick       = Chimera::millis();

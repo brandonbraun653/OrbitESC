@@ -115,7 +115,6 @@ namespace Orbit::Control
     }
   };
 
-
   struct ParkControl
   {
     uint32_t startTime_ms;        /**< When the park controller started executing */
@@ -178,6 +177,14 @@ namespace Orbit::Control
   struct ControllerData
   {
     /*-------------------------------------------------------------------------
+    General Controller Data
+    -------------------------------------------------------------------------*/
+    volatile bool isrCtlActive;    /**< Enable/disable the controller update routines inside ADC ISR */
+    float last_current_update_us;  /**< Last update in */
+    float last_estimate_update_us;
+    float next_estimate_update_us;
+
+    /*-------------------------------------------------------------------------
     Estimated Quantities
     -------------------------------------------------------------------------*/
     AlgoHistVal posEstRad; /**< Position in radians */
@@ -197,13 +204,6 @@ namespace Orbit::Control
     float Vd; /**< Commanded output voltage on the D axis */
     float Vq; /**< Commanded output voltage on the Q axis */
 
-
-
-    /*-------------------------------------------------------------------------
-    Position Update Functions
-    -------------------------------------------------------------------------*/
-    void ( *openLoopPosUpdate )( ControllerData *const data );
-    void ( *closedLoopPosUpdate )( ControllerData *const data );
 
     void clear()
     {
@@ -245,7 +245,7 @@ namespace Orbit::Control
     EMFObserver     emfObserver;
     OmegaEstimator  speedEstimator;
     MotorParameters motorParams;
-    ControllerData  motorController;
+    ControllerData  motorCtl;
 
     void clear()
     {
@@ -257,7 +257,7 @@ namespace Orbit::Control
       emfObserver.clear();
       speedEstimator.clear();
       motorParams.clear();
-      motorController.clear();
+      motorCtl.clear();
     }
   };
 }    // namespace Orbit::Control

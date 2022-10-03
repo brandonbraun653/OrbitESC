@@ -39,7 +39,7 @@ namespace Orbit::Control::State
     /*-------------------------------------------------------------------------
     Grab a reference to the controller and reset it
     -------------------------------------------------------------------------*/
-    ParkControl *const pCtl = &get_fsm_context().mState.motorController.park;
+    ParkControl *const pCtl = &get_fsm_context().mState.motorCtl.park;
     pCtl->clear();
 
     /*-------------------------------------------------------------------------
