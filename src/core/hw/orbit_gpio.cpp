@@ -32,20 +32,20 @@ namespace Orbit::GPIO
     /*-------------------------------------------------------------------------
     Heartbeat/Status LED
     -------------------------------------------------------------------------*/
-    cfg.clear();
-    cfg.validity  = true;
-    cfg.threaded  = true;
-    cfg.alternate = Alternate::NONE;
-    cfg.drive     = Drive::OUTPUT_PUSH_PULL;
-    cfg.pin       = IO::GPIO::pinHeartbeat;
-    cfg.port      = IO::GPIO::portHeartbeat;
-    cfg.pull      = Pull::NO_PULL;
-    cfg.state     = State::LOW;
+    // cfg.clear();
+    // cfg.validity  = true;
+    // cfg.threaded  = true;
+    // cfg.alternate = Alternate::NONE;
+    // cfg.drive     = Drive::OUTPUT_PUSH_PULL;
+    // cfg.pin       = IO::GPIO::pinHeartbeat;
+    // cfg.port      = IO::GPIO::portHeartbeat;
+    // cfg.pull      = Pull::NO_PULL;
+    // cfg.state     = State::LOW;
 
-    pin = getDriver( cfg.port, cfg.pin );
-    RT_HARD_ASSERT( pin != nullptr );
-    RT_HARD_ASSERT( Chimera::Status::OK == pin->init( cfg ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == pin->setState( State::LOW ) );
+    // pin = getDriver( cfg.port, cfg.pin );
+    // RT_HARD_ASSERT( pin != nullptr );
+    // RT_HARD_ASSERT( Chimera::Status::OK == pin->init( cfg ) );
+    // RT_HARD_ASSERT( Chimera::Status::OK == pin->setState( State::LOW ) );
 
     /*-------------------------------------------------------------------------
     User Button

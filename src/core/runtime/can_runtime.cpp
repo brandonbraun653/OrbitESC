@@ -86,7 +86,8 @@ namespace Orbit::CAN
         /*---------------------------------------------------------------------
         STM32L432KC
         ---------------------------------------------------------------------*/
-        case 0x00700054:
+        case 0x00700054:  // Hacked Luminary
+        case 0x003f0021:  // OrbitESC PCB Rev 1.0
           s_this_node = NodeId::NODE_1;
           break;
 

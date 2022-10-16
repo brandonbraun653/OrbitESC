@@ -37,15 +37,6 @@ namespace Orbit::TIMER
     Configuration Table
     -------------------------------------------------------------------------*/
     const PinInit cfg[] = {
-      // { // Heartbeat LED
-      //   .alternate = Chimera::GPIO::Alternate::TIM16_CH1,
-      //   .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
-      //   .pin       = IO::GPIO::pinHeartbeat,
-      //   .port      = IO::GPIO::portHeartbeat,
-      //   .pull      = Chimera::GPIO::Pull::NO_PULL,
-      //   .state     = Chimera::GPIO::State::LOW,
-      //   .threaded  = true,
-      //   .validity  = true },
       { // Inverter High Side Phase A
         .alternate = Chimera::GPIO::Alternate::TIM1_CH1,
         .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,

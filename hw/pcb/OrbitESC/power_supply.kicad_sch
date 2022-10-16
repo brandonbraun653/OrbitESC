@@ -1528,6 +1528,15 @@
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid a0f64964-4978-4f3a-b594-9fce03944e85)
   )
+  (text "These LEDs are way too bright" (at 186.055 77.47 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid a99546e9-8621-40e9-b23e-8d7d38324705)
+  )
+  (text "Need a Diode here to prevent back driving VDC from +5V\n"
+    (at 79.375 28.575 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid e6b861f3-9e92-4002-a354-cecaefaef07e)
+  )
 
   (symbol (lib_id "Device:R_US") (at 95.25 46.99 90) (unit 1)
     (in_bom yes) (on_board yes)

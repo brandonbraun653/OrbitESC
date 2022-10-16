@@ -36,32 +36,32 @@ namespace Orbit::Control::State
 
   etl::fsm_state_id_t Armed::on_event( const MsgAlign &msg )
   {
-    /*-------------------------------------------------------------------------
-    Grab a reference to the controller and reset it
-    -------------------------------------------------------------------------*/
-    ParkControl *const pCtl = &get_fsm_context().mState.motorCtl.park;
-    pCtl->clear();
+    // /*-------------------------------------------------------------------------
+    // Grab a reference to the controller and reset it
+    // -------------------------------------------------------------------------*/
+    // ParkControl *const pCtl = &get_fsm_context().mState.motorCtl.park;
+    // pCtl->clear();
 
-    /*-------------------------------------------------------------------------
-    Prepare the Park controller to execute inside the ISR. Must be initialized
-    before leaving this function as the ISR will cue off the state change.
-    -------------------------------------------------------------------------*/
-    pCtl->activeComState      = 0; // All outputs off
-    pCtl->lastUpdate_ms       = Chimera::millis();
-    pCtl->startTime_ms        = Chimera::millis();
-    pCtl->alignTime_ms        = 3000;
-    pCtl->modulation_dt_ms    = 150;
-    pCtl->outputEnabled       = false;
-    pCtl->phaseDutyCycle[ 0 ] = 15.0f;
-    pCtl->phaseDutyCycle[ 1 ] = 15.0f;
-    pCtl->phaseDutyCycle[ 2 ] = 15.0f;
+    // /*-------------------------------------------------------------------------
+    // Prepare the Park controller to execute inside the ISR. Must be initialized
+    // before leaving this function as the ISR will cue off the state change.
+    // -------------------------------------------------------------------------*/
+    // pCtl->activeComState      = 0; // All outputs off
+    // pCtl->lastUpdate_ms       = Chimera::millis();
+    // pCtl->startTime_ms        = Chimera::millis();
+    // pCtl->alignTime_ms        = 3000;
+    // pCtl->modulation_dt_ms    = 150;
+    // pCtl->outputEnabled       = false;
+    // pCtl->phaseDutyCycle[ 0 ] = 15.0f;
+    // pCtl->phaseDutyCycle[ 1 ] = 15.0f;
+    // pCtl->phaseDutyCycle[ 2 ] = 15.0f;
 
-    /*-------------------------------------------------------------------------
-    Prime the power stage to be active but all outputs OFF
-    -------------------------------------------------------------------------*/
-    get_fsm_context().mTimerDriver.disableOutput();
-    get_fsm_context().mTimerDriver.setForwardCommState( 0 );
-    get_fsm_context().mTimerDriver.enableOutput();
+    // /*-------------------------------------------------------------------------
+    // Prime the power stage to be active but all outputs OFF
+    // -------------------------------------------------------------------------*/
+    // get_fsm_context().mTimerDriver.disableOutput();
+    // get_fsm_context().mTimerDriver.setForwardCommState( 0 );
+    // get_fsm_context().mTimerDriver.enableOutput();
 
     return ModeId::ENGAGED_PARK;
   }

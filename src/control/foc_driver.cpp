@@ -211,7 +211,7 @@ namespace Orbit::Control
 
   int FOC::setSpeedRef( const float ref )
   {
-    mState.motorCtl.run.speedRefRad = ref;
+    //mState.motorCtl.run.speedRefRad = ref;
     return 0;
   }
 
@@ -407,25 +407,25 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Don't run the speed controller loop if not in closed loop control
     -------------------------------------------------------------------------*/
-    if ( this->get_state_id() != EnumValue( ModeId::ENGAGED_RUN ) )
-    {
-      return;
-    }
+    // if ( this->get_state_id() != EnumValue( ModeId::ENGAGED_RUN ) )
+    // {
+    //   return;
+    // }
 
-    /*-------------------------------------------------------------------------
-    Update estimate of the rotor speed
-    -------------------------------------------------------------------------*/
-    const size_t timestamp = Chimera::micros();
-    const float  dTheta    = mState.motorCtl.posEstRad - mState.speedEstimator.pos_est_prev;
-    const float  wdt       = US_TO_SEC( timestamp - mState.speedEstimator.last_update_us );
+    // /*-------------------------------------------------------------------------
+    // Update estimate of the rotor speed
+    // -------------------------------------------------------------------------*/
+    // const size_t timestamp = Chimera::micros();
+    // const float  dTheta    = mState.motorCtl.posEstRad - mState.speedEstimator.pos_est_prev;
+    // const float  wdt       = US_TO_SEC( timestamp - mState.speedEstimator.last_update_us );
 
-    mState.motorCtl.velEstRad = dTheta / wdt;
+    // mState.motorCtl.velEstRad = dTheta / wdt;
 
     /*-----------------------------------------------------------------------
     Update tracking variables
     -----------------------------------------------------------------------*/
-    mState.speedEstimator.pos_est_prev   = mState.motorCtl.posEstRad;
-    mState.speedEstimator.last_update_us = timestamp;
+    // mState.speedEstimator.pos_est_prev   = mState.motorCtl.posEstRad;
+    // mState.speedEstimator.last_update_us = timestamp;
 
     // Reset the timer interrupt flag...
   }
@@ -433,26 +433,26 @@ namespace Orbit::Control
 
   void FOC::isr_rotor_ramp_controller()
   {
-    RampControl *const pCtrl = &mState.motorCtl.ramp;
+    // RampControl *const pCtrl = &mState.motorCtl.ramp;
 
-    pCtrl->cycleCount++;
-    if ( pCtrl->cycleCount >= pCtrl->cycleRef )
-    {
-      /*-----------------------------------------------------------------------
-      Update the cycle references
-      -----------------------------------------------------------------------*/
-      pCtrl->cycleCount = 0;
-      pCtrl->cycleRef   = Utility::comCycleCount( Data::DFLT_STATOR_PWM_FREQ_HZ, Data::DFLT_ROTOR_NUM_POLES, pCtrl->targetRPM );
+    // pCtrl->cycleCount++;
+    // if ( pCtrl->cycleCount >= pCtrl->cycleRef )
+    // {
+    //   /*-----------------------------------------------------------------------
+    //   Update the cycle references
+    //   -----------------------------------------------------------------------*/
+    //   pCtrl->cycleCount = 0;
+    //   pCtrl->cycleRef   = Utility::comCycleCount( Data::DFLT_STATOR_PWM_FREQ_HZ, Data::DFLT_ROTOR_NUM_POLES, pCtrl->targetRPM );
 
-      /*-----------------------------------------------------------------------
-      Update the commutation state
-      -----------------------------------------------------------------------*/
-      pCtrl->comState++;
-      if ( pCtrl->comState >= 7 )
-      {
-        pCtrl->comState = 1;
-      }
-    }
+    //   /*-----------------------------------------------------------------------
+    //   Update the commutation state
+    //   -----------------------------------------------------------------------*/
+    //   pCtrl->comState++;
+    //   if ( pCtrl->comState >= 7 )
+    //   {
+    //     pCtrl->comState = 1;
+    //   }
+    // }
   }
 
 
@@ -464,39 +464,39 @@ namespace Orbit::Control
    */
   void FOC::stepEMFObserver( const float dt )
   {
-    /*-------------------------------------------------------------------------
-    Alias equation variables to make everything easier to read
-    -------------------------------------------------------------------------*/
-    const float d  = mState.emfObserver.d;
-    const float Ls = mState.motorParams.Ls;
-    const float Rs = mState.motorParams.Rs;
-    const float Wr = mState.motorCtl.velEstRad;
-    const float Iq = mState.motorCtl.Iq;
-    const float Id = mState.motorCtl.Id;
-    const float Vq = mState.motorCtl.Vq;
-    const float Vd = mState.motorCtl.Vd;
+    // /*-------------------------------------------------------------------------
+    // Alias equation variables to make everything easier to read
+    // -------------------------------------------------------------------------*/
+    // const float d  = mState.emfObserver.d;
+    // const float Ls = mState.motorParams.Ls;
+    // const float Rs = mState.motorParams.Rs;
+    // const float Wr = mState.motorCtl.velEstRad;
+    // const float Iq = mState.motorCtl.Iq;
+    // const float Id = mState.motorCtl.Id;
+    // const float Vq = mState.motorCtl.Vq;
+    // const float Vd = mState.motorCtl.Vd;
 
-    /*-------------------------------------------------------------------------
-    Update the D-Q axis observer state space model (Eq. 11)
-    -------------------------------------------------------------------------*/
-    const float q_tmp = ( ( Rs + ( d * Ls ) ) * Iq ) - Vq;
-    const float d_tmp = ( ( Rs + ( d * Ls ) ) * Id ) - Vd;
+    // /*-------------------------------------------------------------------------
+    // Update the D-Q axis observer state space model (Eq. 11)
+    // -------------------------------------------------------------------------*/
+    // const float q_tmp = ( ( Rs + ( d * Ls ) ) * Iq ) - Vq;
+    // const float d_tmp = ( ( Rs + ( d * Ls ) ) * Id ) - Vd;
 
-    mState.emfObserver.z1_dot = ( d * dt * mState.emfObserver.z1 ) + dt * ( ( d * q_tmp ) - ( Wr * d_tmp ) );
-    mState.emfObserver.z2_dot = ( d * dt * mState.emfObserver.z2 ) + dt * ( ( Wr * q_tmp ) + ( d * d_tmp ) );
+    // mState.emfObserver.z1_dot = ( d * dt * mState.emfObserver.z1 ) + dt * ( ( d * q_tmp ) - ( Wr * d_tmp ) );
+    // mState.emfObserver.z2_dot = ( d * dt * mState.emfObserver.z2 ) + dt * ( ( Wr * q_tmp ) + ( d * d_tmp ) );
 
-    /*-------------------------------------------------------------------------
-    Calculate the estimated EMF (Eq. 12)
-    -------------------------------------------------------------------------*/
-    mState.emfObserver.Eq_est = mState.emfObserver.z1_dot + ( d * Ls * Iq ) - ( Ls * Wr * Id );
-    mState.emfObserver.Ed_est = mState.emfObserver.z2_dot + ( Ls * Wr * Iq ) + ( d * Ls * Id );
+    // /*-------------------------------------------------------------------------
+    // Calculate the estimated EMF (Eq. 12)
+    // -------------------------------------------------------------------------*/
+    // mState.emfObserver.Eq_est = mState.emfObserver.z1_dot + ( d * Ls * Iq ) - ( Ls * Wr * Id );
+    // mState.emfObserver.Ed_est = mState.emfObserver.z2_dot + ( Ls * Wr * Iq ) + ( d * Ls * Id );
 
-    /*-------------------------------------------------------------------------
-    Update the EMF observer state. Note that Z1 dot already has the sample
-    time baked in from Equation 11.
-    -------------------------------------------------------------------------*/
-    mState.emfObserver.z1 = mState.emfObserver.z1_dot;
-    mState.emfObserver.z2 = mState.emfObserver.z2_dot;
+    // /*-------------------------------------------------------------------------
+    // Update the EMF observer state. Note that Z1 dot already has the sample
+    // time baked in from Equation 11.
+    // -------------------------------------------------------------------------*/
+    // mState.emfObserver.z1 = mState.emfObserver.z1_dot;
+    // mState.emfObserver.z2 = mState.emfObserver.z2_dot;
   }
 
 
@@ -537,52 +537,52 @@ namespace Orbit::Control
    */
   void FOC::onPark()
   {
-    ParkControl *const pCtrl        = &mState.motorCtl.park;
-    const uint32_t     current_time = Chimera::millis();
+    // ParkControl *const pCtrl        = &mState.motorCtl.park;
+    // const uint32_t     current_time = Chimera::millis();
 
-    /*-------------------------------------------------------------------------
-    Has the alignment sequence run its course? Switch to the ramp phase.
-    -------------------------------------------------------------------------*/
-    if ( ( current_time - pCtrl->startTime_ms ) > pCtrl->alignTime_ms )
-    {
-      this->receive( MsgRamp() );
-      RT_DBG_ASSERT( this->currentMode() == ModeId::ENGAGED_RAMP );
-    }
+    // /*-------------------------------------------------------------------------
+    // Has the alignment sequence run its course? Switch to the ramp phase.
+    // -------------------------------------------------------------------------*/
+    // if ( ( current_time - pCtrl->startTime_ms ) > pCtrl->alignTime_ms )
+    // {
+    //   this->receive( MsgRamp() );
+    //   RT_DBG_ASSERT( this->currentMode() == ModeId::ENGAGED_RAMP );
+    // }
 
-    /*-------------------------------------------------------------------------
-    Otherwise, update the alignment controller
-    -------------------------------------------------------------------------*/
-    pCtrl->activeComState = 1;
+    // /*-------------------------------------------------------------------------
+    // Otherwise, update the alignment controller
+    // -------------------------------------------------------------------------*/
+    // pCtrl->activeComState = 1;
 
-    if ( ( current_time - pCtrl->lastUpdate_ms ) > pCtrl->modulation_dt_ms )
-    {
-      pCtrl->outputEnabled = !pCtrl->outputEnabled;
-      pCtrl->lastUpdate_ms = current_time;
-    }
+    // if ( ( current_time - pCtrl->lastUpdate_ms ) > pCtrl->modulation_dt_ms )
+    // {
+    //   pCtrl->outputEnabled = !pCtrl->outputEnabled;
+    //   pCtrl->lastUpdate_ms = current_time;
+    // }
   }
 
 
   void FOC::onRamp()
   {
-    RampControl *const pCtrl = &mState.motorCtl.ramp;
+    // RampControl *const pCtrl = &mState.motorCtl.ramp;
 
-    /*-------------------------------------------------------------------------
-    Switch to the RUN controller if we've hit our target RPM.
-    -------------------------------------------------------------------------*/
-    if ( pCtrl->targetRPM >= pCtrl->finalRPM )
-    {
-      // pCtrl->phaseDutyCycle[ 0 ] = 20.0f;
-      // pCtrl->phaseDutyCycle[ 1 ] = 20.0f;
-      // pCtrl->phaseDutyCycle[ 2 ] = 20.0f;
-      // this->receive( MsgRun() );
-      // RT_DBG_ASSERT( this->currentMode() == ModeId::ENGAGED_RUN );
-      return;
-    }
+    // /*-------------------------------------------------------------------------
+    // Switch to the RUN controller if we've hit our target RPM.
+    // -------------------------------------------------------------------------*/
+    // if ( pCtrl->targetRPM >= pCtrl->finalRPM )
+    // {
+    //   // pCtrl->phaseDutyCycle[ 0 ] = 20.0f;
+    //   // pCtrl->phaseDutyCycle[ 1 ] = 20.0f;
+    //   // pCtrl->phaseDutyCycle[ 2 ] = 20.0f;
+    //   // this->receive( MsgRun() );
+    //   // RT_DBG_ASSERT( this->currentMode() == ModeId::ENGAGED_RUN );
+    //   return;
+    // }
 
-    /*-------------------------------------------------------------------------
-    Otherwise update the controller reference
-    -------------------------------------------------------------------------*/
-    pCtrl->targetRPM += pCtrl->rampRate;
+    // /*-------------------------------------------------------------------------
+    // Otherwise update the controller reference
+    // -------------------------------------------------------------------------*/
+    // pCtrl->targetRPM += pCtrl->rampRate;
   }
 
 

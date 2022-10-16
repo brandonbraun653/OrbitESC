@@ -40,27 +40,27 @@ namespace Orbit::Control::State
 
   etl::fsm_state_id_t EngagedPark::on_event( const MsgRamp &msg )
   {
-    /*-------------------------------------------------------------------------
-    Prepare the ramp controller
-    -------------------------------------------------------------------------*/
-    RampControl *const pCtrl = &get_fsm_context().mState.motorCtl.ramp;
-    pCtrl->clear();
+    // /*-------------------------------------------------------------------------
+    // Prepare the ramp controller
+    // -------------------------------------------------------------------------*/
+    // RampControl *const pCtrl = &get_fsm_context().mState.motorCtl.ramp;
+    // pCtrl->clear();
 
-    /* Set up static data */
-    pCtrl->comState            = Orbit::Data::DFLT_STATOR_ALIGN_COMM_PHASE;
-    pCtrl->phaseDutyCycle[ 0 ] = Orbit::Data::DFLT_RAMP_DRIVE_STRENGTH_PCT;
-    pCtrl->phaseDutyCycle[ 1 ] = Orbit::Data::DFLT_RAMP_DRIVE_STRENGTH_PCT;
-    pCtrl->phaseDutyCycle[ 2 ] = Orbit::Data::DFLT_RAMP_DRIVE_STRENGTH_PCT;
+    // /* Set up static data */
+    // pCtrl->comState            = Orbit::Data::DFLT_STATOR_ALIGN_COMM_PHASE;
+    // pCtrl->phaseDutyCycle[ 0 ] = Orbit::Data::DFLT_RAMP_DRIVE_STRENGTH_PCT;
+    // pCtrl->phaseDutyCycle[ 1 ] = Orbit::Data::DFLT_RAMP_DRIVE_STRENGTH_PCT;
+    // pCtrl->phaseDutyCycle[ 2 ] = Orbit::Data::DFLT_RAMP_DRIVE_STRENGTH_PCT;
 
-    pCtrl->rampRate  = 2;    // RPM per Orbit::Tasks::CTRLSYS::PERIOD_MS
-    pCtrl->finalRPM  = 1000;
-    pCtrl->targetRPM = 5;
-    pCtrl->minDwellCycles =
-        Utility::comCycleCount( Data::DFLT_STATOR_PWM_FREQ_HZ, Data::DFLT_ROTOR_NUM_POLES, pCtrl->finalRPM );
+    // pCtrl->rampRate  = 2;    // RPM per Orbit::Tasks::CTRLSYS::PERIOD_MS
+    // pCtrl->finalRPM  = 1000;
+    // pCtrl->targetRPM = 5;
+    // pCtrl->minDwellCycles =
+    //     Utility::comCycleCount( Data::DFLT_STATOR_PWM_FREQ_HZ, Data::DFLT_ROTOR_NUM_POLES, pCtrl->finalRPM );
 
-    /* Set up dynamic data */
-    pCtrl->cycleCount = 0;
-    pCtrl->cycleRef   = Utility::comCycleCount( Data::DFLT_STATOR_PWM_FREQ_HZ, Data::DFLT_ROTOR_NUM_POLES, pCtrl->targetRPM );
+    // /* Set up dynamic data */
+    // pCtrl->cycleCount = 0;
+    // pCtrl->cycleRef   = Utility::comCycleCount( Data::DFLT_STATOR_PWM_FREQ_HZ, Data::DFLT_ROTOR_NUM_POLES, pCtrl->targetRPM );
 
     /*-------------------------------------------------------------------------
     Start the park controller
