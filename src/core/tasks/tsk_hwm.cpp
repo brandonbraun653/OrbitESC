@@ -44,12 +44,18 @@ namespace Orbit::Tasks::HWM
 
     auto cfg = Aurora::Flash::EEPROM::DeviceConfig();
     cfg.clear();
-    cfg.deviceAddress = 0x53;
+    cfg.deviceAddress = 0x50;
     cfg.i2cChannel    = IO::I2C::channel;
-    cfg.whichChip     = Aurora::Flash::EEPROM::Chip::AT24C02;
+    cfg.whichChip     = Aurora::Flash::EEPROM::Chip::E24LC128;
 
     auto eeprom = Aurora::Flash::EEPROM::Driver();
     eeprom.configure( cfg );
+
+    bool rw_flag = true;
+    size_t last_write = Chimera::millis();
+    const char * hello = "hello";
+    size_t rw_address = 0x00;
+    char read_buf[ 10 ];
 
     /*-------------------------------------------------------------------------
     Run the HWM thread
