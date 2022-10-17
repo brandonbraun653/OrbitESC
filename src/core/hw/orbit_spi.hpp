@@ -1,33 +1,33 @@
 /******************************************************************************
  *  File Name:
- *    orbit_gpio.hpp
+ *    orbit_spi.hpp
  *
  *  Description:
- *    Orbit ESC GPIO Driver
+ *    Orbit ESC SPI Driver
  *
  *  2022 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
-#ifndef ORBIT_ESC_GPIO_HPP
-#define ORBIT_ESC_GPIO_HPP
+#ifndef ORBIT_ESC_SPI_HPP
+#define ORBIT_ESC_SPI_HPP
 
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <Chimera/gpio>
+#include <Chimera/spi>
 
 
-namespace Orbit::GPIO
+namespace Orbit::SPI
 {
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   /**
-   * @brief Powers up the GPIO driver subsystem
+   * @brief Powers up the SPI driver subsystem
    */
   void powerUp();
 
-}    // namespace Orbit::GPIO
+}  // namespace Orbit::SPI
 
-#endif /* !ORBIT_ESC_GPIO_HPP */
+#endif  /* !ORBIT_ESC_SPI_HPP */

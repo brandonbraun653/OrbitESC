@@ -24,6 +24,8 @@ Includes
 #include <src/core/hw/orbit_can.hpp>
 #include <src/core/hw/orbit_gpio.hpp>
 #include <src/core/hw/orbit_i2c.hpp>
+#include <src/core/hw/orbit_led.hpp>
+#include <src/core/hw/orbit_spi.hpp>
 #include <src/core/hw/orbit_timer.hpp>
 #include <src/core/hw/orbit_usart.hpp>
 #include <src/core/tasks.hpp>
@@ -84,6 +86,9 @@ namespace Orbit::Boot
     Orbit::CAN::powerUp();
     Orbit::GPIO::powerUp();
     Orbit::I2C::powerUp();
+#if defined( ORBIT_ESC_V1 )
+    Orbit::SPI::powerUp();
+#endif
     Orbit::TIMER::powerUp();
     Orbit::USART::powerUp();
 
@@ -91,6 +96,9 @@ namespace Orbit::Boot
     Power up more complex system components
     -------------------------------------------------------------------------*/
     Orbit::Data::initialize();
+#if defined( ORBIT_ESC_V1 )
+    Orbit::LED::powerUp();
+#endif
   }
 
 

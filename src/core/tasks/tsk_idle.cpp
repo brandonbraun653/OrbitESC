@@ -19,6 +19,7 @@ Includes
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/bootup.hpp>
 #include <src/core/hw/orbit_timer.hpp>
+#include <src/core/hw/orbit_led.hpp>
 
 
 namespace Orbit::Tasks::Idle
@@ -41,7 +42,8 @@ namespace Orbit::Tasks::Idle
     // auto pin = Chimera::GPIO::getDriver( IO::GPIO::portHeartbeat, IO::GPIO::pinHeartbeat );
     for ( auto x = 0; x < 8; x++ )
     {
-      // pin->toggle();
+      LED::toggleChannel( LED::Channel::HEARTBEAT );
+      LED::sendUpdate();
       Chimera::delayMilliseconds( 35 );
     }
     Chimera::delayMilliseconds( 500 );
@@ -51,21 +53,25 @@ namespace Orbit::Tasks::Idle
     -------------------------------------------------------------------------*/
     while ( 1 )
     {
-      // /*-----------------------------------------------------------------------
-      // High Pulse #1
-      // -----------------------------------------------------------------------*/
-      // pin->setState( Chimera::GPIO::State::HIGH );
-      // Chimera::delayMilliseconds( 100 );
-      // pin->setState( Chimera::GPIO::State::LOW );
-      // Chimera::delayMilliseconds( 100 );
+      /*-----------------------------------------------------------------------
+      High Pulse #1
+      -----------------------------------------------------------------------*/
+      LED::setChannel( LED::Channel::HEARTBEAT );
+      LED::sendUpdate();
+      Chimera::delayMilliseconds( 100 );
+      LED::clrChannel( LED::Channel::HEARTBEAT );
+      LED::sendUpdate();
+      Chimera::delayMilliseconds( 100 );
 
-      // /*-----------------------------------------------------------------------
-      // High Pulse #2
-      // -----------------------------------------------------------------------*/
-      // pin->setState( Chimera::GPIO::State::HIGH );
-      // Chimera::delayMilliseconds( 100 );
-      // pin->setState( Chimera::GPIO::State::LOW );
-      // Chimera::delayMilliseconds( 100 );
+      /*-----------------------------------------------------------------------
+      High Pulse #2
+      -----------------------------------------------------------------------*/
+      LED::setChannel( LED::Channel::HEARTBEAT );
+      LED::sendUpdate();
+      Chimera::delayMilliseconds( 100 );
+      LED::clrChannel( LED::Channel::HEARTBEAT );
+      LED::sendUpdate();
+      Chimera::delayMilliseconds( 100 );
 
       /*-----------------------------------------------------------------------
       Hold longer in the off state

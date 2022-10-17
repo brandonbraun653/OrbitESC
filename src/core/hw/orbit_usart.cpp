@@ -51,6 +51,17 @@ namespace Orbit::USART
     using namespace Chimera::Hardware;
 
     /*-------------------------------------------------------------------------
+    Configure the CP2104 reset line to be disabled
+    -------------------------------------------------------------------------*/
+#if defined( ORBIT_ESC_V1 )
+    auto gpio = Chimera::GPIO::getDriver( IO::USART::resetPort, IO::USART::resetPin );
+
+    RT_HARD_ASSERT( gpio );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( IO::USART::resetPinInit ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->setState( Chimera::GPIO::State::HIGH ) );
+#endif /* ORBIT_ESC_V1 */
+
+    /*-------------------------------------------------------------------------
     Configuration info for the serial object
     -------------------------------------------------------------------------*/
     IOPins pins;

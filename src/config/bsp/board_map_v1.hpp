@@ -21,26 +21,18 @@ Includes
 #include <Chimera/gpio>
 #include <Chimera/i2c>
 #include <Chimera/serial>
+#include <Chimera/spi>
 
+/*-----------------------------------------------------------------------------
+Constants
+-----------------------------------------------------------------------------*/
+#define ORBIT_ESC_V1
 
+/*-----------------------------------------------------------------------------
+Configuration
+-----------------------------------------------------------------------------*/
 namespace Orbit::IO
 {
-  namespace GPIO
-  {
-    /*-------------------------------------------------------------------------
-    Status LED
-    -------------------------------------------------------------------------*/
-    static constexpr Chimera::GPIO::Pin  pinHeartbeat  = 14;
-    static constexpr Chimera::GPIO::Port portHeartbeat = Chimera::GPIO::Port::PORTC;
-
-    /*-------------------------------------------------------------------------
-    User Button
-    -------------------------------------------------------------------------*/
-    static constexpr Chimera::GPIO::Pin  pinButton  = 5;
-    static constexpr Chimera::GPIO::Port portButton = Chimera::GPIO::Port::PORTB;
-  }    // namespace GPIO
-
-
   namespace Analog
   {
     static constexpr Chimera::ADC::Peripheral peripheral      = Chimera::ADC::Peripheral::ADC_0;
@@ -54,28 +46,33 @@ namespace Orbit::IO
                                                                   .validity  = false };
 
     /*-------------------------------------------------------------------------
+    Supply Voltage
+    -------------------------------------------------------------------------*/
+    static constexpr Chimera::GPIO::Pin    pinVSupply  = 0;
+    static constexpr Chimera::GPIO::Port   portVSupply = Chimera::GPIO::Port::PORTA;
+    static constexpr Chimera::ADC::Channel adcVSupply  = Chimera::ADC::Channel::ADC_CH_5;
+
+    /*-------------------------------------------------------------------------
     Phase A Current
     -------------------------------------------------------------------------*/
-    static constexpr Chimera::GPIO::Pin    pinPhaseA  = 0;
+    static constexpr Chimera::GPIO::Pin    pinPhaseA  = 4;
     static constexpr Chimera::GPIO::Port   portPhaseA = Chimera::GPIO::Port::PORTA;
-    static constexpr Chimera::ADC::Channel adcPhaseA  = Chimera::ADC::Channel::ADC_CH_5;
+    static constexpr Chimera::ADC::Channel adcPhaseA  = Chimera::ADC::Channel::ADC_CH_9;
 
     /*-------------------------------------------------------------------------
     Phase B Current
     -------------------------------------------------------------------------*/
-    static constexpr Chimera::GPIO::Pin    pinPhaseB  = 4;
+    static constexpr Chimera::GPIO::Pin    pinPhaseB  = 5;
     static constexpr Chimera::GPIO::Port   portPhaseB = Chimera::GPIO::Port::PORTA;
-    static constexpr Chimera::ADC::Channel adcPhaseB  = Chimera::ADC::Channel::ADC_CH_9;
+    static constexpr Chimera::ADC::Channel adcPhaseB  = Chimera::ADC::Channel::ADC_CH_10;
 
     /*-------------------------------------------------------------------------
-    Supply Voltage
+    Phase C Current
     -------------------------------------------------------------------------*/
-    static constexpr Chimera::GPIO::Pin    pinVSupply  = 5;
-    static constexpr Chimera::GPIO::Port   portVSupply = Chimera::GPIO::Port::PORTA;
-    static constexpr Chimera::ADC::Channel adcVSupply  = Chimera::ADC::Channel::ADC_CH_10;
-
+    static constexpr Chimera::GPIO::Pin    pinPhaseC  = 1;
+    static constexpr Chimera::GPIO::Port   portPhaseC = Chimera::GPIO::Port::PORTA;
+    static constexpr Chimera::ADC::Channel adcPhaseC  = Chimera::ADC::Channel::ADC_CH_6;
   }    // namespace Analog
-
 
   namespace CAN
   {
@@ -89,51 +86,6 @@ namespace Orbit::IO
     static constexpr Chimera::GPIO::Pin  pinRX  = 11;
     static constexpr Chimera::GPIO::Port portRX = Chimera::GPIO::Port::PORTA;
   }    // namespace CAN
-
-
-  namespace USART
-  {
-    /*-------------------------------------------------------------------------
-    Serial
-    -------------------------------------------------------------------------*/
-    static constexpr Chimera::Serial::Channel serialChannel = Chimera::Serial::Channel::SERIAL2;
-
-    /*-------------------------------------------------------------------------
-    GPIO
-    -------------------------------------------------------------------------*/
-    static constexpr Chimera::GPIO::Pin  rxPin  = 3;
-    static constexpr Chimera::GPIO::Port rxPort = Chimera::GPIO::Port::PORTA;
-    static constexpr Chimera::GPIO::Pin  txPin  = 2;
-    static constexpr Chimera::GPIO::Port txPort = Chimera::GPIO::Port::PORTA;
-
-    /*-------------------------------------------------------------------------
-    Configuration Data
-    -------------------------------------------------------------------------*/
-    static constexpr Chimera::Serial::Config comConfig = { .baud     = 921600,
-                                                           .width    = Chimera::Serial::CharWid::CW_8BIT,
-                                                           .parity   = Chimera::Serial::Parity::PAR_NONE,
-                                                           .stopBits = Chimera::Serial::StopBits::SBITS_ONE,
-                                                           .flow     = Chimera::Serial::FlowControl::FCTRL_NONE };
-
-    static constexpr Chimera::GPIO::PinInit txPinInit = { .alternate = Chimera::GPIO::Alternate::USART2_TX,
-                                                          .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
-                                                          .pin       = txPin,
-                                                          .port      = txPort,
-                                                          .pull      = Chimera::GPIO::Pull::NO_PULL,
-                                                          .state     = Chimera::GPIO::State::HIGH,
-                                                          .threaded  = false,
-                                                          .validity  = true };
-
-    static constexpr Chimera::GPIO::PinInit rxPinInit = { .alternate = Chimera::GPIO::Alternate::USART2_RX,
-                                                          .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
-                                                          .pin       = rxPin,
-                                                          .port      = rxPort,
-                                                          .pull      = Chimera::GPIO::Pull::NO_PULL,
-                                                          .state     = Chimera::GPIO::State::HIGH,
-                                                          .threaded  = false,
-                                                          .validity  = true };
-  }    // namespace USART
-
 
   namespace I2C
   {
@@ -152,6 +104,81 @@ namespace Orbit::IO
     static constexpr Chimera::I2C::Frequency frequency = Chimera::I2C::Frequency::F100KHZ;
   }    // namespace I2C
 
+  namespace SPI
+  {
+    /*-------------------------------------------------------------------------
+    GPIO
+    -------------------------------------------------------------------------*/
+    static constexpr Chimera::GPIO::Pin  sckPin    = 3;
+    static constexpr Chimera::GPIO::Port sckPort   = Chimera::GPIO::Port::PORTB;
+    static constexpr Chimera::GPIO::Pin  misoPin   = 4;
+    static constexpr Chimera::GPIO::Port misoPort  = Chimera::GPIO::Port::PORTB;
+    static constexpr Chimera::GPIO::Pin  mosiPin   = 5;
+    static constexpr Chimera::GPIO::Port mosiPort  = Chimera::GPIO::Port::PORTB;
+    static constexpr Chimera::GPIO::Pin  ledCSPin  = 15;
+    static constexpr Chimera::GPIO::Port ledCSPort = Chimera::GPIO::Port::PORTC;
+    static constexpr Chimera::GPIO::Pin  norCSPin  = 15;
+    static constexpr Chimera::GPIO::Port norCSPort = Chimera::GPIO::Port::PORTA;
+
+    /*-------------------------------------------------------------------------
+    SPI
+    -------------------------------------------------------------------------*/
+    static constexpr Chimera::SPI::Channel spiChannel = Chimera::SPI::Channel::SPI3;
+
+    static constexpr Chimera::SPI::HardwareInit spiHwInit = { .bitOrder    = Chimera::SPI::BitOrder::MSB_FIRST,
+                                                              .controlMode = Chimera::SPI::ControlMode::MASTER,
+                                                              .clockFreq   = 48'000'000,
+                                                              .clockMode   = Chimera::SPI::ClockMode::MODE0,
+                                                              .dataSize    = Chimera::SPI::DataSize::SZ_8BIT,
+                                                              .hwChannel   = Chimera::SPI::Channel::SPI3,
+                                                              .txfrMode    = Chimera::SPI::TransferMode::INTERRUPT,
+                                                              .validity    = true };
+
+    static constexpr Chimera::GPIO::PinInit sckPinInit = { .alternate = Chimera::GPIO::Alternate::SPI3_SCK,
+                                                           .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
+                                                           .pin       = sckPin,
+                                                           .port      = sckPort,
+                                                           .pull      = Chimera::GPIO::Pull::NO_PULL,
+                                                           .state     = Chimera::GPIO::State::LOW,
+                                                           .threaded  = false,
+                                                           .validity  = true };
+
+    static constexpr Chimera::GPIO::PinInit misoPinInit = { .alternate = Chimera::GPIO::Alternate::SPI3_MISO,
+                                                            .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
+                                                            .pin       = misoPin,
+                                                            .port      = misoPort,
+                                                            .pull      = Chimera::GPIO::Pull::NO_PULL,
+                                                            .state     = Chimera::GPIO::State::LOW,
+                                                            .threaded  = false,
+                                                            .validity  = true };
+
+    static constexpr Chimera::GPIO::PinInit mosiPinInit = { .alternate = Chimera::GPIO::Alternate::SPI3_MOSI,
+                                                            .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
+                                                            .pin       = mosiPin,
+                                                            .port      = mosiPort,
+                                                            .pull      = Chimera::GPIO::Pull::NO_PULL,
+                                                            .state     = Chimera::GPIO::State::LOW,
+                                                            .threaded  = false,
+                                                            .validity  = true };
+
+    static constexpr Chimera::GPIO::PinInit ledCSPinInit = { .alternate = Chimera::GPIO::Alternate::NONE,
+                                                             .drive     = Chimera::GPIO::Drive::OUTPUT_PUSH_PULL,
+                                                             .pin       = ledCSPin,
+                                                             .port      = ledCSPort,
+                                                             .pull      = Chimera::GPIO::Pull::NO_PULL,
+                                                             .state     = Chimera::GPIO::State::HIGH,
+                                                             .threaded  = false,
+                                                             .validity  = true };
+
+    static constexpr Chimera::GPIO::PinInit norCSPinInit = { .alternate = Chimera::GPIO::Alternate::NONE,
+                                                             .drive     = Chimera::GPIO::Drive::OUTPUT_PUSH_PULL,
+                                                             .pin       = norCSPin,
+                                                             .port      = norCSPort,
+                                                             .pull      = Chimera::GPIO::Pull::NO_PULL,
+                                                             .state     = Chimera::GPIO::State::HIGH,
+                                                             .threaded  = false,
+                                                             .validity  = true };
+  }    // namespace SPI
 
   namespace Timer
   {
@@ -179,6 +206,60 @@ namespace Orbit::IO
     static constexpr Chimera::GPIO::Pin  pinT1Ch3N  = 1;
     static constexpr Chimera::GPIO::Port portT1Ch3N = Chimera::GPIO::Port::PORTB;
   }    // namespace Timer
+
+  namespace USART
+  {
+    /*-------------------------------------------------------------------------
+    Serial
+    -------------------------------------------------------------------------*/
+    static constexpr Chimera::Serial::Channel serialChannel = Chimera::Serial::Channel::SERIAL2;
+
+    /*-------------------------------------------------------------------------
+    GPIO
+    -------------------------------------------------------------------------*/
+    static constexpr Chimera::GPIO::Pin  rxPin     = 3;
+    static constexpr Chimera::GPIO::Port rxPort    = Chimera::GPIO::Port::PORTA;
+    static constexpr Chimera::GPIO::Pin  txPin     = 2;
+    static constexpr Chimera::GPIO::Port txPort    = Chimera::GPIO::Port::PORTA;
+    static constexpr Chimera::GPIO::Pin  resetPin  = 14;
+    static constexpr Chimera::GPIO::Port resetPort = Chimera::GPIO::Port::PORTC;
+
+    /*-------------------------------------------------------------------------
+    Configuration Data
+    -------------------------------------------------------------------------*/
+    static constexpr Chimera::Serial::Config comConfig = { .baud     = 921600,
+                                                           .width    = Chimera::Serial::CharWid::CW_8BIT,
+                                                           .parity   = Chimera::Serial::Parity::PAR_NONE,
+                                                           .stopBits = Chimera::Serial::StopBits::SBITS_ONE,
+                                                           .flow     = Chimera::Serial::FlowControl::FCTRL_NONE };
+
+    static constexpr Chimera::GPIO::PinInit txPinInit = { .alternate = Chimera::GPIO::Alternate::USART2_TX,
+                                                          .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
+                                                          .pin       = txPin,
+                                                          .port      = txPort,
+                                                          .pull      = Chimera::GPIO::Pull::NO_PULL,
+                                                          .state     = Chimera::GPIO::State::HIGH,
+                                                          .threaded  = false,
+                                                          .validity  = true };
+
+    static constexpr Chimera::GPIO::PinInit rxPinInit = { .alternate = Chimera::GPIO::Alternate::USART2_RX,
+                                                          .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
+                                                          .pin       = rxPin,
+                                                          .port      = rxPort,
+                                                          .pull      = Chimera::GPIO::Pull::NO_PULL,
+                                                          .state     = Chimera::GPIO::State::HIGH,
+                                                          .threaded  = false,
+                                                          .validity  = true };
+
+    static constexpr Chimera::GPIO::PinInit resetPinInit = { .alternate = Chimera::GPIO::Alternate::NONE,
+                                                             .drive     = Chimera::GPIO::Drive::OUTPUT_PUSH_PULL,
+                                                             .pin       = resetPin,
+                                                             .port      = resetPort,
+                                                             .pull      = Chimera::GPIO::Pull::NO_PULL,
+                                                             .state     = Chimera::GPIO::State::HIGH,
+                                                             .threaded  = false,
+                                                             .validity  = true };
+  }    // namespace USART
 
 }    // namespace Orbit::IO
 

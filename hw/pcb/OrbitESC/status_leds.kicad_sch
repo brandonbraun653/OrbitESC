@@ -445,6 +445,11 @@
     (uuid ca38c042-6d91-41a7-8979-380171cd9ce1)
   )
 
+  (text "Error: This chip is open-drain output only." (at 149.225 60.96 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid e99f50e5-2813-48dd-b234-3e973fba90bd)
+  )
+
   (label "FAULT" (at 137.16 66.04 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 1fb2be94-5bc7-4e20-bdcb-5deb362c8a5a)

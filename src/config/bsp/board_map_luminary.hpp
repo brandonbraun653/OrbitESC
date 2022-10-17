@@ -22,6 +22,11 @@ Includes
 #include <Chimera/i2c>
 #include <Chimera/serial>
 
+/*-----------------------------------------------------------------------------
+Constants
+-----------------------------------------------------------------------------*/
+#define ORBIT_ESC_LUMINARY
+
 
 namespace Orbit::IO
 {
