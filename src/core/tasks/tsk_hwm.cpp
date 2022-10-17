@@ -69,26 +69,26 @@ namespace Orbit::Tasks::HWM
       Orbit::CAN::processCANBus();
       Orbit::ADC::processADC();
 
-      // if ( ( Chimera::millis() - last_write ) > 1000 )
-      // {
-      //   if( rw_flag )
-      //   {
-      //     eeprom.write( rw_address, hello, strlen( hello ) );
-      //     eeprom.await( Chimera::Event::Trigger::TRIGGER_TRANSFER_COMPLETE, Chimera::Thread::TIMEOUT_10MS );
-      //     rw_flag = false;
-      //   }
-      //   else
-      //   {
-      //     rw_flag = true;
+      if ( ( Chimera::millis() - last_write ) > 1000 )
+      {
+        if( rw_flag )
+        {
+          // eeprom.write( rw_address, hello, strlen( hello ) );
+          // eeprom.await( Chimera::Event::Trigger::TRIGGER_TRANSFER_COMPLETE, Chimera::Thread::TIMEOUT_10MS );
+          rw_flag = false;
+        }
+        else
+        {
+          rw_flag = true;
 
-      //     memset( read_buf, 0, sizeof( read_buf ) );
-      //     eeprom.read( rw_address, read_buf, strlen( hello ) );
-      //     eeprom.await( Chimera::Event::Trigger::TRIGGER_TRANSFER_COMPLETE, Chimera::Thread::TIMEOUT_10MS );
+          memset( read_buf, 0, sizeof( read_buf ) );
+          eeprom.read( rw_address, read_buf, strlen( hello ) );
+          eeprom.await( Chimera::Event::Trigger::TRIGGER_TRANSFER_COMPLETE, Chimera::Thread::TIMEOUT_10MS );
 
-      //     LOG_INFO( "EEPROM says: %s\r\n", read_buf );
-      //   }
-      //   last_write = Chimera::millis();
-      // }
+          LOG_INFO( "EEPROM says: %s\r\n", read_buf );
+        }
+        last_write = Chimera::millis();
+      }
 
       /*---------------------------------------------------------------------
       Pseudo attempt to run this task periodically
