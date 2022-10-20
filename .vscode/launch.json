@@ -11,7 +11,7 @@
       "interface": "swd",
       "device": "STM32L432KB",
       "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32L4x2.svd",
-      "gdbPath": "/usr/bin/arm-none-eabi-gdb",
+      "gdbPath": "arm-none-eabi-gdb-py3",
       "postLaunchCommands": [
         "source ${workspaceFolder}/.gdbinit"
       ]
@@ -26,7 +26,7 @@
       "interface": "swd",
       "device": "STM32L432KC",
       "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32L4x2.svd",
-      "gdbPath": "/usr/bin/arm-none-eabi-gdb",
+      "gdbPath": "arm-none-eabi-gdb-py3",
       "postLaunchCommands": [
         "source ${workspaceFolder}/.gdbinit"
       ]
@@ -41,7 +41,7 @@
       "interface": "swd",
       "device": "STM32L432KB",
       "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32L4x2.svd",
-      "gdbPath": "/usr/bin/arm-none-eabi-gdb",
+      "gdbPath": "arm-none-eabi-gdb-py3",
       "postLaunchCommands": [
         "source ${workspaceFolder}/.gdbinit"
       ],
@@ -60,7 +60,7 @@
       "interface": "swd",
       "device": "STM32L432KC",
       "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32L4x2.svd",
-      "gdbPath": "/usr/bin/arm-none-eabi-gdb",
+      "gdbPath": "arm-none-eabi-gdb-py3",
       "postLaunchCommands": [
         "source ${workspaceFolder}/.gdbinit"
       ],
