@@ -28,6 +28,7 @@ namespace Orbit::Tasks
   {
     TASK_IDLE,     /**< Background task */
     TASK_HWM,      /**< Hardware manager */
+    TASK_HWM_DIO,  /**< Delayed IO HW manager */
     TASK_CTRL_SYS, /**< Control system task */
 
     TASK_NUM_OPTIONS,

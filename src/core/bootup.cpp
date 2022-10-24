@@ -107,6 +107,7 @@ namespace Orbit::Boot
     using namespace Chimera::Thread;
 
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_HWM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_HWM_DIO ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CTRL_SYS ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
   }
 

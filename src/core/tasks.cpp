@@ -17,6 +17,7 @@ Includes
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_idle.hpp>
 #include <src/core/tasks/tsk_hwm.hpp>
+#include <src/core/tasks/tsk_hwm_dio.hpp>
 #include <src/core/tasks/tsk_ctrl_sys.hpp>
 
 
@@ -68,6 +69,25 @@ namespace Orbit::Tasks
   }
 
 
+  static void init_hwm_dio_task()
+  {
+    using namespace Chimera::Thread;
+
+    TaskConfig cfg;
+    Task       tsk;
+
+    cfg.arg        = nullptr;
+    cfg.function   = DIO::DIOThread;
+    cfg.priority   = DIO::PRIORITY;
+    cfg.stackWords = DIO::STACK;
+    cfg.type       = TaskInitType::DYNAMIC;
+    cfg.name       = DIO::NAME.data();
+
+    tsk.create( cfg );
+    s_thread_id[ TASK_HWM_DIO ] = tsk.start();
+  }
+
+
   static void init_ctrl_sys_task()
   {
     using namespace Chimera::Thread;
@@ -107,6 +127,7 @@ namespace Orbit::Tasks
     -------------------------------------------------------------------------*/
     init_idle_task();
     init_hwm_task();
+    init_hwm_dio_task();
     init_ctrl_sys_task();
   }
 

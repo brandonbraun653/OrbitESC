@@ -7,6 +7,7 @@ gen_static_lib_variants(
     tsk_ctrl_sys.cpp
     tsk_idle.cpp
     tsk_hwm.cpp
+    tsk_hwm_dio.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc

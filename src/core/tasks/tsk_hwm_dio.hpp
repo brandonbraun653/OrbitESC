@@ -1,48 +1,43 @@
 /******************************************************************************
  *  File Name:
- *    orbit_data.hpp
+ *    tsk_hwm_dio.hpp
  *
  *  Description:
- *    Orbit data storage interface
+ *    Task for handling delayed/slow IO operations
  *
  *  2022 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
-#ifndef ORBIT_DATA_HPP
-#define ORBIT_DATA_HPP
+#ifndef ORBIT_TSK_HWM_DELAYED_IO_HPP
+#define ORBIT_TSK_HWM_DELAYED_IO_HPP
 
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <cstdint>
-#include <Chimera/common>
+#include <Chimera/thread>
+#include <string>
 
-namespace Orbit::Data
+namespace Orbit::Tasks::DIO
 {
   /*---------------------------------------------------------------------------
-  Enumerations
+  Constants
   ---------------------------------------------------------------------------*/
-
-  /*---------------------------------------------------------------------------
-  Structures
-  ---------------------------------------------------------------------------*/
+  static constexpr size_t                        PERIOD_MS = 25;
+  static constexpr size_t                        STACK     = STACK_BYTES( 2048 );
+  static constexpr std::string_view              NAME      = "dio";
+  static constexpr Chimera::Thread::TaskPriority PRIORITY  = 5;
 
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   /**
-   * @brief Initialize the data storage system
+   * @brief Main thread for DIO task
    *
-   * @return bool
+   * @param arg   Unused
    */
-  bool initialize();
+  void DIOThread( void *arg );
 
-  /**
-   * @brief Powers on the file system and prepares it for use
-   */
-  void bootFileSystem();
+}  // namespace Orbit::Task
 
-}  // namespace Orbit::Data
-
-#endif  /* !ORBIT_DATA_HPP */
+#endif  /* !ORBIT_TSK_HWM_DELAYED_IO_HPP */
