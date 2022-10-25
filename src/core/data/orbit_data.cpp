@@ -82,6 +82,7 @@ namespace Orbit::Data
     s_lfs_volume.cfg.lookahead_size = 16;
     s_lfs_volume.cfg.block_cycles   = 500;
 
+    RT_HARD_ASSERT( true == s_lfs_volume.flash.assignChipSelect( IO::SPI::norCSPort, IO::SPI::norCSPin ) );
     RT_HARD_ASSERT( true == s_lfs_volume.flash.configure( Aurora::Flash::NOR::Chip::AT25SF081, IO::SPI::spiChannel ) );
     RT_HARD_ASSERT( true == FS::LFS::attachVolume( &s_lfs_volume ) );
 
@@ -101,10 +102,13 @@ namespace Orbit::Data
       if( mnt_vol < 0 )
       {
         s_fs_mounted = false;
+        LOG_ERROR( "Failed to mount filesystem: %d\r\n", mnt_vol );
       }
     }
-
-    LOG_ERROR_IF( s_fs_mounted == false, "Failed to mount filesystem\r\n" );
+    else
+    {
+      LOG_TRACE( "Filesystem mounted\r\n" );
+    }
   }
 
 }    // namespace Orbit::Data

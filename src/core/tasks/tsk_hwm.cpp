@@ -85,7 +85,7 @@ namespace Orbit::Tasks::HWM
           eeprom.read( rw_address, read_buf, strlen( hello ) );
           eeprom.await( Chimera::Event::Trigger::TRIGGER_TRANSFER_COMPLETE, Chimera::Thread::TIMEOUT_10MS );
 
-          LOG_INFO( "EEPROM says: %s\r\n", read_buf );
+          //LOG_INFO( "EEPROM says: %s\r\n", read_buf );
         }
         last_write = Chimera::millis();
       }

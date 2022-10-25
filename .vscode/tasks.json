@@ -135,6 +135,22 @@
         "cwd": "${workspaceFolder}/artifacts/last_build_version"
       },
       "problemMatcher": []
-    }
-  ]
+    },
+    {
+    "type": "shell",
+    "label": "Minicom Terminal",
+    "command": "sudo",  // <-- your shell here
+    "args": [
+        "minicom",
+        "-D",
+        "/dev/ttyUSB0",
+        "-b",
+        "921600"
+    ],
+    "problemMatcher": [],
+    "presentation": {
+        "echo": false,  // silence "Executing task ..."
+        "focus": true,
+        "panel": "dedicated"
+    },
 }
