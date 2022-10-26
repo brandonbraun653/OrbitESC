@@ -15,6 +15,7 @@ Includes
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_hwm_dio.hpp>
 #include <src/core/data/orbit_data.hpp>
+#include <src/core/data/orbit_log_io.hpp>
 
 namespace Orbit::Tasks::DIO
 {
@@ -32,6 +33,8 @@ namespace Orbit::Tasks::DIO
     Initialize data controllers
     -------------------------------------------------------------------------*/
     Data::bootFileSystem();
+    Log::initialize();
+    Log::enable();
 
     /*-------------------------------------------------------------------------
     Run the HWM thread
@@ -39,10 +42,14 @@ namespace Orbit::Tasks::DIO
     size_t wake_up_tick = Chimera::millis();
     while( 1 )
     {
+      /*-----------------------------------------------------------------------
+      Do long-running operations
+      -----------------------------------------------------------------------*/
+      Log::flushCache();
 
-      /*---------------------------------------------------------------------
+      /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically
-      ---------------------------------------------------------------------*/
+      -----------------------------------------------------------------------*/
       Chimera::delayUntil( wake_up_tick + PERIOD_MS );
       wake_up_tick = Chimera::millis();
     }

@@ -15,11 +15,46 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-
+#include <Aurora/logging>
+#include <Aurora/filesystem>
+#include <etl/circular_buffer.h>
 
 namespace Orbit::Log
 {
+  /*---------------------------------------------------------------------------
+  Classes
+  ---------------------------------------------------------------------------*/
+  class FileLogger : public Aurora::Logging::SinkInterface
+  {
+  public:
+    /**
+     * How many times the cache had to be flushed directly during a log
+     * event because it was too full.
+     */
+    size_t numBufferOverruns;
 
+    FileLogger();
+    ~FileLogger();
+
+    Aurora::Logging::Result open() final override;
+    Aurora::Logging::Result close() final override;
+    Aurora::Logging::Result flush() final override;
+    Aurora::Logging::IOType getIOType() final override;
+    Aurora::Logging::Result log( const Aurora::Logging::Level level, const void *const message,
+                                 const size_t length ) final override;
+
+    /**
+     * @brief Assigns the file for logging into
+     *
+     * @param file  Name of the file to log to
+     */
+    void setLogFile( const std::string_view &file );
+
+  private:
+    std::string_view                   mFileName; /**< File being logged against */
+    Aurora::FileSystem::FileId         mFileDesc; /**< Assigned file descriptor */
+    etl::circular_buffer<uint8_t, 128> mBuffer;   /**< Cache for buffering frequent writes */
+  };
 }    // namespace Orbit::Log
 
 #endif /* !ORBIT_LOG_SINK_HPP */

@@ -5,6 +5,8 @@ gen_static_lib_variants(
     lib_orbit_data
   SOURCES
     orbit_data.cpp
+    orbit_log_io.cpp
+    orbit_log_sink.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc

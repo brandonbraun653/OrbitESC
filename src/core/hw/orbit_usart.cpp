@@ -97,7 +97,7 @@ namespace Orbit::USART
     s_serial_sink.assignChannel( IO::USART::serialChannel );
     s_serial_sink.logLevel = Aurora::Logging::Level::LVL_TRACE;
     s_serial_sink.enabled  = true;
-    s_serial_sink.name     = "HWLogger";
+    s_serial_sink.name     = "SerialLog";
 
     if ( !s_serial_handle )
     {
