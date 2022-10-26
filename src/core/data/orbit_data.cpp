@@ -50,7 +50,7 @@ namespace Orbit::Data
     // cfg.deviceAddress = 0x53;
     // cfg.i2cChannel    = IO::I2C::channel;
 
-    // RT_HARD_ASSERT( sEEPROMFlash.configure( cfg ) );
+    // RT_HARD_LOG( sEEPROMFlash.configure( cfg ) );
 
     /*-------------------------------------------------------------------------
     Power on the file system
@@ -82,9 +82,9 @@ namespace Orbit::Data
     s_lfs_volume.cfg.lookahead_size = 16;
     s_lfs_volume.cfg.block_cycles   = 500;
 
-    RT_HARD_ASSERT( true == s_lfs_volume.flash.assignChipSelect( IO::SPI::norCSPort, IO::SPI::norCSPin ) );
-    RT_HARD_ASSERT( true == s_lfs_volume.flash.configure( Aurora::Flash::NOR::Chip::AT25SF081, IO::SPI::spiChannel ) );
-    RT_HARD_ASSERT( true == FS::LFS::attachVolume( &s_lfs_volume ) );
+    RT_HARD_LOG( true == s_lfs_volume.flash.assignChipSelect( IO::SPI::norCSPort, IO::SPI::norCSPin ) );
+    RT_HARD_LOG( true == s_lfs_volume.flash.configure( Aurora::Flash::NOR::Chip::AT25SF081, IO::SPI::spiChannel ) );
+    RT_HARD_LOG( true == FS::LFS::attachVolume( &s_lfs_volume ) );
 
     /*-----------------------------------------------------------------------
     Initialize the Aurora filesystem drivers
