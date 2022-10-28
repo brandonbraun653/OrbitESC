@@ -51,9 +51,11 @@ namespace Orbit::Log
     void setLogFile( const std::string_view &file );
 
   private:
-    std::string_view                   mFileName; /**< File being logged against */
-    Aurora::FileSystem::FileId         mFileDesc; /**< Assigned file descriptor */
-    etl::circular_buffer<uint8_t, 128> mBuffer;   /**< Cache for buffering frequent writes */
+    static constexpr size_t CACHE_SIZE = 128;
+
+    std::string_view                          mFileName; /**< File being logged against */
+    Aurora::FileSystem::FileId                mFileDesc; /**< Assigned file descriptor */
+    etl::circular_buffer<uint8_t, CACHE_SIZE> mBuffer;   /**< Cache for buffering frequent writes */
   };
 }    // namespace Orbit::Log
 

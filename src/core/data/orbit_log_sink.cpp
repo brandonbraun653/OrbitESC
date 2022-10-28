@@ -18,8 +18,10 @@ Includes
 namespace Orbit::Log
 {
   /*---------------------------------------------------------------------------
-  Static Data
+  Aliases
   ---------------------------------------------------------------------------*/
+  namespace FS = Aurora::FileSystem;
+  namespace LG = Aurora::Logging;
 
   /*---------------------------------------------------------------------------
   Classes
@@ -48,7 +50,42 @@ namespace Orbit::Log
 
   Aurora::Logging::Result FileLogger::flush()
   {
+    /*-------------------------------------------------------------------------
+    Entrancy Checks
+    -------------------------------------------------------------------------*/
     Chimera::Thread::LockGuard _lck( *this );
+    if ( !enabled || ( mFileDesc < 0 ) )
+    {
+      return LG::Result::RESULT_FAIL_BAD_SINK;
+    }
+
+    /*-------------------------------------------------------------------------
+    Copy out the data from the buffer
+    -------------------------------------------------------------------------*/
+    const size_t cache_size = mBuffer.size();
+
+    etl::array<uint8_t, CACHE_SIZE> stack_cache;
+    etl::copy( mBuffer.begin(), mBuffer.end(), stack_cache );
+
+    /*-------------------------------------------------------------------------
+    Flush the cache to disk
+    -------------------------------------------------------------------------*/
+    size_t written = FS::fwrite( stack_cache.data(), 1, cache_size, mFileDesc );
+    if ( cache_size == written )
+    {
+      mBuffer.clear();
+      return LG::Result::RESULT_SUCCESS;
+    }
+    else
+    {
+      while( written > 0)
+      {
+        written--;
+        mBuffer.pop();
+      }
+
+      return LG::Result::RESULT_FAIL;
+    }
   }
 
 
@@ -60,20 +97,42 @@ namespace Orbit::Log
 
   Aurora::Logging::Result FileLogger::log( const Aurora::Logging::Level level, const void *const message, const size_t length )
   {
-    if( !enabled || ( level < logLevel ) )
+    /*-------------------------------------------------------------------------
+    Entrancy Checks
+    -------------------------------------------------------------------------*/
+    Chimera::Thread::LockGuard _lck( *this );
+    if( !enabled || ( level < logLevel ) || ( mFileDesc < 0 ) )
     {
-      return Aurora::Logging::Result::RESULT_IGNORE;
+      return LG::Result::RESULT_IGNORE;
     }
 
     RT_DBG_ASSERT( message && length );
 
-    // Increment buffer overruns
+    /*-------------------------------------------------------------------------
+    Fill the cache first. If full flush to disk immediately.
+    -------------------------------------------------------------------------*/
+    size_t byte_idx = 0;
+    auto   pData    = reinterpret_cast<const uint8_t *const>( message );
 
-    // Policy:
-    //  - Cache if possible, for speed
-    //  - If cache is full, flush it, then fill the cache with whatever data is left.
-    //  - Repeat until cache is partially full
-    //  - Protect against reentrancy...does this happen in the main logger framework?
+    while( byte_idx < length )
+    {
+      if( !mBuffer.available() )
+      {
+        numBufferOverruns++;
+        auto err = this->flush();
+
+        if( err == LG::Result::RESULT_SUCCESS )
+        {
+          continue;
+        }
+
+        return err;
+      }
+
+      mBuffer.push( pData[ byte_idx++ ] );
+    }
+
+    return LG::Result::RESULT_SUCCESS;
   }
 
 
