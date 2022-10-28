@@ -24,12 +24,20 @@ namespace Orbit::Log
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
+  /**
+   * @brief Simple sink for the Aurora logging infrastructure
+   *
+   * Not too many fancy things going on here. It's built on top of the
+   * Aurora filesystem module and will log to the configured file upon
+   * a call to "open" and stop logging on "close".
+   */
   class FileLogger : public Aurora::Logging::SinkInterface
   {
   public:
     /**
      * How many times the cache had to be flushed directly during a log
-     * event because it was too full.
+     * event because it was too full. Use this as an indication of the
+     * buffer size needing to be increased.
      */
     size_t numBufferOverruns;
 

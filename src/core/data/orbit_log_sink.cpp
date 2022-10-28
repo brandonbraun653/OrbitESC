@@ -39,12 +39,54 @@ namespace Orbit::Log
   Aurora::Logging::Result FileLogger::open()
   {
     Chimera::Thread::LockGuard _lck( *this );
+
+    /*-------------------------------------------------------------------------
+    Don't attempt to reopen
+    -------------------------------------------------------------------------*/
+    if( enabled && ( mFileDesc > 0 ) )
+    {
+      return LG::Result::RESULT_SUCCESS;
+    }
+
+    /*-------------------------------------------------------------------------
+    Attempt to open the file, creating one if it doesn't exist yet.
+    -------------------------------------------------------------------------*/
+    auto result = LG::Result::RESULT_FAIL;
+    auto flags  = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_CREAT | FS::AccessFlags::O_WRONLY;
+
+    if ( FS::fopen( mFileName.data(), flags, mFileDesc ) == 0 )
+    {
+      enabled = true;
+      result  = LG::Result::RESULT_SUCCESS;
+    }
+
+    return result;
   }
 
 
   Aurora::Logging::Result FileLogger::close()
   {
     Chimera::Thread::LockGuard _lck( *this );
+
+    auto result = LG::Result::RESULT_SUCCESS;
+
+    /*-------------------------------------------------------------------------
+    Flush the buffer first before closing the file
+    -------------------------------------------------------------------------*/
+    if ( enabled && ( mFileDesc >= 0 ) )
+    {
+      this->flush();
+      if ( FS::fclose( mFileDesc ) != 0 )
+      {
+        result = LG::Result::RESULT_FAIL;
+      }
+
+      mFileDesc = -1;
+      mBuffer.clear();
+    }
+
+    enabled = false;
+    return result;
   }
 
 
@@ -65,7 +107,7 @@ namespace Orbit::Log
     const size_t cache_size = mBuffer.size();
 
     etl::array<uint8_t, CACHE_SIZE> stack_cache;
-    etl::copy( mBuffer.begin(), mBuffer.end(), stack_cache );
+    etl::copy( mBuffer.begin(), mBuffer.end(), stack_cache.begin() );
 
     /*-------------------------------------------------------------------------
     Flush the cache to disk

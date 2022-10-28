@@ -230,5 +230,12 @@
     "**/.conda": true,
     "**/build": true,
     "**/.idea": true,
+  },
+  "terminal.integrated.profiles.linux":{
+    "bash": {
+      "path": "bash",
+      "icon": "terminal-bash",
+      "args": ["-l"]
+    }
   }
 }
