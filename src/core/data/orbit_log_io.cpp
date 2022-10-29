@@ -14,6 +14,7 @@ Includes
 #include <Aurora/filesystem>
 #include <Aurora/logging>
 #include <Chimera/serial>
+#include <Chimera/usart>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/data/orbit_log_io.hpp>
 #include <src/core/data/orbit_log_sink.hpp>
@@ -86,10 +87,12 @@ namespace Orbit::Log
 
   void dumpToConsole()
   {
+    static constexpr size_t CHUNK_SIZE = 64;
+
     /*-------------------------------------------------------------------------
     Ensure basic file access
     -------------------------------------------------------------------------*/
-    auto ser = Chimera::Serial::getDriver( IO::USART::serialChannel );
+    auto ser = Chimera::USART::getDriver( IO::USART::serialChannel );
     RT_DBG_ASSERT( ser );
 
     if( s_file_sink.close() != LG::Result::RESULT_SUCCESS )
@@ -100,18 +103,53 @@ namespace Orbit::Log
     /*-------------------------------------------------------------------------
     Open the file, then read out chunks of data
     -------------------------------------------------------------------------*/
+    uint8_t dbuff[ 2 ][ CHUNK_SIZE ];
+    uint8_t *pRead  = dbuff[ 0 ];
+    uint8_t *pWrite = dbuff[ 1 ];
+
+
     auto flags = FS::AccessFlags::O_RDONLY;
     auto file  = static_cast<FS::FileId>( 0 );
     int  err   = 0;
+    size_t toRead = 0;
+    size_t bytesRead = 0;
+
 
     if( FS::fopen( LogFile.data(), flags, file ) == 0 )
     {
-      // Get the file size
-      // Allocate a chunk double buffer on the stack, maybe 128 bytes or so.
-      // Copy chunks to working buffer, while the serial channel is writing
-      // Wait on the serial transfer to complete
-      // Swap buffers
-      // Transmit the old buffer and start reading out file data to the new buffer
+      FS::frewind( file );
+      size_t size = FS::fsize( file );
+      memset( dbuff, 0, sizeof( dbuff ) );
+
+      while ( ( size > 0 ) && ( err == 0 ) )
+      {
+        /*---------------------------------------------------------------------
+        Read in some data from the file
+        ---------------------------------------------------------------------*/
+        toRead    = ( size >= CHUNK_SIZE ) ? CHUNK_SIZE : size;
+        bytesRead = FS::fread( pRead, 1, toRead, file );
+
+        if( bytesRead == 0 )
+        {
+          err = -1;
+          continue;
+        }
+
+        /*---------------------------------------------------------------------
+        Wait on the last serial transaction to complete if it hasn't yet
+        ---------------------------------------------------------------------*/
+        ser->await( Chimera::Event::Trigger::TRIGGER_WRITE_COMPLETE, Chimera::Thread::TIMEOUT_10MS );
+
+        /*---------------------------------------------------------------------
+        Swap the working buffers, then push the data on the wire
+        ---------------------------------------------------------------------*/
+        uint8_t *tmp = pRead;
+        pRead        = pWrite;
+        pWrite       = tmp;
+
+        ser->write( pWrite, bytesRead );
+        size -= bytesRead;
+      }
     }
   }
 

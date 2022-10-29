@@ -11,6 +11,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Aurora/logging>
 #include <Chimera/thread>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_hwm_dio.hpp>
@@ -36,6 +37,10 @@ namespace Orbit::Tasks::DIO
     Log::initialize();
     Log::enable();
 
+    // testing
+    size_t last_assert = Chimera::millis();
+    size_t last_dump = Chimera::millis();
+
     /*-------------------------------------------------------------------------
     Run the HWM thread
     -------------------------------------------------------------------------*/
@@ -46,6 +51,21 @@ namespace Orbit::Tasks::DIO
       Do long-running operations
       -----------------------------------------------------------------------*/
       Log::flushCache();
+
+      /*-----------------------------------------------------------------------
+      TESTING!
+      -----------------------------------------------------------------------*/
+      if( wake_up_tick >= ( last_assert + Chimera::Thread::TIMEOUT_1S ) )
+      {
+        last_assert = wake_up_tick;
+        LOG_ERROR( "Test file logger %d\r\n", wake_up_tick );
+      }
+
+      if( wake_up_tick >= ( last_dump + ( 10 * Chimera::Thread::TIMEOUT_1S ) ) )
+      {
+        last_dump = wake_up_tick;
+        Log::dumpToConsole();
+      }
 
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically

@@ -105,6 +105,10 @@ namespace Orbit::Log
     Copy out the data from the buffer
     -------------------------------------------------------------------------*/
     const size_t cache_size = mBuffer.size();
+    if( cache_size == 0 )
+    {
+      return LG::Result::RESULT_SUCCESS;
+    }
 
     etl::array<uint8_t, CACHE_SIZE> stack_cache;
     etl::copy( mBuffer.begin(), mBuffer.end(), stack_cache.begin() );
