@@ -29,12 +29,22 @@ namespace Orbit::Data
   ---------------------------------------------------------------------------*/
   #define FS_MOUNT_PATH   ""
 
+  static constexpr size_t CACHE_SIZE     = 64;
+  static constexpr size_t LOOKAHEAD_SIZE = 64;
+
+  static_assert( CACHE_SIZE % sizeof( uint32_t ) == 0 );
+  static_assert( LOOKAHEAD_SIZE % sizeof( uint32_t ) == 0 );
+
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
   static Aurora::Flash::EEPROM::Driver sEEPROMFlash; /**< Flash memory driver supporting the file system */
   static FS::LFS::Volume               s_lfs_volume; /**< LittleFS volume for the NOR flash chip */
   static bool                          s_fs_mounted; /**< Checks if the filesystem mounted OK */
+
+  static uint32_t s_read_buffer[ CACHE_SIZE / sizeof( uint32_t ) ];
+  static uint32_t s_prog_buffer[ CACHE_SIZE / sizeof( uint32_t ) ];
+  static uint32_t s_look_buffer[ LOOKAHEAD_SIZE / sizeof( uint32_t ) ];
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -74,13 +84,16 @@ namespace Orbit::Data
     auto props = Aurora::Flash::NOR::getProperties( Aurora::Flash::NOR::Chip::AT25SF081 );
     s_lfs_volume.clear();
 
-    s_lfs_volume.cfg.read_size      = 16;
-    s_lfs_volume.cfg.prog_size      = 16;
-    s_lfs_volume.cfg.block_size     = props->blockSize;
-    s_lfs_volume.cfg.block_count    = props->endAddress / props->blockSize;
-    s_lfs_volume.cfg.cache_size     = 64;
-    s_lfs_volume.cfg.lookahead_size = 16;
-    s_lfs_volume.cfg.block_cycles   = 500;
+    s_lfs_volume.cfg.read_size        = 16;
+    s_lfs_volume.cfg.prog_size        = 16;
+    s_lfs_volume.cfg.block_size       = props->blockSize;
+    s_lfs_volume.cfg.block_count      = props->endAddress / props->blockSize;
+    s_lfs_volume.cfg.cache_size       = CACHE_SIZE;
+    s_lfs_volume.cfg.read_buffer      = s_read_buffer;
+    s_lfs_volume.cfg.prog_buffer      = s_prog_buffer;
+    s_lfs_volume.cfg.lookahead_size   = LOOKAHEAD_SIZE;
+    s_lfs_volume.cfg.lookahead_buffer = s_look_buffer;
+    s_lfs_volume.cfg.block_cycles     = 500;
 
     RT_HARD_ASSERT( true == s_lfs_volume.flash.assignChipSelect( IO::SPI::norCSPort, IO::SPI::norCSPin ) );
     RT_HARD_ASSERT( true == s_lfs_volume.flash.configure( Aurora::Flash::NOR::Chip::AT25SF081, IO::SPI::spiChannel ) );
@@ -91,6 +104,8 @@ namespace Orbit::Data
     -----------------------------------------------------------------------*/
     auto intf    = FS::LFS::getInterface();
     intf.context = &s_lfs_volume;
+
+    //s_lfs_volume.flash.erase();
 
     FS::initialize();
 

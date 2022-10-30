@@ -95,6 +95,7 @@ namespace Orbit::Log
     auto ser = Chimera::USART::getDriver( IO::USART::serialChannel );
     RT_DBG_ASSERT( ser );
 
+
     if( s_file_sink.close() != LG::Result::RESULT_SUCCESS )
     {
       return;
