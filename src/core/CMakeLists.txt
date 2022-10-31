@@ -11,6 +11,7 @@ gen_static_lib_variants(
     lib_orbit_core
   SOURCES
     bootup.cpp
+    syscalls.cpp
     tasks.cpp
     utility.cpp
   PRV_LIBRARIES

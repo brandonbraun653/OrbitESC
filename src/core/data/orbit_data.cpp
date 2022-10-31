@@ -102,15 +102,12 @@ namespace Orbit::Data
     /*-----------------------------------------------------------------------
     Initialize the Aurora filesystem drivers
     -----------------------------------------------------------------------*/
-    auto intf    = FS::LFS::getInterface();
-    intf.context = &s_lfs_volume;
-
-    //s_lfs_volume.flash.erase();
+    auto intf = FS::LFS::getInterface( &s_lfs_volume );
 
     FS::initialize();
-
     if( FS::mount( FS_MOUNT_PATH, intf ) < 0 )
     {
+      LOG_TRACE( "Formatting filesystem and remounting\r\n" );
       FS::LFS::formatVolume( &s_lfs_volume );
       FS::VolumeId mnt_vol = FS::mount( FS_MOUNT_PATH, intf );
 
@@ -120,10 +117,8 @@ namespace Orbit::Data
         LOG_ERROR( "Failed to mount filesystem: %d\r\n", mnt_vol );
       }
     }
-    else
-    {
-      LOG_TRACE( "Filesystem mounted\r\n" );
-    }
+
+    LOG_TRACE_IF( s_fs_mounted, "Filesystem mounted\r\n" );
   }
 
 }    // namespace Orbit::Data

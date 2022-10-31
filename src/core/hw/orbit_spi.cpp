@@ -34,7 +34,6 @@ namespace Orbit::SPI
     cfg.MOSIInit   = IO::SPI::mosiPinInit;
     cfg.MISOInit   = IO::SPI::misoPinInit;
     cfg.HWInit     = IO::SPI::spiHwInit;
-    cfg.externalCS = true;
     cfg.validity   = true;
 
     /*-------------------------------------------------------------------------

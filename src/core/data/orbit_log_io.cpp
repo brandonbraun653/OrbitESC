@@ -27,6 +27,13 @@ namespace Orbit::Log
   namespace FS = Aurora::FileSystem;
   namespace LG = Aurora::Logging;
 
+  /*---------------------------------------------------------------------------
+  Constants
+  ---------------------------------------------------------------------------*/
+  static constexpr size_t           CHUNK_SIZE  = 64;
+  static constexpr std::string_view s_start_msg = "***** Dumping File Log *****\r\n";
+  static constexpr std::string_view s_error_msg = "Error opening file\r\n";
+  static constexpr std::string_view s_end_msg   = "******* End File Log *******\r\n";
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -59,7 +66,7 @@ namespace Orbit::Log
 
   int enable()
   {
-    if( s_file_sink.open() == LG::Result::RESULT_SUCCESS )
+    if ( s_file_sink.open() == LG::Result::RESULT_SUCCESS )
     {
       return 0;
     }
@@ -70,7 +77,7 @@ namespace Orbit::Log
 
   int disable()
   {
-    if( s_file_sink.close() == LG::Result::RESULT_SUCCESS )
+    if ( s_file_sink.close() == LG::Result::RESULT_SUCCESS )
     {
       return 0;
     }
@@ -87,71 +94,88 @@ namespace Orbit::Log
 
   void dumpToConsole()
   {
-    static constexpr size_t CHUNK_SIZE = 64;
+    using namespace Chimera::Event;
+    using namespace Chimera::Thread;
 
     /*-------------------------------------------------------------------------
-    Ensure basic file access
+    Close the file sink to prevent any conflicting accesses
     -------------------------------------------------------------------------*/
-    auto ser = Chimera::USART::getDriver( IO::USART::serialChannel );
-    RT_DBG_ASSERT( ser );
-
-
-    if( s_file_sink.close() != LG::Result::RESULT_SUCCESS )
+    if ( s_file_sink.close() != LG::Result::RESULT_SUCCESS )
     {
       return;
     }
 
     /*-------------------------------------------------------------------------
+    Acquire serial output access
+    -------------------------------------------------------------------------*/
+    auto ser = Chimera::USART::getDriver( IO::USART::serialChannel );
+    RT_DBG_ASSERT( ser );
+    Chimera::Thread::LockGuard _serialLock( *ser );
+
+    ser->write( s_start_msg.data(), s_start_msg.size() );
+    ser->await( Trigger::TRIGGER_WRITE_COMPLETE, TIMEOUT_BLOCK );
+
+    /*-------------------------------------------------------------------------
     Open the file, then read out chunks of data
     -------------------------------------------------------------------------*/
-    uint8_t dbuff[ 2 ][ CHUNK_SIZE ];
-    uint8_t *pRead  = dbuff[ 0 ];
-    uint8_t *pWrite = dbuff[ 1 ];
+    uint8_t  buff[ CHUNK_SIZE + 1 ];
+    auto     flags     = FS::AccessFlags::O_RDONLY;
+    auto     file      = static_cast<FS::FileId>( 0 );
+    int      err       = 0;
+    size_t   toRead    = 0;
+    size_t   bytesRead = 0;
 
-
-    auto flags = FS::AccessFlags::O_RDONLY;
-    auto file  = static_cast<FS::FileId>( 0 );
-    int  err   = 0;
-    size_t toRead = 0;
-    size_t bytesRead = 0;
-
-
-    if( FS::fopen( LogFile.data(), flags, file ) == 0 )
+    if ( FS::fopen( LogFile.data(), flags, file ) == 0 )
     {
+      /*-----------------------------------------------------------------------
+      Move the file back to the beginning and reset the memory buffers
+      -----------------------------------------------------------------------*/
       FS::frewind( file );
       size_t size = FS::fsize( file );
-      memset( dbuff, 0, sizeof( dbuff ) );
+      memset( buff, 0, sizeof( buff ) );
 
+      /*-----------------------------------------------------------------------
+      Pull out chunks of data and dump it to the terminal
+      -----------------------------------------------------------------------*/
       while ( ( size > 0 ) && ( err == 0 ) )
       {
         /*---------------------------------------------------------------------
         Read in some data from the file
         ---------------------------------------------------------------------*/
         toRead    = ( size >= CHUNK_SIZE ) ? CHUNK_SIZE : size;
-        bytesRead = FS::fread( pRead, 1, toRead, file );
+        bytesRead = FS::fread( buff, 1, toRead, file );
 
-        if( bytesRead == 0 )
+        if ( bytesRead == 0 )
         {
           err = -1;
           continue;
         }
 
         /*---------------------------------------------------------------------
-        Wait on the last serial transaction to complete if it hasn't yet
+        Push the data on the wire
         ---------------------------------------------------------------------*/
-        ser->await( Chimera::Event::Trigger::TRIGGER_WRITE_COMPLETE, Chimera::Thread::TIMEOUT_10MS );
-
-        /*---------------------------------------------------------------------
-        Swap the working buffers, then push the data on the wire
-        ---------------------------------------------------------------------*/
-        uint8_t *tmp = pRead;
-        pRead        = pWrite;
-        pWrite       = tmp;
-
-        ser->write( pWrite, bytesRead );
+        ser->write( buff, bytesRead );
+        ser->await( Trigger::TRIGGER_WRITE_COMPLETE, TIMEOUT_BLOCK );
         size -= bytesRead;
       }
+
+      /*-----------------------------------------------------------------------
+      Give control back to the logging sink
+      -----------------------------------------------------------------------*/
+      FS::fclose( file );
+      s_file_sink.open();
     }
+    else
+    {
+      ser->write( s_error_msg.data(), s_error_msg.size() );
+      ser->await( Trigger::TRIGGER_WRITE_COMPLETE, TIMEOUT_BLOCK );
+    }
+
+    /*-------------------------------------------------------------------------
+    Dump the completion message to console
+    -------------------------------------------------------------------------*/
+    ser->write( s_end_msg.data(), s_end_msg.size() );
+    ser->await( Trigger::TRIGGER_WRITE_COMPLETE, TIMEOUT_BLOCK );
   }
 
 }    // namespace Orbit::Log

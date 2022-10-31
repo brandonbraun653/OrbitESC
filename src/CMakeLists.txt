@@ -30,6 +30,7 @@ gen_intf_lib_variants(
     thor_hld_uart_rel
     thor_hld_usart_rel
     thor_hld_watchdog_rel
+    thor_lld_cmn
     thor_lld_intf_adc_rel
     thor_lld_intf_can_rel
     thor_lld_intf_dma_rel
@@ -38,7 +39,7 @@ gen_intf_lib_variants(
     thor_lld_intf_i2c_rel
     thor_lld_intf_interrupt_rel
     thor_lld_intf_rcc_rel
-    thor_lld_intf_spi_rel
+    thor_lld_intf_spi_dbg
     thor_lld_intf_sys_rel
     thor_lld_intf_timer_rel
     thor_lld_intf_usart_rel
@@ -64,7 +65,7 @@ gen_intf_lib_variants(
     thor_lld_stm32l4_iwdg_rel
     thor_lld_stm32l4_power_rel
     thor_lld_stm32l4_rcc_rel
-    thor_lld_stm32l4_spi_dbg
+    thor_lld_stm32l4_spi_rel
     thor_lld_stm32l4_startup_rel
     thor_lld_stm32l4_system_rel
     thor_lld_stm32l4_usart_rel
@@ -137,7 +138,6 @@ target_link_libraries(OrbitESC PRIVATE
   thor_intf_inc
 
   # Project Libraries
-  # lib_orbit_cfg_bsp
   lib_orbit_com
   lib_orbit_core
   lib_orbit_ctrl

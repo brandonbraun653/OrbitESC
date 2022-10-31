@@ -27,14 +27,32 @@ namespace Orbit::Log
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+  /**
+   * @brief Initializes the logger
+   * @return int
+   */
   int initialize();
 
+  /**
+   * @brief Enables the event logger
+   * @return int
+   */
   int enable();
 
+  /**
+   * @brief Disables the event logger
+   * @return int
+   */
   int disable();
 
+  /**
+   * @brief Flushes any cached messages to the logger
+   */
   void flushCache();
 
+  /**
+   * @brief Dumps the entire contents of the log to console
+   */
   void dumpToConsole();
 
 }  // namespace Orbit::Log

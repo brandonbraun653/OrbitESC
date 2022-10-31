@@ -57,12 +57,17 @@ namespace Orbit::LED
 
   void sendUpdate()
   {
+    Chimera::Thread::LockGuard _spiLock( *s_spi_driver );
+
     uint8_t led_cache = s_led_state;
 
-    s_led_cs_pin->setState( Chimera::GPIO::State::LOW );
+    s_spi_driver->assignChipSelect( s_led_cs_pin );
+    s_spi_driver->setChipSelectControlMode( Chimera::SPI::CSMode::MANUAL );
+    s_spi_driver->setChipSelect( Chimera::GPIO::State::LOW );
     s_spi_driver->writeBytes( &led_cache, sizeof( led_cache ) );
     s_spi_driver->await( Chimera::Event::Trigger::TRIGGER_TRANSFER_COMPLETE, Chimera::Thread::TIMEOUT_10MS );
-    s_led_cs_pin->setState( Chimera::GPIO::State::HIGH );
+    s_spi_driver->setChipSelect( Chimera::GPIO::State::HIGH );
+    s_spi_driver->assignChipSelect( nullptr );
 
   }
 
