@@ -40,16 +40,32 @@ namespace Orbit::Data
   struct Identity
   {
     Aurora::DS::SecureHeader16_t header;
+
+    void clear()
+    {
+
+    }
   };
 
   struct Calibration
   {
     Aurora::DS::SecureHeader16_t header;
+
+
+    void clear()
+    {
+
+    }
   };
 
   struct Controls
   {
     Aurora::DS::SecureHeader16_t header;
+
+    void clear()
+    {
+
+    }
   };
 #pragma pack( pop )
 
@@ -75,9 +91,21 @@ namespace Orbit::Data
    */
   void bootFileSystem();
 
-  void flushConfigCache( const CacheId id );
+  /**
+   * @brief Flushes one of the cached data structures to disk
+   *
+   * @param id      Which cache item to save
+   * @return bool   True if success, false if not
+   */
+  bool saveConfigCache( const CacheId id );
 
-  void loadConfigCache(const CacheId id );
+  /**
+   * @brief Loads one of the cached data structures from disk
+   *
+   * @param id      Which cache item to load
+   * @return bool   True if success, false if not
+   */
+  bool loadConfigCache(const CacheId id );
 
 }  // namespace Orbit::Data
 
