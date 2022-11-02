@@ -55,17 +55,17 @@ namespace Orbit::Tasks::DIO
       /*-----------------------------------------------------------------------
       TESTING!
       -----------------------------------------------------------------------*/
-      if( wake_up_tick >= ( last_assert + Chimera::Thread::TIMEOUT_1S ) )
-      {
-        last_assert = wake_up_tick;
-        LOG_ERROR( "Test file logger %d\r\n", wake_up_tick );
-      }
+      // if( wake_up_tick >= ( last_assert + Chimera::Thread::TIMEOUT_1S ) )
+      // {
+      //   last_assert = wake_up_tick;
+      //   LOG_ERROR( "Test file logger %d\r\n", wake_up_tick );
+      // }
 
-      if( wake_up_tick >= ( last_dump + ( 10 * Chimera::Thread::TIMEOUT_1S ) ) )
-      {
-        last_dump = wake_up_tick;
-        Log::dumpToConsole();
-      }
+      // if( wake_up_tick >= ( last_dump + ( 10 * Chimera::Thread::TIMEOUT_1S ) ) )
+      // {
+      //   last_dump = wake_up_tick;
+      //   Log::dumpToConsole();
+      // }
 
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically

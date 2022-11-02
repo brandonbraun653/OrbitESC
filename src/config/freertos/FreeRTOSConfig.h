@@ -94,7 +94,7 @@ Figure out how much RAM we want to allocate
 #endif
 
 #if defined( TARGET_STM32L4 ) && defined( STM32L432xx )
-#define configTOTAL_HEAP_SIZE ( ( size_t )( 30 * 1024 ) )
+#define configTOTAL_HEAP_SIZE ( ( size_t )( 35 * 1024 ) )
 #endif
 
 #elif defined( _SIM )
