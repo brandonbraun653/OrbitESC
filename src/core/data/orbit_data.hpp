@@ -18,6 +18,7 @@ Includes
 #include <cstdint>
 #include <Aurora/datastruct>
 #include <Chimera/common>
+#include <src/core/data/orbit_data_defaults.hpp>
 
 namespace Orbit::Data
 {
@@ -41,9 +42,24 @@ namespace Orbit::Data
   {
     Aurora::DS::SecureHeader16_t header;
 
+    char boardName[ 16 ];
+    char description[ 32 ];
+    char serialNumber[ 8 ];
+    uint8_t hwVersion;
+    uint8_t swVerMajor;
+    uint8_t swVerMinor;
+    uint8_t swVerPatch;
+
     void clear()
     {
-
+      header.clear();
+      memset( boardName, 0, sizeof( boardName ) );
+      memset( description, 0, sizeof( description ) );
+      memset( serialNumber, 0, sizeof( serialNumber ) );
+      hwVersion  = 0;
+      swVerMajor = 0;
+      swVerMinor = 0;
+      swVerPatch = 0;
     }
   };
 
@@ -106,6 +122,11 @@ namespace Orbit::Data
    * @return bool   True if success, false if not
    */
   bool loadConfigCache(const CacheId id );
+
+  /**
+   * @brief Prints the system configuration to console
+   */
+  void printConfiguration();
 
 }  // namespace Orbit::Data
 

@@ -43,24 +43,33 @@ namespace Orbit::Log
     /*-------------------------------------------------------------------------
     Don't attempt to reopen
     -------------------------------------------------------------------------*/
-    if( enabled && ( mFileDesc > 0 ) )
+    if( enabled ) //&& ( mFileDesc > 0 ) )
     {
       return LG::Result::RESULT_SUCCESS;
+    }
+
+    auto flags = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_CREAT | FS::AccessFlags::O_RDWR;
+    if ( FS::fopen( mFileName.data(), flags, mFileDesc ) == 0 )
+    {
+      FS::fclose( mFileDesc );
     }
 
     /*-------------------------------------------------------------------------
     Attempt to open the file, creating one if it doesn't exist yet.
     -------------------------------------------------------------------------*/
-    auto result = LG::Result::RESULT_FAIL;
-    auto flags  = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_CREAT | FS::AccessFlags::O_WRONLY;
+    enabled = true;
+    return LG::Result::RESULT_SUCCESS;
 
-    if ( FS::fopen( mFileName.data(), flags, mFileDesc ) == 0 )
-    {
-      enabled = true;
-      result  = LG::Result::RESULT_SUCCESS;
-    }
+    // auto result = LG::Result::RESULT_FAIL;
+    // auto flags  = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_CREAT | FS::AccessFlags::O_WRONLY;
 
-    return result;
+    // if ( FS::fopen( mFileName.data(), flags, mFileDesc ) == 0 )
+    // {
+    //   enabled = true;
+    //   result  = LG::Result::RESULT_SUCCESS;
+    // }
+
+    // return result;
   }
 
 
@@ -73,17 +82,17 @@ namespace Orbit::Log
     /*-------------------------------------------------------------------------
     Flush the buffer first before closing the file
     -------------------------------------------------------------------------*/
-    if ( enabled && ( mFileDesc >= 0 ) )
-    {
-      this->flush();
-      if ( FS::fclose( mFileDesc ) != 0 )
-      {
-        result = LG::Result::RESULT_FAIL;
-      }
+    // if ( enabled && ( mFileDesc >= 0 ) )
+    // {
+    //   this->flush();
+    //   if ( FS::fclose( mFileDesc ) != 0 )
+    //   {
+    //     result = LG::Result::RESULT_FAIL;
+    //   }
 
-      mFileDesc = -1;
-      mBuffer.clear();
-    }
+    //   mFileDesc = -1;
+    //   mBuffer.clear();
+    // }
 
     enabled = false;
     return result;
@@ -96,42 +105,51 @@ namespace Orbit::Log
     Entrancy Checks
     -------------------------------------------------------------------------*/
     Chimera::Thread::LockGuard _lck( *this );
-    if ( !enabled || ( mFileDesc < 0 ) )
+    if ( !enabled )//|| ( mFileDesc < 0 ) )
     {
       return LG::Result::RESULT_FAIL_BAD_SINK;
     }
 
-    /*-------------------------------------------------------------------------
-    Copy out the data from the buffer
-    -------------------------------------------------------------------------*/
     const size_t cache_size = mBuffer.size();
     if( cache_size == 0 )
     {
       return LG::Result::RESULT_SUCCESS;
     }
 
-    etl::array<uint8_t, CACHE_SIZE> stack_cache;
-    etl::copy( mBuffer.begin(), mBuffer.end(), stack_cache.begin() );
+    auto flags  = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_EXCL | FS::AccessFlags::O_RDWR;
+    if ( FS::fopen( mFileName.data(), flags, mFileDesc ) == 0 )
+    {
+      /*-------------------------------------------------------------------------
+      Copy out the data from the buffer
+      -------------------------------------------------------------------------*/
 
-    /*-------------------------------------------------------------------------
-    Flush the cache to disk
-    -------------------------------------------------------------------------*/
-    size_t written = FS::fwrite( stack_cache.data(), 1, cache_size, mFileDesc );
-    if ( cache_size == written )
-    {
-      mBuffer.clear();
-      return LG::Result::RESULT_SUCCESS;
-    }
-    else
-    {
-      while( written > 0)
+      etl::array<uint8_t, CACHE_SIZE> stack_cache;
+      stack_cache.fill( 0 );
+      etl::copy( mBuffer.begin(), mBuffer.end(), stack_cache.begin() );
+
+      /*-------------------------------------------------------------------------
+      Flush the cache to disk
+      -------------------------------------------------------------------------*/
+      size_t written = FS::fwrite( stack_cache.data(), 1, cache_size, mFileDesc );
+      // FS::fflush( mFileDesc );
+
+      if ( cache_size == written )
       {
-        written--;
-        mBuffer.pop();
+        mBuffer.clear();
+      }
+      else
+      {
+        while( written > 0)
+        {
+          written--;
+          mBuffer.pop();
+        }
       }
 
-      return LG::Result::RESULT_FAIL;
+      auto err = FS::fclose( mFileDesc );
     }
+
+    return LG::Result::RESULT_SUCCESS;
   }
 
 
@@ -147,7 +165,7 @@ namespace Orbit::Log
     Entrancy Checks
     -------------------------------------------------------------------------*/
     Chimera::Thread::LockGuard _lck( *this );
-    if( !enabled || ( level < logLevel ) || ( mFileDesc < 0 ) )
+    if( !enabled || ( level < logLevel ) )//|| ( mFileDesc < 0 ) )
     {
       return LG::Result::RESULT_IGNORE;
     }

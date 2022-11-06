@@ -96,6 +96,7 @@ namespace Orbit::Boot
     Power up more complex system components
     -------------------------------------------------------------------------*/
     Orbit::Data::initialize();
+    Orbit::Data::printConfiguration();
 #if defined( ORBIT_ESC_V1 )
     Orbit::LED::powerUp();
 #endif

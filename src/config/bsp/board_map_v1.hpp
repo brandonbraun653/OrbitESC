@@ -127,11 +127,11 @@ namespace Orbit::IO
 
     static constexpr Chimera::SPI::HardwareInit spiHwInit = { .bitOrder    = Chimera::SPI::BitOrder::MSB_FIRST,
                                                               .controlMode = Chimera::SPI::ControlMode::MASTER,
-                                                              .clockFreq   = 6'000'000,
+                                                              .clockFreq   = 1'000'000,
                                                               .clockMode   = Chimera::SPI::ClockMode::MODE0,
                                                               .dataSize    = Chimera::SPI::DataSize::SZ_8BIT,
                                                               .hwChannel   = Chimera::SPI::Channel::SPI3,
-                                                              .txfrMode    = Chimera::SPI::TransferMode::INTERRUPT,
+                                                              .txfrMode    = Chimera::SPI::TransferMode::BLOCKING,
                                                               .validity    = true };
 
     static constexpr Chimera::GPIO::PinInit sckPinInit = { .alternate = Chimera::GPIO::Alternate::SPI3_SCK,

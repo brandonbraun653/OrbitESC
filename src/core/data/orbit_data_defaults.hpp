@@ -17,9 +17,16 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <cstddef>
 #include <cstdint>
+#include <etl/string.h>
 
 namespace Orbit::Data
 {
+  /*---------------------------------------------------------------------------
+  System Identity
+  ---------------------------------------------------------------------------*/
+  static constexpr etl::string_view DFLT_BOARD_NAME = "OrbitESC";
+  static constexpr etl::string_view DFLT_DESCRIPTION = "BLDC Motor Controller";
+
   /*---------------------------------------------------------------------------
   Motor Characteristics
   ---------------------------------------------------------------------------*/

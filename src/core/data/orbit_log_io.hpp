@@ -22,7 +22,7 @@ namespace Orbit::Log
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr std::string_view LogFile = "system_events.log";
+  static constexpr std::string_view LogFile = "/system_events.log";
 
   /*---------------------------------------------------------------------------
   Public Functions

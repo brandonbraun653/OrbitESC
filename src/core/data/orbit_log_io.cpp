@@ -119,7 +119,7 @@ namespace Orbit::Log
     Open the file, then read out chunks of data
     -------------------------------------------------------------------------*/
     uint8_t  buff[ CHUNK_SIZE + 1 ];
-    auto     flags     = FS::AccessFlags::O_RDONLY;
+    auto     flags     = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_EXCL | FS::AccessFlags::O_RDWR;
     auto     file      = static_cast<FS::FileId>( 0 );
     int      err       = 0;
     size_t   toRead    = 0;
@@ -142,6 +142,7 @@ namespace Orbit::Log
         /*---------------------------------------------------------------------
         Read in some data from the file
         ---------------------------------------------------------------------*/
+        memset( buff, 0, sizeof( buff ) );
         toRead    = ( size >= CHUNK_SIZE ) ? CHUNK_SIZE : size;
         bytesRead = FS::fread( buff, 1, toRead, file );
 
@@ -163,7 +164,6 @@ namespace Orbit::Log
       Give control back to the logging sink
       -----------------------------------------------------------------------*/
       FS::fclose( file );
-      s_file_sink.open();
     }
     else
     {
@@ -176,6 +176,7 @@ namespace Orbit::Log
     -------------------------------------------------------------------------*/
     ser->write( s_end_msg.data(), s_end_msg.size() );
     ser->await( Trigger::TRIGGER_WRITE_COMPLETE, TIMEOUT_BLOCK );
+    s_file_sink.enabled = true;
   }
 
 }    // namespace Orbit::Log

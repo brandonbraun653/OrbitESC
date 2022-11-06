@@ -42,21 +42,6 @@ namespace Orbit::Tasks::HWM
     Orbit::CAN::initRuntime();
     Orbit::ADC::initRuntime();
 
-    auto cfg = Aurora::Flash::EEPROM::DeviceConfig();
-    cfg.clear();
-    cfg.deviceAddress = 0x50;
-    cfg.i2cChannel    = IO::I2C::channel;
-    cfg.whichChip     = Aurora::Flash::EEPROM::Chip::E24LC128;
-
-    auto eeprom = Aurora::Flash::EEPROM::Driver();
-    eeprom.configure( cfg );
-
-    bool rw_flag = true;
-    size_t last_write = Chimera::millis();
-    const char * hello = "hello";
-    size_t rw_address = 0x00;
-    char read_buf[ 10 ];
-
     /*-------------------------------------------------------------------------
     Run the HWM thread
     -------------------------------------------------------------------------*/
@@ -68,27 +53,6 @@ namespace Orbit::Tasks::HWM
       ---------------------------------------------------------------------*/
       Orbit::CAN::processCANBus();
       Orbit::ADC::processADC();
-
-      if ( ( Chimera::millis() - last_write ) > 1000 )
-      {
-        if( rw_flag )
-        {
-          // eeprom.write( rw_address, hello, strlen( hello ) );
-          // eeprom.await( Chimera::Event::Trigger::TRIGGER_TRANSFER_COMPLETE, Chimera::Thread::TIMEOUT_10MS );
-          rw_flag = false;
-        }
-        else
-        {
-          rw_flag = true;
-
-          memset( read_buf, 0, sizeof( read_buf ) );
-          eeprom.read( rw_address, read_buf, strlen( hello ) );
-          eeprom.await( Chimera::Event::Trigger::TRIGGER_TRANSFER_COMPLETE, Chimera::Thread::TIMEOUT_10MS );
-
-          //LOG_INFO( "EEPROM says: %s\r\n", read_buf );
-        }
-        last_write = Chimera::millis();
-      }
 
       /*---------------------------------------------------------------------
       Pseudo attempt to run this task periodically

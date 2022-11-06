@@ -102,7 +102,7 @@
     },
     {
       "label": "Dump Sections",
-      "type":"shell",
+      "type": "shell",
       "command": "arm-none-eabi-objdump -w -d --section=.text OrbitESC > sections.txt",
       "options": {
         "cwd": "${workspaceFolder}/artifacts/last_build_version"
@@ -111,7 +111,7 @@
     },
     {
       "label": "Dump Sections -- Unmangled",
-      "type":"shell",
+      "type": "shell",
       "command": "arm-none-eabi-objdump -w -d --demangle --section=.text OrbitESC > sections_unmangled.txt",
       "options": {
         "cwd": "${workspaceFolder}/artifacts/last_build_version"
@@ -120,7 +120,7 @@
     },
     {
       "label": "Dump Largest Symbols",
-      "type":"shell",
+      "type": "shell",
       "command": "arm-none-eabi-nm --print-size --size-sort --reverse-sort OrbitESC > symbols.txt",
       "options": {
         "cwd": "${workspaceFolder}/artifacts/last_build_version"
@@ -129,7 +129,7 @@
     },
     {
       "label": "Dump Largest Symbols -- Unmangled",
-      "type":"shell",
+      "type": "shell",
       "command": "arm-none-eabi-nm --demangle --print-size --size-sort --reverse-sort OrbitESC > symbols_unmangled.txt",
       "options": {
         "cwd": "${workspaceFolder}/artifacts/last_build_version"
@@ -137,20 +137,40 @@
       "problemMatcher": []
     },
     {
-    "type": "shell",
-    "label": "Minicom Terminal",
-    "command": "sudo",  // <-- your shell here
-    "args": [
+      "type": "shell",
+      "label": "Minicom Terminal: ttyUSB0",
+      "command": "sudo", // <-- your shell here
+      "args": [
         "minicom",
         "-D",
         "/dev/ttyUSB0",
         "-b",
         "921600"
-    ],
-    "problemMatcher": [],
-    "presentation": {
-        "echo": false,  // silence "Executing task ..."
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "echo": false, // silence "Executing task ..."
         "focus": true,
         "panel": "dedicated"
+      }
     },
+    {
+      "type": "shell",
+      "label": "Minicom Terminal: ttyUSB1",
+      "command": "sudo", // <-- your shell here
+      "args": [
+        "minicom",
+        "-D",
+        "/dev/ttyUSB1",
+        "-b",
+        "921600"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "echo": false, // silence "Executing task ..."
+        "focus": true,
+        "panel": "dedicated"
+      }
+    }
+  ]
 }

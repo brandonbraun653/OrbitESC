@@ -30,7 +30,7 @@ gen_intf_lib_variants(
     thor_hld_uart_rel
     thor_hld_usart_rel
     thor_hld_watchdog_rel
-    thor_lld_cmn
+    thor_lld_cmn_rel
     thor_lld_intf_adc_rel
     thor_lld_intf_can_rel
     thor_lld_intf_dma_rel
@@ -65,7 +65,7 @@ gen_intf_lib_variants(
     thor_lld_stm32l4_iwdg_rel
     thor_lld_stm32l4_power_rel
     thor_lld_stm32l4_rcc_rel
-    thor_lld_stm32l4_spi_rel
+    thor_lld_stm32l4_spi_dbg
     thor_lld_stm32l4_startup_rel
     thor_lld_stm32l4_system_rel
     thor_lld_stm32l4_usart_rel

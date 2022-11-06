@@ -92,25 +92,47 @@ namespace Orbit::Data
     Pre-load the cache or initialize to defaults
     -------------------------------------------------------------------------*/
     bool result = true;
-    if ( !loadConfigCache( CacheId::IDENTITY ) )
+    for( size_t idx = 0; idx < EnumValue( CacheId::NUM_OPTIONS ); idx++ )
     {
-      SysIdentity.clear();
-      result &= saveConfigCache( CacheId::IDENTITY );
-      LOG_ERROR_IF( result, "Failed to load Identity data\r\n" );
-    }
+      /*-----------------------------------------------------------------------
+      Attempt to load previously configured data
+      -----------------------------------------------------------------------*/
+      CacheId id = static_cast<CacheId>( idx );
+      if ( loadConfigCache( id ) )
+      {
+        continue;
+      }
 
-    if ( !loadConfigCache( CacheId::CALIBRATION ) )
-    {
-      SysCalibration.clear();
-      result &= saveConfigCache( CacheId::CALIBRATION );
-      LOG_ERROR_IF( result, "Failed to load Calibration data\r\n" );
-    }
+      /*-----------------------------------------------------------------------
+      Prepare the new data to be written
+      -----------------------------------------------------------------------*/
+      switch( id )
+      {
+        case CacheId::CALIBRATION:
+          SysCalibration.clear();
+          break;
 
-    if ( !loadConfigCache( CacheId::CONTROL_SYSTEM ) )
-    {
-      SysControl.clear();
-      result &= saveConfigCache( CacheId::CONTROL_SYSTEM );
-      LOG_ERROR_IF( result, "Failed to load Control System data\r\n" );
+        case CacheId::CONTROL_SYSTEM:
+          SysControl.clear();
+          break;
+
+        case CacheId::IDENTITY:
+          SysIdentity.clear();
+          break;
+
+        case CacheId::NUM_OPTIONS:
+        default:
+          continue;
+      }
+
+      /*-----------------------------------------------------------------------
+      Save it off then attempt to read it back to verify it actually made it
+      -----------------------------------------------------------------------*/
+      bool tmp = saveConfigCache( id );
+      tmp &= loadConfigCache( id );
+      LOG_ERROR_IF( tmp, "Failed to load cache data %d\r\n", idx );
+
+      result &= tmp;
     }
 
     return result;
@@ -132,8 +154,8 @@ namespace Orbit::Data
     auto props = Aurora::Flash::NOR::getProperties( Aurora::Flash::NOR::Chip::AT25SF081 );
     s_lfs_volume.clear();
 
-    s_lfs_volume.cfg.read_size        = CACHE_SIZE;
-    s_lfs_volume.cfg.prog_size        = CACHE_SIZE;
+    s_lfs_volume.cfg.read_size        = 16;
+    s_lfs_volume.cfg.prog_size        = 16;
     s_lfs_volume.cfg.block_size       = props->blockSize;
     s_lfs_volume.cfg.block_count      = props->endAddress / props->blockSize;
     s_lfs_volume.cfg.cache_size       = CACHE_SIZE;
@@ -154,12 +176,13 @@ namespace Orbit::Data
     -----------------------------------------------------------------------*/
     auto intf = FS::LFS::getInterface( &s_lfs_volume );
 
+    LOG_TRACE( "Mounting filesystem\r\n" );
     FS::initialize();
-    if ( FS::mount( "", intf ) < 0 )
+    if ( FS::mount( "/", intf ) < 0 )
     {
       LOG_TRACE( "Formatting filesystem and remounting\r\n" );
       FS::LFS::formatVolume( &s_lfs_volume );
-      FS::VolumeId mnt_vol = FS::mount( "", intf );
+      FS::VolumeId mnt_vol = FS::mount( "/", intf );
 
       if ( mnt_vol < 0 )
       {
@@ -214,13 +237,18 @@ namespace Orbit::Data
     };
 
     /*-------------------------------------------------------------------------
+    Update the CRC
+    -------------------------------------------------------------------------*/
+    Aurora::DS::SH::initHeader( pObj, size, version, tag );
+    Aurora::DS::SH::addCRC( pObj, size );
+
+    /*-------------------------------------------------------------------------
     Save the data
     -------------------------------------------------------------------------*/
     Chimera::Thread::LockGuard _lck( s_eeprom );
-    auto                       result0 = s_eeprom.write( address, pObj, size );
-    auto result1 = s_eeprom.await( Chimera::Event::Trigger::TRIGGER_TRANSFER_COMPLETE, Chimera::Thread::TIMEOUT_BLOCK );
 
-    return ( ( result0 == Aurora::Memory::Status::ERR_OK ) && ( result1 == Chimera::Status::OK ) );
+    auto result = s_eeprom.write( address, pObj, size );
+    return result == Aurora::Memory::Status::ERR_OK;
   }
 
 
@@ -231,8 +259,6 @@ namespace Orbit::Data
     -------------------------------------------------------------------------*/
     Aurora::DS::SecureHeader16_t *pObj    = nullptr;
     size_t                        address = 0;
-    uint8_t                       version = 0;
-    uint8_t                       tag     = 0;
     uint16_t                      size    = 0;
 
     switch ( id )
@@ -240,24 +266,18 @@ namespace Orbit::Data
       case CacheId::IDENTITY:
         pObj    = reinterpret_cast<Aurora::DS::SecureHeader16_t *>( &SysIdentity );
         address = EEPROM_IDENTITY_ADDR;
-        version = EEPROM_IDENTITY_VER;
-        tag     = EEPROM_IDENTITY_TAG;
         size    = sizeof( Identity );
         break;
 
       case CacheId::CALIBRATION:
         pObj    = reinterpret_cast<Aurora::DS::SecureHeader16_t *>( &SysCalibration );
         address = EEPROM_CALIBRATION_ADDR;
-        version = EEPROM_CALIBRATION_VER;
-        tag     = EEPROM_CALIBRATION_TAG;
         size    = sizeof( Calibration );
         break;
 
       case CacheId::CONTROL_SYSTEM:
         pObj    = reinterpret_cast<Aurora::DS::SecureHeader16_t *>( &SysControl );
         address = EEPROM_CONTROLS_ADDR;
-        version = EEPROM_CONTROLS_VER;
-        tag     = EEPROM_CONTROLS_TAG;
         size    = sizeof( Controls );
         break;
 
@@ -269,9 +289,9 @@ namespace Orbit::Data
     Read the header off first to determine how much data is stored
     -------------------------------------------------------------------------*/
     Chimera::Thread::LockGuard _lck( s_eeprom );
-    auto                       tmpHdr = Aurora::DS::SecureHeader16_t();
+
+    auto tmpHdr = Aurora::DS::SecureHeader16_t();
     s_eeprom.read( address, &tmpHdr, sizeof( Aurora::DS::SecureHeader16_t ) );
-    s_eeprom.await( Chimera::Event::Trigger::TRIGGER_TRANSFER_COMPLETE, Chimera::Thread::TIMEOUT_BLOCK );
 
     /* Read the minimal amount of information */
     size = std::min( tmpHdr.size, size );
@@ -280,9 +300,14 @@ namespace Orbit::Data
     Load the data
     -------------------------------------------------------------------------*/
     s_eeprom.read( address, pObj, size );
-    s_eeprom.await( Chimera::Event::Trigger::TRIGGER_TRANSFER_COMPLETE, Chimera::Thread::TIMEOUT_BLOCK );
 
     return Aurora::DS::SH::isValid( pObj, size );
   }
 
+
+  void printConfiguration()
+  {
+    LOG_INFO( "OrbitESC -- HW: %d, SW:%d.%d.%d, SN:%s\r\n", SysIdentity.hwVersion, SysIdentity.swVerMajor,
+              SysIdentity.swVerMinor, SysIdentity.swVerPatch, SysIdentity.serialNumber );
+  }
 }    // namespace Orbit::Data
