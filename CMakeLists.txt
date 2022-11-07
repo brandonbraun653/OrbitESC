@@ -31,6 +31,8 @@ endif()
 # ====================================================
 add_subdirectory("lib/Aurora")
 add_subdirectory("lib/Chimera")
+add_subdirectory("lib/ChimeraSim")
+add_subdirectory("lib/CommonTools/googletest")
 add_subdirectory("lib/FreeRTOS")
 add_subdirectory("lib/Thor")
 

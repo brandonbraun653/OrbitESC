@@ -24,6 +24,7 @@
             "${workspaceFolder}/lib/Chimera/source/drivers/peripherals",
             "${workspaceFolder}/lib/Chimera/source/drivers/peripherals/timer",
             "${workspaceFolder}/lib/Chimera/source/drivers/peripherals/timer/views",
+            "${workspaceFolder}/lib/ChimeraSim/include",
             "${workspaceFolder}/lib/CommonTools/cpputest/include",
             "${workspaceFolder}/lib/CommonTools/googletest",
             "${workspaceFolder}/lib/CommonTools/googletest/googletest/googlemock/include",
@@ -119,6 +120,7 @@
         ],
         "defaultSimDefines": [
             "SIMULATOR",
+            "CHIMERA_VIRTUAL",
             "CHIMERA_SIMULATOR",
             "USING_NATIVE_THREADS",
             "${defaultDefines}"

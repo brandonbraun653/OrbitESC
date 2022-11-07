@@ -2,6 +2,14 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "gdb",
+      "request": "launch",
+      "name": "Simulator",
+      "target": "OrbitESC",
+      "cwd": "${workspaceRoot}/artifacts/last_build_version",
+      "valuesFormatting": "parseText"
+    },
+    {
       "name": "J-Link STM32L432KB",
       "cwd": "${workspaceRoot}",
       "executable": "./artifacts/last_build_version/sys_image",

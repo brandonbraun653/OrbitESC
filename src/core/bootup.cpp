@@ -77,7 +77,9 @@ namespace Orbit::Boot
     /*-------------------------------------------------------------------------
     Power up high level system controls
     -------------------------------------------------------------------------*/
+    #if defined( EMBEDDED )
     setSystemBehavior();
+    #endif
 
     /*-------------------------------------------------------------------------
     Power up the hardware peripherals

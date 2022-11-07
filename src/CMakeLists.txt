@@ -166,7 +166,12 @@ if(${DEVICE_TARGET} MATCHES "^stm32[lf]4")
   endif()
 
 elseif(${DEVICE_TARGET} MATCHES "^sim")
-  target_link_libraries(OrbitESC PRIVATE chimera_sim_core)
+  target_link_libraries(OrbitESC PRIVATE
+    chimera_sim_core
+    gtest_src
+    gmock_src
+    zmq
+    )
 else()
   message(FATAL_ERROR "Unsupported device target")
 endif()

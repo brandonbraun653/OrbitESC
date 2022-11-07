@@ -13,7 +13,6 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/logging>
 #include <Chimera/adc>
-#include <Thor/lld/interface/inc/timer>
 #include <cmath>
 #include <src/config/bsp/board_map.hpp>
 #include <src/control/foc_driver.hpp>
@@ -28,9 +27,15 @@ Includes
 #include <src/core/data/orbit_data_defaults.hpp>
 #include <src/core/utility.hpp>
 
-#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
+#if defined( EMBEDDED )
+#include <Thor/lld/interface/inc/timer>
+
+#if defined( SEGGER_SYS_VIEW )
 #include "SEGGER_SYSVIEW.h"
-#endif
+#endif  /* SEGGER_SYS_VIEW */
+#endif  /* EMBEDDED */
+
+
 
 namespace Orbit::Control
 {
@@ -250,7 +255,7 @@ namespace Orbit::Control
 
   void FOC::adcISRTxfrComplete( const Chimera::ADC::InterruptDetail &isr )
   {
-#if defined( SEGGER_SYS_VIEW )
+#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
     SEGGER_SYSVIEW_RecordEnterISR();
 #endif
 
@@ -394,7 +399,7 @@ namespace Orbit::Control
     // 60 degrees of rotation. The main question is how to determine which phase
     // correctly corresponds to the current position estimate?
 
-#if defined( SEGGER_SYS_VIEW )
+#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
     SEGGER_SYSVIEW_RecordExitISR();
 #endif
   }
