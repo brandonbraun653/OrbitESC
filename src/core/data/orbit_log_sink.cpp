@@ -26,7 +26,7 @@ namespace Orbit::Log
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  FileLogger::FileLogger() : numBufferOverruns( 0 ), mFileName( "" ), mFileDesc( -1 ), mBuffer( {} )
+  FileLogger::FileLogger() : numBufferOverruns( 0 ), mFileName( "" ), mBuffer( {} )
   {
   }
 
@@ -39,19 +39,23 @@ namespace Orbit::Log
   Aurora::Logging::Result FileLogger::open()
   {
     Chimera::Thread::LockGuard _lck( *this );
+    Aurora::FileSystem::FileId file;
 
     /*-------------------------------------------------------------------------
     Don't attempt to reopen
     -------------------------------------------------------------------------*/
-    if( enabled ) //&& ( mFileDesc > 0 ) )
+    if( enabled )
     {
       return LG::Result::RESULT_SUCCESS;
     }
 
+    /*-------------------------------------------------------------------------
+    Effectively perform a "touch" operation
+    -------------------------------------------------------------------------*/
     auto flags = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_CREAT | FS::AccessFlags::O_RDWR;
-    if ( FS::fopen( mFileName.data(), flags, mFileDesc ) == 0 )
+    if ( FS::fopen( mFileName.data(), flags, file ) == 0 )
     {
-      FS::fclose( mFileDesc );
+      FS::fclose( file );
     }
 
     /*-------------------------------------------------------------------------
@@ -59,53 +63,26 @@ namespace Orbit::Log
     -------------------------------------------------------------------------*/
     enabled = true;
     return LG::Result::RESULT_SUCCESS;
-
-    // auto result = LG::Result::RESULT_FAIL;
-    // auto flags  = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_CREAT | FS::AccessFlags::O_WRONLY;
-
-    // if ( FS::fopen( mFileName.data(), flags, mFileDesc ) == 0 )
-    // {
-    //   enabled = true;
-    //   result  = LG::Result::RESULT_SUCCESS;
-    // }
-
-    // return result;
   }
 
 
   Aurora::Logging::Result FileLogger::close()
   {
     Chimera::Thread::LockGuard _lck( *this );
-
-    auto result = LG::Result::RESULT_SUCCESS;
-
-    /*-------------------------------------------------------------------------
-    Flush the buffer first before closing the file
-    -------------------------------------------------------------------------*/
-    // if ( enabled && ( mFileDesc >= 0 ) )
-    // {
-    //   this->flush();
-    //   if ( FS::fclose( mFileDesc ) != 0 )
-    //   {
-    //     result = LG::Result::RESULT_FAIL;
-    //   }
-
-    //   mFileDesc = -1;
-    //   mBuffer.clear();
-    // }
-
     enabled = false;
-    return result;
+    return LG::Result::RESULT_SUCCESS;
   }
 
 
   Aurora::Logging::Result FileLogger::flush()
   {
+    Aurora::FileSystem::FileId file;
+
     /*-------------------------------------------------------------------------
     Entrancy Checks
     -------------------------------------------------------------------------*/
     Chimera::Thread::LockGuard _lck( *this );
-    if ( !enabled )//|| ( mFileDesc < 0 ) )
+    if ( !enabled )
     {
       return LG::Result::RESULT_FAIL_BAD_SINK;
     }
@@ -117,7 +94,7 @@ namespace Orbit::Log
     }
 
     auto flags  = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_RDWR;
-    if ( FS::fopen( mFileName.data(), flags, mFileDesc ) == 0 )
+    if ( FS::fopen( mFileName.data(), flags, file ) == 0 )
     {
       /*-------------------------------------------------------------------------
       Copy out the data from the buffer
@@ -129,7 +106,7 @@ namespace Orbit::Log
       /*-------------------------------------------------------------------------
       Flush the cache to disk
       -------------------------------------------------------------------------*/
-      size_t written = FS::fwrite( stack_cache.data(), 1, cache_size, mFileDesc );
+      size_t written = FS::fwrite( stack_cache.data(), 1, cache_size, file );
 
       if ( cache_size == written )
       {
@@ -144,7 +121,7 @@ namespace Orbit::Log
         }
       }
 
-      auto err = FS::fclose( mFileDesc );
+      auto err = FS::fclose( file );
     }
 
     return LG::Result::RESULT_SUCCESS;
@@ -163,7 +140,7 @@ namespace Orbit::Log
     Entrancy Checks
     -------------------------------------------------------------------------*/
     Chimera::Thread::LockGuard _lck( *this );
-    if( !enabled || ( level < logLevel ) )//|| ( mFileDesc < 0 ) )
+    if( !enabled || ( level < logLevel ) )
     {
       return LG::Result::RESULT_IGNORE;
     }

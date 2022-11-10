@@ -49,6 +49,11 @@ namespace Orbit::I2C
     cfg.SDAInit.port      = IO::I2C::sdaPort;
     cfg.SDAInit.validity  = true;
 
+#if defined( SIMULATOR )
+    cfg.memFile = std::filesystem::current_path() / "orbit_esc_eeprom.bin";
+    cfg.memSize = 1 * 1024 * 1024;
+#endif
+
     /*-------------------------------------------------------------------------
     Power on the hardware peripheral
     -------------------------------------------------------------------------*/

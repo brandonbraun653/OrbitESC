@@ -131,7 +131,7 @@ namespace Orbit::Data
       -----------------------------------------------------------------------*/
       bool tmp = saveConfigCache( id );
       tmp &= loadConfigCache( id );
-      LOG_ERROR_IF( tmp, "Failed to load cache data %d\r\n", idx );
+      LOG_ERROR_IF( tmp == false, "Failed to load cache data %d\r\n", idx );
 
       result &= tmp;
     }
