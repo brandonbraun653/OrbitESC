@@ -77,9 +77,9 @@ namespace Orbit::Boot
     /*-------------------------------------------------------------------------
     Power up high level system controls
     -------------------------------------------------------------------------*/
-    #if defined( EMBEDDED )
+#if defined( EMBEDDED )
     setSystemBehavior();
-    #endif
+#endif
 
     /*-------------------------------------------------------------------------
     Power up the hardware peripherals
@@ -108,6 +108,13 @@ namespace Orbit::Boot
   void startTasks()
   {
     using namespace Chimera::Thread;
+
+    /*-------------------------------------------------------------------------
+    On the simulator, we need a bit more time to allow tasks to fully register
+    -------------------------------------------------------------------------*/
+#if defined( SIMULATOR )
+    std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
+#endif
 
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_HWM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_HWM_DIO ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );

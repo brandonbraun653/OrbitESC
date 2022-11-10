@@ -119,7 +119,7 @@ namespace Orbit::Log
     Open the file, then read out chunks of data
     -------------------------------------------------------------------------*/
     uint8_t  buff[ CHUNK_SIZE + 1 ];
-    auto     flags     = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_EXCL | FS::AccessFlags::O_RDWR;
+    auto     flags     = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_RDWR;
     auto     file      = static_cast<FS::FileId>( 0 );
     int      err       = 0;
     size_t   toRead    = 0;

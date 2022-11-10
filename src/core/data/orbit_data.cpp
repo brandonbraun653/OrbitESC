@@ -87,6 +87,7 @@ namespace Orbit::Data
     cfg.i2cChannel    = IO::I2C::channel;
 
     RT_HARD_ASSERT( s_eeprom.configure( cfg ) );
+    RT_HARD_ASSERT( s_eeprom.open() == Aurora::Memory::Status::ERR_OK );
 
     /*-------------------------------------------------------------------------
     Pre-load the cache or initialize to defaults
@@ -164,6 +165,10 @@ namespace Orbit::Data
     s_lfs_volume.cfg.lookahead_size   = LOOKAHEAD_SIZE;
     s_lfs_volume.cfg.lookahead_buffer = s_look_buffer;
     s_lfs_volume.cfg.block_cycles     = 500;
+
+    #if defined( SIMULATOR )
+    s_lfs_volume._dataFile = std::filesystem::current_path() / "orbit_esc_flash.bin";
+    #endif
 
     RT_HARD_ASSERT( true == s_lfs_volume.flash.assignChipSelect( IO::SPI::norCSPort, IO::SPI::norCSPin ) );
     RT_HARD_ASSERT( true == s_lfs_volume.flash.configure( Aurora::Flash::NOR::Chip::AT25SF081, IO::SPI::spiChannel ) );

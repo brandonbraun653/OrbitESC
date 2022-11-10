@@ -130,7 +130,8 @@
     "assert": "cpp",
     "csetjmp": "cpp",
     "semaphore": "cpp",
-    "numbers": "cpp"
+    "numbers": "cpp",
+    "common.hpp": "c"
   },
   "peacock.color": "#f9e64f",
   "cSpell.words": [

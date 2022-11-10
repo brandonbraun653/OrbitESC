@@ -116,13 +116,12 @@ namespace Orbit::Log
       return LG::Result::RESULT_SUCCESS;
     }
 
-    auto flags  = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_EXCL | FS::AccessFlags::O_RDWR;
+    auto flags  = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_RDWR;
     if ( FS::fopen( mFileName.data(), flags, mFileDesc ) == 0 )
     {
       /*-------------------------------------------------------------------------
       Copy out the data from the buffer
       -------------------------------------------------------------------------*/
-
       etl::array<uint8_t, CACHE_SIZE> stack_cache;
       stack_cache.fill( 0 );
       etl::copy( mBuffer.begin(), mBuffer.end(), stack_cache.begin() );
@@ -131,7 +130,6 @@ namespace Orbit::Log
       Flush the cache to disk
       -------------------------------------------------------------------------*/
       size_t written = FS::fwrite( stack_cache.data(), 1, cache_size, mFileDesc );
-      // FS::fflush( mFileDesc );
 
       if ( cache_size == written )
       {
