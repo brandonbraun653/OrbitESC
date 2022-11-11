@@ -174,7 +174,7 @@ namespace Orbit::Data
     RT_HARD_ASSERT( true == s_lfs_volume.flash.configure( Aurora::Flash::NOR::Chip::AT25SF081, IO::SPI::spiChannel ) );
     RT_HARD_ASSERT( true == FS::LFS::attachVolume( &s_lfs_volume ) );
 
-    s_lfs_volume.flash.erase();
+    //s_lfs_volume.flash.erase();
 
     /*-----------------------------------------------------------------------
     Initialize the Aurora filesystem drivers
