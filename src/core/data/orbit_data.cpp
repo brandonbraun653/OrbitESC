@@ -28,6 +28,8 @@ namespace Orbit::Data
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
+  static constexpr bool FILESYSTEM_ENABLED = true;
+
   static constexpr size_t CACHE_SIZE = 256;
   static_assert( CACHE_SIZE % sizeof( uint32_t ) == 0 );
 
@@ -65,12 +67,13 @@ namespace Orbit::Data
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static uint32_t                      s_read_buffer[ CACHE_SIZE / sizeof( uint32_t ) ];
-  static uint32_t                      s_prog_buffer[ CACHE_SIZE / sizeof( uint32_t ) ];
-  static uint32_t                      s_look_buffer[ LOOKAHEAD_SIZE / sizeof( uint32_t ) ];
-  static Aurora::Flash::EEPROM::Driver s_eeprom;     /**< EEPROM controller */
-  static FS::LFS::Volume               s_lfs_volume; /**< LittleFS volume for the NOR flash chip */
-  static bool                          s_fs_mounted; /**< Checks if the filesystem mounted OK */
+  static uint32_t                          s_read_buffer[ CACHE_SIZE / sizeof( uint32_t ) ];
+  static uint32_t                          s_prog_buffer[ CACHE_SIZE / sizeof( uint32_t ) ];
+  static uint32_t                          s_look_buffer[ LOOKAHEAD_SIZE / sizeof( uint32_t ) ];
+  static Aurora::Flash::EEPROM::Driver     s_eeprom;     /**< EEPROM controller */
+  static FS::LFS::Volume                   s_lfs_volume; /**< LittleFS volume for the NOR flash chip */
+  static bool                              s_fs_mounted; /**< Checks if the filesystem mounted OK */
+  static Aurora::Memory::Flash::DeviceTest s_nor_tester;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -93,7 +96,7 @@ namespace Orbit::Data
     Pre-load the cache or initialize to defaults
     -------------------------------------------------------------------------*/
     bool result = true;
-    for( size_t idx = 0; idx < EnumValue( CacheId::NUM_OPTIONS ); idx++ )
+    for ( size_t idx = 0; idx < EnumValue( CacheId::NUM_OPTIONS ); idx++ )
     {
       /*-----------------------------------------------------------------------
       Attempt to load previously configured data
@@ -107,7 +110,7 @@ namespace Orbit::Data
       /*-----------------------------------------------------------------------
       Prepare the new data to be written
       -----------------------------------------------------------------------*/
-      switch( id )
+      switch ( id )
       {
         case CacheId::CALIBRATION:
           SysCalibration.clear();
@@ -166,37 +169,57 @@ namespace Orbit::Data
     s_lfs_volume.cfg.lookahead_buffer = s_look_buffer;
     s_lfs_volume.cfg.block_cycles     = 500;
 
-    #if defined( SIMULATOR )
+#if defined( SIMULATOR )
     s_lfs_volume._dataFile = std::filesystem::current_path() / "orbit_esc_flash.bin";
-    #endif
+#endif
 
     RT_HARD_ASSERT( true == s_lfs_volume.flash.assignChipSelect( IO::SPI::norCSPort, IO::SPI::norCSPin ) );
     RT_HARD_ASSERT( true == s_lfs_volume.flash.configure( Aurora::Flash::NOR::Chip::AT25SF081, IO::SPI::spiChannel ) );
     RT_HARD_ASSERT( true == FS::LFS::attachVolume( &s_lfs_volume ) );
 
-    //s_lfs_volume.flash.erase();
+    // s_lfs_volume.flash.erase();
 
     /*-----------------------------------------------------------------------
     Initialize the Aurora filesystem drivers
     -----------------------------------------------------------------------*/
-    auto intf = FS::LFS::getInterface( &s_lfs_volume );
-
-    LOG_TRACE( "Mounting filesystem\r\n" );
-    FS::initialize();
-    if ( FS::mount( "/", intf ) < 0 )
+    if constexpr ( FILESYSTEM_ENABLED )
     {
-      LOG_TRACE( "Formatting filesystem and remounting\r\n" );
-      FS::LFS::formatVolume( &s_lfs_volume );
-      FS::VolumeId mnt_vol = FS::mount( "/", intf );
+      auto intf = FS::LFS::getInterface( &s_lfs_volume );
 
-      if ( mnt_vol < 0 )
+      LOG_TRACE( "Mounting filesystem\r\n" );
+      FS::initialize();
+      if ( FS::mount( "/", intf ) < 0 )
       {
-        s_fs_mounted = false;
-        LOG_ERROR( "Failed to mount filesystem: %d\r\n", mnt_vol );
-      }
-    }
+        LOG_TRACE( "Formatting filesystem and remounting\r\n" );
+        FS::LFS::formatVolume( &s_lfs_volume );
+        FS::VolumeId mnt_vol = FS::mount( "/", intf );
 
-    LOG_TRACE_IF( s_fs_mounted, "Filesystem mounted\r\n" );
+        if ( mnt_vol < 0 )
+        {
+          s_fs_mounted = false;
+          LOG_ERROR( "Failed to mount filesystem: %d\r\n", mnt_vol );
+        }
+      }
+
+      LOG_TRACE_IF( s_fs_mounted, "Filesystem mounted\r\n" );
+    }
+    else
+    {
+      LOG_TRACE( "Filesystem disabled\r\n" );
+      auto cfg = Aurora::Memory::Flash::DeviceTest::Config();
+
+      cfg.dut         = &s_lfs_volume.flash;
+      cfg.writeBuffer = s_prog_buffer;
+      cfg.readBuffer  = s_read_buffer;
+      cfg.bufferSize  = sizeof( s_prog_buffer );
+      cfg.maxAddress  = props->endAddress;
+      cfg.pageSize    = props->pageSize;
+      cfg.blockSize   = props->blockSize;
+      cfg.sectorSize  = props->sectorSize;
+      cfg.eraseSize   = props->blockSize;
+
+      s_nor_tester.initialize( cfg );
+    }
   }
 
 
@@ -314,5 +337,28 @@ namespace Orbit::Data
   {
     LOG_INFO( "OrbitESC -- HW: %d, SW:%d.%d.%d, SN:%s\r\n", SysIdentity.hwVersion, SysIdentity.swVerMajor,
               SysIdentity.swVerMinor, SysIdentity.swVerPatch, SysIdentity.serialNumber );
+  }
+
+
+  void testNORDevice()
+  {
+    if constexpr ( !FILESYSTEM_ENABLED )
+    {
+      static size_t page = 0;
+      auto result = Aurora::Memory::Status::ERR_OK;
+
+      if( page == 0 )
+      {
+        result = s_nor_tester.pageAccess( page, true );
+      }
+      else
+      {
+        result = s_nor_tester.pageAccess( page, false );
+      }
+
+      page = ( page + 1 ) % 16;
+      LOG_ERROR_IF( result != Aurora::Memory::Status::ERR_OK,
+                    "Failed page %d access\r\n", page );
+    }
   }
 }    // namespace Orbit::Data

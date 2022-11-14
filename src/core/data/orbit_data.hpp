@@ -128,6 +128,12 @@ namespace Orbit::Data
    */
   void printConfiguration();
 
+  /**
+   * @brief Periodic function to step through NOR device test sequences
+   * @warning Will destroy all existing filesystem data
+   */
+  void testNORDevice();
+
 }  // namespace Orbit::Data
 
 #endif  /* !ORBIT_DATA_HPP */
