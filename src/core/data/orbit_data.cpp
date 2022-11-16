@@ -158,8 +158,8 @@ namespace Orbit::Data
     auto props = Aurora::Flash::NOR::getProperties( Aurora::Flash::NOR::Chip::AT25SF081 );
     s_lfs_volume.clear();
 
-    s_lfs_volume.cfg.read_size        = 16;
-    s_lfs_volume.cfg.prog_size        = 16;
+    s_lfs_volume.cfg.read_size        = 64;
+    s_lfs_volume.cfg.prog_size        = 64;
     s_lfs_volume.cfg.block_size       = props->blockSize;
     s_lfs_volume.cfg.block_count      = props->endAddress / props->blockSize;
     s_lfs_volume.cfg.cache_size       = CACHE_SIZE;
@@ -342,23 +342,27 @@ namespace Orbit::Data
 
   void testNORDevice()
   {
-    if constexpr ( !FILESYSTEM_ENABLED )
+    if constexpr ( FILESYSTEM_ENABLED )
     {
-      static size_t page = 0;
-      auto result = Aurora::Memory::Status::ERR_OK;
+      FS::LFS::Test::Alloc::parallel_allocation( s_lfs_volume.fs, s_lfs_volume.cfg );
+    }
+    else
+    {
+      // static size_t page = 0;
+      // auto result = Aurora::Memory::Status::ERR_OK;
 
-      if( page == 0 )
-      {
-        result = s_nor_tester.pageAccess( page, true );
-      }
-      else
-      {
-        result = s_nor_tester.pageAccess( page, false );
-      }
+      // if( page == 0 )
+      // {
+      //   result = s_nor_tester.pageAccess( page, true );
+      // }
+      // else
+      // {
+      //   result = s_nor_tester.pageAccess( page, false );
+      // }
 
-      page = ( page + 1 ) % 16;
-      LOG_ERROR_IF( result != Aurora::Memory::Status::ERR_OK,
-                    "Failed page %d access\r\n", page );
+      // page = ( page + 1 ) % 16;
+      // LOG_ERROR_IF( result != Aurora::Memory::Status::ERR_OK,
+      //               "Failed page %d access\r\n", page );
     }
   }
 }    // namespace Orbit::Data
