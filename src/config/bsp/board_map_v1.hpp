@@ -127,7 +127,7 @@ namespace Orbit::IO
 
     static constexpr Chimera::SPI::HardwareInit spiHwInit = { .bitOrder    = Chimera::SPI::BitOrder::MSB_FIRST,
                                                               .controlMode = Chimera::SPI::ControlMode::MASTER,
-                                                              .clockFreq   = 1'000'000,
+                                                              .clockFreq   = 40'000'000,
                                                               .clockMode   = Chimera::SPI::ClockMode::MODE0,
                                                               .dataSize    = Chimera::SPI::DataSize::SZ_8BIT,
                                                               .hwChannel   = Chimera::SPI::Channel::SPI3,

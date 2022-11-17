@@ -67,13 +67,13 @@ namespace Orbit::Data
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static uint32_t                          s_read_buffer[ CACHE_SIZE / sizeof( uint32_t ) ];
-  static uint32_t                          s_prog_buffer[ CACHE_SIZE / sizeof( uint32_t ) ];
-  static uint32_t                          s_look_buffer[ LOOKAHEAD_SIZE / sizeof( uint32_t ) ];
-  static Aurora::Flash::EEPROM::Driver     s_eeprom;     /**< EEPROM controller */
-  static FS::LFS::Volume                   s_lfs_volume; /**< LittleFS volume for the NOR flash chip */
-  static bool                              s_fs_mounted; /**< Checks if the filesystem mounted OK */
-  static Aurora::Memory::Flash::DeviceTest s_nor_tester;
+  static uint32_t                              s_read_buffer[ CACHE_SIZE / sizeof( uint32_t ) ];
+  static uint32_t                              s_prog_buffer[ CACHE_SIZE / sizeof( uint32_t ) ];
+  static uint32_t                              s_look_buffer[ LOOKAHEAD_SIZE / sizeof( uint32_t ) ];
+  static Aurora::Memory::Flash::EEPROM::Driver s_eeprom;     /**< EEPROM controller */
+  static FS::LFS::Volume                       s_lfs_volume; /**< LittleFS volume for the NOR flash chip */
+  static bool                                  s_fs_mounted; /**< Checks if the filesystem mounted OK */
+  static Aurora::Memory::Flash::DeviceTest     s_nor_tester;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -83,14 +83,14 @@ namespace Orbit::Data
     /*-------------------------------------------------------------------------
     Initialize the EEPROM driver
     -------------------------------------------------------------------------*/
-    Aurora::Flash::EEPROM::DeviceConfig cfg;
+    Aurora::Memory::Flash::EEPROM::DeviceConfig cfg;
     cfg.clear();
-    cfg.whichChip     = Aurora::Flash::EEPROM::Chip::E24LC128;
+    cfg.whichChip     = Aurora::Memory::Flash::EEPROM::Chip::E24LC128;
     cfg.deviceAddress = 0x50;
     cfg.i2cChannel    = IO::I2C::channel;
 
     RT_HARD_ASSERT( s_eeprom.configure( cfg ) );
-    RT_HARD_ASSERT( s_eeprom.open() == Aurora::Memory::Status::ERR_OK );
+    RT_HARD_ASSERT( s_eeprom.open( nullptr ) == Aurora::Memory::Status::ERR_OK );
 
     /*-------------------------------------------------------------------------
     Pre-load the cache or initialize to defaults
@@ -155,7 +155,7 @@ namespace Orbit::Data
     -------------------------------------------------------------------------*/
     FS::LFS::initialize();
 
-    auto props = Aurora::Flash::NOR::getProperties( Aurora::Flash::NOR::Chip::AT25SF081 );
+    auto props = Aurora::Memory::Flash::NOR::getProperties( Aurora::Memory::Flash::NOR::Chip::AT25SF081 );
     s_lfs_volume.clear();
 
     s_lfs_volume.cfg.read_size        = 64;
@@ -173,53 +173,39 @@ namespace Orbit::Data
     s_lfs_volume._dataFile = std::filesystem::current_path() / "orbit_esc_flash.bin";
 #endif
 
+    Aurora::Memory::DeviceAttr attr;
+    attr.eraseSize = s_lfs_volume.cfg.block_size;
+    attr.readSize  = s_lfs_volume.cfg.block_size;
+    attr.writeSize = s_lfs_volume.cfg.block_size;
+
     RT_HARD_ASSERT( true == s_lfs_volume.flash.assignChipSelect( IO::SPI::norCSPort, IO::SPI::norCSPin ) );
-    RT_HARD_ASSERT( true == s_lfs_volume.flash.configure( Aurora::Flash::NOR::Chip::AT25SF081, IO::SPI::spiChannel ) );
+    RT_HARD_ASSERT( true == s_lfs_volume.flash.configure( Aurora::Memory::Flash::NOR::Chip::AT25SF081, IO::SPI::spiChannel ) );
+    RT_HARD_ASSERT( Aurora::Memory::Status::ERR_OK == s_lfs_volume.flash.open( &attr ) );
     RT_HARD_ASSERT( true == FS::LFS::attachVolume( &s_lfs_volume ) );
 
-    // s_lfs_volume.flash.erase();
+    //s_lfs_volume.flash.erase();
 
     /*-----------------------------------------------------------------------
     Initialize the Aurora filesystem drivers
     -----------------------------------------------------------------------*/
-    if constexpr ( FILESYSTEM_ENABLED )
-    {
-      auto intf = FS::LFS::getInterface( &s_lfs_volume );
+    auto intf = FS::LFS::getInterface( &s_lfs_volume );
 
-      LOG_TRACE( "Mounting filesystem\r\n" );
-      FS::initialize();
-      if ( FS::mount( "/", intf ) < 0 )
+    LOG_TRACE( "Mounting filesystem\r\n" );
+    FS::initialize();
+    if ( FS::mount( "/", intf ) < 0 )
+    {
+      LOG_TRACE( "Formatting filesystem and remounting\r\n" );
+      FS::LFS::formatVolume( &s_lfs_volume );
+      FS::VolumeId mnt_vol = FS::mount( "/", intf );
+
+      if ( mnt_vol < 0 )
       {
-        LOG_TRACE( "Formatting filesystem and remounting\r\n" );
-        FS::LFS::formatVolume( &s_lfs_volume );
-        FS::VolumeId mnt_vol = FS::mount( "/", intf );
-
-        if ( mnt_vol < 0 )
-        {
-          s_fs_mounted = false;
-          LOG_ERROR( "Failed to mount filesystem: %d\r\n", mnt_vol );
-        }
+        s_fs_mounted = false;
+        LOG_ERROR( "Failed to mount filesystem: %d\r\n", mnt_vol );
       }
-
-      LOG_TRACE_IF( s_fs_mounted, "Filesystem mounted\r\n" );
     }
-    else
-    {
-      LOG_TRACE( "Filesystem disabled\r\n" );
-      auto cfg = Aurora::Memory::Flash::DeviceTest::Config();
 
-      cfg.dut         = &s_lfs_volume.flash;
-      cfg.writeBuffer = s_prog_buffer;
-      cfg.readBuffer  = s_read_buffer;
-      cfg.bufferSize  = sizeof( s_prog_buffer );
-      cfg.maxAddress  = props->endAddress;
-      cfg.pageSize    = props->pageSize;
-      cfg.blockSize   = props->blockSize;
-      cfg.sectorSize  = props->sectorSize;
-      cfg.eraseSize   = props->blockSize;
-
-      s_nor_tester.initialize( cfg );
-    }
+    LOG_TRACE_IF( s_fs_mounted, "Filesystem mounted\r\n" );
   }
 
 
@@ -342,27 +328,6 @@ namespace Orbit::Data
 
   void testNORDevice()
   {
-    if constexpr ( FILESYSTEM_ENABLED )
-    {
-      FS::LFS::Test::Alloc::parallel_allocation( s_lfs_volume.fs, s_lfs_volume.cfg );
-    }
-    else
-    {
-      // static size_t page = 0;
-      // auto result = Aurora::Memory::Status::ERR_OK;
-
-      // if( page == 0 )
-      // {
-      //   result = s_nor_tester.pageAccess( page, true );
-      // }
-      // else
-      // {
-      //   result = s_nor_tester.pageAccess( page, false );
-      // }
-
-      // page = ( page + 1 ) % 16;
-      // LOG_ERROR_IF( result != Aurora::Memory::Status::ERR_OK,
-      //               "Failed page %d access\r\n", page );
-    }
+    FS::LFS::Test::Alloc::parallel_allocation( s_lfs_volume.fs, s_lfs_volume.cfg );
   }
 }    // namespace Orbit::Data

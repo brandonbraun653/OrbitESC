@@ -24,7 +24,7 @@ gen_intf_lib_variants(
     thor_hld_gpio_rel
     thor_hld_i2c_rel
     thor_hld_interrupt_rel
-    thor_hld_spi_dbg
+    thor_hld_spi_rel
     thor_hld_system_rel
     thor_hld_timer_rel
     thor_hld_uart_rel
@@ -39,7 +39,7 @@ gen_intf_lib_variants(
     thor_lld_intf_i2c_rel
     thor_lld_intf_interrupt_rel
     thor_lld_intf_rcc_rel
-    thor_lld_intf_spi_dbg
+    thor_lld_intf_spi_rel
     thor_lld_intf_sys_rel
     thor_lld_intf_timer_rel
     thor_lld_intf_usart_rel
@@ -65,7 +65,7 @@ gen_intf_lib_variants(
     thor_lld_stm32l4_iwdg_rel
     thor_lld_stm32l4_power_rel
     thor_lld_stm32l4_rcc_rel
-    thor_lld_stm32l4_spi_dbg
+    thor_lld_stm32l4_spi_rel
     thor_lld_stm32l4_startup_rel
     thor_lld_stm32l4_system_rel
     thor_lld_stm32l4_usart_rel

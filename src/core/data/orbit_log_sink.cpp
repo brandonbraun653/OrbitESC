@@ -121,7 +121,7 @@ namespace Orbit::Log
         }
       }
 
-      auto err = FS::fclose( file );
+      FS::fclose( file );
     }
 
     return LG::Result::RESULT_SUCCESS;
