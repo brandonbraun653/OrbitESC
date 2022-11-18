@@ -3,7 +3,6 @@ include("${COMMON_TOOL_ROOT}/cmake/utility/embedded.cmake")
 # -----------------------------------------------------------------------------
 # Project Libraries
 # -----------------------------------------------------------------------------
-#add_subdirectory(config/bsp)
 add_subdirectory(core)
 add_subdirectory(control)
 
@@ -114,7 +113,20 @@ gen_intf_lib_variants(
     ${PROJECT_BINARY_DIR}/OrbitESC
 )
 
-
+gen_intf_lib_variants(
+  TARGET
+    orbit_libs
+  LIBRARIES
+    lib_orbit_com
+    lib_orbit_core
+    lib_orbit_ctrl
+    lib_orbit_data
+    lib_orbit_hw
+    lib_orbit_runtime
+    lib_orbit_tasks
+  EXPORT_DIR
+    ${PROJECT_BINARY_DIR}/OrbitESC
+)
 # -----------------------------------------------------------------------------
 # Hardware Config:
 # cmake -DTOOLCHAIN=arm-none-eabi -DFREERTOS_THREADS=ON -DDEVICE_TARGET=stm32l432kb -DCMAKE_BUILD_TYPE=Debug ./../
@@ -138,17 +150,9 @@ target_link_libraries(OrbitESC PRIVATE
   thor_intf_inc
 
   # Project Libraries
-  lib_orbit_com
-  lib_orbit_core
-  lib_orbit_ctrl
-  lib_orbit_data
-  lib_orbit_hw
-  lib_orbit_runtime
-  lib_orbit_tasks
-
-  # Submodule Libraries
-  chimera_core
-  aurora_libs
+  aurora_libs_rel
+  chimera_core_rel
+  orbit_libs
 
   # Target Properties
   prj_device_target
