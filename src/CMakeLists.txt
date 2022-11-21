@@ -5,6 +5,7 @@ include("${COMMON_TOOL_ROOT}/cmake/utility/embedded.cmake")
 # -----------------------------------------------------------------------------
 add_subdirectory(core)
 add_subdirectory(control)
+add_subdirectory(monitor)
 
 # -----------------------------------------------------------------------------
 # Project Libraries
@@ -122,6 +123,7 @@ gen_intf_lib_variants(
     lib_orbit_ctrl
     lib_orbit_data
     lib_orbit_hw
+    lib_orbit_monitor
     lib_orbit_runtime
     lib_orbit_tasks
   EXPORT_DIR

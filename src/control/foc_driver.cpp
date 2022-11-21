@@ -25,7 +25,9 @@ Includes
 #include <src/control/modes/sys_mode_ramp.hpp>
 #include <src/control/modes/sys_mode_run.hpp>
 #include <src/core/data/orbit_data_defaults.hpp>
+#include <src/core/hw/orbit_led.hpp>
 #include <src/core/utility.hpp>
+#include <src/monitor/orbit_monitors.hpp>
 
 #if defined( EMBEDDED )
 #include <Thor/lld/interface/inc/timer>
@@ -271,6 +273,42 @@ namespace Orbit::Control
       mState.adcBuffer[ i ].measured     = static_cast<float>( isr.samples[ i ] ) * COUNTS_TO_VOLTS;
       mState.adcBuffer[ i ].converted    = mConfig.txfrFuncs[ i ]( mState.adcBuffer[ i ].measured );
       mState.adcBuffer[ i ].sampleTimeUs = timestamp_us;
+    }
+
+    /*-------------------------------------------------------------------------
+    Run the system monitors to ensure we're in expected operating conditions
+    -------------------------------------------------------------------------*/
+    Orbit::Monitor::VBusMonitor.update( mState.adcBuffer[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted,
+                                        mState.adcBuffer[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].sampleTimeUs );
+    Orbit::Monitor::IPhAMonitor.update( mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].converted,
+                                        mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].sampleTimeUs );
+    Orbit::Monitor::IPhBMonitor.update( mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].converted,
+                                        mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].sampleTimeUs );
+    Orbit::Monitor::IPhCMonitor.update( mState.adcBuffer[ ADC_CH_MOTOR_PHASE_C_CURRENT ].converted,
+                                        mState.adcBuffer[ ADC_CH_MOTOR_PHASE_C_CURRENT ].sampleTimeUs );
+
+    for ( auto mon : Orbit::Monitor::MonitorArray )
+    {
+      if ( mon->tripped() == Orbit::Monitor::TripState::NOT_TRIPPED )
+      {
+        continue;
+      }
+
+      /*-----------------------------------------------------------------------
+      Move the motor into a safe state
+      -----------------------------------------------------------------------*/
+      mState.motorCtl.isrCtlActive = false;
+      this->emergencyStop();
+      Orbit::LED::setChannel( Orbit::LED::Channel::FAULT );
+
+      /*-----------------------------------------------------------------------
+      Disengage all monitors
+      -----------------------------------------------------------------------*/
+      for ( auto mon2 : Orbit::Monitor::MonitorArray )
+      {
+        mon2->setEngageState( Orbit::Monitor::EngageState::INACTIVE );
+      }
+      break;
     }
 
     /*-------------------------------------------------------------------------

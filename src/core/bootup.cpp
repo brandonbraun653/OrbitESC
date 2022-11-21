@@ -29,6 +29,7 @@ Includes
 #include <src/core/hw/orbit_timer.hpp>
 #include <src/core/hw/orbit_usart.hpp>
 #include <src/core/tasks.hpp>
+#include <src/monitor/orbit_monitors.hpp>
 
 
 namespace Orbit::Boot
@@ -102,6 +103,7 @@ namespace Orbit::Boot
 #if defined( ORBIT_ESC_V1 )
     Orbit::LED::powerUp();
 #endif
+    Orbit::Monitor::initialize();
   }
 
 
