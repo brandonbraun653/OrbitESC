@@ -28,6 +28,22 @@ namespace Orbit::ADC
    */
   void powerUp();
 
+  /**
+   * @brief Transfer function to convert ADC voltage to measured phase current
+   *
+   * @param vin     Measurement voltage
+   * @return float  Calculated phase current in Amps
+   */
+  float sample2PhaseCurrent( const float vin );
+
+  /**
+   * @brief Transfer function to convert ADC voltage to measured bus voltage
+   *
+   * @param vin     Measurement voltage
+   * @return float  Calculated bus voltage
+   */
+  float sample2BusVoltage( const float vin );
+
 }  // namespace Orbit::ADC
 
 #endif  /* !ORBIT_ESC_ADC_HPP */

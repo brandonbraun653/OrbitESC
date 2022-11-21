@@ -11,13 +11,14 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Aurora/logging>
 #include <Chimera/adc>
 #include <Chimera/thread>
-#include <Aurora/logging>
-#include <src/core/tasks.hpp>
-#include <src/core/tasks/tsk_ctrl_sys.hpp>
 #include <src/control/foc_driver.hpp>
 #include <src/core/hw/drv8301.hpp>
+#include <src/core/hw/orbit_adc.hpp>
+#include <src/core/tasks.hpp>
+#include <src/core/tasks/tsk_ctrl_sys.hpp>
 
 namespace Orbit::Tasks::CTRLSYS
 {
@@ -37,9 +38,10 @@ namespace Orbit::Tasks::CTRLSYS
     Orbit::Control::FOCConfig cfg;
 
     cfg.adcSource = Chimera::ADC::Peripheral::ADC_0;
-    cfg.txfrFuncs[ Control::ADC_CH_MOTOR_SUPPLY_VOLTAGE ]  = BoostXL::adc_to_bus_voltage;
-    cfg.txfrFuncs[ Control::ADC_CH_MOTOR_PHASE_A_CURRENT ] = BoostXL::adc_to_phase_current;
-    cfg.txfrFuncs[ Control::ADC_CH_MOTOR_PHASE_B_CURRENT ] = BoostXL::adc_to_phase_current;
+    cfg.txfrFuncs[ Control::ADC_CH_MOTOR_SUPPLY_VOLTAGE ]  = ADC::sample2BusVoltage;
+    cfg.txfrFuncs[ Control::ADC_CH_MOTOR_PHASE_A_CURRENT ] = ADC::sample2PhaseCurrent;
+    cfg.txfrFuncs[ Control::ADC_CH_MOTOR_PHASE_C_CURRENT ] = ADC::sample2PhaseCurrent;
+    cfg.txfrFuncs[ Control::ADC_CH_MOTOR_PHASE_B_CURRENT ] = ADC::sample2PhaseCurrent;
 
     Orbit::Control::MotorParameters params;
     params.Rs = 0.01f;

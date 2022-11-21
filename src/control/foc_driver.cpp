@@ -34,9 +34,8 @@ Includes
 
 #if defined( SEGGER_SYS_VIEW )
 #include "SEGGER_SYSVIEW.h"
-#endif  /* SEGGER_SYS_VIEW */
-#endif  /* EMBEDDED */
-
+#endif /* SEGGER_SYS_VIEW */
+#endif /* EMBEDDED */
 
 
 namespace Orbit::Control
@@ -218,7 +217,7 @@ namespace Orbit::Control
 
   int FOC::setSpeedRef( const float ref )
   {
-    //mState.motorCtl.run.speedRefRad = ref;
+    // mState.motorCtl.run.speedRefRad = ref;
     return 0;
   }
 
@@ -265,8 +264,8 @@ namespace Orbit::Control
     Convert the ADC data to measured values
     -------------------------------------------------------------------------*/
     static constexpr float COUNTS_TO_VOLTS = 3.3f / 4096.0f;    // Vref = 3.3V, 12-bit ADC
-    const uint32_t timestamp_us = Chimera::micros();
-    const float f_timestamp_us = static_cast<float>( timestamp_us );
+    const uint32_t         timestamp_us    = Chimera::micros();
+    const float            f_timestamp_us  = static_cast<float>( timestamp_us );
 
     for ( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
     {
@@ -314,7 +313,7 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Gate the behavior of this ISR without stopping the Timer/ADC/DMA hardware
     -------------------------------------------------------------------------*/
-    if( !mState.motorCtl.isrCtlActive )
+    if ( !mState.motorCtl.isrCtlActive )
     {
       return;
     }
@@ -331,7 +330,7 @@ namespace Orbit::Control
     -------------------------------------------------------------------------*/
     const float estimate_dt = f_timestamp_us - mState.motorCtl.last_estimate_update_us;
 
-    if( estimate_dt >= mState.motorCtl.next_estimate_update_us )
+    if ( estimate_dt >= mState.motorCtl.next_estimate_update_us )
     {
       mState.motorCtl.last_estimate_update_us = f_timestamp_us;
       mState.motorCtl.next_estimate_update_us = 5.0f * f_timestamp_us;
@@ -360,33 +359,33 @@ namespace Orbit::Control
     Estimate the rotor position
     -------------------------------------------------------------------------*/
 
-      /*-----------------------------------------------------------------------
-      Move the sampled phase currents through the Clarke-Park transform
-      -----------------------------------------------------------------------*/
-      // const auto clarke = Math::clarke_transform( mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].converted,
-      //                                             mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].converted );
+    /*-----------------------------------------------------------------------
+    Move the sampled phase currents through the Clarke-Park transform
+    -----------------------------------------------------------------------*/
+    // const auto clarke = Math::clarke_transform( mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].converted,
+    //                                             mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].converted );
 
-      // const auto park = Math::park_transform( clarke, mState.motorController.posEstRad );
+    // const auto park = Math::park_transform( clarke, mState.motorController.posEstRad );
 
-      // /*-----------------------------------------------------------------------
-      // Do the estimation
-      // -----------------------------------------------------------------------*/
-      // /* Update the motor state data from previous calculations */
-      // mState.motorController.Iq  = park.q;
-      // mState.motorController.Id  = park.d;
-      // mState.motorController.Vdd = mState.adcBuffer[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted;
+    // /*-----------------------------------------------------------------------
+    // Do the estimation
+    // -----------------------------------------------------------------------*/
+    // /* Update the motor state data from previous calculations */
+    // mState.motorController.Iq  = park.q;
+    // mState.motorController.Id  = park.d;
+    // mState.motorController.Vdd = mState.adcBuffer[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted;
 
-      // /* Step the EMF observer */
-      // const float dt = US_TO_SEC( timestamp_us - mState.emfObserver.last_update_us );
-      // stepEMFObserver( dt );
-      // mState.emfObserver.last_update_us = timestamp_us;
+    // /* Step the EMF observer */
+    // const float dt = US_TO_SEC( timestamp_us - mState.emfObserver.last_update_us );
+    // stepEMFObserver( dt );
+    // mState.emfObserver.last_update_us = timestamp_us;
 
-      // /* Calculate the estimated rotor position (Eq. 18) */
-      // mState.motorController.posEstRad = Math::fast_atan2_with_norm( -mState.emfObserver.Ed_est, mState.emfObserver.Eq_est );
-      // if ( mState.motorController.velEstRad < 0.0f )
-      // {
-      //   mState.motorController.posEstRad += Math::M_PI_F;
-      // }
+    // /* Calculate the estimated rotor position (Eq. 18) */
+    // mState.motorController.posEstRad = Math::fast_atan2_with_norm( -mState.emfObserver.Ed_est, mState.emfObserver.Eq_est );
+    // if ( mState.motorController.velEstRad < 0.0f )
+    // {
+    //   mState.motorController.posEstRad += Math::M_PI_F;
+    // }
 
     /*-------------------------------------------------------------------------
     Based on the current state, decide how to drive the output stage
@@ -485,7 +484,8 @@ namespace Orbit::Control
     //   Update the cycle references
     //   -----------------------------------------------------------------------*/
     //   pCtrl->cycleCount = 0;
-    //   pCtrl->cycleRef   = Utility::comCycleCount( Data::DFLT_STATOR_PWM_FREQ_HZ, Data::DFLT_ROTOR_NUM_POLES, pCtrl->targetRPM );
+    //   pCtrl->cycleRef   = Utility::comCycleCount( Data::DFLT_STATOR_PWM_FREQ_HZ, Data::DFLT_ROTOR_NUM_POLES, pCtrl->targetRPM
+    //   );
 
     //   /*-----------------------------------------------------------------------
     //   Update the commutation state
@@ -545,13 +545,11 @@ namespace Orbit::Control
 
   void FOC::stepIControl( const float dt )
   {
-
   }
 
 
   void FOC::stepEstimator( const float dt )
   {
-
   }
 
 

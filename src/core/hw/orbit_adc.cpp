@@ -18,6 +18,21 @@ Includes
 namespace Orbit::ADC
 {
   /*---------------------------------------------------------------------------
+  Voltage Sense Constants
+  ---------------------------------------------------------------------------*/
+  static constexpr float VDC_SENSE_R1          = 10'000.0f;
+  static constexpr float VDC_SENSE_R2          = 1'500.0f;
+  static constexpr float VDC_DIV_RATIO         = VDC_SENSE_R2 / ( VDC_SENSE_R1 + VDC_SENSE_R2 );
+  static constexpr float ADC_TO_VDC_CONV_CONST = 1.0f / VDC_DIV_RATIO;
+
+  /*---------------------------------------------------------------------------
+  Current Sense Constants
+  ---------------------------------------------------------------------------*/
+  static constexpr float ISHUNT_AMP_GAIN = 10.0f;    // Configured gain of all amplifiers
+  static constexpr float ISENSE_VREF     = 1.65f;    // Voltage reference for current sense
+  static constexpr float RSHUNT_OHM      = 0.01f;    // Low-side shunt resistor
+
+  /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
   static Chimera::ADC::ChannelList s_adc_channels;
@@ -47,6 +62,17 @@ namespace Orbit::ADC
     pin_cfg          = IO::Analog::CommonAnalogCfg;
     pin_cfg.port     = IO::Analog::portPhaseB;
     pin_cfg.pin      = IO::Analog::pinPhaseB;
+    pin_cfg.validity = true;
+
+    gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
+
+    /*-------------------------------------------------------------------------
+    Phase C Current GPIO Config
+    -------------------------------------------------------------------------*/
+    pin_cfg          = IO::Analog::CommonAnalogCfg;
+    pin_cfg.port     = IO::Analog::portPhaseC;
+    pin_cfg.pin      = IO::Analog::pinPhaseC;
     pin_cfg.validity = true;
 
     gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
@@ -87,14 +113,15 @@ namespace Orbit::ADC
     /* Configure the sequence conversion */
     s_adc_channels[ 0 ] = IO::Analog::adcPhaseA;
     s_adc_channels[ 1 ] = IO::Analog::adcPhaseB;
-    s_adc_channels[ 2 ] = IO::Analog::adcVSupply;
+    s_adc_channels[ 2 ] = IO::Analog::adcPhaseC;
+    s_adc_channels[ 3 ] = IO::Analog::adcVSupply;
 
     seq.clear();
     seq.channels    = &s_adc_channels;
-    seq.numChannels = 3;
+    seq.numChannels = 4;
     seq.seqMode     = Chimera::ADC::SamplingMode::TRIGGER;
     seq.trigMode    = Chimera::ADC::TriggerMode::RISING_EDGE;
-    seq.trigChannel = 10; // Regular channel, TIM1_TRGO2
+    seq.trigChannel = 10;    // Regular channel, TIM1_TRGO2
 
     RT_HARD_ASSERT( Chimera::Status::OK == adc->configSequence( seq ) );
 
@@ -102,6 +129,18 @@ namespace Orbit::ADC
     Kick off the ADC sequence sampling
     -------------------------------------------------------------------------*/
     adc->startSequence();
+  }
+
+
+  float sample2PhaseCurrent( const float vin )
+  {
+    return ( vin - ISENSE_VREF ) / ( ISHUNT_AMP_GAIN * RSHUNT_OHM );
+  }
+
+
+  float sample2BusVoltage( const float vin )
+  {
+    return vin * ADC_TO_VDC_CONV_CONST;
   }
 
 }    // namespace Orbit::ADC
