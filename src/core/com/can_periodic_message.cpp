@@ -85,6 +85,20 @@ namespace Orbit::CAN::Message
   }
 
   /*---------------------------------------------------------------------------
+  Phase C Current Update
+  ---------------------------------------------------------------------------*/
+  void PhaseCCurrent::update()
+  {
+    Orbit::Control::ADCSensorBuffer buffer;
+    Orbit::Control::FOCDriver.lastSensorData( buffer );
+
+    payload.current    = static_cast<uint16_t>( buffer[ Control::ADC_CH_MOTOR_PHASE_C_CURRENT ].converted * 1e3f );
+    payload.timestamp  = buffer[ Control::ADC_CH_MOTOR_PHASE_C_CURRENT ].sampleTimeUs;
+    payload.hdr.nodeId = EnumValue( thisNode() );
+    this->send( CANDriver );
+  }
+
+  /*---------------------------------------------------------------------------
   Motor Speed Update
   ---------------------------------------------------------------------------*/
   void MotorSpeed::update()

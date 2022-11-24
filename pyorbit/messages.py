@@ -210,13 +210,21 @@ class PhaseBCurrent(BaseMessage):
     _id_ = 0x22
 
 
+class PhaseCCurrent(BaseMessage):
+    _fields_ = [("hdr", Header),
+                ("timestamp", c_uint32),
+                ("current", c_uint16)]
+    _period_ = 0.1
+    _id_ = 0x23
+
+
 class MotorSpeed(BaseMessage):
     _fields_ = [("hdr", Header),
                 ("tick", c_uint32),
                 ("speed", c_uint16)]
 
     _period_ = 0.1
-    _id_ = 0x23
+    _id_ = 0x24
 
 
 class SpeedReference(BaseMessage):
@@ -225,4 +233,4 @@ class SpeedReference(BaseMessage):
                 ("speed", c_uint16)]
 
     _period_ = 0.1
-    _id_ = 0x24
+    _id_ = 0x25

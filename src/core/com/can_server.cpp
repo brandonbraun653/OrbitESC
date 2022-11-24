@@ -53,38 +53,6 @@ namespace Orbit::CAN
   }
 
 
-  Chimera::Status_t Server::stream( const uint8_t node, const StreamId id, const void *const data, const size_t size )
-  {
-    /*-------------------------------------------------------------------------
-    Ensure safe access
-    -------------------------------------------------------------------------*/
-    Chimera::Thread::LockGuard _lck( *this );
-
-    if ( !mCANBus || mStream.data )
-    {
-      return Chimera::Status::NOT_READY;
-    }
-
-    /*-------------------------------------------------------------------------
-    Initialize the stream
-    -------------------------------------------------------------------------*/
-    mStream.id     = id;
-    mStream.data   = data;
-    mStream.size   = size;
-    mStream.offset = 0;
-    mStream.node   = node;
-
-    return Chimera::Status::OK;
-  }
-
-
-  void Server::cancelStream()
-  {
-    Chimera::Thread::LockGuard _lck( *this );
-    mStream.clear();
-  }
-
-
   void Server::processRTX()
   {
     /*-------------------------------------------------------------------------
@@ -168,11 +136,6 @@ namespace Orbit::CAN
     {
       event.poll();
     }
-
-    /*-------------------------------------------------------------------------
-    Process streaming data
-    -------------------------------------------------------------------------*/
-    this->runStreamer();
   }
 
 
@@ -192,84 +155,4 @@ namespace Orbit::CAN
     }
   }
 
-
-  void Server::runStreamer()
-  {
-    /*-------------------------------------------------------------------------
-    Ensure there is actually data to stream
-    -------------------------------------------------------------------------*/
-    Chimera::Thread::LockGuard _lck( *this );
-    const size_t               remaining_bytes = mStream.size - mStream.offset;
-
-    if ( !mStream.data || !remaining_bytes )
-    {
-      mStream.clear();
-      return;
-    }
-
-    /*-------------------------------------------------------------------------
-    Collect a few common variables
-    -------------------------------------------------------------------------*/
-    Chimera::CAN::BasicFrame canFrame;
-    const size_t             bytes_to_send = std::min( remaining_bytes, sizeof( Message::StreamData::Payload::data ) );
-
-    /*-----------------------------------------------------------------------
-    First message? Send the bookend message to kick things off.
-    -----------------------------------------------------------------------*/
-    if ( !mStream.started )
-    {
-      Message::StreamBookend bookend;
-
-      bookend.reset();
-      bookend.payload.src.nodeId = mStream.node;
-      bookend.payload.type       = mStream.id;
-      bookend.payload.bytes      = mStream.size;
-
-      if ( ( bookend.pack( canFrame ) == Chimera::Status::OK ) && ( mCANBus->send( canFrame ) == Chimera::Status::OK ) )
-      {
-        mStream.started = true;
-        mStream.offset  = 0;
-        LOG_INFO( "CAN streaming started\r\n" );
-      }
-      else
-      {
-        LOG_ERROR( "CAN streaming failed to start\r\n" );
-      }
-
-      return;
-    }
-
-    /*-------------------------------------------------------------------------
-    Pack the next chunk of data to send
-    -------------------------------------------------------------------------*/
-    Message::StreamData data;
-
-    data.reset();
-    data.payload.src.nodeId = mStream.node;
-    data.payload.type       = mStream.id;
-    data.payload.frame      = mStream.frameNum;
-    memcpy( data.payload.data, ( ( const uint8_t * )mStream.data ) + mStream.offset, bytes_to_send );
-
-    if ( ( data.pack( canFrame ) == Chimera::Status::OK ) && ( mCANBus->send( canFrame ) == Chimera::Status::OK ) )
-    {
-      mStream.attempts = 0;
-      mStream.offset += bytes_to_send;
-      mStream.frameNum++;
-
-      if ( mStream.offset >= mStream.size )
-      {
-        LOG_INFO( "CAN streamed %d bytes\r\n", mStream.size );
-        mStream.clear();
-      }
-    }
-    else
-    {
-      mStream.attempts++;
-      if ( mStream.attempts >= 5 )
-      {
-        mStream.clear();
-        LOG_ERROR( "CAN stream failed to send\r\n" );
-      }
-    }
-  }
 }    // namespace Orbit::CAN

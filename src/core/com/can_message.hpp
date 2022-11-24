@@ -44,16 +44,11 @@ namespace Orbit::CAN::Message
     MSG_PRDC_ADC_VDD             = 0x20,  /**< Power supply voltage */
     MSG_PRDC_ADC_PHASE_A_CURRENT = 0x21,  /**< Phase A current */
     MSG_PRDC_ADC_PHASE_B_CURRENT = 0x22,  /**< Phase B current */
-    MSG_PRDC_MOTOR_SPEED         = 0x23,  /**< Current motor speed */
-    MSG_PRDC_SPEED_REF           = 0x24,  /**< Motor reference speed */
+    MSG_PRDC_ADC_PHASE_C_CURRENT = 0x23,  /**< Phase C current */
+    MSG_PRDC_MOTOR_SPEED         = 0x24,  /**< Current motor speed */
+    MSG_PRDC_SPEED_REF           = 0x25,  /**< Motor reference speed */
     MSG_PRDC_SYSTEM_TICK         = 0x50,  /**< Current system tick */
     MSG_PRDC_SYSTEM_MODE         = 0x51,  /**< Current system mode */
-
-    /*-------------------------------------------------------------------------
-    Miscellaneous Messages
-    -------------------------------------------------------------------------*/
-    MSG_STREAM_BOOKEND = 0x60, /**< Start/stop of stream messages */
-    MSG_STREAM_DATA    = 0x61, /**< Data payload for a stream */
   };
 
   /*---------------------------------------------------------------------------

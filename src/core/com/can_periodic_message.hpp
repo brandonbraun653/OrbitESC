@@ -95,6 +95,21 @@ namespace Orbit::CAN::Message
   };
 
 
+  class PhaseCCurrent : public Attributes<PhaseCCurrent, MSG_PRDC_ADC_PHASE_C_CURRENT, 100>
+  {
+  public:
+    __packed_struct Payload
+    {
+      Header   hdr;       /**< Message Header */
+      uint32_t timestamp; /**< Timestamp of the ADC reading in microseconds */
+      uint16_t current;   /**< Current in milliamps */
+    }
+    payload;
+
+    void update() final override;
+  };
+
+
   class MotorSpeed : public Attributes<MotorSpeed, MSG_PRDC_MOTOR_SPEED, 100>
   {
   public:
@@ -130,7 +145,8 @@ namespace Orbit::CAN::Message
   ---------------------------------------------------------------------------*/
   static constexpr size_t numPeriodicMessageTypes()
   {
-    return calcPeriodicMessageTypes<SystemTick, SystemMode, PowerSupplyVoltage, PhaseACurrent, PhaseBCurrent, MotorSpeed>();
+    return calcPeriodicMessageTypes<SystemTick, SystemMode, PowerSupplyVoltage, PhaseACurrent, PhaseBCurrent, PhaseCCurrent,
+                                    MotorSpeed>();
   }
 }  // namespace Orbit::CAN::Message
 

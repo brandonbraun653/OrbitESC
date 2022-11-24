@@ -40,6 +40,7 @@ namespace Orbit::CAN
   static Message::PowerSupplyVoltage s_msg_power_supply_voltage;
   static Message::PhaseACurrent      s_msg_phase_a_current;
   static Message::PhaseBCurrent      s_msg_phase_b_current;
+  static Message::PhaseCCurrent      s_msg_phase_c_current;
   static Message::MotorSpeed         s_msg_motor_speed;
   static Message::SpeedReference     s_msg_speed_reference;
 
@@ -125,6 +126,11 @@ namespace Orbit::CAN
     auto phase_b_current_func =
         Chimera::Function::Opaque::create<Message::PhaseBCurrent, &Message::PhaseBCurrent::update>( s_msg_phase_b_current );
     s_can_server.registerPeriodic( phase_b_current_func, s_msg_phase_b_current.period() );
+
+    /* Phase C Current */
+    auto phase_c_current_func =
+        Chimera::Function::Opaque::create<Message::PhaseCCurrent, &Message::PhaseCCurrent::update>( s_msg_phase_c_current );
+    s_can_server.registerPeriodic( phase_c_current_func, s_msg_phase_c_current.period() );
 
     /* Motor Speed */
     auto motor_speed_func =

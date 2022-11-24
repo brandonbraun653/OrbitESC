@@ -117,33 +117,6 @@ namespace Orbit::CAN::Message
     payload;
   };
 
-
-  class StreamBookend : public Attributes<StreamBookend, MSG_STREAM_BOOKEND>
-  {
-  public:
-    __packed_struct Payload
-    {
-      Header   src;   /**< Source node */
-      uint8_t  type;  /**< Type of stream */
-      uint16_t bytes; /**< Number of bytes in the stream */
-    }
-    payload;
-  };
-
-
-  class StreamData : public Attributes<StreamData, MSG_STREAM_DATA>
-  {
-  public:
-    __packed_struct Payload
-    {
-      Header  src;       /**< Source node */
-      uint8_t type;      /**< Type of stream */
-      uint8_t frame;     /**< Frame number of the stream */
-      uint8_t data[ 5 ]; /**< Variable data amount  */
-    }
-    payload;
-  };
-
 }    // namespace Orbit::CAN::Message
 
 #endif /* !ORBIT_CAN_ASYNC_MESSAGE_HPP */
