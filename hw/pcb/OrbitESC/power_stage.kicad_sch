@@ -1211,9 +1211,19 @@
     (uuid f96a3e77-1172-4827-a65d-a98ab74e5237)
   )
 
+  (text "Needs to update to 3.33k. Apparently driving 3 opamps messes with\nthe txfr function. Maybe simulate using x3 10k resistors driven by\nthe output of the opamp instead. Might be more economical."
+    (at 21.59 111.76 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid 374f3968-9216-4a35-8c85-d7b3ca62bcfd)
+  )
   (text "Supply Voltage Sense" (at 69.85 97.79 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 3e9737ae-e9ab-4df6-910d-770b53dbe731)
+  )
+  (text "Add measurement pad for VRef. Will help SW characterize."
+    (at 68.58 193.675 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid 862874f4-f6d3-4943-be25-fc6fe3f3906f)
   )
 
   (global_label "ISenseVRef" (shape passive) (at 87.63 144.78 270) (fields_autoplaced)
