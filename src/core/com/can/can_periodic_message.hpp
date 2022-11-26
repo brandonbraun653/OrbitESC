@@ -15,7 +15,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <src/core/com/can_message.hpp>
+#include <src/core/com/can/can_message.hpp>
 
 namespace Orbit::CAN::Message
 {

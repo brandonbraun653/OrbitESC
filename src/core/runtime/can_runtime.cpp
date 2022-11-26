@@ -16,11 +16,11 @@ Includes
 #include <Chimera/scheduler>
 #include <Chimera/system>
 #include <src/config/bsp/board_map.hpp>
-#include <src/core/com/can_async_message.hpp>
-#include <src/core/com/can_message.hpp>
-#include <src/core/com/can_periodic_message.hpp>
-#include <src/core/com/can_router.hpp>
-#include <src/core/com/can_server.hpp>
+#include <src/core/com/can/can_async_message.hpp>
+#include <src/core/com/can/can_message.hpp>
+#include <src/core/com/can/can_periodic_message.hpp>
+#include <src/core/com/can/can_router.hpp>
+#include <src/core/com/can/can_server.hpp>
 #include <src/core/runtime/can_runtime.hpp>
 
 

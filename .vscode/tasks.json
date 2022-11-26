@@ -92,13 +92,23 @@
       "problemMatcher": []
     },
     {
+      "label": "Build Proto Interfaces",
+      "type": "shell",
+      "command": "./build_proto.sh",
+      "options": {
+        "cwd": "${workspaceFolder}/scripts"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "Build Current Configuration",
       "type": "shell",
       "command": "./build_embedded.sh",
       "options": {
         "cwd": "${workspaceFolder}/scripts"
       },
-      "problemMatcher": []
+      "problemMatcher": [],
+      "dependsOn": "Build Proto Interfaces"
     },
     {
       "label": "Dump Sections",

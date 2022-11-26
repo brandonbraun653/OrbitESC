@@ -15,8 +15,8 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <src/core/com/can_message.hpp>
-#include <src/core/com/can_async_message.hpp>
+#include <src/core/com/can/can_message.hpp>
+#include <src/core/com/can/can_async_message.hpp>
 #include <etl/message_router.h>
 
 namespace Orbit::CAN::Router

@@ -20,7 +20,7 @@ Includes
 #include <Chimera/thread>
 #include <etl/message_bus.h>
 #include <etl/vector.h>
-#include <src/core/com/can_message.hpp>
+#include <src/core/com/can/can_message.hpp>
 
 namespace Orbit::CAN
 {

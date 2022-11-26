@@ -13,10 +13,10 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/logging>
 #include <Chimera/can>
-#include <src/core/com/can_async_message.hpp>
-#include <src/core/com/can_message.hpp>
-#include <src/core/com/can_periodic_message.hpp>
-#include <src/core/com/can_server.hpp>
+#include <src/core/com/can/can_async_message.hpp>
+#include <src/core/com/can/can_message.hpp>
+#include <src/core/com/can/can_periodic_message.hpp>
+#include <src/core/com/can/can_server.hpp>
 
 namespace Orbit::CAN
 {

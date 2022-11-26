@@ -4,13 +4,13 @@ gen_static_lib_variants(
   TARGET
     lib_orbit_com
   SOURCES
-    can_periodic_message.cpp
-    can_server.cpp
-    routers/can_ehalt_router.cpp
-    routers/can_mode_router.cpp
-    routers/can_ping_router.cpp
-    routers/can_reset_router.cpp
-    routers/can_speed_router.cpp
+    can/can_periodic_message.cpp
+    can/can_server.cpp
+    can/routers/can_ehalt_router.cpp
+    can/routers/can_mode_router.cpp
+    can/routers/can_ping_router.cpp
+    can/routers/can_reset_router.cpp
+    can/routers/can_speed_router.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc

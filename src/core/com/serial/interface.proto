@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+message TestRequest {
+  uint32 testA = 1;
+  uint32 testB = 2;
+}

@@ -15,7 +15,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <src/core/com/can_message_intf.hpp>
+#include <src/core/com/can/can_message_intf.hpp>
 #include <etl/fsm.h>
 
 namespace Orbit::CAN::Message

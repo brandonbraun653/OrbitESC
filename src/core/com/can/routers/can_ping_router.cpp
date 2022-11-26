@@ -12,8 +12,8 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/logging>
-#include <src/core/com/can_message.hpp>
-#include <src/core/com/can_router.hpp>
+#include <src/core/com/can/can_message.hpp>
+#include <src/core/com/can/can_router.hpp>
 #include <src/core/hw/orbit_can.hpp>
 #include <src/core/runtime/can_runtime.hpp>
 

@@ -15,8 +15,8 @@ Includes
 #include <src/config/bsp/board_map.hpp>
 #include <src/control/foc_driver.hpp>
 #include <src/control/foc_math.hpp>
-#include <src/core/com/can_message.hpp>
-#include <src/core/com/can_periodic_message.hpp>
+#include <src/core/com/can/can_message.hpp>
+#include <src/core/com/can/can_periodic_message.hpp>
 #include <src/core/hw/orbit_can.hpp>
 #include <src/core/runtime/can_runtime.hpp>
 

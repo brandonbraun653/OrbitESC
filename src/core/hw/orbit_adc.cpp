@@ -29,7 +29,7 @@ namespace Orbit::ADC
   Current Sense Constants
   ---------------------------------------------------------------------------*/
   static constexpr float ISHUNT_AMP_GAIN = 10.0f;    // Configured gain of all amplifiers
-  static constexpr float ISENSE_VREF     = 1.65f;    // Voltage reference for current sense
+  static constexpr float ISENSE_VREF     = 1.639f;   // Voltage reference for current sense
   static constexpr float RSHUNT_OHM      = 0.01f;    // Low-side shunt resistor
 
   /*---------------------------------------------------------------------------

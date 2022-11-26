@@ -1,9 +1,9 @@
 /******************************************************************************
  *  File Name:
- *    can_speed_router.cpp
+ *    can_reset_router.cpp
  *
  *  Description:
- *    Ping Message Router
+ *    SystemReset Message Router
  *
  *  2022 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
@@ -11,30 +11,30 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <src/core/com/can_message.hpp>
-#include <src/core/com/can_router.hpp>
+#include <Aurora/logging>
+#include <Chimera/system>
+#include <src/core/com/can/can_message.hpp>
+#include <src/core/com/can/can_router.hpp>
 #include <src/core/hw/orbit_can.hpp>
-#include <src/core/runtime/can_runtime.hpp>
-#include <src/control/foc_math.hpp>
-#include <src/control/foc_driver.hpp>
 
 namespace Orbit::CAN::Router
 {
   /*---------------------------------------------------------------------------
   SetMotorSpeed
   ---------------------------------------------------------------------------*/
-  SetMotorSpeedRouter::SetMotorSpeedRouter() : message_router( Message::MSG_SET_MOTOR_SPEED )
+  SystemResetRouter::SystemResetRouter() : message_router( Message::MSG_SYSTEM_RESET )
   {
   }
 
 
-  void SetMotorSpeedRouter::on_receive( const Message::SetMotorSpeed &msg )
+  void SystemResetRouter::on_receive( const Message::SystemReset &msg )
   {
-    Orbit::Control::FOCDriver.setSpeedRef( RPM_TO_RAD( msg.payload.speed ) );
+    LOG_INFO( "System reset command received\r\n" );
+    Chimera::System::softwareReset();
   }
 
 
-  void SetMotorSpeedRouter::on_receive_unknown( const etl::imessage &msg )
+  void SystemResetRouter::on_receive_unknown( const etl::imessage &msg )
   {
     /* Do nothing */
   }
