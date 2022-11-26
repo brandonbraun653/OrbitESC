@@ -1,0 +1,16 @@
+1
+9
+.tran 1u 5m
+4
+1
+Net-(R11-Pad2)
+V
+1
+Net-(R13-Pad2)
+V
+1
+Net-(R17-Pad2)
+V
+1
+Net-(R5-Pad2)
+V

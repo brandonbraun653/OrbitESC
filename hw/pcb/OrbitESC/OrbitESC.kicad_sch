@@ -743,6 +743,9 @@
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/6349e373-ae96-42f5-b0a0-1a23031b19cc/8ef374b9-16cc-47b3-a974-d811a2baad41"
       (reference "D7") (unit 1) (value "Yellow LED") (footprint "Diode_SMD:D_0603_1608Metric")
     )
+    (path "/e5c7e094-5305-4041-9a38-3256d4457e28/2ce426cc-94e9-4156-a4e1-9339f1424799"
+      (reference "D8") (unit 1) (value "D_Schottky") (footprint "")
+    )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/588c44ed-10d8-4cfd-a9dd-a18ee9f3e745/267d3bd2-e653-4127-b18c-bafa0dd0c51c"
       (reference "D15") (unit 1) (value "Green LED") (footprint "Diode_SMD:D_0603_1608Metric")
     )
@@ -899,6 +902,9 @@
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/588c44ed-10d8-4cfd-a9dd-a18ee9f3e745/aed20b2a-d303-43ca-890d-d27a04acb0ec"
       (reference "R29") (unit 1) (value "10k") (footprint "Resistor_SMD:R_0402_1005Metric")
     )
+    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/ec377b79-2ea0-4e7a-9183-e4cd7006bf19"
+      (reference "R30") (unit 1) (value "10k") (footprint "Resistor_SMD:R_0402_1005Metric")
+    )
     (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/740bc94f-0d71-4209-a01d-81ab635e022d"
       (reference "R31") (unit 1) (value "10k") (footprint "Resistor_SMD:R_0402_1005Metric")
     )
@@ -927,7 +933,7 @@
       (reference "R39") (unit 1) (value "1k") (footprint "Resistor_SMD:R_0402_1005Metric")
     )
     (path "/e5c7e094-5305-4041-9a38-3256d4457e28/2a5ff8a4-13eb-47e7-bf7b-8d1284e98bf8"
-      (reference "R40") (unit 1) (value "51k") (footprint "Resistor_SMD:R_0402_1005Metric")
+      (reference "R40") (unit 1) (value "57.6k") (footprint "Resistor_SMD:R_0402_1005Metric")
     )
     (path "/e5c7e094-5305-4041-9a38-3256d4457e28/c4390728-f88f-43ae-8c36-4eb4f5f9f273"
       (reference "R41") (unit 1) (value "10k") (footprint "Resistor_SMD:R_0402_1005Metric")
@@ -946,6 +952,9 @@
     )
     (path "/e5c7e094-5305-4041-9a38-3256d4457e28/76e251d9-dbf0-4029-8dd9-efdc4aa337ac"
       (reference "R46") (unit 1) (value "49.9") (footprint "Resistor_SMD:R_0402_1005Metric")
+    )
+    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/099deff0-b319-4dab-a0e0-902811b93821"
+      (reference "R47") (unit 1) (value "10k") (footprint "Resistor_SMD:R_0402_1005Metric")
     )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/285c1738-80d6-4f9d-9754-7751ec741349"
       (reference "R62") (unit 1) (value "120") (footprint "Resistor_SMD:R_0402_1005Metric")
@@ -985,6 +994,9 @@
     )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/c187f7dd-c63d-4fbc-ba45-8a37d2f470eb"
       (reference "SW2") (unit 1) (value "Boot") (footprint "Button_Switch_SMD:SW_SPST_PTS810")
+    )
+    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/279e9801-15fe-440a-a6ab-ccb0ef4732d6"
+      (reference "TP1") (unit 1) (value "BL") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
     )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/558d1498-20e1-4b77-bd37-53a3ea298dc7"
       (reference "TP5") (unit 1) (value "NOR_nCS") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
