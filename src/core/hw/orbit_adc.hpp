@@ -44,6 +44,12 @@ namespace Orbit::ADC
    */
   float sample2BusVoltage( const float vin );
 
+  /**
+   * @brief Gets the voltage reference driving the phase current sense amplifiers
+   * @return float
+   */
+  float pIxVRef();
+
 }  // namespace Orbit::ADC
 
 #endif  /* !ORBIT_ESC_ADC_HPP */

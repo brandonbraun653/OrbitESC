@@ -45,6 +45,10 @@ namespace Orbit::Monitor
   class IAnalogMonitor
   {
   public:
+    IAnalogMonitor() : mEngageState( EngageState::INACTIVE ), mTripState( TripState::NOT_TRIPPED ), mThreshMax( 0.0f ), mThreshMin( 0.0f )
+    {
+    }
+
     virtual ~IAnalogMonitor() = default;
 
     /**
@@ -52,7 +56,20 @@ namespace Orbit::Monitor
      *
      * @param state   State being set
      */
-    virtual void setEngageState( const EngageState state ) = 0;
+    void setEngageState( const EngageState state )
+    {
+      mEngageState = state;
+    };
+
+    /**
+     * @brief Get the current trip state of the monitor
+     *
+     * @return TripState
+     */
+    TripState tripped() const
+    {
+      return mTripState;
+    }
 
     /**
      * @brief Set basic min/max thresholds for the monitor before tripping
@@ -60,14 +77,11 @@ namespace Orbit::Monitor
      * @param min   Lower trip threshold
      * @param max   Upper trip threshold
      */
-    virtual void setThresholds( const float min, const float max ) = 0;
-
-    /**
-     * @brief Get the current trip state of the monitor
-     *
-     * @return TripState
-     */
-    virtual TripState tripped() = 0;
+    void setThresholds( const float min, const float max )
+    {
+      mThreshMin = min;
+      mThreshMax = max;
+    };
 
     /**
      * @brief Push a new value into the monitor
@@ -76,7 +90,13 @@ namespace Orbit::Monitor
      * @param time  Time the value was acquired in microseconds
      */
     virtual void update( const float val, const size_t time_us ) = 0;
-  };
-}  // namespace Orbit::Monitor
 
-#endif  /* !ORBIT_ANALOG_MONITOR_HPP */
+  protected:
+    EngageState mEngageState;
+    TripState   mTripState;
+    float       mThreshMax;
+    float       mThreshMin;
+  };
+}    // namespace Orbit::Monitor
+
+#endif /* !ORBIT_ANALOG_MONITOR_HPP */

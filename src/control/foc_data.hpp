@@ -220,13 +220,15 @@ namespace Orbit::Control
   struct ADCSensorData
   {
     float    measured;     /**< Raw ADC value */
+    float    calibrated;   /**< Calibrated ADC value, accounting for offset */
     float    converted;    /**< Converted raw value into meaningful data */
-    float    dcOffset;     /**< The DC offset of the ADC channel */
+    float    dcOffset;     /**< The DC offset of the ADC channel at idle */
     uint32_t sampleTimeUs; /**< The time in microseconds that the ADC sample was taken */
 
     void clear()
     {
       measured     = 0.0f;
+      calibrated   = 0.0f;
       converted    = 0.0f;
       dcOffset     = 0.0f;
       sampleTimeUs = 0;

@@ -22,29 +22,32 @@ namespace Orbit::Monitor
   {
   }
 
+
   VoltageMonitor::~VoltageMonitor()
   {
   }
 
 
-  void VoltageMonitor::setEngageState( const EngageState state )
-  {
-  }
-
-
-  void VoltageMonitor::setThresholds( const float min, const float max )
-  {
-  }
-
-
-  TripState VoltageMonitor::tripped()
-  {
-    return TripState::NOT_TRIPPED;
-  }
-
-
   void VoltageMonitor::update( const float val, const size_t time_us )
   {
+    // TODO: Need to trip only after a sustained period above/below threshold
+
+    if ( mEngageState != EngageState::ACTIVE )
+    {
+      return;
+    }
+
+    if ( val < mThreshMin )
+    {
+      mTripState = TripState::EXCEED_LOWER;
+      return;
+    }
+
+    if ( val > mThreshMax )
+    {
+      mTripState = TripState::EXCEED_UPPER;
+      return;
+    }
   }
 
 }    // namespace Orbit::Monitor

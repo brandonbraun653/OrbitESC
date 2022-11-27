@@ -25,6 +25,7 @@ Includes
 #include <src/control/modes/sys_mode_ramp.hpp>
 #include <src/control/modes/sys_mode_run.hpp>
 #include <src/core/data/orbit_data_defaults.hpp>
+#include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_led.hpp>
 #include <src/core/utility.hpp>
 #include <src/monitor/orbit_monitors.hpp>
@@ -85,17 +86,6 @@ namespace Orbit::Control
 
     mADCDriver = Chimera::ADC::getDriver( cfg.adcSource );
     mADCDriver->onInterrupt( Chimera::ADC::Interrupt::EOC_SEQUENCE, callback );
-
-    /*-------------------------------------------------------------------------
-    Get the DC offset of current shunt resistors when the motor is at rest
-    -------------------------------------------------------------------------*/
-    Chimera::ADC::Sample sample;
-
-    sample                                                    = mADCDriver->sampleChannel( Orbit::IO::Analog::adcPhaseA );
-    mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].dcOffset = mADCDriver->toVoltage( sample );
-
-    sample                                                    = mADCDriver->sampleChannel( Orbit::IO::Analog::adcPhaseB );
-    mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].dcOffset = mADCDriver->toVoltage( sample );
 
     /*-------------------------------------------------------------------------
     Initialize eigenvalues for the current controller
@@ -168,6 +158,37 @@ namespace Orbit::Control
     mRunFuncArray[ ModeId::ENGAGED_RUN ]  = &FOC::onRun;
 
     return 0;
+  }
+
+
+  void FOC::calibrate()
+  {
+    /*-------------------------------------------------------------------------
+    Ensure the motor is off for calibration
+    -------------------------------------------------------------------------*/
+    int stopped = this->emergencyStop();
+    RT_DBG_ASSERT( stopped == 0 );
+    Chimera::delayMilliseconds( 100 );
+
+    /*-------------------------------------------------------------------------
+    Measure the DC offset of the motor phase current sensors
+    -------------------------------------------------------------------------*/
+    LOG_TRACE( "Calibrating phase current sensors\r\n" );
+    for( int idx = ADC_CH_MOTOR_PHASE_A_CURRENT; idx <= ADC_CH_MOTOR_PHASE_C_CURRENT; idx++ )
+    {
+      float samples = 0.0f;
+      float pIxAvg  = 0.0f;
+
+      while ( samples < 25.0f )
+      {
+        samples++;
+        pIxAvg += mState.adcBuffer[ idx ].measured;
+        Chimera::delayMilliseconds( 5 );
+      }
+
+      mState.adcBuffer[ idx ].dcOffset = ( pIxAvg / samples );
+    }
+    LOG_TRACE( "Done\r\n" );
   }
 
 
@@ -256,12 +277,14 @@ namespace Orbit::Control
 
   void FOC::adcISRTxfrComplete( const Chimera::ADC::InterruptDetail &isr )
   {
+    using namespace Orbit::Monitor;
+
 #if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
     SEGGER_SYSVIEW_RecordEnterISR();
 #endif
 
     /*-------------------------------------------------------------------------
-    Convert the ADC data to measured values
+    Process the raw ADC data
     -------------------------------------------------------------------------*/
     static constexpr float COUNTS_TO_VOLTS = 3.3f / 4096.0f;    // Vref = 3.3V, 12-bit ADC
     const uint32_t         timestamp_us    = Chimera::micros();
@@ -269,45 +292,31 @@ namespace Orbit::Control
 
     for ( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
     {
+      /*-----------------------------------------------------------------------
+      Convert the ADC data to measured values
+      -----------------------------------------------------------------------*/
       mState.adcBuffer[ i ].measured     = static_cast<float>( isr.samples[ i ] ) * COUNTS_TO_VOLTS;
-      mState.adcBuffer[ i ].converted    = mConfig.txfrFuncs[ i ]( mState.adcBuffer[ i ].measured );
+      mState.adcBuffer[ i ].calibrated   = mState.adcBuffer[ i ].measured - mState.adcBuffer[ i ].dcOffset;
+      mState.adcBuffer[ i ].converted    = mConfig.txfrFuncs[ i ]( mState.adcBuffer[ i ].calibrated );
       mState.adcBuffer[ i ].sampleTimeUs = timestamp_us;
-    }
 
-    /*-------------------------------------------------------------------------
-    Run the system monitors to ensure we're in expected operating conditions
-    -------------------------------------------------------------------------*/
-    Orbit::Monitor::VBusMonitor.update( mState.adcBuffer[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted,
-                                        mState.adcBuffer[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].sampleTimeUs );
-    Orbit::Monitor::IPhAMonitor.update( mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].converted,
-                                        mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].sampleTimeUs );
-    Orbit::Monitor::IPhBMonitor.update( mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].converted,
-                                        mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].sampleTimeUs );
-    Orbit::Monitor::IPhCMonitor.update( mState.adcBuffer[ ADC_CH_MOTOR_PHASE_C_CURRENT ].converted,
-                                        mState.adcBuffer[ ADC_CH_MOTOR_PHASE_C_CURRENT ].sampleTimeUs );
-
-    for ( auto mon : Orbit::Monitor::MonitorArray )
-    {
-      if ( mon->tripped() == Orbit::Monitor::TripState::NOT_TRIPPED )
+      /*-----------------------------------------------------------------------
+      Update the monitor for this channel
+      -----------------------------------------------------------------------*/
+      IAnalogMonitor *monitor = MonitorArray[ i ];
+      monitor->update( mState.adcBuffer[ i ].converted, mState.adcBuffer[ i ].sampleTimeUs );
+      if( monitor->tripped() == TripState::NOT_TRIPPED )
       {
         continue;
       }
 
       /*-----------------------------------------------------------------------
-      Move the motor into a safe state
+      Tripped! Take action and move the motor to a safe state.
       -----------------------------------------------------------------------*/
       mState.motorCtl.isrCtlActive = false;
       this->emergencyStop();
+      monitor->setEngageState( Orbit::Monitor::EngageState::INACTIVE );
       Orbit::LED::setChannel( Orbit::LED::Channel::FAULT );
-
-      /*-----------------------------------------------------------------------
-      Disengage all monitors
-      -----------------------------------------------------------------------*/
-      for ( auto mon2 : Orbit::Monitor::MonitorArray )
-      {
-        mon2->setEngageState( Orbit::Monitor::EngageState::INACTIVE );
-      }
-      break;
     }
 
     /*-------------------------------------------------------------------------

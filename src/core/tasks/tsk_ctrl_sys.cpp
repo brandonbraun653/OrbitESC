@@ -19,6 +19,7 @@ Includes
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_ctrl_sys.hpp>
+#include <src/monitor/orbit_monitors.hpp>
 
 namespace Orbit::Tasks::CTRLSYS
 {
@@ -48,6 +49,14 @@ namespace Orbit::Tasks::CTRLSYS
     params.Ls = 380.0f * 1e-3f;
 
     Orbit::Control::FOCDriver.initialize( cfg, params );
+    Orbit::Control::FOCDriver.calibrate();
+
+
+    // Move this to the Idle/engage transition step
+    for( auto mon : Orbit::Monitor::MonitorArray )
+    {
+      mon->setEngageState( Orbit::Monitor::EngageState::ACTIVE );
+    }
 
     /*-------------------------------------------------------------------------
     Run the CTRLSYS thread

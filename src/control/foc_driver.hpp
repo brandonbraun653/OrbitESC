@@ -72,6 +72,11 @@ namespace Orbit::Control
     int initialize( const FOCConfig &cfg, const MotorParameters &motorParams );
 
     /**
+     * @brief Calibrate system measurements
+     */
+    void calibrate();
+
+    /**
      * @brief Executes the high level controller
      * @note Expects to be run periodically
      */

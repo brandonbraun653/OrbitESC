@@ -29,7 +29,7 @@ namespace Orbit::ADC
   Current Sense Constants
   ---------------------------------------------------------------------------*/
   static constexpr float ISHUNT_AMP_GAIN = 10.0f;    // Configured gain of all amplifiers
-  static constexpr float ISENSE_VREF     = 1.639f;   // Voltage reference for current sense
+  static constexpr float ISENSE_VREF     = 1.65f;   // Voltage reference for current sense
   static constexpr float RSHUNT_OHM      = 0.01f;    // Low-side shunt resistor
 
   /*---------------------------------------------------------------------------
@@ -134,13 +134,20 @@ namespace Orbit::ADC
 
   float sample2PhaseCurrent( const float vin )
   {
-    return ( vin - ISENSE_VREF ) / ( ISHUNT_AMP_GAIN * RSHUNT_OHM );
+    // return ( vin - ISENSE_VREF ) / ( ISHUNT_AMP_GAIN * RSHUNT_OHM );
+    return vin / ( ISHUNT_AMP_GAIN * RSHUNT_OHM );
   }
 
 
   float sample2BusVoltage( const float vin )
   {
     return vin * ADC_TO_VDC_CONV_CONST;
+  }
+
+
+  float pIxVRef()
+  {
+    return ISENSE_VREF;
   }
 
 }    // namespace Orbit::ADC

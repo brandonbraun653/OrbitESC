@@ -27,7 +27,7 @@ namespace Orbit::Monitor
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  class CurrentMonitor : public virtual IAnalogMonitor
+  class CurrentMonitor : public IAnalogMonitor
   {
   public:
     CurrentMonitor();
@@ -36,9 +36,6 @@ namespace Orbit::Monitor
     /*-------------------------------------------------------------------------
     IAnalogMonitor Interface
     -------------------------------------------------------------------------*/
-    void setEngageState( const EngageState state );
-    void setThresholds( const float min, const float max );
-    TripState tripped();
     void update( const float val, const size_t time_us );
   };
 }  // namespace Orbit::Monitor
