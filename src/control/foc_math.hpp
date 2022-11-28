@@ -17,6 +17,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <cmath>
 #include <cstdint>
+#include <limits>
 
 /*-----------------------------------------------------------------------------
 Macros
@@ -34,6 +35,7 @@ namespace Orbit::Control::Math
   static constexpr float TWO_OVER_SQRT3 = 1.15470053837925152902f;
   static constexpr float SQRT3_OVER_2   = 0.86602540378443864676f;
   static constexpr float M_PI_F         = static_cast<float>( M_PI );
+  static constexpr float M_2PI_F        = 2.0f * M_PI_F;
 
   /*---------------------------------------------------------------------------
   Structures
@@ -168,6 +170,63 @@ namespace Orbit::Control::Math
    * @return void
    */
   void inverse_clarke_transform( const ClarkeSpace &clark, float *const a, float *const b, float *const c );
+
+  /**
+   * @brief Clips an input value to be bounded between min/max
+   *
+   * @param v       Value being clipped
+   * @param min     Minimum limit
+   * @param max     Maximum limit
+   * @return float
+   */
+  float clamp( const float v, const float min, const float max );
+
+  /*---------------------------------------------------------------------------
+  Classes
+  ---------------------------------------------------------------------------*/
+  /**
+   * @brief Discrete time trapezoidal integrator
+   * @see https://www.mathworks.com/help/simulink/slref/discretetimeintegrator.html
+   */
+  class TrapInt
+  {
+  public:
+    float K;  /**< Proportionality constant to scale integration by*/
+
+    TrapInt();
+    ~TrapInt();
+
+    /**
+     * @brief Reset the integrator
+     *
+     * @param ic    Initial condition
+     * @param min   Minimum value saturation limit
+     * @param max   Maximum value saturation limit
+     */
+    void reset( const float ic = 0.0f, const float min = std::numeric_limits<float>::min(),
+                const float max = std::numeric_limits<float>::max() );
+
+    /**
+     * @brief Steps the integration forward by dt
+     *
+     * @param u   Input value for this time step
+     * @param dt  Time to integrate over
+     * @return float
+     */
+    float step( const float u, const float dt );
+
+    /**
+     * @brief Get the current value of the integration
+     * @return float
+     */
+    float value() const;
+
+  private:
+    float Min;
+    float Max;
+    float Y;
+    float ULast;
+  };
 
 }    // namespace Orbit::Control::Math
 

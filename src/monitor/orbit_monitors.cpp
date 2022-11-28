@@ -42,7 +42,7 @@ namespace Orbit::Monitor
     RT_DBG_ASSERT( MonitorArray[ ADC_CH_MOTOR_PHASE_B_CURRENT ] == &IPhBMonitor );
     RT_DBG_ASSERT( MonitorArray[ ADC_CH_MOTOR_PHASE_C_CURRENT ] == &IPhCMonitor );
 
-    VBusMonitor.setThresholds( 8.0f, 14.0f );
+    VBusMonitor.setThresholds( 0.0f, 14.0f );
     IPhAMonitor.setThresholds( -3.0f, 3.0f );
     IPhBMonitor.setThresholds( -3.0f, 3.0f );
     IPhCMonitor.setThresholds( -3.0f, 3.0f );

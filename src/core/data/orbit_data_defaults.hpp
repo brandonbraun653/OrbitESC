@@ -53,6 +53,11 @@ namespace Orbit::Data
   static constexpr float DFLT_STATOR_PWM_FREQ_HZ = 10'000.0f;
 
   /**
+   * @brief Core speed controller update frequency
+   */
+  static constexpr float DFLT_SPEED_CTL_UPDT_FREQ_HZ = 2'000.0f;
+
+  /**
    * @brief Which commutation cycle to align with during PARK phase
    */
   static constexpr uint8_t DFLT_STATOR_ALIGN_COMM_PHASE = 1u;

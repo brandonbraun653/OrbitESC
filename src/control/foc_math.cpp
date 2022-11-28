@@ -149,4 +149,50 @@ namespace Orbit::Control::Math
     *b = -0.5f * clark.alpha + clark.beta * SQRT3_OVER_2;
     *c = -0.5f * clark.alpha - clark.beta * SQRT3_OVER_2;
   }
+
+
+  float clamp( const float v, const float min, const float max )
+  {
+    return std::max( min, std::min( v, max ) );
+  }
+
+
+  /*---------------------------------------------------------------------------
+  Trapezoidal Integrator
+  ---------------------------------------------------------------------------*/
+  TrapInt::TrapInt() :
+      K( 1.0f ), Min( 0.0f ), Max( 0.0f ), Y( 0.0f ), ULast( 0.0f )
+  {
+  }
+
+
+  TrapInt::~TrapInt()
+  {
+  }
+
+
+  void TrapInt::reset( const float ic, const float min, const float max )
+  {
+    Min   = min;
+    Max   = max;
+    Y     = clamp( ic, Min, Max );
+    ULast = 0.0f;
+  }
+
+
+  float TrapInt::step( const float u, const float dt )
+  {
+    Y = Y + ( K * dt * ( u + ULast ) ) / 2.0f;
+    Y = clamp( Y, Min, Max );
+
+    ULast = u;
+    return Y;
+  }
+
+
+  float TrapInt::value() const
+  {
+    return Y;
+  }
+
 }    // namespace Orbit::Control::Math

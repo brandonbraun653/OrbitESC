@@ -124,6 +124,10 @@ namespace Orbit::ADC
     seq.trigChannel = 10;    // Regular channel, TIM1_TRGO2
 
     RT_HARD_ASSERT( Chimera::Status::OK == adc->configSequence( seq ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcPhaseA, 24 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcPhaseB, 24 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcPhaseC, 24 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVSupply, 12 ) );
 
     /*-------------------------------------------------------------------------
     Kick off the ADC sequence sampling

@@ -92,6 +92,21 @@ namespace Orbit::Control
     -------------------------------------------------------------------------*/
     mState.emfObserver.d = ( -motorParams.Rs / motorParams.Ls ) * 5.0f;
 
+
+    ControllerData* ctl = &mState.motorCtl;
+
+    ctl->clear();
+
+    ctl->Dpid.SetPoint = 0.0f;
+    ctl->Dpid.OutMinLimit = 0.0f;
+    ctl->Dpid.OutMaxLimit = 1.0f;
+
+    ctl->Qpid.SetPoint = 0.0f;
+    ctl->Qpid.OutMinLimit = 0.0f;
+    ctl->Qpid.OutMaxLimit = 1.0f;
+    ctl->Qpid.setTunings( 5.0f, 2.0f, 0.3f, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
+
+
     /*-------------------------------------------------------------------------
     Configure the Advanced Timer for center-aligned 3-phase PWM
     -------------------------------------------------------------------------*/
@@ -122,7 +137,7 @@ namespace Orbit::Control
 
     Chimera::Timer::Trigger::MasterConfig trig_cfg;
     trig_cfg.clear();
-    trig_cfg.trigFreq               = 10.0f;
+    trig_cfg.trigFreq               = Orbit::Data::DFLT_SPEED_CTL_UPDT_FREQ_HZ;
     trig_cfg.isrCallback            = isrFunc;
     trig_cfg.coreConfig.instance    = Chimera::Timer::Instance::TIMER2;
     trig_cfg.coreConfig.baseFreq    = 100'000.0f;
@@ -222,10 +237,24 @@ namespace Orbit::Control
 
   int FOC::engage()
   {
-    this->receive( MsgAlign() );
+    // this->receive( MsgAlign() );
 
-    auto mode = this->currentMode();
-    return ( ( mode == ModeId::ENGAGED_PARK ) || ( mode == ModeId::ENGAGED_RAMP ) || ( mode == ModeId::ENGAGED_RUN ) ) ? 0 : -1;
+    // auto mode = this->currentMode();
+    // return ( ( mode == ModeId::ENGAGED_PARK ) || ( mode == ModeId::ENGAGED_RAMP ) || ( mode == ModeId::ENGAGED_RUN ) ) ? 0 : -1;
+
+
+    mTimerDriver.disableOutput();
+    mTimerDriver.setForwardCommState( 0 );
+    mTimerDriver.enableOutput();
+
+    mState.motorCtl.isrCtlActive = true;
+    mState.motorCtl.Iqr = 0.001;
+    mState.motorCtl.posEst = 0.0f;
+    mState.motorCtl.spdEst = 0.0f;
+    mState.motorCtl.IqrInt.reset();
+    mState.motorCtl.SpdInt.reset();
+
+    return 0;
   }
 
 
@@ -286,22 +315,24 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Process the raw ADC data
     -------------------------------------------------------------------------*/
-    static constexpr float COUNTS_TO_VOLTS = 3.3f / 4096.0f;    // Vref = 3.3V, 12-bit ADC
-    const uint32_t         timestamp_us    = Chimera::micros();
-    const float            f_timestamp_us  = static_cast<float>( timestamp_us );
+    const uint32_t timestamp_us    = Chimera::micros();
+    const float    f_timestamp_us  = static_cast<float>( timestamp_us );
+    const float    counts_to_volts = isr.vref / isr.resolution;
 
     for ( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
     {
       /*-----------------------------------------------------------------------
       Convert the ADC data to measured values
       -----------------------------------------------------------------------*/
-      mState.adcBuffer[ i ].measured     = static_cast<float>( isr.samples[ i ] ) * COUNTS_TO_VOLTS;
+      mState.adcBuffer[ i ].measured     = static_cast<float>( isr.samples[ i ] ) * counts_to_volts;
       mState.adcBuffer[ i ].calibrated   = mState.adcBuffer[ i ].measured - mState.adcBuffer[ i ].dcOffset;
       mState.adcBuffer[ i ].converted    = mConfig.txfrFuncs[ i ]( mState.adcBuffer[ i ].calibrated );
       mState.adcBuffer[ i ].sampleTimeUs = timestamp_us;
 
       /*-----------------------------------------------------------------------
       Update the monitor for this channel
+
+      // TODO BMB: Consider using the analog watchdog
       -----------------------------------------------------------------------*/
       IAnalogMonitor *monitor = MonitorArray[ i ];
       monitor->update( mState.adcBuffer[ i ].converted, mState.adcBuffer[ i ].sampleTimeUs );
@@ -328,24 +359,22 @@ namespace Orbit::Control
     }
 
     /*-------------------------------------------------------------------------
-    Update the cycle-by-cycle current control loop
+    Apply the latest motor control command
     -------------------------------------------------------------------------*/
-    const float cycle_dt = f_timestamp_us - mState.motorCtl.last_current_update_us;
-    stepIControl( cycle_dt );
-    mState.motorCtl.last_current_update_us = timestamp_us;
+    mTimerDriver.setPhaseDutyCycle( mState.motorCtl.svpwm_a_duty, mState.motorCtl.svpwm_b_duty, mState.motorCtl.svpwm_c_duty );
+    mTimerDriver.setForwardCommState( mState.motorCtl.svpwm_comm );
 
-    /*-------------------------------------------------------------------------
-    Update the Position/Speed estimators
-    -------------------------------------------------------------------------*/
-    const float estimate_dt = f_timestamp_us - mState.motorCtl.last_estimate_update_us;
+#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
+    SEGGER_SYSVIEW_RecordExitISR();
+#endif
+  }
 
-    if ( estimate_dt >= mState.motorCtl.next_estimate_update_us )
-    {
-      mState.motorCtl.last_estimate_update_us = f_timestamp_us;
-      mState.motorCtl.next_estimate_update_us = 5.0f * f_timestamp_us;
-      stepEstimator( estimate_dt );
-    }
 
+  void FOC::timer_isr_speed_controller()
+  {
+#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
+    SEGGER_SYSVIEW_RecordEnterISR();
+#endif
     /**
      * Current Control Loop: (Ts)
      *  - Start with the physical system measurements
@@ -363,26 +392,102 @@ namespace Orbit::Control
      *      - Speed: Eq. 22
      *  - Update the commutation state based on the current position and speed. (Is this best?)
      */
-
     /*-------------------------------------------------------------------------
-    Estimate the rotor position
+    Gate the behavior of this ISR without stopping the Timer/ADC/DMA hardware
     -------------------------------------------------------------------------*/
+    mSpeedCtrlTrigger.ackISR();
+    if ( !mState.motorCtl.isrCtlActive )
+    {
+      return;
+    }
 
     /*-----------------------------------------------------------------------
     Move the sampled phase currents through the Clarke-Park transform
     -----------------------------------------------------------------------*/
-    // const auto clarke = Math::clarke_transform( mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].converted,
-    //                                             mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].converted );
+    const auto clarke = Math::clarke_transform( mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].converted,
+                                                mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].converted );
 
-    // const auto park = Math::park_transform( clarke, mState.motorController.posEstRad );
+    const auto park = Math::park_transform( clarke, mState.motorCtl.posEst );
 
-    // /*-----------------------------------------------------------------------
-    // Do the estimation
-    // -----------------------------------------------------------------------*/
-    // /* Update the motor state data from previous calculations */
-    // mState.motorController.Iq  = park.q;
-    // mState.motorController.Id  = park.d;
-    // mState.motorController.Vdd = mState.adcBuffer[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted;
+    /*-----------------------------------------------------------------------
+    Run the control loop
+    -----------------------------------------------------------------------*/
+    /* Update the motor state data from previous calculations */
+    mState.motorCtl.Iqm = park.q;
+    mState.motorCtl.Idm = park.d;
+    mState.motorCtl.Vdd = mState.adcBuffer[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted;
+
+    /* Filter the measured currents */
+    // TODO BMB
+    mState.motorCtl.Idf = mState.motorCtl.Idm;
+    mState.motorCtl.Iqf = mState.motorCtl.Iqm;
+
+    /* Step the PID controllers */
+    mState.motorCtl.Dpid.run( mState.motorCtl.Idr - mState.motorCtl.Idf );
+    mState.motorCtl.Vdr = mState.motorCtl.Dpid.Output;
+
+    mState.motorCtl.Qpid.run( mState.motorCtl.Iqr - mState.motorCtl.Iqf );
+    mState.motorCtl.Vqr = mState.motorCtl.Qpid.Output;
+
+    /* Open loop control motor speed and position estimates */
+    mState.motorCtl.spdEst = mState.motorCtl.IqrInt.step( mState.motorCtl.Iqr, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
+    mState.motorCtl.posEst = mState.motorCtl.SpdInt.step( mState.motorCtl.spdEst, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
+
+    /* Naive wrapping of position */
+    if( mState.motorCtl.posEst > Math::M_2PI_F )
+    {
+      mState.motorCtl.posEst -= Math::M_2PI_F;
+    }
+    else if( mState.motorCtl.posEst < 0.0f )
+    {
+      mState.motorCtl.posEst += Math::M_2PI_F;
+    }
+
+    /*-------------------------------------------------------------------------
+    Update the commanded controller output states
+    -------------------------------------------------------------------------*/
+    float                 a, b, c;
+    const Math::ParkSpace park_space{ .d = mState.motorCtl.Vdr, .q = mState.motorCtl.Vqr };
+    auto                  invPark = Math::inverse_park_transform( park_space, mState.motorCtl.posEst );
+
+    Math::inverse_clarke_transform( invPark, &a, &b, &c );
+
+    // TODO BMB: This is where SVPWM comes into play?
+    // mTimerDriver.setPhaseDutyCycle( a, b, c );
+
+    /*-------------------------------------------------------------------------
+    Use the position estimate to determine the next commutation state. Split
+    the unit circle into 6 sectors and select the appropriate one to commutate.
+
+    https://math.stackexchange.com/a/206662/435793
+    Solve for N => Theta * 3 / pi
+    -------------------------------------------------------------------------*/
+    static constexpr float SECTOR_CONV_FACTOR = 3.0f / Math::M_PI_F;
+    uint8_t                sector = 1 + static_cast<uint8_t>( SECTOR_CONV_FACTOR * mState.motorCtl.posEst );
+    //mTimerDriver.setForwardCommState( sector );
+
+
+    static uint8_t comstate = 1;
+    static uint8_t counter = 0;
+
+    mState.motorCtl.svpwm_a_duty = 10.0f;
+    mState.motorCtl.svpwm_b_duty = 10.0f;
+    mState.motorCtl.svpwm_c_duty = 10.0f;
+    mState.motorCtl.svpwm_comm = 1;
+
+    // counter++;
+    // if( counter >= 200 )
+    // {
+    //   counter = 0;
+    //   comstate++;
+
+    //   if( comstate == 7 )
+    //   {
+    //     comstate = 1;
+    //   }
+    // }
+
+
 
     // /* Step the EMF observer */
     // const float dt = US_TO_SEC( timestamp_us - mState.emfObserver.last_update_us );
@@ -396,89 +501,9 @@ namespace Orbit::Control
     //   mState.motorController.posEstRad += Math::M_PI_F;
     // }
 
-    /*-------------------------------------------------------------------------
-    Based on the current state, decide how to drive the output stage
-    -------------------------------------------------------------------------*/
-    // if ( current_mode == ModeId::ENGAGED_RUN ) {}
-    // else if ( current_mode == ModeId::ENGAGED_RAMP )
-    // {
-    //   mTimerDriver.setForwardCommState( mState.motorController.ramp.comState );
-    //   mTimerDriver.setPhaseDutyCycle( mState.motorController.ramp.phaseDutyCycle[ 0 ],
-    //                                   mState.motorController.ramp.phaseDutyCycle[ 1 ],
-    //                                   mState.motorController.ramp.phaseDutyCycle[ 2 ] );
-    //   isr_rotor_ramp_controller();
-    // }
-    // else if ( current_mode == ModeId::ENGAGED_PARK )
-    // {
-    //   if ( mState.motorController.park.outputEnabled )
-    //   {
-    //     mTimerDriver.setPhaseDutyCycle( mState.motorController.park.phaseDutyCycle[ 0 ],
-    //                                     mState.motorController.park.phaseDutyCycle[ 1 ],
-    //                                     mState.motorController.park.phaseDutyCycle[ 2 ] );
-
-    //     mTimerDriver.setForwardCommState( mState.motorController.park.activeComState );
-    //   }
-    //   else
-    //   {
-    //     mTimerDriver.setForwardCommState( 0 );
-    //   }
-    // }
-    // Else nothing useful to do
-
-    /*-------------------------------------------------------------------------
-    Update the commanded controller output states
-    -------------------------------------------------------------------------*/
-    // const Math::ParkSpace park_space{ .d = mState.motorController.Vd, .q = mState.motorController.Vq };
-
-    // auto  invPark = Math::inverse_park_transform( park_space, mState.motorController.posEstRad );
-    // float a, b, c;
-
-    // Math::inverse_clarke_transform( invPark, &a, &b, &c );
-
-    // mTimerDriver.setPhaseDutyCycle( 10.0f, 10.0f, 10.0f );
-
-    /*-------------------------------------------------------------------------
-    Perform commutation
-    -------------------------------------------------------------------------*/
-    // Use position estimate to determine the next commutation state. I'm going
-    // to guess dividing 2PI into six sectors where each sector represents
-    // 60 degrees of rotation. The main question is how to determine which phase
-    // correctly corresponds to the current position estimate?
-
 #if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
     SEGGER_SYSVIEW_RecordExitISR();
 #endif
-  }
-
-
-  void FOC::timer_isr_speed_controller()
-  {
-    mSpeedCtrlTrigger.ackISR();
-
-    /*-------------------------------------------------------------------------
-    Don't run the speed controller loop if not in closed loop control
-    -------------------------------------------------------------------------*/
-    // if ( this->get_state_id() != EnumValue( ModeId::ENGAGED_RUN ) )
-    // {
-    //   return;
-    // }
-
-    // /*-------------------------------------------------------------------------
-    // Update estimate of the rotor speed
-    // -------------------------------------------------------------------------*/
-    // const size_t timestamp = Chimera::micros();
-    // const float  dTheta    = mState.motorCtl.posEstRad - mState.speedEstimator.pos_est_prev;
-    // const float  wdt       = US_TO_SEC( timestamp - mState.speedEstimator.last_update_us );
-
-    // mState.motorCtl.velEstRad = dTheta / wdt;
-
-    /*-----------------------------------------------------------------------
-    Update tracking variables
-    -----------------------------------------------------------------------*/
-    // mState.speedEstimator.pos_est_prev   = mState.motorCtl.posEstRad;
-    // mState.speedEstimator.last_update_us = timestamp;
-
-    // Reset the timer interrupt flag...
   }
 
 

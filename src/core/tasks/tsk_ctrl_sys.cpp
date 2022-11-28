@@ -58,6 +58,10 @@ namespace Orbit::Tasks::CTRLSYS
       mon->setEngageState( Orbit::Monitor::EngageState::ACTIVE );
     }
 
+
+    Chimera::delayMilliseconds( 3000 );
+    Orbit::Control::FOCDriver.engage();
+
     /*-------------------------------------------------------------------------
     Run the CTRLSYS thread
     -------------------------------------------------------------------------*/

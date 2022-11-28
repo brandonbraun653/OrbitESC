@@ -20,6 +20,9 @@ Includes
 #include <Chimera/common>
 #include <Chimera/adc>
 #include <Chimera/timer>
+#include <src/control/foc_math.hpp>
+#include <src/control/pid.hpp>
+#include <etl/circular_buffer.h>
 
 namespace Orbit::Control
 {
@@ -40,7 +43,7 @@ namespace Orbit::Control
    * Intended for use with the discrete controllers that perform calculations
    * on results from the previous iteration.
    */
-  using AlgoHistVal = std::array<float, 2>;
+  using AlgoHistVal = etl::circular_buffer<float, 2>;
 
   /*---------------------------------------------------------------------------
   Constants
@@ -116,104 +119,75 @@ namespace Orbit::Control
     }
   };
 
-  struct ParkControl
-  {
-    uint32_t startTime_ms;        /**< When the park controller started executing */
-    uint32_t lastUpdate_ms;       /**< Last time the controller was updated */
-    uint32_t activeComState;      /**< Which commutation state to align the rotor on */
-    uint32_t alignTime_ms;        /**< How long to run the park mode for in milliseconds */
-    uint32_t modulation_dt_ms;    /**< dt to toggle the output state in milliseconds */
-    float    phaseDutyCycle[ 3 ]; /**< Drive strength for each phase */
-    bool     outputEnabled;       /**< Enable/disable the power stage */
-
-    void clear()
-    {
-      memset( this, 0, sizeof( ParkControl ) );
-    }
-  };
-
-  struct RampControl
-  {
-    /*-------------------------------------------------------------------
-    Input Variables
-    -------------------------------------------------------------------*/
-    uint32_t rampRate;       /**< Ramp rate in RPM/update */
-    uint32_t finalRPM;       /**< End RPM value to achieve when ramp control is finished */
-    uint32_t targetRPM;      /**< Current desired RPM */
-    uint32_t minDwellCycles; /**< Minimum cycle events before target RPM can update */
-
-    /*-------------------------------------------------------------------
-    Working Variables (used inside ISR)
-    -------------------------------------------------------------------*/
-    uint32_t cycleCount; /**< How many times the inner loop ISR has been hit */
-    uint32_t cycleRef;   /**< Threshold for when to trigger a commutation update */
-    uint32_t currentRPM;
-
-    /*-------------------------------------------------------------------
-    Output Variables
-    -------------------------------------------------------------------*/
-    uint32_t comState;            /**< Current commutation state to drive */
-    float    phaseDutyCycle[ 3 ]; /**< Drive strength for each phase */
-
-    void clear()
-    {
-      memset( this, 0, sizeof( RampControl ) );
-    }
-  };
-
-  struct RunControl
-  {
-    /**
-     * Input Variables
-     */
-    float speedRefRad; /**< Reference speed in radians/second */
-
-
-    void clear()
-    {
-      memset( this, 0, sizeof( RunControl ) );
-    }
-  };
-
   struct ControllerData
   {
     /*-------------------------------------------------------------------------
     General Controller Data
     -------------------------------------------------------------------------*/
-    volatile bool isrCtlActive;    /**< Enable/disable the controller update routines inside ADC ISR */
-    float last_current_update_us;  /**< Last update in */
-    float last_estimate_update_us;
-    float next_estimate_update_us;
+    volatile bool isrCtlActive;           /**< Enable/disable the controller update routines inside ADC ISR */
+    float         last_current_update_us; /**< Last update in */
+    float         last_estimate_update_us;
+    float         next_estimate_update_us;
+
+
+    Math::TrapInt IqrInt; /**< Q-axis current reference command integrator */
+    Math::TrapInt SpdInt; /**< Speed estimation integrator (generates position) */
+
+    float     Idm;  /**< D-axis measured current */
+    float     Idf;  /**< D-axis filtered current measurement */
+    float     Idr;  /**< D-axis current reference command */
+    float     Vdr;  /**< D-axis commanded output voltage (phase) */
+    Math::PID Dpid; /**< D-axis pid controller */
+
+    float     Iqm;  /**< Q-axis measured current */
+    float     Iqf;  /**< Q-axis filtered current measurement */
+    float     Iqr;  /**< Q-axis current reference command */
+    float     Vqr;  /**< Q-axis commanded output voltage (magnitude) */
+    Math::PID Qpid; /**< Q-axis pid controller */
+
+    /*-------------------------------------------------------------------------
+    Fast Loop Update Variables
+    -------------------------------------------------------------------------*/
+    float   svpwm_a_duty; /**< Duty cycle for phase A */
+    float   svpwm_b_duty; /**< Duty cycle for phase B */
+    float   svpwm_c_duty; /**< Duty cycle for phase C */
+    uint8_t svpwm_comm;   /**< Commutation sector to use */
 
     /*-------------------------------------------------------------------------
     Estimated Quantities
     -------------------------------------------------------------------------*/
-    AlgoHistVal posEstRad; /**< Position in radians */
-    AlgoHistVal velEstRad; /**< Velocity in radians/second */
-    AlgoHistVal accEstRad; /**< Acceleration in radians/second^2 */
+    float posEst;
+    float spdEst;
 
     /*-------------------------------------------------------------------------
     Measured Quantities
     -------------------------------------------------------------------------*/
     float Vdd; /**< Supply voltage in volts */
-    float Id;  /**< Current in Amps */
-    float Iq;  /**< Current in Amps */
-
-    /*-------------------------------------------------------------------------
-    Output Variables
-    -------------------------------------------------------------------------*/
-    float Vd; /**< Commanded output voltage on the D axis */
-    float Vq; /**< Commanded output voltage on the Q axis */
-
 
     void clear()
     {
-      posEstRad.fill( 0.0f );
-      velEstRad.fill( 0.0f );
-      accEstRad.fill( 0.0f );
-      Vdd = 0.0f;
-      Id  = 0.0f;
-      Iq  = 0.0f;
+      IqrInt.reset();
+      SpdInt.reset();
+
+      posEst = 0.0f;
+      spdEst = 0.0f;
+      Vdd    = 0.0f;
+      Idm = 0.0f;
+      Idf = 0.0f;
+      Idr = 0.0f;
+      Vdr = 0.0f;
+      Dpid.init();
+
+      Iqm = 0.0f;
+      Iqf = 0.0f;
+      Iqr = 0.0f;
+      Vqr = 0.0f;
+      Qpid.init();
+
+      svpwm_a_duty = 0.0f;
+      svpwm_b_duty = 0.0f;
+      svpwm_c_duty = 0.0f;
+      svpwm_comm = 0;
     }
   };
 
