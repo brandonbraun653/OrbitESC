@@ -323,6 +323,10 @@ namespace Orbit::Control
     {
       /*-----------------------------------------------------------------------
       Convert the ADC data to measured values
+
+      TODO: Use different samples for each channel depending on which channel
+      has the low time width. Fig. 17-10 InstaSPIN-FOC. Should improve ADC
+      technique with 3- shunt
       -----------------------------------------------------------------------*/
       mState.adcBuffer[ i ].measured     = static_cast<float>( isr.samples[ i ] ) * counts_to_volts;
       mState.adcBuffer[ i ].calibrated   = mState.adcBuffer[ i ].measured - mState.adcBuffer[ i ].dcOffset;
@@ -403,6 +407,8 @@ namespace Orbit::Control
 
     /*-----------------------------------------------------------------------
     Move the sampled phase currents through the Clarke-Park transform
+
+    TODO: Use 3-phase current measurements due to slew rate improvement.s
     -----------------------------------------------------------------------*/
     const auto clarke = Math::clarke_transform( mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].converted,
                                                 mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].converted );
