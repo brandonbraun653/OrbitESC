@@ -365,6 +365,25 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Apply the latest motor control command
     -------------------------------------------------------------------------*/
+    mState.motorCtl.svpwm_a_duty = 15.0f;
+    mState.motorCtl.svpwm_b_duty = 15.0f;
+    mState.motorCtl.svpwm_c_duty = 15.0f;
+    // mState.motorCtl.svpwm_comm = 1;
+
+    static uint32_t counter = 0;
+    counter++;
+
+    if( counter >= 10 )
+    {
+      counter = 0;
+      mState.motorCtl.svpwm_comm++;
+
+      if( mState.motorCtl.svpwm_comm == 7 )
+      {
+        mState.motorCtl.svpwm_comm = 1;
+      }
+    }
+
     mTimerDriver.setPhaseDutyCycle( mState.motorCtl.svpwm_a_duty, mState.motorCtl.svpwm_b_duty, mState.motorCtl.svpwm_c_duty );
     mTimerDriver.setForwardCommState( mState.motorCtl.svpwm_comm );
 
@@ -471,27 +490,6 @@ namespace Orbit::Control
     static constexpr float SECTOR_CONV_FACTOR = 3.0f / Math::M_PI_F;
     uint8_t                sector = 1 + static_cast<uint8_t>( SECTOR_CONV_FACTOR * mState.motorCtl.posEst );
     //mTimerDriver.setForwardCommState( sector );
-
-
-    static uint8_t comstate = 1;
-    static uint8_t counter = 0;
-
-    mState.motorCtl.svpwm_a_duty = 10.0f;
-    mState.motorCtl.svpwm_b_duty = 10.0f;
-    mState.motorCtl.svpwm_c_duty = 10.0f;
-    mState.motorCtl.svpwm_comm = 1;
-
-    // counter++;
-    // if( counter >= 200 )
-    // {
-    //   counter = 0;
-    //   comstate++;
-
-    //   if( comstate == 7 )
-    //   {
-    //     comstate = 1;
-    //   }
-    // }
 
 
 
