@@ -1122,7 +1122,7 @@
       (reference "U4") (unit 1) (value "TLV9051IDBVR") (footprint "Package_TO_SOT_SMD:SOT-23-5")
     )
     (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/258a952a-9561-4ebe-b15b-8e376ec22167"
-      (reference "U5") (unit 1) (value "DRV8300DRGER") (footprint "Package_DFN_QFN:VQFN-24-1EP_4x4mm_P0.5mm_EP2.45x2.45mm_ThermalVias")
+      (reference "U5") (unit 1) (value "DRV8300DRGER") (footprint "Package_DFN_QFN:VQFN-24-1EP_4x4mm_P0.5mm_EP2.45x2.45mm")
     )
     (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/8abfc329-5cdd-467d-9593-83b698e87698"
       (reference "U6") (unit 1) (value "TLV9051IDBVR") (footprint "Package_TO_SOT_SMD:SOT-23-5")
