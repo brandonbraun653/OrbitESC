@@ -506,9 +506,6 @@
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/6349e373-ae96-42f5-b0a0-1a23031b19cc/07ad34b0-9cd4-4354-b6bc-4d21bea53107"
       (reference "#PWR046") (unit 1) (value "GNDD") (footprint "")
     )
-    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/6349e373-ae96-42f5-b0a0-1a23031b19cc/3c0cc76c-1005-4cb6-866e-da876f9570df"
-      (reference "#PWR047") (unit 1) (value "GNDD") (footprint "")
-    )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/6349e373-ae96-42f5-b0a0-1a23031b19cc/a24e0aec-c04a-4d96-befc-efa205468413"
       (reference "#PWR048") (unit 1) (value "+3.3V") (footprint "")
     )
@@ -698,8 +695,8 @@
     (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/67cad222-182b-45ae-8d1a-a8756f8bb72f"
       (reference "C3") (unit 1) (value "2.2uF") (footprint "Capacitor_SMD:C_0805_2012Metric")
     )
-    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/6349e373-ae96-42f5-b0a0-1a23031b19cc/d8944d75-714a-44e4-a7f9-8687d457f4a1"
-      (reference "C4") (unit 1) (value "2.2uF") (footprint "Capacitor_SMD:C_0805_2012Metric")
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/6349e373-ae96-42f5-b0a0-1a23031b19cc/f84a9f18-fe42-4d4e-99a3-a7d6ca562987"
+      (reference "C4") (unit 1) (value "47uF") (footprint "Capacitor_SMD:C_0805_2012Metric")
     )
     (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/4850420a-85c0-4ca7-8400-33ae363c0a8e"
       (reference "C5") (unit 1) (value "1nF") (footprint "Capacitor_SMD:C_0402_1005Metric")
@@ -707,17 +704,14 @@
     (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/07b2f2f4-80e6-45f5-97eb-8be982e46ea6"
       (reference "C6") (unit 1) (value "2.2uF") (footprint "Capacitor_SMD:C_0805_2012Metric")
     )
-    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/6349e373-ae96-42f5-b0a0-1a23031b19cc/27205a69-fc91-4da8-844c-35e2f94ab187"
-      (reference "C7") (unit 1) (value "2.2uF") (footprint "Capacitor_SMD:C_0805_2012Metric")
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/6349e373-ae96-42f5-b0a0-1a23031b19cc/6799c38b-e8ae-41d6-85ef-681d45f4377c"
+      (reference "C7") (unit 1) (value "47uF") (footprint "Capacitor_SMD:C_0805_2012Metric")
     )
     (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/647bc545-6c3f-4231-b506-82d85a33fef3"
       (reference "C8") (unit 1) (value "1nF") (footprint "Capacitor_SMD:C_0402_1005Metric")
     )
     (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/228f0e6c-2930-4767-a569-94c1ff4ef48f"
       (reference "C9") (unit 1) (value "2.2uF") (footprint "Capacitor_SMD:C_0805_2012Metric")
-    )
-    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/6349e373-ae96-42f5-b0a0-1a23031b19cc/6692822f-80e9-4921-9846-3bcd75482e51"
-      (reference "C10") (unit 1) (value "2.2uF") (footprint "Capacitor_SMD:C_0805_2012Metric")
     )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/9076c4ca-9546-4f13-afb2-debf1555fa47"
       (reference "C11") (unit 1) (value "100nF") (footprint "Capacitor_SMD:C_0402_1005Metric")
@@ -882,22 +876,22 @@
       (reference "L1") (unit 1) (value "4.7uH") (footprint "Inductor_SMD:L_Bourns-SRN6028")
     )
     (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/303c6b6b-70aa-40fb-b52d-1a652fa140e7"
-      (reference "Q1") (unit 1) (value "MCAC80N10Y") (footprint "Project Mosfets:TRANS_BSC076N06NS3-G")
+      (reference "Q1") (unit 1) (value "MCAC100N08YA-TP") (footprint "Project Mosfets:TRANS_BSC076N06NS3-G")
     )
     (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/7781cf16-90c6-4424-8287-47f8b3f2ed46"
-      (reference "Q2") (unit 1) (value "MCAC80N10Y") (footprint "Project Mosfets:TRANS_BSC076N06NS3-G")
+      (reference "Q2") (unit 1) (value "MCAC100N08YA-TP") (footprint "Project Mosfets:TRANS_BSC076N06NS3-G")
     )
     (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/16cbc3b0-89ed-4f34-be68-56bb91416fde"
-      (reference "Q3") (unit 1) (value "MCAC80N10Y") (footprint "Project Mosfets:TRANS_BSC076N06NS3-G")
+      (reference "Q3") (unit 1) (value "MCAC100N08YA-TP") (footprint "Project Mosfets:TRANS_BSC076N06NS3-G")
     )
     (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/11f61e65-776b-4843-b598-d1dd7aafe6be"
-      (reference "Q4") (unit 1) (value "MCAC80N10Y") (footprint "Project Mosfets:TRANS_BSC076N06NS3-G")
+      (reference "Q4") (unit 1) (value "MCAC100N08YA-TP") (footprint "Project Mosfets:TRANS_BSC076N06NS3-G")
     )
     (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/2f21cc9f-d14f-4850-9d6a-6e6a74fdd1ba"
-      (reference "Q5") (unit 1) (value "MCAC80N10Y") (footprint "Project Mosfets:TRANS_BSC076N06NS3-G")
+      (reference "Q5") (unit 1) (value "MCAC100N08YA-TP") (footprint "Project Mosfets:TRANS_BSC076N06NS3-G")
     )
     (path "/01eceaba-0372-470e-b19c-b8e61f77bd53/4334e165-18bb-465b-abae-773c24abc67a"
-      (reference "Q6") (unit 1) (value "MCAC80N10Y") (footprint "Project Mosfets:TRANS_BSC076N06NS3-G")
+      (reference "Q6") (unit 1) (value "MCAC100N08YA-TP") (footprint "Project Mosfets:TRANS_BSC076N06NS3-G")
     )
     (path "/e5c7e094-5305-4041-9a38-3256d4457e28/7723f539-1e2f-43d2-8c55-c5c7fa057586"
       (reference "Q7") (unit 1) (value "2N7002") (footprint "Package_TO_SOT_SMD:SOT-23")
@@ -1073,8 +1067,26 @@
     (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/279e9801-15fe-440a-a6ab-ccb0ef4732d6"
       (reference "TP1") (unit 1) (value "BL") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
     )
+    (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/332475cd-9e63-4ad2-bc90-8468df189a26"
+      (reference "TP2") (unit 1) (value "NOR_MISO") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/7b17e26a-6ef6-47df-a746-bec57764bf8e"
+      (reference "TP3") (unit 1) (value "BL") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/c76ddce0-be90-48a0-8518-8b2ebb87bce3"
+      (reference "TP4") (unit 1) (value "AH") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/558d1498-20e1-4b77-bd37-53a3ea298dc7"
       (reference "TP5") (unit 1) (value "NOR_nCS") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/bed2f02e-2031-4659-ad4a-4f28add919ca"
+      (reference "TP6") (unit 1) (value "AH") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/cee88073-4b84-48ec-98fe-448abb6e52ff"
+      (reference "TP7") (unit 1) (value "AH") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
+    )
+    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/7f832906-3751-4269-b382-84dfaa77851e"
+      (reference "TP8") (unit 1) (value "AH") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
     )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/aa20ce60-612c-4466-a577-98fc0c2bbbd4"
       (reference "TP9") (unit 1) (value "NOR_MOSI") (footprint "TestPoint:TestPoint_Pad_D1.0mm")
@@ -1143,7 +1155,7 @@
       (reference "U11") (unit 1) (value "STM32L432KBUx") (footprint "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.45x3.45mm")
     )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/588c44ed-10d8-4cfd-a9dd-a18ee9f3e745/9d04fc65-4db3-4249-970d-e3c37160fa84"
-      (reference "U12") (unit 1) (value "74HC595") (footprint "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm")
+      (reference "U12") (unit 1) (value "MC74HC595ADTR2G") (footprint "Package_SO:TSSOP-16_4.4x5mm_P0.65mm")
     )
     (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/d6c44b52-4493-4341-81b1-aa7f74e39625"
       (reference "U13") (unit 1) (value "TLV9051IDBVR") (footprint "Package_TO_SOT_SMD:SOT-23-5")
