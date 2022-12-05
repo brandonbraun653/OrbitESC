@@ -1152,7 +1152,7 @@
       (reference "U10") (unit 1) (value "CP2104") (footprint "Package_DFN_QFN:QFN-24-1EP_4x4mm_P0.5mm_EP2.6x2.6mm")
     )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/6b8bdd4e-691d-4ce9-88ab-6cf8f9064a33"
-      (reference "U11") (unit 1) (value "STM32L432KBUx") (footprint "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.45x3.45mm")
+      (reference "U11") (unit 1) (value "STM32L432KCU6") (footprint "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.45x3.45mm")
     )
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/588c44ed-10d8-4cfd-a9dd-a18ee9f3e745/9d04fc65-4db3-4249-970d-e3c37160fa84"
       (reference "U12") (unit 1) (value "MC74HC595ADTR2G") (footprint "Package_SO:TSSOP-16_4.4x5mm_P0.65mm")

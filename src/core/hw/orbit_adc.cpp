@@ -138,8 +138,8 @@ namespace Orbit::ADC
 
   float sample2PhaseCurrent( const float vin )
   {
-    // return ( vin - ISENSE_VREF ) / ( ISHUNT_AMP_GAIN * RSHUNT_OHM );
-    return vin / ( ISHUNT_AMP_GAIN * RSHUNT_OHM );
+    float raw = vin / ( ISHUNT_AMP_GAIN * RSHUNT_OHM );
+    return truncf( raw * 100.0f ) / 100.0f;
   }
 
 

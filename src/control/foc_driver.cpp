@@ -267,7 +267,6 @@ namespace Orbit::Control
 
   int FOC::setSpeedRef( const float ref )
   {
-    // mState.motorCtl.run.speedRefRad = ref;
     return 0;
   }
 
@@ -365,25 +364,6 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Apply the latest motor control command
     -------------------------------------------------------------------------*/
-    mState.motorCtl.svpwm_a_duty = 15.0f;
-    mState.motorCtl.svpwm_b_duty = 15.0f;
-    mState.motorCtl.svpwm_c_duty = 15.0f;
-    // mState.motorCtl.svpwm_comm = 1;
-
-    static uint32_t counter = 0;
-    counter++;
-
-    if( counter >= 10 )
-    {
-      counter = 0;
-      mState.motorCtl.svpwm_comm++;
-
-      if( mState.motorCtl.svpwm_comm == 7 )
-      {
-        mState.motorCtl.svpwm_comm = 1;
-      }
-    }
-
     mTimerDriver.setPhaseDutyCycle( mState.motorCtl.svpwm_a_duty, mState.motorCtl.svpwm_b_duty, mState.motorCtl.svpwm_c_duty );
     mTimerDriver.setForwardCommState( mState.motorCtl.svpwm_comm );
 
@@ -443,7 +423,7 @@ namespace Orbit::Control
     mState.motorCtl.Vdd = mState.adcBuffer[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted;
 
     /* Filter the measured currents */
-    // TODO BMB
+    // TODO BMB: Run this through the LPF once created
     mState.motorCtl.Idf = mState.motorCtl.Idm;
     mState.motorCtl.Iqf = mState.motorCtl.Iqm;
 
@@ -477,9 +457,6 @@ namespace Orbit::Control
 
     Math::inverse_clarke_transform( invPark, &a, &b, &c );
 
-    // TODO BMB: This is where SVPWM comes into play?
-    // mTimerDriver.setPhaseDutyCycle( a, b, c );
-
     /*-------------------------------------------------------------------------
     Use the position estimate to determine the next commutation state. Split
     the unit circle into 6 sectors and select the appropriate one to commutate.
@@ -489,8 +466,11 @@ namespace Orbit::Control
     -------------------------------------------------------------------------*/
     static constexpr float SECTOR_CONV_FACTOR = 3.0f / Math::M_PI_F;
     uint8_t                sector = 1 + static_cast<uint8_t>( SECTOR_CONV_FACTOR * mState.motorCtl.posEst );
-    //mTimerDriver.setForwardCommState( sector );
 
+    mState.motorCtl.svpwm_a_duty = a;
+    mState.motorCtl.svpwm_b_duty = b;
+    mState.motorCtl.svpwm_c_duty = c;
+    mState.motorCtl.svpwm_comm   = sector;
 
 
     // /* Step the EMF observer */

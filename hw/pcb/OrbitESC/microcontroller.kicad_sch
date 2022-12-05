@@ -2257,7 +2257,7 @@
     (property "Reference" "U11" (id 0) (at 189.865 125.73 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "STM32L432KBUx" (id 1) (at 203.835 125.73 0)
+    (property "Value" "STM32L432KCU6" (id 1) (at 203.835 125.73 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.45x3.45mm" (id 2) (at 189.23 170.18 0)
