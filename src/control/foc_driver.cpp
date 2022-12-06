@@ -129,8 +129,7 @@ namespace Orbit::Control
     pwm_cfg.adcTriggerSignal    = Chimera::Timer::Trigger::Signal::TRIG_SIG_5;
     pwm_cfg.breakIOLevel        = Chimera::GPIO::State::LOW;
     pwm_cfg.deadTimeNs          = 250.0f;
-    pwm_cfg.pwmFrequency =
-        Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ * 2.0f;    // TODO BMB: For some reason HW output is divided by 2
+    pwm_cfg.pwmFrequency        = Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ;
 
     RT_HARD_ASSERT( Chimera::Status::OK == mTimerDriver.init( pwm_cfg ) );
 
@@ -348,8 +347,7 @@ namespace Orbit::Control
 
       /*-----------------------------------------------------------------------
       Update the monitor for this channel
-
-      // TODO BMB: Consider using the analog watchdog
+      // TODO BMB: Use the analog watchdog
       -----------------------------------------------------------------------*/
       IAnalogMonitor *monitor = MonitorArray[ i ];
       monitor->update( mState.adcBuffer[ i ].converted, mState.adcBuffer[ i ].sampleTimeUs );
