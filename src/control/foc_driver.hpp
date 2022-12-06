@@ -190,9 +190,9 @@ namespace Orbit::Control
     void isr_rotor_ramp_controller();
 
 
-
   private:
-    std::array<etl::ifsm_state *, ModeId::NUM_STATES>  mFSMStateArray; /**< Storage for the FSM state controllers */
+    bool                                                    mInitialized;   /**< Driver initialized state */
+    std::array<etl::ifsm_state *, ModeId::NUM_STATES>       mFSMStateArray; /**< Storage for the FSM state controllers */
     std::array<void ( FOC::* )( void ), ModeId::NUM_STATES> mRunFuncArray;  /**< Lookup for periodic state behavior */
 
 

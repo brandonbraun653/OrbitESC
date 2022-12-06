@@ -124,9 +124,9 @@ namespace Orbit::ADC
     seq.trigChannel = 10;    // Regular channel, TIM1_TRGO2
 
     RT_HARD_ASSERT( Chimera::Status::OK == adc->configSequence( seq ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcPhaseA, 24 ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcPhaseB, 24 ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcPhaseC, 24 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcPhaseA, 12 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcPhaseB, 12 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcPhaseC, 12 ) );
     RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVSupply, 12 ) );
 
     /*-------------------------------------------------------------------------
@@ -139,7 +139,7 @@ namespace Orbit::ADC
   float sample2PhaseCurrent( const float vin )
   {
     float raw = vin / ( ISHUNT_AMP_GAIN * RSHUNT_OHM );
-    return truncf( raw * 100.0f ) / 100.0f;
+    return truncf( raw * 1000.0f ) / 1000.0f;
   }
 
 

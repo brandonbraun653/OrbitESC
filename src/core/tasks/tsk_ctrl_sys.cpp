@@ -60,7 +60,7 @@ namespace Orbit::Tasks::CTRLSYS
 
 
     // Chimera::delayMilliseconds( 3000 );
-    // Orbit::Control::FOCDriver.engage();
+    Orbit::Control::FOCDriver.engage();
 
     /*-------------------------------------------------------------------------
     Run the CTRLSYS thread

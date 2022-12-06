@@ -49,7 +49,7 @@ namespace Orbit::Control
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  FOC::FOC() : fsm( MOTOR_STATE_ROUTER_ID )
+  FOC::FOC() : mInitialized( false ), fsm( MOTOR_STATE_ROUTER_ID )
   {
   }
 
@@ -97,15 +97,22 @@ namespace Orbit::Control
 
     ctl->clear();
 
-    ctl->Dpid.SetPoint = 0.0f;
+    ctl->Dpid.SetPoint    = 0.0f;
     ctl->Dpid.OutMinLimit = 0.0f;
     ctl->Dpid.OutMaxLimit = 1.0f;
+    ctl->DFIR = Math::FIR<float, 15>( { -0.00124568841F, 0.00147019443F, 0.0123328818F, 0.00110139197F, -0.0499843247F,
+                                        -0.0350326933F, 0.164325342F, 0.407320708F, 0.407320708F, 0.164325342F, -0.0350326933F,
+                                        -0.0499843247F, 0.00110139197F, 0.0123328818F, 0.00147019443F, -0.00124568841F } );
+    ctl->DFIR.initialize();
 
-    ctl->Qpid.SetPoint = 0.0f;
+    ctl->Qpid.SetPoint    = 0.0f;
     ctl->Qpid.OutMinLimit = 0.0f;
     ctl->Qpid.OutMaxLimit = 1.0f;
+    ctl->QFIR = Math::FIR<float, 15>( { -0.00124568841F, 0.00147019443F, 0.0123328818F, 0.00110139197F, -0.0499843247F,
+                                        -0.0350326933F, 0.164325342F, 0.407320708F, 0.407320708F, 0.164325342F, -0.0350326933F,
+                                        -0.0499843247F, 0.00110139197F, 0.0123328818F, 0.00147019443F, -0.00124568841F } );
+    ctl->QFIR.initialize();
     ctl->Qpid.setTunings( 5.0f, 2.0f, 0.3f, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
-
 
     /*-------------------------------------------------------------------------
     Configure the Advanced Timer for center-aligned 3-phase PWM
@@ -172,6 +179,7 @@ namespace Orbit::Control
     mRunFuncArray[ ModeId::ENGAGED_RAMP ] = &FOC::onRamp;
     mRunFuncArray[ ModeId::ENGAGED_RUN ]  = &FOC::onRun;
 
+    mInitialized = true;
     return 0;
   }
 
@@ -273,8 +281,14 @@ namespace Orbit::Control
 
   int FOC::emergencyStop()
   {
-    this->receive( MsgEmergencyHalt() );
-    return ( this->currentMode() == ModeId::IDLE ) ? 0 : -1;
+    if ( mInitialized )
+    {
+      this->receive( MsgEmergencyHalt() );
+      auto mode = this->currentMode();
+      return ( ( mode == ModeId::FAULT ) || ( mode == ModeId::IDLE ) ) ? 0 : -1;
+    }
+
+    return 0;
   }
 
 
@@ -422,10 +436,9 @@ namespace Orbit::Control
     mState.motorCtl.Idm = park.d;
     mState.motorCtl.Vdd = mState.adcBuffer[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted;
 
-    /* Filter the measured currents */
-    // TODO BMB: Run this through the LPF once created
-    mState.motorCtl.Idf = mState.motorCtl.Idm;
-    mState.motorCtl.Iqf = mState.motorCtl.Iqm;
+    /* Low-pass filter the measured currents */
+    mState.motorCtl.Idf = mState.motorCtl.DFIR.step( mState.motorCtl.Idm );
+    mState.motorCtl.Iqf = mState.motorCtl.QFIR.step( mState.motorCtl.Iqm );
 
     /* Step the PID controllers */
     mState.motorCtl.Dpid.run( mState.motorCtl.Idr - mState.motorCtl.Idf );
@@ -467,9 +480,9 @@ namespace Orbit::Control
     static constexpr float SECTOR_CONV_FACTOR = 3.0f / Math::M_PI_F;
     uint8_t                sector = 1 + static_cast<uint8_t>( SECTOR_CONV_FACTOR * mState.motorCtl.posEst );
 
-    mState.motorCtl.svpwm_a_duty = a;
-    mState.motorCtl.svpwm_b_duty = b;
-    mState.motorCtl.svpwm_c_duty = c;
+    mState.motorCtl.svpwm_a_duty = ( a + 0.5f ) * 100.0f;
+    mState.motorCtl.svpwm_b_duty = ( b + 0.5f ) * 100.0f;
+    mState.motorCtl.svpwm_c_duty = ( c + 0.5f ) * 100.0f;
     mState.motorCtl.svpwm_comm   = sector;
 
 

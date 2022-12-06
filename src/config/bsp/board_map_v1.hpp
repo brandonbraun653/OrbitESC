@@ -74,6 +74,23 @@ namespace Orbit::IO
     static constexpr Chimera::ADC::Channel adcPhaseC  = Chimera::ADC::Channel::ADC_CH_6;
   }    // namespace Analog
 
+  namespace Digital
+  {
+    /*-------------------------------------------------------------------------
+    Emergency Stop Input
+    -------------------------------------------------------------------------*/
+    static constexpr Chimera::GPIO::Pin     eStopPin     = 3;
+    static constexpr Chimera::GPIO::Port    eStopPort    = Chimera::GPIO::Port::PORTH;
+    static constexpr Chimera::GPIO::PinInit eStopPinInit = { .alternate = Chimera::GPIO::Alternate::NONE,
+                                                             .drive     = Chimera::GPIO::Drive::INPUT,
+                                                             .pin       = eStopPin,
+                                                             .port      = eStopPort,
+                                                             .pull      = Chimera::GPIO::Pull::NO_PULL,
+                                                             .state     = Chimera::GPIO::State::LOW,
+                                                             .threaded  = false,
+                                                             .validity  = true };
+  }    // namespace Digital
+
   namespace CAN
   {
     static constexpr Chimera::CAN::Channel channel = Chimera::CAN::Channel::CAN0;

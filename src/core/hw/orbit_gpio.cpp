@@ -12,19 +12,36 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/common>
+#include <Chimera/exti>
 #include <Chimera/gpio>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/hw/orbit_gpio.hpp>
+#include <src/control/foc_driver.hpp>
 
 
 namespace Orbit::GPIO
 {
   /*---------------------------------------------------------------------------
+  Static Functions
+  ---------------------------------------------------------------------------*/
+  static void eStopISR( void * )
+  {
+    Orbit::Control::FOCDriver.emergencyStop();
+  }
+
+  /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   void powerUp()
   {
-    // Anything?
+    /*-------------------------------------------------------------------------
+    Initialize the emergency stop button
+    -------------------------------------------------------------------------*/
+    Chimera::Function::vGeneric callback = Chimera::Function::vGeneric::create<eStopISR>();
+
+    auto gpio = Chimera::GPIO::getDriver( IO::Digital::eStopPort, IO::Digital::eStopPin );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( IO::Digital::eStopPinInit ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->attachInterrupt( callback, Chimera::EXTI::EdgeTrigger::RISING_EDGE ) );
   }
 
 }    // namespace Orbit::GPIO

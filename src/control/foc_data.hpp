@@ -20,6 +20,7 @@ Includes
 #include <Chimera/common>
 #include <Chimera/adc>
 #include <Chimera/timer>
+#include <src/control/filter.hpp>
 #include <src/control/foc_math.hpp>
 #include <src/control/pid.hpp>
 #include <etl/circular_buffer.h>
@@ -133,17 +134,19 @@ namespace Orbit::Control
     Math::TrapInt IqrInt; /**< Q-axis current reference command integrator */
     Math::TrapInt SpdInt; /**< Speed estimation integrator (generates position) */
 
-    float     Idm;  /**< D-axis measured current */
-    float     Idf;  /**< D-axis filtered current measurement */
-    float     Idr;  /**< D-axis current reference command */
-    float     Vdr;  /**< D-axis commanded output voltage (phase) */
-    Math::PID Dpid; /**< D-axis pid controller */
+    float                Idm;  /**< D-axis measured current */
+    float                Idf;  /**< D-axis filtered current measurement */
+    float                Idr;  /**< D-axis current reference command */
+    float                Vdr;  /**< D-axis commanded output voltage (phase) */
+    Math::PID            Dpid; /**< D-axis pid controller */
+    Math::FIR<float, 15> DFIR; /**< D-axis FIR filter for current measurement */
 
-    float     Iqm;  /**< Q-axis measured current */
-    float     Iqf;  /**< Q-axis filtered current measurement */
-    float     Iqr;  /**< Q-axis current reference command */
-    float     Vqr;  /**< Q-axis commanded output voltage (magnitude) */
-    Math::PID Qpid; /**< Q-axis pid controller */
+    float                Iqm;  /**< Q-axis measured current */
+    float                Iqf;  /**< Q-axis filtered current measurement */
+    float                Iqr;  /**< Q-axis current reference command */
+    float                Vqr;  /**< Q-axis commanded output voltage (magnitude) */
+    Math::PID            Qpid; /**< Q-axis pid controller */
+    Math::FIR<float, 15> QFIR; /**< Q-axis FIR filter for current measurement */
 
     /*-------------------------------------------------------------------------
     Fast Loop Update Variables
@@ -177,12 +180,14 @@ namespace Orbit::Control
       Idr = 0.0f;
       Vdr = 0.0f;
       Dpid.init();
+      DFIR = Math::FIR<float, 15>();
 
       Iqm = 0.0f;
       Iqf = 0.0f;
       Iqr = 0.0f;
       Vqr = 0.0f;
       Qpid.init();
+      QFIR = Math::FIR<float, 15>();
 
       svpwm_a_duty = 0.0f;
       svpwm_b_duty = 0.0f;
