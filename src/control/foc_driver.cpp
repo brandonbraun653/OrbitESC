@@ -21,8 +21,6 @@ Includes
 #include <src/control/modes/sys_mode_base.hpp>
 #include <src/control/modes/sys_mode_fault.hpp>
 #include <src/control/modes/sys_mode_idle.hpp>
-#include <src/control/modes/sys_mode_park.hpp>
-#include <src/control/modes/sys_mode_ramp.hpp>
 #include <src/control/modes/sys_mode_run.hpp>
 #include <src/core/data/orbit_data_defaults.hpp>
 #include <src/core/hw/orbit_adc.hpp>
@@ -55,7 +53,6 @@ namespace Orbit::Control
 
   FOC::~FOC()
   {
-    mTimerDriver.emergencyBreak();
   }
 
 
@@ -91,7 +88,6 @@ namespace Orbit::Control
     Initialize eigenvalues for the current controller
     -------------------------------------------------------------------------*/
     mState.emfObserver.d = ( -motorParams.Rs / motorParams.Ls ) * 5.0f;
-
 
     ControllerData* ctl = &mState.motorCtl;
 
@@ -156,27 +152,14 @@ namespace Orbit::Control
     Initialize the finite state machine
     -------------------------------------------------------------------------*/
     mFSMStateArray.fill( nullptr );
-    mFSMStateArray[ ModeId::IDLE ]         = new State::Idle();
-    mFSMStateArray[ ModeId::ARMED ]        = new State::Armed();
-    mFSMStateArray[ ModeId::FAULT ]        = new State::Fault();
-    mFSMStateArray[ ModeId::ENGAGED_PARK ] = new State::EngagedPark();
-    mFSMStateArray[ ModeId::ENGAGED_RAMP ] = new State::EngagedRamp();
-    mFSMStateArray[ ModeId::ENGAGED_RUN ]  = new State::EngagedRun();
+    mFSMStateArray[ ModeId::IDLE ]    = new State::Idle();
+    mFSMStateArray[ ModeId::ARMED ]   = new State::Armed();
+    mFSMStateArray[ ModeId::FAULT ]   = new State::Fault();
+    mFSMStateArray[ ModeId::ENGAGED ] = new State::Engaged();
 
     /* Initialize the FSM. First state will be ModeId::IDLE. */
     this->set_states( mFSMStateArray.data(), mFSMStateArray.size() );
     this->start();
-
-    /*-------------------------------------------------------------------------
-    Initialize the periodic behavior lookup table
-    https://stackoverflow.com/a/1486279/8341975
-    -------------------------------------------------------------------------*/
-    mRunFuncArray.fill( nullptr );
-    mRunFuncArray[ ModeId::ARMED ]        = &FOC::onArmed;
-    mRunFuncArray[ ModeId::FAULT ]        = &FOC::onFault;
-    mRunFuncArray[ ModeId::ENGAGED_PARK ] = &FOC::onPark;
-    mRunFuncArray[ ModeId::ENGAGED_RAMP ] = &FOC::onRamp;
-    mRunFuncArray[ ModeId::ENGAGED_RUN ]  = &FOC::onRun;
 
     mInitialized = true;
     return 0;
@@ -188,8 +171,7 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Ensure the motor is off for calibration
     -------------------------------------------------------------------------*/
-    int stopped = this->emergencyStop();
-    RT_DBG_ASSERT( stopped == 0 );
+    sendSystemEvent( EventId::EMERGENCY_HALT );
     Chimera::delayMilliseconds( 100 );
 
     /*-------------------------------------------------------------------------
@@ -216,77 +198,59 @@ namespace Orbit::Control
 
   void FOC::run()
   {
+  }
+
+
+  int FOC::sendSystemEvent( const EventId_t event )
+  {
     /*-------------------------------------------------------------------------
-    Nothing crazy, just map into the appropriate function for the current mode.
-    Should be a little faster/smaller than a switch case.
+    Make sure the state machine controller is ready
     -------------------------------------------------------------------------*/
-    const auto mode = this->currentMode();
-    if ( mRunFuncArray[ mode ] )
+    if( !mInitialized )
     {
-      ( this->*mRunFuncArray[ mode ] )();
+      return -1;
     }
-  }
 
+    /*-------------------------------------------------------------------------
+    Send the correct message into the state machine
+    -------------------------------------------------------------------------*/
+    switch( event )
+    {
+      case EventId::EMERGENCY_HALT:
+        this->receive( MsgEmergencyHalt() );
+        break;
 
-  int FOC::arm()
-  {
-    this->receive( MsgArm() );
-    return ( this->currentMode() == ModeId::ARMED ) ? 0 : -1;
-  }
+      case EventId::ARM:
+        this->receive( MsgArm() );
+        break;
 
+      case EventId::DISARM:
+        this->receive( MsgDisarm() );
+        break;
 
-  int FOC::disarm()
-  {
-    this->receive( MsgDisarm() );
-    return ( this->currentMode() == ModeId::IDLE ) ? 0 : -1;
-  }
+      case EventId::ENGAGE:
+        this->receive( MsgEngage() );
+        break;
 
+      case EventId::DISENGAGE:
+        this->receive( MsgDisengage() );
+        break;
 
-  int FOC::engage()
-  {
-    // this->receive( MsgAlign() );
+      case EventId::FAULT:
+        this->receive( MsgFault() );
+        break;
 
-    // auto mode = this->currentMode();
-    // return ( ( mode == ModeId::ENGAGED_PARK ) || ( mode == ModeId::ENGAGED_RAMP ) || ( mode == ModeId::ENGAGED_RUN ) ) ? 0 : -1;
-
-
-    mTimerDriver.disableOutput();
-    mTimerDriver.setForwardCommState( 0 );
-    mTimerDriver.enableOutput();
-
-    mState.motorCtl.isrCtlActive = true;
-    mState.motorCtl.Iqr = 0.001;
-    mState.motorCtl.posEst = 0.0f;
-    mState.motorCtl.spdEst = 0.0f;
-    mState.motorCtl.IqrInt.reset();
-    mState.motorCtl.SpdInt.reset();
+      default:
+        return -1;
+        break;
+    }
 
     return 0;
-  }
-
-
-  int FOC::disengage()
-  {
-    this->receive( MsgDisengage() );
-    return ( this->currentMode() == ModeId::ARMED ) ? 0 : -1;
   }
 
 
   int FOC::setSpeedRef( const float ref )
   {
-    return 0;
-  }
-
-
-  int FOC::emergencyStop()
-  {
-    if ( mInitialized )
-    {
-      this->receive( MsgEmergencyHalt() );
-      auto mode = this->currentMode();
-      return ( ( mode == ModeId::FAULT ) || ( mode == ModeId::IDLE ) ) ? 0 : -1;
-    }
-
     return 0;
   }
 
@@ -316,6 +280,25 @@ namespace Orbit::Control
   }
 
 
+  void FOC::driveTestSignal( const uint8_t commCycle, const float dutyCycle )
+  {
+    /*-------------------------------------------------------------------------
+    Ensure we're in the ARMED state before attempting anything. This guarantees
+    our protections are running but the output is disabled.
+    -------------------------------------------------------------------------*/
+    if( currentMode() != ModeId::ARMED )
+    {
+      return;
+    }
+
+    /*-------------------------------------------------------------------------
+    Apply the test signal
+    -------------------------------------------------------------------------*/
+    mTimerDriver.setPhaseDutyCycle( dutyCycle, dutyCycle, dutyCycle );
+    mTimerDriver.setForwardCommState( commCycle );
+  }
+
+
   void FOC::adcISRTxfrComplete( const Chimera::ADC::InterruptDetail &isr )
   {
     using namespace Orbit::Monitor;
@@ -328,7 +311,6 @@ namespace Orbit::Control
     Process the raw ADC data
     -------------------------------------------------------------------------*/
     const uint32_t timestamp_us    = Chimera::micros();
-    const float    f_timestamp_us  = static_cast<float>( timestamp_us );
     const float    counts_to_volts = isr.vref / isr.resolution;
 
     for ( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
@@ -359,10 +341,10 @@ namespace Orbit::Control
       /*-----------------------------------------------------------------------
       Tripped! Take action and move the motor to a safe state.
       -----------------------------------------------------------------------*/
-      mState.motorCtl.isrCtlActive = false;
-      this->emergencyStop();
-      monitor->setEngageState( Orbit::Monitor::EngageState::INACTIVE );
-      Orbit::LED::setChannel( Orbit::LED::Channel::FAULT );
+      // mState.motorCtl.isrCtlActive = false;
+      // sendSystemEvent( EventId::EMERGENCY_HALT );
+      // monitor->setEngageState( Orbit::Monitor::EngageState::INACTIVE );
+      // Orbit::LED::setChannel( Orbit::LED::Channel::FAULT );
     }
 
     /*-------------------------------------------------------------------------
@@ -502,32 +484,6 @@ namespace Orbit::Control
   }
 
 
-  void FOC::isr_rotor_ramp_controller()
-  {
-    // RampControl *const pCtrl = &mState.motorCtl.ramp;
-
-    // pCtrl->cycleCount++;
-    // if ( pCtrl->cycleCount >= pCtrl->cycleRef )
-    // {
-    //   /*-----------------------------------------------------------------------
-    //   Update the cycle references
-    //   -----------------------------------------------------------------------*/
-    //   pCtrl->cycleCount = 0;
-    //   pCtrl->cycleRef   = Utility::comCycleCount( Data::DFLT_STATOR_PWM_FREQ_HZ, Data::DFLT_ROTOR_NUM_POLES, pCtrl->targetRPM
-    //   );
-
-    //   /*-----------------------------------------------------------------------
-    //   Update the commutation state
-    //   -----------------------------------------------------------------------*/
-    //   pCtrl->comState++;
-    //   if ( pCtrl->comState >= 7 )
-    //   {
-    //     pCtrl->comState = 1;
-    //   }
-    // }
-  }
-
-
   /**
    * @brief Calculates back-EMF estimates along the D and Q axes
    * @see https://ieeexplore.ieee.org/document/530286
@@ -581,84 +537,6 @@ namespace Orbit::Control
   {
   }
 
-
-  void FOC::onFault()
-  {
-  }
-
-  /**
-   * @brief Handles high level control of the ARMED state
-   */
-  void FOC::onArmed()
-  {
-    /*-------------------------------------------------------------------------
-    For now, don't do anything. In the future, this would be a great place for
-    motor parameter estimation and ADC tuning.
-    -------------------------------------------------------------------------*/
-  }
-
-
-  /**
-   * @brief Handles high level control of the ENGAGED_PARK state
-   *
-   * By the time this method has entered, the state machine controller will have
-   * initialized the Park control data. All this method has to do is control the
-   * temporal sequence for aligning the rotor, then transition to the next state.
-   */
-  void FOC::onPark()
-  {
-    // ParkControl *const pCtrl        = &mState.motorCtl.park;
-    // const uint32_t     current_time = Chimera::millis();
-
-    // /*-------------------------------------------------------------------------
-    // Has the alignment sequence run its course? Switch to the ramp phase.
-    // -------------------------------------------------------------------------*/
-    // if ( ( current_time - pCtrl->startTime_ms ) > pCtrl->alignTime_ms )
-    // {
-    //   this->receive( MsgRamp() );
-    //   RT_DBG_ASSERT( this->currentMode() == ModeId::ENGAGED_RAMP );
-    // }
-
-    // /*-------------------------------------------------------------------------
-    // Otherwise, update the alignment controller
-    // -------------------------------------------------------------------------*/
-    // pCtrl->activeComState = 1;
-
-    // if ( ( current_time - pCtrl->lastUpdate_ms ) > pCtrl->modulation_dt_ms )
-    // {
-    //   pCtrl->outputEnabled = !pCtrl->outputEnabled;
-    //   pCtrl->lastUpdate_ms = current_time;
-    // }
-  }
-
-
-  void FOC::onRamp()
-  {
-    // RampControl *const pCtrl = &mState.motorCtl.ramp;
-
-    // /*-------------------------------------------------------------------------
-    // Switch to the RUN controller if we've hit our target RPM.
-    // -------------------------------------------------------------------------*/
-    // if ( pCtrl->targetRPM >= pCtrl->finalRPM )
-    // {
-    //   // pCtrl->phaseDutyCycle[ 0 ] = 20.0f;
-    //   // pCtrl->phaseDutyCycle[ 1 ] = 20.0f;
-    //   // pCtrl->phaseDutyCycle[ 2 ] = 20.0f;
-    //   // this->receive( MsgRun() );
-    //   // RT_DBG_ASSERT( this->currentMode() == ModeId::ENGAGED_RUN );
-    //   return;
-    // }
-
-    // /*-------------------------------------------------------------------------
-    // Otherwise update the controller reference
-    // -------------------------------------------------------------------------*/
-    // pCtrl->targetRPM += pCtrl->rampRate;
-  }
-
-
-  void FOC::onRun()
-  {
-  }
 
 }    // namespace Orbit::Control
 

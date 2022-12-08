@@ -83,34 +83,12 @@ namespace Orbit::Control
     void run();
 
     /**
-     * @brief Move from an idle state to prepared for running
+     * @brief Injects an event to the operational mode of the controller
      *
-     * @return int
+     * @param event System event being sent
+     * @return int  Zero if OK, negative on error
      */
-    int arm();
-
-    /**
-     * @brief Revert to SW idle state and disable all motor control outputs
-     *
-     * @return int
-     */
-    int disarm();
-
-    /**
-     * @brief Start closed loop control of motor speed
-     * @note Requires the motor to be armed
-     *
-     * @return int
-     */
-    int engage();
-
-    /**
-     * @brief Stop controlling motor speed and revert to arm mode
-     * @note Requires controller to be engaged
-     *
-     * @return int
-     */
-    int disengage();
+    int sendSystemEvent( const EventId_t event );
 
     /**
      * @brief Set a new speed reference for the motor
@@ -123,13 +101,6 @@ namespace Orbit::Control
      * @return int
      */
     int setSpeedRef( const float ref );
-
-    /**
-     * @brief Instructs an emergency halt of the motor
-     *
-     * @return int
-     */
-    int emergencyStop();
 
     /**
      * @brief Gets the last data collected from the ADC
@@ -159,6 +130,14 @@ namespace Orbit::Control
      */
     void logUnhandledMessage( const etl::imessage &msg );
 
+    /**
+     * @brief Drive a test signal on the power stage of the ESC
+     * @note Must be in the Armed state for this to work
+     *
+     * @param commCycle   Commutation cycle to execute
+     * @param dutyCycle   Duty cycle to drive the output
+     */
+    void driveTestSignal( const uint8_t commCycle, const float dutyCycle );
 
     /*-------------------------------------------------------------------------
     Public Data:
@@ -184,27 +163,14 @@ namespace Orbit::Control
      */
     void timer_isr_speed_controller();
 
-    /**
-     * @brief Interrupt context handler to control rotor ramp from park to run
-     */
-    void isr_rotor_ramp_controller();
-
-
   private:
-    bool                                                    mInitialized;   /**< Driver initialized state */
-    std::array<etl::ifsm_state *, ModeId::NUM_STATES>       mFSMStateArray; /**< Storage for the FSM state controllers */
-    std::array<void ( FOC::* )( void ), ModeId::NUM_STATES> mRunFuncArray;  /**< Lookup for periodic state behavior */
+    bool                                              mInitialized;   /**< Driver initialized state */
+    std::array<etl::ifsm_state *, ModeId::NUM_STATES> mFSMStateArray; /**< Storage for the FSM state controllers */
 
 
     void stepEMFObserver( const float dt );
     void stepIControl( const float dt );
     void stepEstimator( const float dt );
-
-    void onFault();
-    void onArmed();
-    void onPark();
-    void onRamp();
-    void onRun();
   };
 }    // namespace Orbit::Control
 

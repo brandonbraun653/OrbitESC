@@ -12,6 +12,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <src/control/modes/sys_mode_idle.hpp>
+#include <src/monitor/orbit_monitors.hpp>
 
 namespace Orbit::Control::State
 {
@@ -34,14 +35,17 @@ namespace Orbit::Control::State
     /*-------------------------------------------------------------------------
     Disable the drive signals going to the motor
     -------------------------------------------------------------------------*/
-    get_fsm_context().mTimerDriver.disableOutput();
+    Orbit::Control::FOC& driver = get_fsm_context();
+
+    driver.mTimerDriver.disableOutput();
 
     /*-------------------------------------------------------------------------
-    Reset the motor controller
+    Enable the system monitors
     -------------------------------------------------------------------------*/
-    // get_fsm_context().mState.emfObserver.clear();
-    // get_fsm_context().mState.speedEstimator.clear();
-    // get_fsm_context().mState.motorCtl.clear();
+    for( auto mon : Orbit::Monitor::MonitorArray )
+    {
+      mon->setEngageState( Orbit::Monitor::EngageState::ACTIVE );
+    }
 
     LOG_TRACE_IF( DEBUG_MODULE, "Entered Idle state\r\n" );
     return ModeId::IDLE;

@@ -38,19 +38,19 @@ namespace Orbit::CAN::Router
     switch ( desired_mode )
     {
       case ModeId::IDLE:
-        result = FOCDriver.disarm();
+        result = FOCDriver.sendSystemEvent( EventId::DISARM );
         break;
 
       case ModeId::ARMED:
-        result = FOCDriver.arm();
+        result = FOCDriver.sendSystemEvent( EventId::ARM );
         break;
 
-      case ModeId::ENGAGED_RUN:
-        result = FOCDriver.engage();
+      case ModeId::ENGAGED:
+        result = FOCDriver.sendSystemEvent( EventId::ENGAGE );
         break;
 
       case ModeId::FAULT:
-        result = FOCDriver.disengage();
+        result = FOCDriver.sendSystemEvent( EventId::FAULT );
         break;
 
       default:

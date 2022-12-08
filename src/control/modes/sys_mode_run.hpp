@@ -23,8 +23,7 @@ namespace Orbit::Control::State
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
-  class EngagedRun
-      : public etl::fsm_state<FOC, EngagedRun, ModeId::ENGAGED_RUN, MsgEmergencyHalt, MsgDisengage, MsgFault>
+  class Engaged : public etl::fsm_state<FOC, Engaged, ModeId::ENGAGED, MsgEmergencyHalt, MsgDisengage, MsgFault>
   {
   public:
     void on_exit_state() final override;

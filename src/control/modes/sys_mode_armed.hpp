@@ -23,14 +23,13 @@ namespace Orbit::Control::State
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
-  class Armed : public etl::fsm_state<FOC, Armed, ModeId::ARMED, MsgEmergencyHalt, MsgDisarm, MsgAlign, MsgFault>
+  class Armed : public etl::fsm_state<FOC, Armed, ModeId::ARMED, MsgEmergencyHalt, MsgDisarm, MsgFault>
   {
   public:
     void on_exit_state() final override;
     etl::fsm_state_id_t on_enter_state() final override;
     etl::fsm_state_id_t on_event( const MsgEmergencyHalt & );
     etl::fsm_state_id_t on_event( const MsgDisarm & );
-    etl::fsm_state_id_t on_event( const MsgAlign & );
     etl::fsm_state_id_t on_event( const MsgFault & );
     etl::fsm_state_id_t on_event_unknown( const etl::imessage & );
   };

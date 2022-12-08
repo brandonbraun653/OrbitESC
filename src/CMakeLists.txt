@@ -191,8 +191,8 @@ if(Toolchain::HAS_GCC_ARM_NONE_EABI)
     freertos_core_rel
     freertos_port
     freertos_heap
-    freertos_heap_4_rel
-    freertos_cm4f_port_rel
+    freertos_heap_4_rel_dbg
+    freertos_cm4f_port_rel_dbg
 
     # Segger System View
     segger_sys_view_rel

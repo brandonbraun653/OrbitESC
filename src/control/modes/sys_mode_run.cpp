@@ -18,37 +18,37 @@ namespace Orbit::Control::State
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
-  void EngagedRun::on_exit_state()
+  void Engaged::on_exit_state()
   {
     LOG_INFO( "Exiting Run state\r\n" );
   }
 
-  etl::fsm_state_id_t EngagedRun::on_enter_state()
+  etl::fsm_state_id_t Engaged::on_enter_state()
   {
     LOG_INFO( "Entering Run state\r\n" );
-    return ModeId::ENGAGED_RUN;
+    return ModeId::ENGAGED;
   }
 
 
-  etl::fsm_state_id_t EngagedRun::on_event( const MsgEmergencyHalt &msg )
+  etl::fsm_state_id_t Engaged::on_event( const MsgEmergencyHalt &msg )
   {
-    return ModeId::ENGAGED_RUN;
+    return ModeId::ENGAGED;
   }
 
 
-  etl::fsm_state_id_t EngagedRun::on_event( const MsgDisengage &msg )
+  etl::fsm_state_id_t Engaged::on_event( const MsgDisengage &msg )
   {
-    return ModeId::ENGAGED_RUN;
+    return ModeId::ENGAGED;
   }
 
 
-  etl::fsm_state_id_t EngagedRun::on_event( const MsgFault &msg )
+  etl::fsm_state_id_t Engaged::on_event( const MsgFault &msg )
   {
-    return ModeId::ENGAGED_RUN;
+    return ModeId::ENGAGED;
   }
 
 
-  etl::fsm_state_id_t EngagedRun::on_event_unknown( const etl::imessage &msg )
+  etl::fsm_state_id_t Engaged::on_event_unknown( const etl::imessage &msg )
   {
     get_fsm_context().logUnhandledMessage( msg );
     return this->No_State_Change;

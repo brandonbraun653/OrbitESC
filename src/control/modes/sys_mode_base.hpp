@@ -42,9 +42,7 @@ namespace Orbit::Control
       EMERGENCY_HALT, /**< Emergency stop the motor and place into a safe state */
       ARM,            /**< Prepare the motor control system to run */
       DISARM,         /**< Move the motor controller to an idle state */
-      ALIGN,          /**< Engage the control system and drive the motor */
-      RAMP,           /**< Ramp the motor speed up to idle RPM */
-      RUN,            /**< Run the motor at a controlled speed */
+      ENGAGE,         /**< Engage the control system and drive the motor */
       DISENGAGE,      /**< Disengage the control system and stop driving the motor */
       FAULT,          /**< Indicate a fault has occurred */
 
@@ -60,12 +58,10 @@ namespace Orbit::Control
   {
     enum
     {
-      IDLE,         /**< Control system is not engaged */
-      ARMED,        /**< System is armed and ready to engage */
-      ENGAGED_PARK, /**< Controller is aligning the rotor */
-      ENGAGED_RAMP, /**< Controller is ramping the rotor up to run-speed */
-      ENGAGED_RUN,  /**< Controller is running in closed feedback */
-      FAULT,        /**< System is having problems */
+      IDLE,    /**< Control system is not engaged */
+      ARMED,   /**< System is armed and ready to engage */
+      ENGAGED, /**< Controller is running normally */
+      FAULT,   /**< System is having problems */
 
       NUM_STATES
     };
@@ -86,15 +82,7 @@ namespace Orbit::Control
   {
   };
 
-  class MsgAlign : public etl::message<EventId::ALIGN>
-  {
-  };
-
-  class MsgRamp : public etl::message<EventId::RAMP>
-  {
-  };
-
-  class MsgRun : public etl::message<EventId::RUN>
+  class MsgEngage : public etl::message<EventId::ENGAGE>
   {
   };
 

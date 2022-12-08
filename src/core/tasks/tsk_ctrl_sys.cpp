@@ -51,16 +51,10 @@ namespace Orbit::Tasks::CTRLSYS
     Orbit::Control::FOCDriver.initialize( cfg, params );
     Orbit::Control::FOCDriver.calibrate();
 
-
-    // Move this to the Idle/engage transition step
-    for( auto mon : Orbit::Monitor::MonitorArray )
-    {
-      mon->setEngageState( Orbit::Monitor::EngageState::ACTIVE );
-    }
-
-
-    // Chimera::delayMilliseconds( 3000 );
-    Orbit::Control::FOCDriver.engage();
+    Chimera::delayMilliseconds( 1000 );
+    Orbit::Control::FOCDriver.sendSystemEvent( Orbit::Control::EventId::ARM );
+    Chimera::delayMilliseconds( 1000 );
+    Orbit::Control::FOCDriver.driveTestSignal( 1, 50.0f );
 
     /*-------------------------------------------------------------------------
     Run the CTRLSYS thread
