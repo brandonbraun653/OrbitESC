@@ -38,7 +38,7 @@ namespace Orbit::Control::State
     driver.mTimerDriver.setPhaseDutyCycle( 0.0f, 0.0f, 0.0f );
     driver.mTimerDriver.enableOutput();
 
-    LOG_TRACE_IF( DEBUG_MODULE, "Entered ARMED state\r\n" );
+    LOG_TRACE_IF( DEBUG_MODULE && !Chimera::System::inISR(), "Entered ARMED state\r\n" );
     return ModeId::ARMED;
   }
 

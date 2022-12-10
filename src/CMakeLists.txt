@@ -16,7 +16,7 @@ gen_intf_lib_variants(
   LIBRARIES
     thor_cfg_freertos_rel
     thor_cmn_cm4_dbg
-    thor_hld_adc_rel
+    thor_hld_adc_dbg
     thor_hld_can_rel
     thor_hld_clock_rel
     thor_hld_dma_rel
@@ -31,7 +31,7 @@ gen_intf_lib_variants(
     thor_hld_usart_rel
     thor_hld_watchdog_rel
     thor_lld_cmn_rel
-    thor_lld_intf_adc_rel
+    thor_lld_intf_adc_dbg
     thor_lld_intf_can_rel
     thor_lld_intf_dma_rel
     thor_lld_intf_exti_rel
@@ -52,7 +52,7 @@ gen_intf_lib_variants(
   TARGET
     stm32l4_libs
   LIBRARIES
-    thor_lld_stm32l4_adc_rel
+    thor_lld_stm32l4_adc_dbg
     thor_lld_stm32l4_can_rel
     thor_lld_stm32l4_crs_rel
     thor_lld_stm32l4_des_rel

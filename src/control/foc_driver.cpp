@@ -269,7 +269,14 @@ namespace Orbit::Control
 
   ModeId_t FOC::currentMode() const
   {
-    return this->get_state_id();
+    if( mInitialized )
+    {
+      return this->get_state_id();
+    }
+    else
+    {
+      return ModeId::NUM_STATES;
+    }
   }
 
 

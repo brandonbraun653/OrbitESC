@@ -11,6 +11,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Chimera/system>
 #include <src/control/modes/sys_mode_idle.hpp>
 #include <src/monitor/orbit_monitors.hpp>
 
@@ -26,7 +27,7 @@ namespace Orbit::Control::State
   ---------------------------------------------------------------------------*/
   void Idle::on_exit_state()
   {
-    LOG_TRACE_IF( DEBUG_MODULE, "Exiting Idle state\r\n" );
+    LOG_TRACE_IF( DEBUG_MODULE && !Chimera::System::inISR(), "Exiting Idle state\r\n" );
   }
 
 
@@ -47,7 +48,7 @@ namespace Orbit::Control::State
       mon->setEngageState( Orbit::Monitor::EngageState::ACTIVE );
     }
 
-    LOG_TRACE_IF( DEBUG_MODULE, "Entered Idle state\r\n" );
+    LOG_TRACE_IF( DEBUG_MODULE && !Chimera::System::inISR(), "Entered Idle state\r\n" );
     return ModeId::IDLE;
   }
 

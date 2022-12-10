@@ -11,6 +11,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Chimera/system>
 #include <src/control/modes/sys_mode_fault.hpp>
 
 namespace Orbit::Control::State
@@ -20,12 +21,12 @@ namespace Orbit::Control::State
   ---------------------------------------------------------------------------*/
   void Fault::on_exit_state()
   {
-    LOG_INFO( "Exiting Fault state\r\n" );
+    LOG_INFO_IF( !Chimera::System::inISR(), "Exiting Fault state\r\n" );
   }
 
   etl::fsm_state_id_t Fault::on_enter_state()
   {
-    LOG_INFO( "Entering Fault state\r\n" );
+    LOG_INFO_IF( !Chimera::System::inISR(), "Entering Fault state\r\n" );
     get_fsm_context().mTimerDriver.emergencyBreak();
     return ModeId::FAULT;
   }
