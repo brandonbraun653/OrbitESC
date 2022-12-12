@@ -73,7 +73,7 @@ namespace Orbit::USART
     comConfig.parity   = Chimera::Serial::Parity::PAR_NONE;
     comConfig.stopBits = Chimera::Serial::StopBits::SBITS_ONE;
     comConfig.flow     = Chimera::Serial::FlowControl::FCTRL_NONE;
-    comConfig.txfrMode = Chimera::Serial::TxfrMode::INTERRUPT;
+    comConfig.txfrMode = Chimera::Serial::TxfrMode::DMA;
     comConfig.txBuffer = dynamic_cast<Chimera::Serial::BipBuffer *>( &sTxBuffer );
     comConfig.rxBuffer = dynamic_cast<Chimera::Serial::BipBuffer *>( &sRxBuffer );
 
