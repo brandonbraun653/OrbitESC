@@ -23,7 +23,7 @@ namespace Orbit::Tasks::Idle
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr size_t STACK                           = STACK_BYTES( 1024 );
+  static constexpr size_t STACK                           = STACK_BYTES( 1536 );
   static constexpr std::string_view NAME                  = "idle";
   static constexpr Chimera::Thread::TaskPriority PRIORITY = 0;
 

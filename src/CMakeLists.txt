@@ -16,7 +16,7 @@ gen_intf_lib_variants(
   LIBRARIES
     thor_cfg_freertos_rel
     thor_cmn_cm4_dbg
-    thor_hld_adc_dbg
+    thor_hld_adc_rel
     thor_hld_can_rel
     thor_hld_clock_rel
     thor_hld_dma_rel
@@ -24,14 +24,15 @@ gen_intf_lib_variants(
     thor_hld_gpio_rel
     thor_hld_i2c_rel
     thor_hld_interrupt_rel
+    thor_hld_serial_dbg
     thor_hld_spi_rel
     thor_hld_system_rel
     thor_hld_timer_rel
-    thor_hld_uart_rel
-    thor_hld_usart_rel
+    thor_hld_uart_dbg
+    thor_hld_usart_dbg
     thor_hld_watchdog_rel
     thor_lld_cmn_rel
-    thor_lld_intf_adc_dbg
+    thor_lld_intf_adc_rel
     thor_lld_intf_can_rel
     thor_lld_intf_dma_rel
     thor_lld_intf_exti_rel
@@ -39,10 +40,11 @@ gen_intf_lib_variants(
     thor_lld_intf_i2c_rel
     thor_lld_intf_interrupt_rel
     thor_lld_intf_rcc_rel
+    thor_lld_intf_serial_dbg
     thor_lld_intf_spi_rel
     thor_lld_intf_sys_rel
     thor_lld_intf_timer_rel
-    thor_lld_intf_usart_rel
+    thor_lld_intf_usart_dbg
     thor_lld_intf_watchdog_rel
   EXPORT_DIR
     ${PROJECT_BINARY_DIR}/OrbitESC
@@ -52,7 +54,7 @@ gen_intf_lib_variants(
   TARGET
     stm32l4_libs
   LIBRARIES
-    thor_lld_stm32l4_adc_dbg
+    thor_lld_stm32l4_adc_rel
     thor_lld_stm32l4_can_rel
     thor_lld_stm32l4_crs_rel
     thor_lld_stm32l4_des_rel
@@ -68,7 +70,7 @@ gen_intf_lib_variants(
     thor_lld_stm32l4_spi_rel
     thor_lld_stm32l4_startup_rel
     thor_lld_stm32l4_system_rel
-    thor_lld_stm32l4_usart_rel
+    thor_lld_stm32l4_usart_dbg
     thor_lld_stm32l4_wwdg_rel
   EXPORT_DIR
     ${PROJECT_BINARY_DIR}/OrbitESC
@@ -153,7 +155,7 @@ target_link_libraries(OrbitESC PRIVATE
 
   # Project Libraries
   aurora_libs_rel
-  chimera_core_rel
+  chimera_core_dbg
   lib_nanopb_rel
   orbit_libs
 

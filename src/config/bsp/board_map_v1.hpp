@@ -244,12 +244,6 @@ namespace Orbit::IO
     /*-------------------------------------------------------------------------
     Configuration Data
     -------------------------------------------------------------------------*/
-    static constexpr Chimera::Serial::Config comConfig = { .baud     = 921600,
-                                                           .width    = Chimera::Serial::CharWid::CW_8BIT,
-                                                           .parity   = Chimera::Serial::Parity::PAR_NONE,
-                                                           .stopBits = Chimera::Serial::StopBits::SBITS_ONE,
-                                                           .flow     = Chimera::Serial::FlowControl::FCTRL_NONE };
-
     static constexpr Chimera::GPIO::PinInit txPinInit = { .alternate = Chimera::GPIO::Alternate::USART2_TX,
                                                           .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
                                                           .pin       = txPin,

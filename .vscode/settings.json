@@ -131,7 +131,8 @@
     "csetjmp": "cpp",
     "semaphore": "cpp",
     "numbers": "cpp",
-    "common.hpp": "c"
+    "common.hpp": "c",
+    "*.def": "cpp"
   },
   "peacock.color": "#f9e64f",
   "cSpell.words": [

@@ -22,21 +22,10 @@ Includes
 namespace Orbit::USART
 {
   /*---------------------------------------------------------------------------
-  Constants
-  ---------------------------------------------------------------------------*/
-  static constexpr size_t HWBufferSize  = 32;
-  static constexpr size_t CircleBufSize = 2 * HWBufferSize;
-
-  /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  // Serial Transmit Buffers
-  static std::array<uint8_t, HWBufferSize>            sTXHWBuffer;
-  static etl::circular_buffer<uint8_t, CircleBufSize> sTXCircularBuffer;
-
-  // Serial Receive Buffers
-  static std::array<uint8_t, HWBufferSize>            sRXHWBuffer;
-  static etl::circular_buffer<uint8_t, CircleBufSize> sRXCircularBuffer;
+  static etl::bip_buffer_spsc_atomic<uint8_t, 128> sTxBuffer;
+  static etl::bip_buffer_spsc_atomic<uint8_t, 128> sRxBuffer;
 
   // Logger Sink Handles
   static Aurora::Logging::SerialSink      s_serial_sink;
@@ -50,43 +39,47 @@ namespace Orbit::USART
     using namespace Chimera::Serial;
     using namespace Chimera::Hardware;
 
+    Chimera::GPIO::Driver_rPtr pin = nullptr;
+
     /*-------------------------------------------------------------------------
     Configure the CP2104 reset line to be disabled
     -------------------------------------------------------------------------*/
 #if defined( ORBIT_ESC_V1 )
-    auto gpio = Chimera::GPIO::getDriver( IO::USART::resetPort, IO::USART::resetPin );
+    pin = Chimera::GPIO::getDriver( IO::USART::resetPort, IO::USART::resetPin );
 
-    RT_HARD_ASSERT( gpio );
-    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( IO::USART::resetPinInit ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == gpio->setState( Chimera::GPIO::State::HIGH ) );
+    RT_HARD_ASSERT( pin );
+    RT_HARD_ASSERT( Chimera::Status::OK == pin->init( IO::USART::resetPinInit ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == pin->setState( Chimera::GPIO::State::HIGH ) );
 #endif /* ORBIT_ESC_V1 */
 
     /*-------------------------------------------------------------------------
-    Configuration info for the serial object
+    Configure the peripheral IO pins
     -------------------------------------------------------------------------*/
-    IOPins pins;
-    pins.tx = IO::USART::txPinInit;
-    pins.rx = IO::USART::rxPinInit;
+    pin = Chimera::GPIO::getDriver( IO::USART::txPort, IO::USART::txPin );
+    RT_HARD_ASSERT( pin );
+    RT_HARD_ASSERT( Chimera::Status::OK == pin->init( IO::USART::txPinInit ) );
 
-    Config cfg = IO::USART::comConfig;
+    pin = Chimera::GPIO::getDriver( IO::USART::rxPort, IO::USART::rxPin );
+    RT_HARD_ASSERT( pin );
+    RT_HARD_ASSERT( Chimera::Status::OK == pin->init( IO::USART::rxPinInit ) );
 
     /*-------------------------------------------------------------------------
     Create the serial object and initialize it
     -------------------------------------------------------------------------*/
-    auto result = Chimera::Status::OK;
-    result |= attach( Chimera::Peripheral::Type::PERIPH_USART, IO::USART::serialChannel );
+    Chimera::Serial::Config comConfig;
+    comConfig.baud     = 921600;
+    comConfig.channel  = IO::USART::serialChannel;
+    comConfig.width    = Chimera::Serial::CharWid::CW_8BIT;
+    comConfig.parity   = Chimera::Serial::Parity::PAR_NONE;
+    comConfig.stopBits = Chimera::Serial::StopBits::SBITS_ONE;
+    comConfig.flow     = Chimera::Serial::FlowControl::FCTRL_NONE;
+    comConfig.txfrMode = Chimera::Serial::TxfrMode::INTERRUPT;
+    comConfig.txBuffer = dynamic_cast<Chimera::Serial::BipBuffer *>( &sTxBuffer );
+    comConfig.rxBuffer = dynamic_cast<Chimera::Serial::BipBuffer *>( &sRxBuffer );
 
-    auto usart  = Chimera::USART::getDriver( IO::USART::serialChannel );
     auto serial = Chimera::Serial::getDriver( IO::USART::serialChannel );
-    RT_HARD_ASSERT( serial && usart );
-
-    result |= usart->assignHW( IO::USART::serialChannel, pins );
-    result |= usart->configure( cfg );
-    result |= usart->enableBuffering( SubPeripheral::TX, sTXCircularBuffer, sTXHWBuffer.data(), sTXHWBuffer.size() );
-    result |= usart->enableBuffering( SubPeripheral::RX, sRXCircularBuffer, sRXHWBuffer.data(), sRXHWBuffer.size() );
-    RT_HARD_ASSERT( result == Chimera::Status::OK );
-
-    result |= usart->begin( PeripheralMode::INTERRUPT, PeripheralMode::INTERRUPT );
+    RT_HARD_ASSERT( serial );
+    RT_HARD_ASSERT( Chimera::Status::OK == serial->open( comConfig ) );
 
     /*-------------------------------------------------------------------------
     Start the logging framework
