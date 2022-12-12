@@ -24,8 +24,8 @@ namespace Orbit::USART
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static etl::bip_buffer_spsc_atomic<uint8_t, 128> sTxBuffer;
-  static etl::bip_buffer_spsc_atomic<uint8_t, 128> sRxBuffer;
+  static etl::bip_buffer_spsc_atomic<uint8_t, 256> sTxBuffer;
+  static etl::bip_buffer_spsc_atomic<uint8_t, 256> sRxBuffer;
 
   // Logger Sink Handles
   static Aurora::Logging::SerialSink      s_serial_sink;
