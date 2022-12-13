@@ -1,6 +1,6 @@
 # **********************************************************************************************************************
 #   FileName:
-#       messages.py
+#       can_messages.py
 #
 #   Description:
 #       Message types understood by an OrbitESC node over CAN bus

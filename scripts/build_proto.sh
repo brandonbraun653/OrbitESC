@@ -27,7 +27,8 @@ python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py src/core/com/s
 
 # Build the Python bindings
 SRC_DIR=$_cwd/src/core/com/serial
-DST_DIR=$_cwd/src/core/com/serial
+NPB_DIR=$_cwd/lib/Aurora/lib/nanopb/nanopb/generator/proto
+DST_DIR=$_cwd/pyorbit/nanopb
 
 echo "Building Python Bindings"
-protoc -I=$SRC_DIR --python_out=$DST_DIR $SRC_DIR/interface.proto
+protoc -I=$SRC_DIR -I=$NPB_DIR --python_out=$DST_DIR $SRC_DIR/interface.proto

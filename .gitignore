@@ -8,4 +8,4 @@ artifacts/**
 # PyCharm project directory
 .idea/**
 .conda
-__pycache__
+*__pycache__

@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from threading import Event
 from collections import deque
-from pyorbit.pipe import MessageObserver
-from pyorbit.messages import BaseMessage
+from pyorbit.can_pipe import MessageObserver
+from pyorbit.can_messages import BaseMessage
 
 
 class BlitManager:

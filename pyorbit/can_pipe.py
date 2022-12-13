@@ -1,6 +1,6 @@
 # **********************************************************************************************************************
 #   FileName:
-#       pipe.py
+#       can_pipe.py
 #
 #   Description:
 #       Core driver for interacting with an OrbitESC node over CAN bus
@@ -22,7 +22,7 @@ from ifconfigparser import IfconfigParser
 from loguru import logger
 from typing import Any, Callable, Dict, List, Type, Union
 from threading import Thread, RLock, Event
-from pyorbit.messages import BaseMessage
+from pyorbit.can_messages import BaseMessage
 
 
 class MessageObserver:

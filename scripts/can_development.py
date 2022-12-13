@@ -1,7 +1,7 @@
 import time
 import sys
-from pyorbit.pipe import CANPipe
-from pyorbit.messages import NodeID, MotorSpeed, PowerSupplyVoltage
+from pyorbit.can_pipe import CANPipe
+from pyorbit.can_messages import NodeID, MotorSpeed, PowerSupplyVoltage
 from pyorbit.plotter import LivePlotter
 from pyorbit.esc import OrbitESC
 import matplotlib.pyplot as plt

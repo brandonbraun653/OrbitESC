@@ -6,7 +6,16 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
-PB_BIND(TestRequest, TestRequest, AUTO)
+PB_BIND(InstHeader, InstHeader, AUTO)
+
+
+PB_BIND(AckNackMessage, AckNackMessage, AUTO)
+
+
+PB_BIND(ConsoleMessage, ConsoleMessage, AUTO)
+
+
+PB_BIND(SystemInfoMessage, SystemInfoMessage, AUTO)
 
 
 

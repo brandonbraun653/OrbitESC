@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import atexit
 import copy
-
 import can
 import time
 import uuid
@@ -21,8 +20,8 @@ from loguru import logger
 from functools import wraps
 from threading import Event, Thread
 from typing import Any, Callable, List, Union
-from pyorbit.pipe import CANPipe, MessageObserver
-from pyorbit.messages import NodeID, Ping, SystemTick, SystemMode, SetSystemMode, EmergencyHalt, SetMotorSpeed, \
+from pyorbit.can_pipe import CANPipe, MessageObserver
+from pyorbit.can_messages import NodeID, Ping, SystemTick, SystemMode, SetSystemMode, EmergencyHalt, SetMotorSpeed, \
     SystemReset
 from pyorbit.exceptions import NotOnlineException
 
