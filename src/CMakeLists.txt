@@ -155,7 +155,7 @@ target_link_libraries(OrbitESC PRIVATE
 
   # Project Libraries
   aurora_libs_rel
-  chimera_core_dbg
+  chimera_core_rel
   lib_nanopb_rel
   orbit_libs
 
@@ -190,7 +190,7 @@ if(Toolchain::HAS_GCC_ARM_NONE_EABI)
   target_link_libraries(OrbitESC PRIVATE
     # Threading Library
     freertos_intf_inc_all
-    freertos_core_rel
+    freertos_core_rel_dbg
     freertos_port
     freertos_heap
     freertos_heap_4_rel_dbg
