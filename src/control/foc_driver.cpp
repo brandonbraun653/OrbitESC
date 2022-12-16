@@ -198,6 +198,7 @@ namespace Orbit::Control
 
   void FOC::run()
   {
+    mState.motorCtl.isrCtlActive = true;
   }
 
 
@@ -333,25 +334,6 @@ namespace Orbit::Control
       mState.adcBuffer[ i ].calibrated   = mState.adcBuffer[ i ].measured - mState.adcBuffer[ i ].dcOffset;
       mState.adcBuffer[ i ].converted    = mConfig.txfrFuncs[ i ]( mState.adcBuffer[ i ].calibrated );
       mState.adcBuffer[ i ].sampleTimeUs = timestamp_us;
-
-      /*-----------------------------------------------------------------------
-      Update the monitor for this channel
-      // TODO BMB: Use the analog watchdog
-      -----------------------------------------------------------------------*/
-      IAnalogMonitor *monitor = MonitorArray[ i ];
-      monitor->update( mState.adcBuffer[ i ].converted, mState.adcBuffer[ i ].sampleTimeUs );
-      if( monitor->tripped() == TripState::NOT_TRIPPED )
-      {
-        continue;
-      }
-
-      /*-----------------------------------------------------------------------
-      Tripped! Take action and move the motor to a safe state.
-      -----------------------------------------------------------------------*/
-      // mState.motorCtl.isrCtlActive = false;
-      // sendSystemEvent( EventId::EMERGENCY_HALT );
-      // monitor->setEngageState( Orbit::Monitor::EngageState::INACTIVE );
-      // Orbit::LED::setChannel( Orbit::LED::Channel::FAULT );
     }
 
     /*-------------------------------------------------------------------------
@@ -467,10 +449,26 @@ namespace Orbit::Control
     static constexpr float SECTOR_CONV_FACTOR = 3.0f / Math::M_PI_F;
     uint8_t                sector = 1 + static_cast<uint8_t>( SECTOR_CONV_FACTOR * mState.motorCtl.posEst );
 
-    mState.motorCtl.svpwm_a_duty = ( a + 0.5f ) * 100.0f;
-    mState.motorCtl.svpwm_b_duty = ( b + 0.5f ) * 100.0f;
-    mState.motorCtl.svpwm_c_duty = ( c + 0.5f ) * 100.0f;
-    mState.motorCtl.svpwm_comm   = sector;
+    // mState.motorCtl.svpwm_a_duty = ( a + 0.5f ) * 100.0f;
+    // mState.motorCtl.svpwm_b_duty = ( b + 0.5f ) * 100.0f;
+    // mState.motorCtl.svpwm_c_duty = ( c + 0.5f ) * 100.0f;
+    // mState.motorCtl.svpwm_comm   = sector;
+
+    static uint32_t counter = 0;
+    mState.motorCtl.svpwm_a_duty = 10.0f;
+    mState.motorCtl.svpwm_b_duty = 10.0f;
+    mState.motorCtl.svpwm_c_duty = 10.0f;
+
+    counter++;
+    if( counter > 10 )
+    {
+      counter = 0;
+      mState.motorCtl.svpwm_comm++;
+      if( mState.motorCtl.svpwm_comm >= 7 )
+      {
+        mState.motorCtl.svpwm_comm = 1;
+      }
+    }
 
 
     // /* Step the EMF observer */

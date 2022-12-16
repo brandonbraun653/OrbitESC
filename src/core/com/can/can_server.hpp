@@ -16,6 +16,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/can>
+#include <Chimera/common>
 #include <Chimera/scheduler>
 #include <Chimera/thread>
 #include <etl/message_bus.h>
@@ -30,32 +31,6 @@ namespace Orbit::CAN
   using StreamId       = uint8_t;
   using PeriodicVector = etl::vector<Chimera::Scheduler::Polled, Message::numPeriodicMessageTypes()>;
 
-  /*---------------------------------------------------------------------------
-  Structures
-  ---------------------------------------------------------------------------*/
-  struct StreamCB
-  {
-    bool        started;  /**< Started transmission flag */
-    const void *data;     /**< Data to transmit */
-    size_t      size;     /**< Number of bytes in the buffer */
-    size_t      offset;   /**< Current offset into the buffer */
-    StreamId    id;       /**< ID of the stream */
-    uint8_t     node;     /**< Node ID of the streamer */
-    uint8_t     frameNum; /**< Current frame ID of the streamer */
-    uint8_t     attempts; /**< Number of attempts to send the frame */
-
-    void clear()
-    {
-      started  = false;
-      data     = nullptr;
-      size     = 0;
-      offset   = 0;
-      id       = 0;
-      node     = 0;
-      frameNum = 0;
-      attempts = 0;
-    }
-  };
 
   /*---------------------------------------------------------------------------
   Classes
@@ -105,7 +80,6 @@ namespace Orbit::CAN
     friend Chimera::Thread::Lockable<Server>;
 
     Chimera::CAN::Driver_rPtr mCANBus;         /**< CAN bus driver */
-    StreamCB                  mStream;         /**< Tracks the current stream operation */
     PeriodicVector            mPeriodicEvents; /**< Vector of periodic events */
   };
 

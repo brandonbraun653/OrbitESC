@@ -13,6 +13,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/system>
 #include <src/control/modes/sys_mode_idle.hpp>
+#include <src/core/hw/orbit_led.hpp>
 #include <src/monitor/orbit_monitors.hpp>
 
 namespace Orbit::Control::State
@@ -47,6 +48,11 @@ namespace Orbit::Control::State
     {
       mon->setEngageState( Orbit::Monitor::EngageState::ACTIVE );
     }
+
+    /*-------------------------------------------------------------------------
+    Clear any previous fault indicators
+    -------------------------------------------------------------------------*/
+    LED::clrChannel( LED::Channel::FAULT );
 
     LOG_TRACE_IF( DEBUG_MODULE && !Chimera::System::inISR(), "Entered Idle state\r\n" );
     return ModeId::IDLE;

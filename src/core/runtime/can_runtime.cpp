@@ -89,6 +89,7 @@ namespace Orbit::CAN
         ---------------------------------------------------------------------*/
         case 0x00700054:  // Hacked Luminary
         case 0x003f0021:  // OrbitESC PCB Rev 1.0
+        case 0x0039006c:
           s_this_node = NodeId::NODE_1;
           break;
 

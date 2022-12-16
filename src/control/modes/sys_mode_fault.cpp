@@ -13,6 +13,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/system>
 #include <src/control/modes/sys_mode_fault.hpp>
+#include <src/core/hw/orbit_led.hpp>
 
 namespace Orbit::Control::State
 {
@@ -26,8 +27,25 @@ namespace Orbit::Control::State
 
   etl::fsm_state_id_t Fault::on_enter_state()
   {
-    LOG_INFO_IF( !Chimera::System::inISR(), "Entering Fault state\r\n" );
+    /*-------------------------------------------------------------------------
+    Immediately stop the motor drive signals
+    -------------------------------------------------------------------------*/
     get_fsm_context().mTimerDriver.emergencyBreak();
+    get_fsm_context().mState.motorCtl.isrCtlActive = false;
+
+    /*-------------------------------------------------------------------------
+    Signal to the user that something is wrong
+    -------------------------------------------------------------------------*/
+    LED::setChannel( LED::Channel::FAULT );
+
+    /*-------------------------------------------------------------------------
+    // TODO: Signal to controller over CAN that something has happened
+    -------------------------------------------------------------------------*/
+
+    /*-------------------------------------------------------------------------
+    Do non-critical tasks
+    -------------------------------------------------------------------------*/
+    LOG_INFO_IF( !Chimera::System::inISR(), "Entering Fault state\r\n" );
     return ModeId::FAULT;
   }
 

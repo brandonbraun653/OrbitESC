@@ -43,6 +43,15 @@ namespace Orbit::GPIO
     auto gpio = Chimera::GPIO::getDriver( IO::Digital::eStopPort, IO::Digital::eStopPin );
     RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( IO::Digital::eStopPinInit ) );
     RT_HARD_ASSERT( Chimera::Status::OK == gpio->attachInterrupt( callback, Chimera::EXTI::EdgeTrigger::RISING_EDGE ) );
+
+    /*-------------------------------------------------------------------------
+    Initialize the LED output enable pin
+    -------------------------------------------------------------------------*/
+    #if defined( ORBIT_ESC_V2 )
+    gpio = Chimera::GPIO::getDriver( IO::Digital::ledOEPort, IO::Digital::ledOEPin );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( IO::Digital::ledOEPinInit ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->setState( Chimera::GPIO::State::LOW ) );
+    #endif
   }
 
 }    // namespace Orbit::GPIO

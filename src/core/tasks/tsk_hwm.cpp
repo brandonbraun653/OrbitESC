@@ -11,18 +11,16 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <Aurora/memory>
 #include <Aurora/logging>
-#include <Chimera/thread>
+#include <Aurora/memory>
 #include <Chimera/can>
-#include <src/core/tasks.hpp>
-#include <src/core/tasks/tsk_hwm.hpp>
+#include <Chimera/thread>
+#include <src/core/hw/orbit_led.hpp>
 #include <src/core/runtime/adc_runtime.hpp>
 #include <src/core/runtime/can_runtime.hpp>
-
-
-#include <Chimera/i2c>
-#include <src/config/bsp/board_map.hpp>
+#include <src/core/runtime/serial_runtime.hpp>
+#include <src/core/tasks.hpp>
+#include <src/core/tasks/tsk_hwm.hpp>
 
 namespace Orbit::Tasks::HWM
 {
@@ -41,6 +39,7 @@ namespace Orbit::Tasks::HWM
     -------------------------------------------------------------------------*/
     Orbit::CAN::initRuntime();
     Orbit::ADC::initRuntime();
+    Orbit::Serial::initRuntime();
 
     /*-------------------------------------------------------------------------
     Run the HWM thread
@@ -51,8 +50,10 @@ namespace Orbit::Tasks::HWM
       /*---------------------------------------------------------------------
       Process hardware drivers
       ---------------------------------------------------------------------*/
+      Orbit::LED::sendUpdate();
       Orbit::CAN::processCANBus();
       Orbit::ADC::processADC();
+      Orbit::Serial::processSerial();
 
       /*---------------------------------------------------------------------
       Pseudo attempt to run this task periodically

@@ -49,7 +49,13 @@ namespace Orbit::CAN
       return Chimera::Status::NOT_INITIALIZED;
     }
 
-    return mCANBus->send( frame );
+    auto result = mCANBus->send( frame );
+    if( result == Chimera::Status::OK )
+    {
+      LED::toggleChannel( LED::Channel::CAN_ACTIVE );
+    }
+
+    return result;
   }
 
 
@@ -74,6 +80,14 @@ namespace Orbit::CAN
 
       if ( Chimera::Status::OK == result )
       {
+        /*---------------------------------------------------------------------
+        Indicate bus activity
+        ---------------------------------------------------------------------*/
+        LED::toggleChannel( LED::Channel::CAN_ACTIVE );
+
+        /*---------------------------------------------------------------------
+        Handle the frame according to supported message types
+        ---------------------------------------------------------------------*/
         switch ( frame.id )
         {
           case Message::MSG_PING: {

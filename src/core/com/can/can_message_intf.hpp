@@ -20,6 +20,7 @@ Includes
 #include <cstdint>
 #include <etl/message.h>
 #include <src/core/hw/orbit_can.hpp>
+#include <src/core/hw/orbit_led.hpp>
 
 namespace Orbit::CAN::Message
 {
@@ -154,6 +155,11 @@ namespace Orbit::CAN::Message
      */
     Chimera::Status_t send( Chimera::CAN::Driver_rPtr driver )
     {
+      RT_DBG_ASSERT( driver );
+
+      /*-----------------------------------------------------------------------
+      Encode the frame
+      -----------------------------------------------------------------------*/
       Chimera::CAN::BasicFrame frame;
       Chimera::Status_t        status;
 
@@ -163,8 +169,16 @@ namespace Orbit::CAN::Message
         return status;
       }
 
-      RT_DBG_ASSERT( driver );
-      return driver->send( frame );
+      /*-----------------------------------------------------------------------
+      Send the frame and indicate bus activity
+      -----------------------------------------------------------------------*/
+      auto result = driver->send( frame );
+      if( result == Chimera::Status::OK )
+      {
+        LED::toggleChannel( LED::Channel::CAN_ACTIVE );
+      }
+
+      return result;
     }
 
   };

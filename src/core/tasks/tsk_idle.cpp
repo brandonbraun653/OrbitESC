@@ -55,20 +55,16 @@ namespace Orbit::Tasks::Idle
       High Pulse #1
       -----------------------------------------------------------------------*/
       LED::setChannel( LED::Channel::HEARTBEAT );
-      LED::sendUpdate();
       Chimera::delayMilliseconds( 100 );
       LED::clrChannel( LED::Channel::HEARTBEAT );
-      LED::sendUpdate();
       Chimera::delayMilliseconds( 100 );
 
       /*-----------------------------------------------------------------------
       High Pulse #2
       -----------------------------------------------------------------------*/
       LED::setChannel( LED::Channel::HEARTBEAT );
-      LED::sendUpdate();
       Chimera::delayMilliseconds( 100 );
       LED::clrChannel( LED::Channel::HEARTBEAT );
-      LED::sendUpdate();
       Chimera::delayMilliseconds( 100 );
 
       /*-----------------------------------------------------------------------

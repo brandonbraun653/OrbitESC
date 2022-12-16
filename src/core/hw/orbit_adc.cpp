@@ -180,12 +180,13 @@ namespace Orbit::ADC
     wdg.lowThreshold  = ( static_cast<uint32_t>( ipx_lo_bits ) & 0xFF0 ) >> 4U;
     wdg.callback      = callback;
 
-    wdg.adcChannel = IO::Analog::adcPhaseA;
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->monitorChannel( wdg ) );
-    wdg.adcChannel = IO::Analog::adcPhaseB;
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->monitorChannel( wdg ) );
-    wdg.adcChannel = IO::Analog::adcPhaseC;
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->monitorChannel( wdg ) );
+    // wdg.adcChannel = IO::Analog::adcPhaseA;
+    // RT_HARD_ASSERT( Chimera::Status::OK == adc->monitorChannel( wdg ) );
+    // wdg.adcChannel = IO::Analog::adcPhaseB;
+    // RT_HARD_ASSERT( Chimera::Status::OK == adc->monitorChannel( wdg ) );
+    // wdg.adcChannel = IO::Analog::adcPhaseC;
+    // RT_HARD_ASSERT( Chimera::Status::OK == adc->monitorChannel( wdg ) );
+    LOG_WARN( "Over-current protection disabled!" );
 
     /*-------------------------------------------------------------------
     Power supply voltage monitor

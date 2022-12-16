@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto2',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x16serial_interface.proto\x1a\x0cnanopb.proto\"M\n\nInstHeader\x12\x14\n\x05msgId\x18\x01 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x05subId\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x13\n\x04size\x18\x03 \x02(\rB\x05\x92?\x02\x38\x08\"B\n\x0e\x41\x63kNackMessage\x12\x1b\n\x06header\x18\x01 \x02(\x0b\x32\x0b.InstHeader\x12\x13\n\x0b\x61\x63knowledge\x18\x02 \x02(\x08\"H\n\x0e\x43onsoleMessage\x12\x1b\n\x06header\x18\x01 \x02(\x0b\x32\x0b.InstHeader\x12\x19\n\x04\x64\x61ta\x18\x02 \x02(\x0c\x42\x0b\x92?\x03\x08\x80\x01\x92?\x02x\x01\"\xa6\x01\n\x11SystemInfoMessage\x12\x1b\n\x06header\x18\x01 \x02(\x0b\x32\x0b.InstHeader\x12\x12\n\nsystemTick\x18\x02 \x02(\r\x12\x1d\n\tswVersion\x18\x03 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12\x1f\n\x0b\x64\x65scription\x18\x04 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12 \n\x0cserialNumber\x18\x05 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01'
+  serialized_pb=b'\n\x16serial_interface.proto\x1a\x0cnanopb.proto\"M\n\nInstHeader\x12\x14\n\x05msgId\x18\x01 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x05subId\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x13\n\x04size\x18\x03 \x02(\rB\x05\x92?\x02\x38\x08\"B\n\x0e\x41\x63kNackMessage\x12\x1b\n\x06header\x18\x01 \x02(\x0b\x32\x0b.InstHeader\x12\x13\n\x0b\x61\x63knowledge\x18\x02 \x02(\x08\"*\n\x0bPingMessage\x12\x1b\n\x06header\x18\x01 \x02(\x0b\x32\x0b.InstHeader\"H\n\x0e\x43onsoleMessage\x12\x1b\n\x06header\x18\x01 \x02(\x0b\x32\x0b.InstHeader\x12\x19\n\x04\x64\x61ta\x18\x02 \x02(\x0c\x42\x0b\x92?\x03\x08\x80\x01\x92?\x02x\x01\"\xa6\x01\n\x11SystemInfoMessage\x12\x1b\n\x06header\x18\x01 \x02(\x0b\x32\x0b.InstHeader\x12\x12\n\nsystemTick\x18\x02 \x02(\r\x12\x1d\n\tswVersion\x18\x03 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12\x1f\n\x0b\x64\x65scription\x18\x04 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12 \n\x0cserialNumber\x18\x05 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01'
   ,
   dependencies=[nanopb__pb2.DESCRIPTOR,])
 
@@ -112,6 +112,38 @@ _ACKNACKMESSAGE = _descriptor.Descriptor(
 )
 
 
+_PINGMESSAGE = _descriptor.Descriptor(
+  name='PingMessage',
+  full_name='PingMessage',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='header', full_name='PingMessage.header', index=0,
+      number=1, type=11, cpp_type=10, label=2,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=187,
+  serialized_end=229,
+)
+
+
 _CONSOLEMESSAGE = _descriptor.Descriptor(
   name='ConsoleMessage',
   full_name='ConsoleMessage',
@@ -146,8 +178,8 @@ _CONSOLEMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=187,
-  serialized_end=259,
+  serialized_start=231,
+  serialized_end=303,
 )
 
 
@@ -206,15 +238,17 @@ _SYSTEMINFOMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=262,
-  serialized_end=428,
+  serialized_start=306,
+  serialized_end=472,
 )
 
 _ACKNACKMESSAGE.fields_by_name['header'].message_type = _INSTHEADER
+_PINGMESSAGE.fields_by_name['header'].message_type = _INSTHEADER
 _CONSOLEMESSAGE.fields_by_name['header'].message_type = _INSTHEADER
 _SYSTEMINFOMESSAGE.fields_by_name['header'].message_type = _INSTHEADER
 DESCRIPTOR.message_types_by_name['InstHeader'] = _INSTHEADER
 DESCRIPTOR.message_types_by_name['AckNackMessage'] = _ACKNACKMESSAGE
+DESCRIPTOR.message_types_by_name['PingMessage'] = _PINGMESSAGE
 DESCRIPTOR.message_types_by_name['ConsoleMessage'] = _CONSOLEMESSAGE
 DESCRIPTOR.message_types_by_name['SystemInfoMessage'] = _SYSTEMINFOMESSAGE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -232,6 +266,13 @@ AckNackMessage = _reflection.GeneratedProtocolMessageType('AckNackMessage', (_me
   # @@protoc_insertion_point(class_scope:AckNackMessage)
   })
 _sym_db.RegisterMessage(AckNackMessage)
+
+PingMessage = _reflection.GeneratedProtocolMessageType('PingMessage', (_message.Message,), {
+  'DESCRIPTOR' : _PINGMESSAGE,
+  '__module__' : 'serial_interface_pb2'
+  # @@protoc_insertion_point(class_scope:PingMessage)
+  })
+_sym_db.RegisterMessage(PingMessage)
 
 ConsoleMessage = _reflection.GeneratedProtocolMessageType('ConsoleMessage', (_message.Message,), {
   'DESCRIPTOR' : _CONSOLEMESSAGE,

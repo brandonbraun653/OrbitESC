@@ -1,45 +1,30 @@
 /******************************************************************************
  *  File Name:
- *    can_runtime.hpp
+ *    serial_runtime.hpp
  *
  *  Description:
- *    CAN bus runtime operations
+ *    Serial runtime operations for processing debug interface
  *
  *  2022 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
-#ifndef ORBIT_CAN_RUNTIME_HPP
-#define ORBIT_CAN_RUNTIME_HPP
+#ifndef ORBIT_SERIAL_RUNTIME_HPP
+#define ORBIT_SERIAL_RUNTIME_HPP
 
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <Chimera/can>
-#include <src/core/com/can/can_message.hpp>
 
-namespace Orbit::CAN
+
+namespace Orbit::Serial
 {
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
-  /**
-   * @brief Initialize the CAN bus runtime driver for the project
-   */
   void initRuntime();
 
-  /**
-   * @brief Gets the node identifier for this CAN device
-   *
-   * @return NodeId
-   */
-  NodeId thisNode();
+  void processSerial();
+}  // namespace Orbit::Serial
 
-  /**
-   * @brief Handles runtime IO of CAN bus messages. Must be called periodically.
-   */
-  void processCANBus();
-
-}  // namespace Orbit::CAN
-
-#endif  /* !ORBIT_CAN_RUNTIME_HPP */
+#endif  /* !ORBIT_SERIAL_RUNTIME_HPP */

@@ -6,6 +6,7 @@ gen_static_lib_variants(
   SOURCES
     adc_runtime.cpp
     can_runtime.cpp
+    serial_runtime.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc
