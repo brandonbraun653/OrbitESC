@@ -156,6 +156,7 @@ target_link_libraries(OrbitESC PRIVATE
   # Project Libraries
   aurora_libs_rel
   chimera_core_rel
+  lib_cobs_rel
   lib_nanopb_rel
   orbit_libs
 

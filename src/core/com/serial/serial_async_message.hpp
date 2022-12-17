@@ -15,6 +15,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include "cobs.h"
 #include "serial_interface.pb.h"
 #include "pb_encode.h"
 #include "pb_decode.h"
@@ -30,26 +31,29 @@ namespace Orbit::Serial::Message
   ---------------------------------------------------------------------------*/
   enum Id : etl::message_id_t
   {
-    MSG_PING_CMD  = 1,  /**< Simple PING to see if the node is alive */
+    MSG_PING_CMD = 1, /**< Simple PING to see if the node is alive */
 
   };
 
   /*---------------------------------------------------------------------------
-  Forward Declarations
-  ---------------------------------------------------------------------------*/
-  class Ping;
-
-  /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  template<etl::message_id_t MSG_ID, typename PayloadType, const size_t PayloadSize, const pb_msgdesc_t * PayloadFields>
+  /**
+   * @brief Helper class to share common operations on custom messages
+   *
+   * @tparam MSG_ID         Field from Orbit::Serial::Message::Id
+   * @tparam PayloadType    Structure type generated from proto file
+   * @tparam PayloadSize    Maximum size of the encoded message
+   * @tparam *PayloadFields Structure to identify message formatting
+   */
+  template<etl::message_id_t MSG_ID, typename PayloadType, const size_t PayloadSize, const pb_msgdesc_t *PayloadFields>
   class MessageExt : public etl::message<MSG_ID>
   {
   public:
     PayloadType payload;
 
     /**
-     * @brief Resets the message payload to its default value
+     * @brief Resets the message payload to empty
      */
     void reset()
     {
@@ -57,11 +61,21 @@ namespace Orbit::Serial::Message
       ioBuffer.fill( 0 );
     }
 
+    /**
+     * @brief Encode the current state of the message to the internal data buffer
+     * @return bool   True if encoding was successful, false if not
+     */
     bool encode()
     {
       return this->encode( payload );
     }
 
+    /**
+     * @brief Encode the given message to the internal data buffer
+     *
+     * @param message   Message being encoded
+     * @return bool     True if encoding was successful, false if not
+     */
     bool encode( const PayloadType &message )
     {
       pb_ostream_t stream = pb_ostream_from_buffer( ioBuffer.data(), ioBuffer.size() );
@@ -70,33 +84,41 @@ namespace Orbit::Serial::Message
       return result;
     }
 
+    /**
+     * @brief Decode a buffer of data into the internal message
+     *
+     * @param src     Source buffer of raw data to parse
+     * @param length  Size of the bytes contained in the source buffer
+     * @return bool   True if decoding was successful, false if not
+     */
     bool decode( const void *const src, const size_t length )
     {
       return this->decode( payload, src, length );
     }
 
     /**
-     * @brief Decodes a buffer
+     * @brief Decodes a buffer of data under the assumption it contains the message type
      *
-     * @param dst
-     * @param src
-     * @param length
-     * @return true
-     * @return false
+     * @param dst     Where to write the decoded data into
+     * @param src     Source buffer of raw data to parse
+     * @param length  Size of the bytes contained in the source buffer
+     * @return bool   True if decoding was successful, false if not
      */
     bool decode( PayloadType &dst, const void *const src, const size_t length )
     {
       /*-----------------------------------------------------------------------
       Input Protection
       -----------------------------------------------------------------------*/
-      if( !src || ( length < PayloadSize ) )
+      if ( !src || ( length < PayloadSize ) )
       {
         RT_DBG_ASSERT( false );
         return false;
       }
 
-
-      pb_istream_t stream = pb_istream_from_buffer( reinterpret_cast<const pb_byte_t*>( src ), PayloadSize );
+      /*-----------------------------------------------------------------------
+      Use the internal buffer to decode the stream
+      -----------------------------------------------------------------------*/
+      pb_istream_t stream = pb_istream_from_buffer( reinterpret_cast<const pb_byte_t *>( src ), PayloadSize );
       return pb_decode( &stream, PayloadFields, &dst );
     }
 
@@ -106,33 +128,51 @@ namespace Orbit::Serial::Message
      * @param serial     Serial port to write to
      * @return Chimera::Status_t
      */
-    Chimera::Status_t send( Chimera::Serial::Driver_rPtr serial )
+    Chimera::Status_t send( Chimera::Serial::Driver_rPtr serial, const bool block = false )
     {
+      using namespace Chimera::Event;
+      using namespace Chimera::Thread;
+
+      /*-----------------------------------------------------------------------
+      Input Protection
+      -----------------------------------------------------------------------*/
       RT_DBG_ASSERT( serial );
       if ( ( bytesWritten == 0 ) || ( bytesWritten > PayloadSize ) )
       {
         return Chimera::Status::FAIL;
       }
 
-      return serial->write( ioBuffer.data(), bytesWritten );
+      /*-----------------------------------------------------------------------
+      Ship the data through the port
+      -----------------------------------------------------------------------*/
+      auto result = serial->write( ioBuffer.data(), bytesWritten );
+      if( block )
+      {
+        result |= serial->await( Trigger::TRIGGER_WRITE_COMPLETE, TIMEOUT_BLOCK );
+      }
+
+      return result;
     }
 
   protected:
-    uint16_t bytesWritten;
-    etl::array<uint8_t, PayloadSize> ioBuffer;
+    static_assert( sizeof( PayloadType ) <= PayloadSize );
+
+    static constexpr size_t EncodeSize = COBS_ENCODE_DST_BUF_LEN_MAX( PayloadSize );
+    static constexpr size_t DecodeSize = COBS_DECODE_DST_BUF_LEN_MAX( PayloadSize );
+    static constexpr size_t IOBuffSize = std::max<size_t>( EncodeSize, DecodeSize );
+
+    uint16_t                        bytesWritten;
+    etl::array<uint8_t, IOBuffSize> ioBuffer;
   };
 
 
-
+  /*---------------------------------------------------------------------------
+  Message Class Declarations
+  ---------------------------------------------------------------------------*/
   class Ping : public MessageExt<MSG_PING_CMD, PingMessage, PingMessage_size, PingMessage_fields>
   {
-  public:
-    // using PayloadType                          = PingMessage;
-    // static constexpr PingMessage PayloadInit   = PingMessage_init_zero;
-    // static constexpr size_t      PayloadSize   = PingMessage_size;
-    //const pb_msgdesc_t *const    PayloadFields = PingMessage_fields;
   };
 
-}  // namespace Orbit::Serial::Message
+}    // namespace Orbit::Serial::Message
 
-#endif  /* !ORBIT_SERIAL_MESSAGE_INTF_HPP */
+#endif /* !ORBIT_SERIAL_MESSAGE_INTF_HPP */

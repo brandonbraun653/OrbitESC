@@ -8,7 +8,7 @@
             "${workspaceFolder}/lib/Aurora/lib/ctre/single-header",
             "${workspaceFolder}/lib/Aurora/lib/embedded_template_library/etl/include",
             "${workspaceFolder}/lib/Aurora/lib/littlefs/lfs",
-            "${workspaceFolder}/lib/Aurora/lib/liquid/",
+            "${workspaceFolder}/lib/Aurora/lib/cobs/cobs",
             "${workspaceFolder}/lib/Aurora/lib/nanoprintf",
             "${workspaceFolder}/lib/Aurora/lib/nanopb/nanopb",
             "${workspaceFolder}/lib/Aurora/lib/segger/Config",
