@@ -1,3 +1,4 @@
 (fp_lib_table
   (lib (name "Project Mosfets")(type "KiCad")(uri "${KIPRJMOD}/../KiCadLib/Mosfets")(options "")(descr ""))
+  (lib (name "OSHW-logo")(type "Legacy")(uri "/home/brandon/git/projects/OrbitESC/hw/pcb/KiCadLib/Logos/OSHW-logo.mod")(options "")(descr ""))
 )

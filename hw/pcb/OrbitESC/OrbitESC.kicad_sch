@@ -1130,7 +1130,7 @@
     (path "/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/adef30d4-3ba6-4fe8-bd6e-d9f6bcb26296"
       (reference "U3") (unit 1) (value "24LC128") (footprint "Package_SO:MSOP-8_3x3mm_P0.65mm")
     )
-    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/2e6ba305-9d7c-4898-a81d-8870dafa1a02"
+    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/5ec69337-8f3c-494f-8594-423dd4278385"
       (reference "U4") (unit 1) (value "TLV9051IDBVR") (footprint "Package_TO_SOT_SMD:SOT-23-5")
     )
     (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/258a952a-9561-4ebe-b15b-8e376ec22167"
@@ -1160,7 +1160,7 @@
     (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/d6c44b52-4493-4341-81b1-aa7f74e39625"
       (reference "U13") (unit 1) (value "TLV9051IDBVR") (footprint "Package_TO_SOT_SMD:SOT-23-5")
     )
-    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/8ea1ff1e-b038-4849-9b2b-689419d4d7e0"
+    (path "/968088fb-1c16-45c3-b31d-62fbdb9fdbdd/925bca16-5894-4e45-ad7b-a3676d4b5244"
       (reference "U14") (unit 1) (value "TLV9051IDBVR") (footprint "Package_TO_SOT_SMD:SOT-23-5")
     )
   )

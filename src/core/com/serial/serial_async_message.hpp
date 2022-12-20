@@ -57,8 +57,8 @@ namespace Orbit::Serial::Message
      */
     void reset()
     {
-      bytesWritten = 0;
-      ioBuffer.fill( 0 );
+      bytes_written = 0;
+      io_buffer.fill( 0 );
     }
 
     /**
@@ -78,10 +78,27 @@ namespace Orbit::Serial::Message
      */
     bool encode( const PayloadType &message )
     {
-      pb_ostream_t stream = pb_ostream_from_buffer( ioBuffer.data(), ioBuffer.size() );
-      bool         result = pb_encode( &stream, PayloadFields, &message );
-      bytesWritten        = stream.bytes_written;
-      return result;
+      /*-----------------------------------------------------------------------
+      Reset the working memory
+      -----------------------------------------------------------------------*/
+      FrameBufferType pb_buffer;
+      pb_buffer.fill( 0 );
+      io_buffer.fill( 0 );
+      bytes_written = 0;
+
+      /*-----------------------------------------------------------------------
+      Encode the data type using nanopb
+      -----------------------------------------------------------------------*/
+      pb_ostream_t stream    = pb_ostream_from_buffer( pb_buffer.data(), pb_buffer.size() );
+      bool         pbSuccess = pb_encode( &stream, PayloadFields, &message );
+
+      /*-----------------------------------------------------------------------
+      Frame the transaction with COBS encoding
+      -----------------------------------------------------------------------*/
+      cobs_encode_result cobsResult = cobs_encode( io_buffer.data(), io_buffer.size(), pb_buffer.data(), stream.bytes_written );
+      bytes_written                  = cobsResult.out_len;
+
+      return ( pbSuccess && ( cobsResult.status == COBS_ENCODE_OK ) );
     }
 
     /**
@@ -97,7 +114,7 @@ namespace Orbit::Serial::Message
     }
 
     /**
-     * @brief Decodes a buffer of data under the assumption it contains the message type
+     * @brief Decodes a buffer of data
      *
      * @param dst     Where to write the decoded data into
      * @param src     Source buffer of raw data to parse
@@ -109,16 +126,25 @@ namespace Orbit::Serial::Message
       /*-----------------------------------------------------------------------
       Input Protection
       -----------------------------------------------------------------------*/
-      if ( !src || ( length < PayloadSize ) )
+      if ( !src || ( length > IOBuffSize ) )
       {
         RT_DBG_ASSERT( false );
         return false;
       }
 
       /*-----------------------------------------------------------------------
-      Use the internal buffer to decode the stream
+      Unpack the COBS encoded frame
       -----------------------------------------------------------------------*/
-      pb_istream_t stream = pb_istream_from_buffer( reinterpret_cast<const pb_byte_t *>( src ), PayloadSize );
+      cobs_decode_result cobsResult = cobs_decode( io_buffer.data(), io_buffer.size(), src, length );
+      if( cobsResult.status != COBS_DECODE_OK )
+      {
+        return false;
+      }
+
+      /*-----------------------------------------------------------------------
+      Decode the nanopb data
+      -----------------------------------------------------------------------*/
+      pb_istream_t stream = pb_istream_from_buffer( reinterpret_cast<const pb_byte_t *>( io_buffer.data() ), cobsResult.out_len );
       return pb_decode( &stream, PayloadFields, &dst );
     }
 
@@ -137,7 +163,7 @@ namespace Orbit::Serial::Message
       Input Protection
       -----------------------------------------------------------------------*/
       RT_DBG_ASSERT( serial );
-      if ( ( bytesWritten == 0 ) || ( bytesWritten > PayloadSize ) )
+      if ( ( bytes_written == 0 ) || ( bytes_written > PayloadSize ) )
       {
         return Chimera::Status::FAIL;
       }
@@ -145,7 +171,7 @@ namespace Orbit::Serial::Message
       /*-----------------------------------------------------------------------
       Ship the data through the port
       -----------------------------------------------------------------------*/
-      auto result = serial->write( ioBuffer.data(), bytesWritten );
+      auto result = serial->write( io_buffer.data(), bytes_written );
       if( block )
       {
         result |= serial->await( Trigger::TRIGGER_WRITE_COMPLETE, TIMEOUT_BLOCK );
@@ -161,8 +187,10 @@ namespace Orbit::Serial::Message
     static constexpr size_t DecodeSize = COBS_DECODE_DST_BUF_LEN_MAX( PayloadSize );
     static constexpr size_t IOBuffSize = std::max<size_t>( EncodeSize, DecodeSize );
 
-    uint16_t                        bytesWritten;
-    etl::array<uint8_t, IOBuffSize> ioBuffer;
+    using FrameBufferType = etl::array<uint8_t, IOBuffSize>;
+
+    uint16_t        bytes_written;
+    FrameBufferType io_buffer;
   };
 
 
