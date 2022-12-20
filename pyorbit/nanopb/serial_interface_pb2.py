@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto2',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x16serial_interface.proto\x1a\x0cnanopb.proto\"M\n\nInstHeader\x12\x14\n\x05msgId\x18\x01 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x05subId\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x13\n\x04size\x18\x03 \x02(\rB\x05\x92?\x02\x38\x08\"B\n\x0e\x41\x63kNackMessage\x12\x1b\n\x06header\x18\x01 \x02(\x0b\x32\x0b.InstHeader\x12\x13\n\x0b\x61\x63knowledge\x18\x02 \x02(\x08\"*\n\x0bPingMessage\x12\x1b\n\x06header\x18\x01 \x02(\x0b\x32\x0b.InstHeader\"H\n\x0e\x43onsoleMessage\x12\x1b\n\x06header\x18\x01 \x02(\x0b\x32\x0b.InstHeader\x12\x19\n\x04\x64\x61ta\x18\x02 \x02(\x0c\x42\x0b\x92?\x03\x08\x80\x01\x92?\x02x\x01\"\xa6\x01\n\x11SystemInfoMessage\x12\x1b\n\x06header\x18\x01 \x02(\x0b\x32\x0b.InstHeader\x12\x12\n\nsystemTick\x18\x02 \x02(\r\x12\x1d\n\tswVersion\x18\x03 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12\x1f\n\x0b\x64\x65scription\x18\x04 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12 \n\x0cserialNumber\x18\x05 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01'
+  serialized_pb=b'\n\x16serial_interface.proto\x1a\x0cnanopb.proto\"M\n\nInstHeader\x12\x14\n\x05msgId\x18\x01 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x05subId\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x13\n\x04size\x18\x03 \x02(\rB\x05\x92?\x02\x38\x08\"B\n\x0e\x41\x63kNackMessage\x12\x1b\n\x06header\x18\x01 \x02(\x0b\x32\x0b.InstHeader\x12\x13\n\x0b\x61\x63knowledge\x18\x02 \x02(\x08\"*\n\x0bPingMessage\x12\x1b\n\x06header\x18\x01 \x02(\x0b\x32\x0b.InstHeader\"^\n\x0e\x43onsoleMessage\x12\x1b\n\x06header\x18\x01 \x02(\x0b\x32\x0b.InstHeader\x12\x14\n\x05\x66rame\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x19\n\x04\x64\x61ta\x18\x03 \x02(\x0c\x42\x0b\x92?\x03\x08\x80\x01\x92?\x02x\x01\"\xa6\x01\n\x11SystemInfoMessage\x12\x1b\n\x06header\x18\x01 \x02(\x0b\x32\x0b.InstHeader\x12\x12\n\nsystemTick\x18\x02 \x02(\r\x12\x1d\n\tswVersion\x18\x03 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12\x1f\n\x0b\x64\x65scription\x18\x04 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12 \n\x0cserialNumber\x18\x05 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01'
   ,
   dependencies=[nanopb__pb2.DESCRIPTOR,])
 
@@ -160,8 +160,15 @@ _CONSOLEMESSAGE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='data', full_name='ConsoleMessage.data', index=1,
-      number=2, type=12, cpp_type=9, label=2,
+      name='frame', full_name='ConsoleMessage.frame', index=1,
+      number=2, type=13, cpp_type=3, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222?\0028\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='data', full_name='ConsoleMessage.data', index=2,
+      number=3, type=12, cpp_type=9, label=2,
       has_default_value=False, default_value=b"",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -179,7 +186,7 @@ _CONSOLEMESSAGE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=231,
-  serialized_end=303,
+  serialized_end=325,
 )
 
 
@@ -238,8 +245,8 @@ _SYSTEMINFOMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=306,
-  serialized_end=472,
+  serialized_start=328,
+  serialized_end=494,
 )
 
 _ACKNACKMESSAGE.fields_by_name['header'].message_type = _INSTHEADER
@@ -292,6 +299,7 @@ _sym_db.RegisterMessage(SystemInfoMessage)
 _INSTHEADER.fields_by_name['msgId']._options = None
 _INSTHEADER.fields_by_name['subId']._options = None
 _INSTHEADER.fields_by_name['size']._options = None
+_CONSOLEMESSAGE.fields_by_name['frame']._options = None
 _CONSOLEMESSAGE.fields_by_name['data']._options = None
 _SYSTEMINFOMESSAGE.fields_by_name['swVersion']._options = None
 _SYSTEMINFOMESSAGE.fields_by_name['description']._options = None

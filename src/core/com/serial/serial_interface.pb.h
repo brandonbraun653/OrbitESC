@@ -28,6 +28,7 @@ typedef struct _PingMessage {
 
 typedef struct _ConsoleMessage {
     InstHeader header;
+    uint8_t frame;
     pb_byte_t data[128];
 } ConsoleMessage;
 
@@ -48,12 +49,12 @@ extern "C" {
 #define InstHeader_init_default                  {0, 0, 0}
 #define AckNackMessage_init_default              {InstHeader_init_default, 0}
 #define PingMessage_init_default                 {InstHeader_init_default}
-#define ConsoleMessage_init_default              {InstHeader_init_default, {0}}
+#define ConsoleMessage_init_default              {InstHeader_init_default, 0, {0}}
 #define SystemInfoMessage_init_default           {InstHeader_init_default, 0, "", "", ""}
 #define InstHeader_init_zero                     {0, 0, 0}
 #define AckNackMessage_init_zero                 {InstHeader_init_zero, 0}
 #define PingMessage_init_zero                    {InstHeader_init_zero}
-#define ConsoleMessage_init_zero                 {InstHeader_init_zero, {0}}
+#define ConsoleMessage_init_zero                 {InstHeader_init_zero, 0, {0}}
 #define SystemInfoMessage_init_zero              {InstHeader_init_zero, 0, "", "", ""}
 
 /* Field tags (for use in manual encoding/decoding) */
@@ -64,7 +65,8 @@ extern "C" {
 #define AckNackMessage_acknowledge_tag           2
 #define PingMessage_header_tag                   1
 #define ConsoleMessage_header_tag                1
-#define ConsoleMessage_data_tag                  2
+#define ConsoleMessage_frame_tag                 2
+#define ConsoleMessage_data_tag                  3
 #define SystemInfoMessage_header_tag             1
 #define SystemInfoMessage_systemTick_tag         2
 #define SystemInfoMessage_swVersion_tag          3
@@ -94,7 +96,8 @@ X(a, STATIC,   REQUIRED, MESSAGE,  header,            1)
 
 #define ConsoleMessage_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
-X(a, STATIC,   REQUIRED, FIXED_LENGTH_BYTES, data,              2)
+X(a, STATIC,   REQUIRED, UINT32,   frame,             2) \
+X(a, STATIC,   REQUIRED, FIXED_LENGTH_BYTES, data,              3)
 #define ConsoleMessage_CALLBACK NULL
 #define ConsoleMessage_DEFAULT NULL
 #define ConsoleMessage_header_MSGTYPE InstHeader
@@ -124,7 +127,7 @@ extern const pb_msgdesc_t SystemInfoMessage_msg;
 
 /* Maximum encoded size of messages (where known) */
 #define AckNackMessage_size                      13
-#define ConsoleMessage_size                      142
+#define ConsoleMessage_size                      145
 #define InstHeader_size                          9
 #define PingMessage_size                         11
 #define SystemInfoMessage_size                   68

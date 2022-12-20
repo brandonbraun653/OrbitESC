@@ -32,6 +32,7 @@ namespace Orbit::Serial::Message
   enum Id : etl::message_id_t
   {
     MSG_PING_CMD = 1, /**< Simple PING to see if the node is alive */
+    MSG_TERMINAL = 2, /**< Terminal command for printing text/debug data */
 
   };
 
@@ -50,6 +51,7 @@ namespace Orbit::Serial::Message
   class MessageExt : public etl::message<MSG_ID>
   {
   public:
+    static constexpr etl::message_id_t MessageId = MSG_ID;
     PayloadType payload;
 
     /**
@@ -198,6 +200,11 @@ namespace Orbit::Serial::Message
   Message Class Declarations
   ---------------------------------------------------------------------------*/
   class Ping : public MessageExt<MSG_PING_CMD, PingMessage, PingMessage_size, PingMessage_fields>
+  {
+  };
+
+
+  class Console : public MessageExt<MSG_TERMINAL, ConsoleMessage, ConsoleMessage_size, ConsoleMessage_fields>
   {
   };
 

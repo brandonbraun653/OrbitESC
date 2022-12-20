@@ -17,6 +17,7 @@ Includes
 #include <Chimera/usart>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/hw/orbit_usart.hpp>
+#include <src/core/com/serial/serial_sink.hpp>
 
 
 namespace Orbit::USART
@@ -28,7 +29,7 @@ namespace Orbit::USART
   static etl::bip_buffer_spsc_atomic<uint8_t, 256> sRxBuffer;
 
   // Logger Sink Handles
-  static Aurora::Logging::SerialSink      s_serial_sink;
+  static Orbit::Serial::EncodedLogSink    s_serial_sink;
   static Aurora::Logging::SinkHandle_rPtr s_serial_handle;
 
   /*---------------------------------------------------------------------------
@@ -98,12 +99,7 @@ namespace Orbit::USART
       registerSink( s_serial_handle );
     }
 
-    Aurora::Logging::setRootSink( s_serial_handle );
-
-    /*-------------------------------------------------------------------------
-    Clear the terminal screen
-    -------------------------------------------------------------------------*/
-    serial->write( Aurora::Logging::Terminal::CmdClearScreen.data(), Aurora::Logging::Terminal::CmdClearScreen.size() );
+    RT_HARD_ASSERT( Aurora::Logging::Result::RESULT_SUCCESS == Aurora::Logging::setRootSink( s_serial_handle ) );
   }
 
 }    // namespace Orbit::USART

@@ -12,6 +12,7 @@ gen_static_lib_variants(
     can/routers/can_reset_router.cpp
     can/routers/can_speed_router.cpp
     serial/serial_interface.pb.c
+    serial/serial_sink.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc
