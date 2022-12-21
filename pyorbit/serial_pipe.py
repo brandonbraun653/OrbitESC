@@ -16,3 +16,9 @@ class SerialPipe:
 
     def __init__(self):
         pass
+
+
+if __name__ == "__main__":
+    ser = serial.Serial(port="/dev/ttyUSB0", baudrate=921600, timeout=5)
+    data = ser.read(256)
+    print(data)
