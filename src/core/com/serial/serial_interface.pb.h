@@ -26,10 +26,11 @@ typedef struct _PingMessage {
     InstHeader header;
 } PingMessage;
 
+typedef PB_BYTES_ARRAY_T(128) ConsoleMessage_data_t;
 typedef struct _ConsoleMessage {
     InstHeader header;
     uint8_t frame;
-    pb_byte_t data[128];
+    ConsoleMessage_data_t data;
 } ConsoleMessage;
 
 typedef struct _SystemInfoMessage {
@@ -49,12 +50,12 @@ extern "C" {
 #define InstHeader_init_default                  {0, 0, 0}
 #define AckNackMessage_init_default              {InstHeader_init_default, 0}
 #define PingMessage_init_default                 {InstHeader_init_default}
-#define ConsoleMessage_init_default              {InstHeader_init_default, 0, {0}}
+#define ConsoleMessage_init_default              {InstHeader_init_default, 0, {0, {0}}}
 #define SystemInfoMessage_init_default           {InstHeader_init_default, 0, "", "", ""}
 #define InstHeader_init_zero                     {0, 0, 0}
 #define AckNackMessage_init_zero                 {InstHeader_init_zero, 0}
 #define PingMessage_init_zero                    {InstHeader_init_zero}
-#define ConsoleMessage_init_zero                 {InstHeader_init_zero, 0, {0}}
+#define ConsoleMessage_init_zero                 {InstHeader_init_zero, 0, {0, {0}}}
 #define SystemInfoMessage_init_zero              {InstHeader_init_zero, 0, "", "", ""}
 
 /* Field tags (for use in manual encoding/decoding) */
@@ -97,7 +98,7 @@ X(a, STATIC,   REQUIRED, MESSAGE,  header,            1)
 #define ConsoleMessage_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
 X(a, STATIC,   REQUIRED, UINT32,   frame,             2) \
-X(a, STATIC,   REQUIRED, FIXED_LENGTH_BYTES, data,              3)
+X(a, STATIC,   REQUIRED, BYTES,    data,              3)
 #define ConsoleMessage_CALLBACK NULL
 #define ConsoleMessage_DEFAULT NULL
 #define ConsoleMessage_header_MSGTYPE InstHeader

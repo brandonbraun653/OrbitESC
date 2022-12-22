@@ -26,13 +26,11 @@ namespace Orbit::Serial
   ---------------------------------------------------------------------------*/
   EncodedLogSink::EncodedLogSink() : mSerial( nullptr )
   {
-
   }
 
 
   EncodedLogSink::~EncodedLogSink()
   {
-
   }
 
 
@@ -69,14 +67,15 @@ namespace Orbit::Serial
   }
 
 
-  Aurora::Logging::Result EncodedLogSink::log( const Aurora::Logging::Level level, const void *const message, const size_t length )
+  Aurora::Logging::Result EncodedLogSink::log( const Aurora::Logging::Level level, const void *const message,
+                                               const size_t length )
   {
     using namespace Chimera::Thread;
 
     /*-------------------------------------------------------------------------
     Make sure we can actually log the data
     -------------------------------------------------------------------------*/
-    if( mSerial == nullptr )
+    if ( mSerial == nullptr )
     {
       return Result::RESULT_FAIL_BAD_SINK;
     }
@@ -84,7 +83,7 @@ namespace Orbit::Serial
     {
       return Result::RESULT_INVALID_LEVEL;
     }
-    else if( !message || length == 0 )
+    else if ( !message || length == 0 )
     {
       return Result::RESULT_NO_MEM;
     }
@@ -99,7 +98,7 @@ namespace Orbit::Serial
     uint8_t          frame_number   = 0;
     const uint8_t   *p_usr_data     = reinterpret_cast<const uint8_t *>( message );
 
-    while( bytes_to_write )
+    while ( bytes_to_write )
     {
       const uint8_t chunk_size = std::min<uint8_t>( sizeof( ConsoleMessage::data ), bytes_to_write );
 
@@ -113,17 +112,18 @@ namespace Orbit::Serial
       pb_data.header.size  = chunk_size;
       pb_data.header.subId = 0;
       pb_data.frame        = frame_number++;
-      memcpy( pb_data.data, p_usr_data + byte_offset, chunk_size );
+      pb_data.data.size    = chunk_size;
+      memcpy( pb_data.data.bytes, p_usr_data + byte_offset, chunk_size );
 
       /*-----------------------------------------------------------------------
       Encode the data and ship it
       -----------------------------------------------------------------------*/
-      if( !msg.encode( pb_data ) )
+      if ( !msg.encode( pb_data ) )
       {
         return Result::RESULT_FAIL;
       }
 
-      if( msg.send( mSerial, true ) == Chimera::Status::OK )
+      if ( msg.send( mSerial, true ) == Chimera::Status::OK )
       {
         byte_offset += chunk_size;
         bytes_to_write -= chunk_size;
@@ -140,4 +140,4 @@ namespace Orbit::Serial
     return Result::RESULT_SUCCESS;
   }
 
-}  // namespace Orbit::Serial
+}    // namespace Orbit::Serial

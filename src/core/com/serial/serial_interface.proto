@@ -21,7 +21,7 @@ message PingMessage {
 message ConsoleMessage {
   required InstHeader header = 1;
   required uint32 frame = 2 [(nanopb).int_size = IS_8];
-  required bytes data = 3 [(nanopb).max_size = 128, (nanopb).fixed_length = true];
+  required bytes data = 3 [(nanopb).max_size = 128];
 }
 
 message SystemInfoMessage {
