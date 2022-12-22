@@ -72,7 +72,7 @@ namespace Orbit::Tasks::Idle
       -----------------------------------------------------------------------*/
       Chimera::delayMilliseconds( 450 );
 
-      LOG_INFO( "Hello World!" );
+      LOG_INFO( "Hello World!\r\n" );
     }
   }
 }    // namespace Orbit::Tasks::Idle

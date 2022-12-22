@@ -173,13 +173,8 @@ namespace Orbit::Serial::Message
       /*-----------------------------------------------------------------------
       Ship the data through the port
       -----------------------------------------------------------------------*/
-      auto result = serial->write( io_buffer.data(), bytes_written );
-      if( block )
-      {
-        result |= serial->await( Trigger::TRIGGER_WRITE_COMPLETE, TIMEOUT_BLOCK );
-      }
-
-      return result;
+      auto timeout = block ? TIMEOUT_BLOCK : TIMEOUT_DONT_WAIT;
+      return serial->write( io_buffer.data(), bytes_written, timeout );
     }
 
   protected:

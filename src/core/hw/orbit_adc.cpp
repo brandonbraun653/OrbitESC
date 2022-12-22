@@ -44,7 +44,7 @@ namespace Orbit::ADC
   Voltage Limit Constants
   ---------------------------------------------------------------------------*/
   static constexpr float ADC_WDG_V_HI_LIMIT = 15.0f;
-  static constexpr float ADC_WDG_V_LO_LIMIT = 4.0f;
+  static constexpr float ADC_WDG_V_LO_LIMIT = 2.0f;
 
 
   /*---------------------------------------------------------------------------
@@ -59,7 +59,8 @@ namespace Orbit::ADC
   static void adc_watchdog_monitor_isr( const Chimera::ADC::InterruptDetail &isrData )
   {
     using namespace Orbit::Control;
-    if ( FOCDriver.currentMode() != ModeId::IDLE )
+    const auto mode = FOCDriver.currentMode();
+    if ( ( mode != ModeId::IDLE ) && ( mode != ModeId::FAULT ) )
     {
       FOCDriver.sendSystemEvent( EventId::EMERGENCY_HALT );
     }
@@ -199,7 +200,7 @@ namespace Orbit::ADC
     wdg.highThreshold = ( static_cast<uint32_t>( vdc_hi_bits ) & 0xFF0 ) >> 4U;
     wdg.lowThreshold  = ( static_cast<uint32_t>( vdc_lo_bits ) & 0xFF0 ) >> 4U;
 
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->monitorChannel( wdg ) );
+    //RT_HARD_ASSERT( Chimera::Status::OK == adc->monitorChannel( wdg ) );
 
     /*-------------------------------------------------------------------------
     Kick off the ADC sequence sampling

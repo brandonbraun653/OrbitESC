@@ -154,8 +154,8 @@ target_link_libraries(OrbitESC PRIVATE
   thor_intf_inc
 
   # Project Libraries
-  aurora_libs_rel
-  chimera_core_rel
+  aurora_libs_dbg
+  chimera_core_rel_dbg
   lib_cobs_rel
   lib_nanopb_rel
   orbit_libs
