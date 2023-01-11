@@ -52,11 +52,11 @@ namespace Orbit::Tasks::CTRLSYS
     Orbit::Control::FOCDriver.calibrate();
 
     Chimera::delayMilliseconds( 1000 );
-    Orbit::Control::FOCDriver.sendSystemEvent( Orbit::Control::EventId::ARM );
+    // Orbit::Control::FOCDriver.sendSystemEvent( Orbit::Control::EventId::ARM );
     // Chimera::delayMilliseconds( 1000 );
     // Orbit::Control::FOCDriver.driveTestSignal( 1, 50.0f );
 
-    Orbit::Control::FOCDriver.mTimerDriver.enableOutput();
+    // Orbit::Control::FOCDriver.mTimerDriver.enableOutput();
 
     /*-------------------------------------------------------------------------
     Run the CTRLSYS thread

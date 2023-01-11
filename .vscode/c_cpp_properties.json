@@ -128,8 +128,7 @@
             "${defaultDefines}"
         ],
         "defaultEmbeddedCStandard": "gnu17",
-        "defaultEmbeddedCppStandard": "gnu++20",
-        "arm_none_eabi_path": "arm-none-eabi-gcc"
+        "defaultEmbeddedCppStandard": "gnu++20"
     },
     "configurations": [
         {
@@ -148,7 +147,7 @@
                 "TARGET_STM32L4",
                 "THOR_USER_CONFIG"
             ],
-            "compilerPath": "${arm_none_eabi_path}",
+            "compilerPath": "/usr/bin/arm-none-eabi-gcc",
             "cStandard": "gnu17",
             "cppStandard": "gnu++20"
         },
@@ -168,7 +167,7 @@
                 "TARGET_STM32F4",
                 "THOR_USER_CONFIG"
             ],
-            "compilerPath": "${arm_none_eabi_path}",
+            "compilerPath": "/usr/bin/arm-none-eabi-gcc",
             "cStandard": "gnu17",
             "cppStandard": "gnu++20"
         },
