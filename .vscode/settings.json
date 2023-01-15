@@ -239,5 +239,6 @@
       "icon": "terminal-bash",
       "args": ["-l"]
     }
-  }
+  },
+  "git.detectSubmodulesLimit": 45
 }

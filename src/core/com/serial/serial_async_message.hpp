@@ -95,11 +95,13 @@ namespace Orbit::Serial::Message
       bool         pbSuccess = pb_encode( &stream, PayloadFields, &message );
 
       /*-----------------------------------------------------------------------
-      Frame the transaction with COBS encoding
+      Frame the transaction with COBS encoding. Add +1 to the total encoded
+      size to account for the null byte delimiter that gets transmitted.
       -----------------------------------------------------------------------*/
       cobs_encode_result cobsResult = cobs_encode( io_buffer.data(), io_buffer.size(), pb_buffer.data(), stream.bytes_written );
-      bytes_written                  = cobsResult.out_len;
+      bytes_written                 = cobsResult.out_len + 1u;
 
+      RT_DBG_ASSERT( bytes_written <= io_buffer.size() );
       return ( pbSuccess && ( cobsResult.status == COBS_ENCODE_OK ) );
     }
 
