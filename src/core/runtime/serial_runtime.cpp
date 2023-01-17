@@ -11,6 +11,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Aurora/logging>
 #include <src/core/runtime/serial_runtime.hpp>
 #include <src/core/com/serial/serial_async_message.hpp>
 #include <src/core/com/serial/serial_router.hpp>
@@ -19,13 +20,26 @@ Includes
 namespace Orbit::Serial
 {
   /*---------------------------------------------------------------------------
+  Static Data
+  ---------------------------------------------------------------------------*/
+  Chimera::Serial::Driver_rPtr serial;
+
+  /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   void initRuntime()
   {
+    serial = Chimera::Serial::getDriver( IO::USART::serialChannel );
   }
 
   void processSerial()
   {
+    uint8_t tmp[ 100 ];
+    memset( tmp, 0, ARRAY_BYTES( tmp ) );
+    size_t  read_size = serial->read( tmp, ARRAY_BYTES( tmp ) );
+    if ( read_size > 0 )
+    {
+      serial->write( tmp, read_size );
+    }
   }
 }    // namespace Orbit::Serial

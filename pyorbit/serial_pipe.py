@@ -112,6 +112,7 @@ class COBSSerialPipe:
             # Fill the cache with the raw data from the bus
             new_data = self._serial.read_all()
             if new_data:
+                print(f"Got new data: {new_data}")
                 rx_byte_buffer.extend(new_data)
 
             # Parse the data in the cache to extract COBS frames
@@ -127,6 +128,7 @@ class COBSSerialPipe:
                     try:
                         decoded_frame = cobs.decode(encoded_frame)
                         self._rx_msgs.put(decoded_frame)
+                        print(f"Receive: {encoded_frame}")
                     except cobs.DecodeError:
                         # Data frame misaligned most likely
                         pass
@@ -142,19 +144,20 @@ class COBSSerialPipe:
         while not self._thread_kill.is_set():
             # Pull the latest data off the queue
             try:
-                raw_frame = self._tx_msgs.get(block=False)  # type: bytes
+                raw_frame = self._tx_msgs.get(block=True, timeout=0.1)  # type: bytes
             except queue.Empty:
-                time.sleep(0)
                 continue
 
             # Encode the frame w/termination byte, then transmit
             encoded_frame = cobs.encode(raw_frame) + b'\x00'
+            print(f"Transmit: {encoded_frame}")
             self._serial.write(encoded_frame)
 
 
 if __name__ == "__main__":
     pipe = COBSSerialPipe()
-    pipe.open(port="/dev/ttyUSB0", baudrate=921600)
-    time.sleep(5)
+    pipe.open(port="/dev/ttyUSB0", baudrate=9600)
+    pipe.put(b'this_is_a_serial_test!\r\n')
+    time.sleep(10)
     pipe.close()
         

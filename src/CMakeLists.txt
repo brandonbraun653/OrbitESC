@@ -14,38 +14,38 @@ gen_intf_lib_variants(
   TARGET
     embedded_core_libs
   LIBRARIES
-    thor_cfg_freertos_rel
+    thor_cfg_freertos_rel_dbg
     thor_cmn_cm4_dbg
-    thor_hld_adc_rel
-    thor_hld_can_rel
-    thor_hld_clock_rel
-    thor_hld_dma_dbg
-    thor_hld_exti_rel
-    thor_hld_gpio_rel
-    thor_hld_i2c_rel
-    thor_hld_interrupt_rel
-    thor_hld_serial_dbg
-    thor_hld_spi_rel
-    thor_hld_system_rel
-    thor_hld_timer_rel
-    thor_hld_uart_dbg
+    thor_hld_adc_rel_dbg
+    thor_hld_can_rel_dbg
+    thor_hld_clock_rel_dbg
+    thor_hld_dma_rel_dbg
+    thor_hld_exti_rel_dbg
+    thor_hld_gpio_rel_dbg
+    thor_hld_i2c_rel_dbg
+    thor_hld_interrupt_rel_dbg
+    thor_hld_serial_rel_dbg
+    thor_hld_spi_rel_dbg
+    thor_hld_system_rel_dbg
+    thor_hld_timer_rel_dbg
+    thor_hld_uart_rel_dbg
     thor_hld_usart_dbg
-    thor_hld_watchdog_rel
-    thor_lld_cmn_rel
-    thor_lld_intf_adc_rel
-    thor_lld_intf_can_rel
-    thor_lld_intf_dma_dbg
-    thor_lld_intf_exti_rel
-    thor_lld_intf_gpio_rel
-    thor_lld_intf_i2c_rel
-    thor_lld_intf_interrupt_rel
-    thor_lld_intf_rcc_rel
-    thor_lld_intf_serial_dbg
-    thor_lld_intf_spi_rel
-    thor_lld_intf_sys_rel
-    thor_lld_intf_timer_rel
+    thor_hld_watchdog_rel_dbg
+    thor_lld_cmn_rel_dbg
+    thor_lld_intf_adc_rel_dbg
+    thor_lld_intf_can_rel_dbg
+    thor_lld_intf_dma_rel_dbg
+    thor_lld_intf_exti_rel_dbg
+    thor_lld_intf_gpio_rel_dbg
+    thor_lld_intf_i2c_rel_dbg
+    thor_lld_intf_interrupt_rel_dbg
+    thor_lld_intf_rcc_rel_dbg
+    thor_lld_intf_serial_rel_dbg
+    thor_lld_intf_spi_rel_dbg
+    thor_lld_intf_sys_rel_dbg
+    thor_lld_intf_timer_rel_dbg
     thor_lld_intf_usart_dbg
-    thor_lld_intf_watchdog_rel
+    thor_lld_intf_watchdog_rel_dbg
   EXPORT_DIR
     ${PROJECT_BINARY_DIR}/OrbitESC
 )
@@ -54,24 +54,24 @@ gen_intf_lib_variants(
   TARGET
     stm32l4_libs
   LIBRARIES
-    thor_lld_stm32l4_adc_rel
-    thor_lld_stm32l4_can_rel
-    thor_lld_stm32l4_crs_rel
-    thor_lld_stm32l4_des_rel
-    thor_lld_stm32l4_dma_dbg
-    thor_lld_stm32l4_exti_rel
-    thor_lld_stm32l4_flash_rel
-    thor_lld_stm32l4_gpio_rel
-    thor_lld_stm32l4_i2c_rel
-    thor_lld_stm32l4_interrupt_rel
-    thor_lld_stm32l4_iwdg_rel
-    thor_lld_stm32l4_power_rel
-    thor_lld_stm32l4_rcc_rel
-    thor_lld_stm32l4_spi_rel
-    thor_lld_stm32l4_startup_rel
-    thor_lld_stm32l4_system_rel
+    thor_lld_stm32l4_adc_rel_dbg
+    thor_lld_stm32l4_can_rel_dbg
+    thor_lld_stm32l4_crs_rel_dbg
+    thor_lld_stm32l4_des_rel_dbg
+    thor_lld_stm32l4_dma_rel_dbg
+    thor_lld_stm32l4_exti_rel_dbg
+    thor_lld_stm32l4_flash_rel_dbg
+    thor_lld_stm32l4_gpio_rel_dbg
+    thor_lld_stm32l4_i2c_rel_dbg
+    thor_lld_stm32l4_interrupt_rel_dbg
+    thor_lld_stm32l4_iwdg_rel_dbg
+    thor_lld_stm32l4_power_rel_dbg
+    thor_lld_stm32l4_rcc_rel_dbg
+    thor_lld_stm32l4_spi_rel_dbg
+    thor_lld_stm32l4_startup_rel_dbg
+    thor_lld_stm32l4_system_rel_dbg
     thor_lld_stm32l4_usart_dbg
-    thor_lld_stm32l4_wwdg_rel
+    thor_lld_stm32l4_wwdg_rel_dbg
   EXPORT_DIR
     ${PROJECT_BINARY_DIR}/OrbitESC
 )
@@ -154,10 +154,10 @@ target_link_libraries(OrbitESC PRIVATE
   thor_intf_inc
 
   # Project Libraries
-  aurora_libs_dbg
+  aurora_libs_rel_dbg
   chimera_core_rel_dbg
-  lib_cobs_rel
-  lib_nanopb_rel
+  lib_cobs_rel_dbg
+  lib_nanopb_rel_dbg
   orbit_libs
 
   # Target Properties
@@ -198,9 +198,9 @@ if(Toolchain::HAS_GCC_ARM_NONE_EABI)
     freertos_cm4f_port_rel_dbg
 
     # Segger System View
-    segger_sys_view_rel
+    segger_sys_view_rel_dbg
     segger_sys_view_intf
-    segger_sys_view_cortex_m4_freertos_rel
+    segger_sys_view_cortex_m4_freertos_rel_dbg
   )
 endif()
 

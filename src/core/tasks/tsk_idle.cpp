@@ -71,8 +71,6 @@ namespace Orbit::Tasks::Idle
       Hold longer in the off state
       -----------------------------------------------------------------------*/
       Chimera::delayMilliseconds( 450 );
-
-      LOG_INFO( "Hello World!\r\n" );
     }
   }
 }    // namespace Orbit::Tasks::Idle
