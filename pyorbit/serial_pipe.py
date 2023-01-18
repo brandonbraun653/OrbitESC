@@ -156,8 +156,8 @@ class COBSSerialPipe:
 
 if __name__ == "__main__":
     pipe = COBSSerialPipe()
-    pipe.open(port="/dev/ttyUSB0", baudrate=9600)
+    pipe.open(port="/dev/ttyUSB0", baudrate=921600)
     pipe.put(b'this_is_a_serial_test!\r\n')
-    time.sleep(5)
+    time.sleep(1)
     pipe.close()
         

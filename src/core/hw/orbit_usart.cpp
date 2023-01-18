@@ -68,7 +68,7 @@ namespace Orbit::USART
     Create the serial object and initialize it
     -------------------------------------------------------------------------*/
     Chimera::Serial::Config comConfig;
-    comConfig.baud     = 9600;
+    comConfig.baud     = 921600;
     comConfig.channel  = IO::USART::serialChannel;
     comConfig.width    = Chimera::Serial::CharWid::CW_8BIT;
     comConfig.parity   = Chimera::Serial::Parity::PAR_NONE;
