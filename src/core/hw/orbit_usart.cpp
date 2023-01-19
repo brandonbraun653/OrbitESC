@@ -5,7 +5,7 @@
  *  Description:
  *    Orbit USART bus driver
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -85,21 +85,21 @@ namespace Orbit::USART
     /*-------------------------------------------------------------------------
     Start the logging framework
     -------------------------------------------------------------------------*/
-    // Aurora::Logging::initialize();
-    // Aurora::Logging::setGlobalLogLevel( Aurora::Logging::Level::LVL_TRACE );
+    Aurora::Logging::initialize();
+    Aurora::Logging::setGlobalLogLevel( Aurora::Logging::Level::LVL_TRACE );
 
-    // s_serial_sink.assignChannel( IO::USART::serialChannel );
-    // s_serial_sink.logLevel = Aurora::Logging::Level::LVL_TRACE;
-    // s_serial_sink.enabled  = true;
-    // s_serial_sink.name     = "SerialLog";
+    s_serial_sink.assignChannel( IO::USART::serialChannel );
+    s_serial_sink.logLevel = Aurora::Logging::Level::LVL_TRACE;
+    s_serial_sink.enabled  = true;
+    s_serial_sink.name     = "SerialLog";
 
-    // if ( !s_serial_handle )
-    // {
-    //   s_serial_handle = Aurora::Logging::SinkHandle_rPtr( &s_serial_sink );
-    //   registerSink( s_serial_handle );
-    // }
+    if ( !s_serial_handle )
+    {
+      s_serial_handle = Aurora::Logging::SinkHandle_rPtr( &s_serial_sink );
+      registerSink( s_serial_handle );
+    }
 
-    // RT_HARD_ASSERT( Aurora::Logging::Result::RESULT_SUCCESS == Aurora::Logging::setRootSink( s_serial_handle ) );
+    RT_HARD_ASSERT( Aurora::Logging::Result::RESULT_SUCCESS == Aurora::Logging::setRootSink( s_serial_handle ) );
   }
 
 }    // namespace Orbit::USART

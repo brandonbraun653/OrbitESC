@@ -147,6 +147,15 @@
       "problemMatcher": []
     },
     {
+      "label": "Analyze .elf RAM Usage",
+      "type": "shell",
+      "command": "python -m elf_size_analyze -R ${workspaceFolder}/artifacts/last_build_version/OrbitESC",
+      "options": {
+        "cwd": "${workspaceFolder}/lib/CommonTools/elf-size-analyze"
+      },
+      "problemMatcher": []
+    },
+    {
       "type": "shell",
       "label": "Minicom Terminal: ttyUSB0",
       "command": "sudo", // <-- your shell here

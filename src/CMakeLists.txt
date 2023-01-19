@@ -198,9 +198,9 @@ if(Toolchain::HAS_GCC_ARM_NONE_EABI)
     freertos_cm4f_port_rel_dbg
 
     # Segger System View
-    segger_sys_view_rel_dbg
-    segger_sys_view_intf
-    segger_sys_view_cortex_m4_freertos_rel_dbg
+    # segger_sys_view_rel_dbg
+    # segger_sys_view_intf
+    # segger_sys_view_cortex_m4_freertos_rel_dbg
   )
 endif()
 

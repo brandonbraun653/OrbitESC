@@ -42,12 +42,13 @@ add_subdirectory("lib/Thor")
 # Project Headers
 gen_intf_lib(
   TARGET
-    project_inc
+    project_intf_inc
   INTF_DEFINES
     THOR_USER_CONFIG
-    SEGGER_SYS_VIEW
+    #SEGGER_SYS_VIEW
   INTF_INCLUDES
     "${PROJECT_ROOT}"
+    "${PROJECT_ROOT}/src"
     "${PROJECT_ROOT}/src/config/thor"
   INTF_LIBRARIES
     freertos_intf_inc_all
@@ -60,7 +61,7 @@ gen_intf_lib(
   TARGET
     freertos_cfg
   INTF_DEFINES
-    SEGGER_SYS_VIEW
+    #SEGGER_SYS_VIEW
   INTF_INCLUDES
     "${PROJECT_ROOT}/src/config/freertos"
     "${PROJECT_ROOT}/lib/Aurora/lib/segger/contrib/cortex_m4_freertos"
