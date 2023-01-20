@@ -16,9 +16,20 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <src/core/com/serial/serial_async_message.hpp>
+#include <etl/message_router.h>
 
 namespace Orbit::Serial::Router
 {
+  /*---------------------------------------------------------------------------
+  Classes
+  ---------------------------------------------------------------------------*/
+  class PingRouter : public etl::message_router<PingRouter, Message::Ping>
+  {
+  public:
+    PingRouter();
+    void on_receive( const Message::Ping &msg );
+    void on_receive_unknown( const etl::imessage &msg );
+  };
 
 }  // namespace Orbit::Serial::Router
 

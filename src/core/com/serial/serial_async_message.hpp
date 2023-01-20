@@ -31,8 +31,9 @@ namespace Orbit::Serial::Message
   ---------------------------------------------------------------------------*/
   enum Id : etl::message_id_t
   {
-    MSG_PING_CMD = 1, /**< Simple PING to see if the node is alive */
-    MSG_TERMINAL = 2, /**< Terminal command for printing text/debug data */
+    MSG_ACK_NACK = 1, /**< Generic ack/nack type message */
+    MSG_PING_CMD = 2, /**< Simple PING to see if the node is alive */
+    MSG_TERMINAL = 3, /**< Terminal command for printing text/debug data */
 
   };
 
@@ -196,10 +197,13 @@ namespace Orbit::Serial::Message
   /*---------------------------------------------------------------------------
   Message Class Declarations
   ---------------------------------------------------------------------------*/
-  class Ping : public MessageExt<MSG_PING_CMD, PingMessage, PingMessage_size, PingMessage_fields>
+  class AckNack : public MessageExt<MSG_ACK_NACK, AckNackMessage, AckNackMessage_size, AckNackMessage_fields>
   {
   };
 
+  class Ping : public MessageExt<MSG_PING_CMD, PingMessage, PingMessage_size, PingMessage_fields>
+  {
+  };
 
   class Console : public MessageExt<MSG_TERMINAL, ConsoleMessage, ConsoleMessage_size, ConsoleMessage_fields>
   {

@@ -23,6 +23,11 @@ Includes
 namespace Orbit::USART
 {
   /*---------------------------------------------------------------------------
+  Public Data
+  ---------------------------------------------------------------------------*/
+  Chimera::Serial::Driver_rPtr SerialDriver;
+
+  /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
   static etl::bip_buffer_spsc_atomic<uint8_t, 256> sTxBuffer;
@@ -78,9 +83,9 @@ namespace Orbit::USART
     comConfig.txBuffer = dynamic_cast<Chimera::Serial::BipBuffer *>( &sTxBuffer );
     comConfig.rxBuffer = dynamic_cast<Chimera::Serial::BipBuffer *>( &sRxBuffer );
 
-    auto serial = Chimera::Serial::getDriver( IO::USART::serialChannel );
-    RT_HARD_ASSERT( serial );
-    RT_HARD_ASSERT( Chimera::Status::OK == serial->open( comConfig ) );
+    SerialDriver = Chimera::Serial::getDriver( IO::USART::serialChannel );
+    RT_HARD_ASSERT( SerialDriver );
+    RT_HARD_ASSERT( Chimera::Status::OK == SerialDriver->open( comConfig ) );
 
     /*-------------------------------------------------------------------------
     Start the logging framework

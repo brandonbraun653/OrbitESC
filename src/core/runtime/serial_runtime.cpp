@@ -5,41 +5,51 @@
  *  Description:
  *    Serial bus processing
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/logging>
-#include <src/core/runtime/serial_runtime.hpp>
+#include <Chimera/assert>
+#include <src/config/bsp/board_map.hpp>
 #include <src/core/com/serial/serial_async_message.hpp>
 #include <src/core/com/serial/serial_router.hpp>
-#include <src/config/bsp/board_map.hpp>
+#include <src/core/com/serial/serial_server.hpp>
+#include <src/core/runtime/serial_runtime.hpp>
 
 namespace Orbit::Serial
 {
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  Chimera::Serial::Driver_rPtr serial;
+  static etl::circular_buffer<uint8_t, 512> s_msg_buffer;
+  static Orbit::Serial::DispatchServer      s_server;
+
+  /*---------------------------------------------------------------------------
+  Router Declarations
+  ---------------------------------------------------------------------------*/
+  static Router::PingRouter s_ping_router;
 
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   void initRuntime()
   {
-    serial = Chimera::Serial::getDriver( IO::USART::serialChannel );
+    /*-------------------------------------------------------------------------
+    Initialize the core server
+    -------------------------------------------------------------------------*/
+    RT_HARD_ASSERT( s_server.initialize( IO::USART::serialChannel, s_msg_buffer ) == Chimera::Status::OK );
+
+    /*-------------------------------------------------------------------------
+    Register the routers to handle incoming messages
+    -------------------------------------------------------------------------*/
+    RT_HARD_ASSERT( s_server.subscribe( s_ping_router ) );
   }
 
   void processSerial()
   {
-    uint8_t tmp[ 100 ];
-    memset( tmp, 0, ARRAY_BYTES( tmp ) );
-    size_t  read_size = serial->read( tmp, ARRAY_BYTES( tmp ) );
-    if ( read_size > 0 )
-    {
-      serial->write( tmp, read_size );
-    }
+    s_server.process();
   }
 }    // namespace Orbit::Serial
