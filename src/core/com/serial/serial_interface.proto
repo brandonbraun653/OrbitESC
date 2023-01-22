@@ -9,6 +9,10 @@ message InstHeader {
   required uint32 size = 3 [(nanopb).int_size = IS_8];
 }
 
+message BaseMessage {
+  required InstHeader header = 1;
+}
+
 message AckNackMessage {
   required InstHeader header = 1;
   required bool acknowledge = 2;

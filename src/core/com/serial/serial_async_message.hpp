@@ -15,6 +15,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <array>
 #include "cobs.h"
 #include "serial_interface.pb.h"
 #include "pb_encode.h"
@@ -27,15 +28,24 @@ Includes
 namespace Orbit::Serial::Message
 {
   /*---------------------------------------------------------------------------
+  Constants
+  ---------------------------------------------------------------------------*/
+  static constexpr size_t _msg_size_array[] = { AckNackMessage_size, PingMessage_size, ConsoleMessage_size };
+  static constexpr size_t MAX_RAW_MSG_SIZE  = *std::max_element( std::begin( _msg_size_array ), std::end( _msg_size_array ) );
+  static constexpr size_t MAX_COBS_MSG_SIZE = COBS_ENCODE_DST_BUF_LEN_MAX( MAX_RAW_MSG_SIZE );
+
+  /*---------------------------------------------------------------------------
   Enumerations
   ---------------------------------------------------------------------------*/
   enum Id : etl::message_id_t
   {
-    MSG_ACK_NACK = 1, /**< Generic ack/nack type message */
-    MSG_PING_CMD = 2, /**< Simple PING to see if the node is alive */
-    MSG_TERMINAL = 3, /**< Terminal command for printing text/debug data */
+    MSG_ACK_NACK = 0, /**< Generic ack/nack type message */
+    MSG_PING_CMD = 1, /**< Simple PING to see if the node is alive */
+    MSG_TERMINAL = 2, /**< Terminal command for printing text/debug data */
 
+    MSG_ID_COUNT
   };
+  static_assert( MSG_ID_COUNT == ARRAY_COUNT( _msg_size_array ) );
 
   /*---------------------------------------------------------------------------
   Classes
@@ -185,7 +195,7 @@ namespace Orbit::Serial::Message
 
     static constexpr size_t EncodeSize = COBS_ENCODE_DST_BUF_LEN_MAX( PayloadSize );
     static constexpr size_t DecodeSize = COBS_DECODE_DST_BUF_LEN_MAX( PayloadSize );
-    static constexpr size_t IOBuffSize = std::max<size_t>( EncodeSize, DecodeSize );
+    static constexpr size_t IOBuffSize = std::max<size_t>( EncodeSize, DecodeSize ) + 1u;
 
     using FrameBufferType = etl::array<uint8_t, IOBuffSize>;
 

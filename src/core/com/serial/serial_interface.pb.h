@@ -17,6 +17,10 @@ typedef struct _InstHeader {
     uint8_t size;
 } InstHeader;
 
+typedef struct _BaseMessage {
+    InstHeader header;
+} BaseMessage;
+
 typedef struct _AckNackMessage {
     InstHeader header;
     bool acknowledge;
@@ -48,11 +52,13 @@ extern "C" {
 
 /* Initializer values for message structs */
 #define InstHeader_init_default                  {0, 0, 0}
+#define BaseMessage_init_default                 {InstHeader_init_default}
 #define AckNackMessage_init_default              {InstHeader_init_default, 0}
 #define PingMessage_init_default                 {InstHeader_init_default}
 #define ConsoleMessage_init_default              {InstHeader_init_default, 0, {0, {0}}}
 #define SystemInfoMessage_init_default           {InstHeader_init_default, 0, "", "", ""}
 #define InstHeader_init_zero                     {0, 0, 0}
+#define BaseMessage_init_zero                    {InstHeader_init_zero}
 #define AckNackMessage_init_zero                 {InstHeader_init_zero, 0}
 #define PingMessage_init_zero                    {InstHeader_init_zero}
 #define ConsoleMessage_init_zero                 {InstHeader_init_zero, 0, {0, {0}}}
@@ -62,6 +68,7 @@ extern "C" {
 #define InstHeader_msgId_tag                     1
 #define InstHeader_subId_tag                     2
 #define InstHeader_size_tag                      3
+#define BaseMessage_header_tag                   1
 #define AckNackMessage_header_tag                1
 #define AckNackMessage_acknowledge_tag           2
 #define PingMessage_header_tag                   1
@@ -81,6 +88,12 @@ X(a, STATIC,   REQUIRED, UINT32,   subId,             2) \
 X(a, STATIC,   REQUIRED, UINT32,   size,              3)
 #define InstHeader_CALLBACK NULL
 #define InstHeader_DEFAULT NULL
+
+#define BaseMessage_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, MESSAGE,  header,            1)
+#define BaseMessage_CALLBACK NULL
+#define BaseMessage_DEFAULT NULL
+#define BaseMessage_header_MSGTYPE InstHeader
 
 #define AckNackMessage_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
@@ -114,6 +127,7 @@ X(a, STATIC,   REQUIRED, STRING,   serialNumber,      5)
 #define SystemInfoMessage_header_MSGTYPE InstHeader
 
 extern const pb_msgdesc_t InstHeader_msg;
+extern const pb_msgdesc_t BaseMessage_msg;
 extern const pb_msgdesc_t AckNackMessage_msg;
 extern const pb_msgdesc_t PingMessage_msg;
 extern const pb_msgdesc_t ConsoleMessage_msg;
@@ -121,6 +135,7 @@ extern const pb_msgdesc_t SystemInfoMessage_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define InstHeader_fields &InstHeader_msg
+#define BaseMessage_fields &BaseMessage_msg
 #define AckNackMessage_fields &AckNackMessage_msg
 #define PingMessage_fields &PingMessage_msg
 #define ConsoleMessage_fields &ConsoleMessage_msg
@@ -128,6 +143,7 @@ extern const pb_msgdesc_t SystemInfoMessage_msg;
 
 /* Maximum encoded size of messages (where known) */
 #define AckNackMessage_size                      13
+#define BaseMessage_size                         11
 #define ConsoleMessage_size                      145
 #define InstHeader_size                          9
 #define PingMessage_size                         11

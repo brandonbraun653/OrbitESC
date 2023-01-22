@@ -9,6 +9,9 @@
 PB_BIND(InstHeader, InstHeader, AUTO)
 
 
+PB_BIND(BaseMessage, BaseMessage, AUTO)
+
+
 PB_BIND(AckNackMessage, AckNackMessage, AUTO)
 
 

@@ -34,3 +34,4 @@ conda activate $_cwd/.conda
 conda develop $_cwd
 conda develop $_cwd/src/core/com/serial
 conda develop $_cwd/lib/Aurora/lib/nanopb/nanopb/generator
+conda develop $_cwd/lib/Aurora/lib/nanopb/nanopb/generator/proto

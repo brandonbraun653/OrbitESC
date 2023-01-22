@@ -11,6 +11,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Aurora/logging>
 #include <Chimera/assert>
 #include <Chimera/serial>
 #include <src/core/com/serial/serial_server.hpp>
@@ -20,7 +21,7 @@ namespace Orbit::Serial
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  DispatchServer::DispatchServer() : mSerial( nullptr ), mRXBuffer( nullptr )
+  DispatchServer::DispatchServer() : mSerial( nullptr ), mRXBuffer( nullptr ), mRXSearchOfst( 0 )
   {
   }
 
@@ -36,8 +37,9 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Store the data with the class
     -------------------------------------------------------------------------*/
-    mSerial   = Chimera::Serial::getDriver( channel );
-    mRXBuffer = &msg_buffer;
+    mSerial       = Chimera::Serial::getDriver( channel );
+    mRXBuffer     = &msg_buffer;
+    mRXSearchOfst = 0;
     RT_DBG_ASSERT( mSerial && mRXBuffer );
 
     /*-------------------------------------------------------------------------
@@ -94,21 +96,87 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Parse the buffer for messages until none are found or the buffer is empty
     -------------------------------------------------------------------------*/
-    while( mRXBuffer->size() > 0 )
+    bool eof = false;
+    while( ( mRXBuffer->size() > 0 ) && ( eof == false ) )
     {
       /*-----------------------------------------------------------------------
       Search for the tail of a COBS message, indicated by a \x00 byte
       -----------------------------------------------------------------------*/
-      // If buffer gets full, clear it. Issue console error message.
+      for( auto idx = mRXBuffer->begin() + mRXSearchOfst; ( ( eof == false ) && ( idx != mRXBuffer->end() ) ); idx++, mRXSearchOfst++ )
+      {
+        RT_DBG_ASSERT( mRXSearchOfst <= mRXBuffer->max_size() );
+        eof = ( *idx == '\x00' );
+      }
 
+      /*-----------------------------------------------------------------------
+      Clear the buffer if it's full and no message frame was found
+      -----------------------------------------------------------------------*/
+      if( ( eof == false ) && ( mRXSearchOfst == mRXBuffer->max_size() ) )
+      {
+        mRXBuffer->clear();
+        mRXSearchOfst = 0;
+        continue;
+      }
 
       /*-----------------------------------------------------------------------
       Decode the COBS message and inspect it for a supported header
       -----------------------------------------------------------------------*/
-      // If decode fail: Issue console message
-      // If success:
-      //  Inspect header for supported message
-      //  If supported, dispatch. Else issue console message about unsupported.
+      if( eof )
+      {
+        /*---------------------------------------------------------------------
+        Copy the frame out into local contiguous working buffers
+        ---------------------------------------------------------------------*/
+        DecodeBuffer_t out, in;
+        out.fill( 0 );
+        in.fill( 0 );
+
+        RT_DBG_ASSERT( in.size() >= mRXBuffer->size() );
+        RT_DBG_ASSERT( in.size() > mRXSearchOfst );
+        etl::copy( mRXBuffer->begin(), mRXBuffer->begin() + mRXSearchOfst, in.begin() );
+
+        /*---------------------------------------------------------------------
+        Attempt to decode the frame
+        ---------------------------------------------------------------------*/
+        RT_DBG_ASSERT( in[ mRXSearchOfst ] == '\x00' );
+
+        cobs_decode_result cobsResult = cobs_decode( out.data(), out.size(), in.cbegin(), mRXSearchOfst - 1u );
+        if( cobsResult.status == COBS_DECODE_OK )
+        {
+          /*-----------------------------------------------------------------------
+          Decode the nanopb data
+          -----------------------------------------------------------------------*/
+          BaseMessage msg;
+          pb_istream_t stream = pb_istream_from_buffer( reinterpret_cast<const pb_byte_t *>( out.data() ), cobsResult.out_len );
+
+          if( pb_decode( &stream, BaseMessage_fields, &msg ) )
+          {
+            switch( msg.header.msgId )
+            {
+              case Message::Id::MSG_PING_CMD:
+                {
+                  Message::Ping ping;
+                  ping.decode( in.data(), mRXSearchOfst - 1u );
+                  this->receive( ping );
+                }
+                break;
+
+              case Message::Id::MSG_ID_COUNT:
+              default:
+                LOG_ERROR( "Unhandled msg ID: %d", msg.header.msgId );
+                break;
+            }
+          }
+        }
+
+        /*---------------------------------------------------------------------
+        Regardless of what happened, empty the frame from the ring buffer
+        ---------------------------------------------------------------------*/
+        while( mRXSearchOfst )
+        {
+          mRXBuffer->pop();
+          mRXSearchOfst--;
+        }
+      }
     }
   }
 

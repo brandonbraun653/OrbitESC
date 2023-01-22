@@ -19,6 +19,8 @@ Includes
 #include <Chimera/serial>
 #include <etl/message_bus.h>
 #include <etl/circular_buffer.h>
+#include <etl/array.h>
+#include <src/core/com/serial/serial_async_message.hpp>
 
 
 namespace Orbit::Serial
@@ -53,14 +55,17 @@ namespace Orbit::Serial
     void process();
 
   private:
-    Chimera::Serial::Driver_rPtr    mSerial;    /**< Serial port to communicate with */
-    etl::icircular_buffer<uint8_t> *mRXBuffer;  /**< Input ring buffer for accumulating messages */
+    using DecodeBuffer_t  = etl::array<uint8_t, Message::MAX_COBS_MSG_SIZE>;
+
+    Chimera::Serial::Driver_rPtr    mSerial;       /**< Serial port to communicate with */
+    etl::icircular_buffer<uint8_t> *mRXBuffer;     /**< Input ring buffer for accumulating messages */
+    size_t                          mRXSearchOfst; /**< Last search endpoint */
 
     /**
      * @brief Processes any queued messages in the internal buffer
      */
     void dispatchMessages();
   };
-}  // namespace Orbit::Serial
+}    // namespace Orbit::Serial
 
-#endif  /* !ORBIT_ESC_SERIAL_SERVER_HPP */
+#endif /* !ORBIT_ESC_SERIAL_SERVER_HPP */
