@@ -22,7 +22,7 @@ Includes
 #include <src/core/hw/orbit_led.hpp>
 
 
-namespace Orbit::Tasks::Idle
+namespace Orbit::Tasks::BKD
 {
   /*---------------------------------------------------------------------------
   Public Functions
@@ -73,4 +73,4 @@ namespace Orbit::Tasks::Idle
       Chimera::delayMilliseconds( 450 );
     }
   }
-}    // namespace Orbit::Tasks::Idle
+}    // namespace Orbit::Tasks::BKD

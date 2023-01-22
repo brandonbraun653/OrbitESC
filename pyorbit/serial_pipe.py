@@ -1,6 +1,6 @@
 # **********************************************************************************************************************
 #   FileName:
-#       serial_pipe_framing.py
+#       serial_pipe.py
 #
 #   Description:
 #       Serial pipe framing formatter to communicate with an OrbitESC device
@@ -10,7 +10,6 @@
 
 import queue
 import time
-import atexit
 import pyorbit.nanopb.serial_interface_pb2 as proto
 import google.protobuf.message as g_proto_msg
 from cobs import cobs
@@ -21,8 +20,8 @@ from threading import Thread, Event
 from queue import Queue
 
 
-class COBSFramer:
-    """ Message server for RTX-ing COBS encoded messages over a serial connection """
+class SerialPipe:
+    """ Message server for RTX-ing encoded messages over a serial connection """
 
     def __init__(self):
         self._serial = Serial(timeout=5)
@@ -108,7 +107,6 @@ class COBSFramer:
         while not self._thread_kill.is_set():
             # Allow other threads time to execute
             time.sleep(0)
-
             if not self._serial.is_open:
                 continue
 
@@ -184,7 +182,7 @@ class COBSFramer:
 if __name__ == "__main__":
     from pyorbit.serial_messages import PingMessage
     ping = PingMessage()
-    pipe = COBSFramer()
+    pipe = SerialPipe()
     pipe.open(port="/dev/ttyUSB0", baudrate=921600)
     pipe.put(ping.serialize())
     time.sleep(1)

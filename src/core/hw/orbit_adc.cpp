@@ -84,6 +84,7 @@ namespace Orbit::ADC
     pin_cfg.validity = true;
 
     gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_DBG_ASSERT( gpio );
     RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
 
     /*-------------------------------------------------------------------------
@@ -95,6 +96,7 @@ namespace Orbit::ADC
     pin_cfg.validity = true;
 
     gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_DBG_ASSERT( gpio );
     RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
 
     /*-------------------------------------------------------------------------
@@ -106,6 +108,7 @@ namespace Orbit::ADC
     pin_cfg.validity = true;
 
     gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_DBG_ASSERT( gpio );
     RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
 
     /*-------------------------------------------------------------------------
@@ -117,6 +120,7 @@ namespace Orbit::ADC
     pin_cfg.validity = true;
 
     gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_DBG_ASSERT( gpio );
     RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
 
     /*-------------------------------------------------------------------------
@@ -139,6 +143,7 @@ namespace Orbit::ADC
     adc_cfg.transferMode        = Chimera::ADC::TransferMode::DMA;
 
     adc = Chimera::ADC::getDriver( adc_cfg.periph );
+    RT_DBG_ASSERT( adc );
     RT_HARD_ASSERT( Chimera::Status::OK == adc->open( adc_cfg ) );
 
     /* Configure the sequence conversion */

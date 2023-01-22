@@ -1,32 +1,29 @@
 /******************************************************************************
  *  File Name:
- *    tsk_sys_ctrl.cpp
+ *    tsk_dio.cpp
  *
  *  Description:
- *    Control system task
+ *    HWM delayed IO task
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/logging>
-#include <Chimera/adc>
 #include <Chimera/thread>
-#include <src/control/foc_driver.hpp>
-#include <src/core/hw/drv8301.hpp>
-#include <src/core/hw/orbit_adc.hpp>
 #include <src/core/tasks.hpp>
-#include <src/core/tasks/tsk_ctrl_sys.hpp>
-#include <src/monitor/orbit_monitors.hpp>
+#include <src/core/tasks/tsk_dio.hpp>
+#include <src/core/data/orbit_data.hpp>
+#include <src/core/data/orbit_log_io.hpp>
 
-namespace Orbit::Tasks::CTRLSYS
+namespace Orbit::Tasks::DIO
 {
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
-  void CTRLSYSThread( void *arg )
+  void DIOThread( void *arg )
   {
     /*-------------------------------------------------------------------------
     Wait for the start signal
@@ -34,40 +31,43 @@ namespace Orbit::Tasks::CTRLSYS
     waitInit();
 
     /*-------------------------------------------------------------------------
-    Initialize the CTRLSYS drivers
+    Initialize data controllers
     -------------------------------------------------------------------------*/
-    Orbit::Control::FOCConfig cfg;
+    Orbit::Data::bootFileSystem();
+    // Orbit::Data::printConfiguration();
+    Log::initialize();
+    Log::enable();
 
-    cfg.adcSource = Chimera::ADC::Peripheral::ADC_0;
-    cfg.txfrFuncs[ Control::ADC_CH_MOTOR_SUPPLY_VOLTAGE ]  = ADC::sample2BusVoltage;
-    cfg.txfrFuncs[ Control::ADC_CH_MOTOR_PHASE_A_CURRENT ] = ADC::sample2PhaseCurrent;
-    cfg.txfrFuncs[ Control::ADC_CH_MOTOR_PHASE_C_CURRENT ] = ADC::sample2PhaseCurrent;
-    cfg.txfrFuncs[ Control::ADC_CH_MOTOR_PHASE_B_CURRENT ] = ADC::sample2PhaseCurrent;
-
-    Orbit::Control::MotorParameters params;
-    params.Rs = 0.01f;
-    params.Ls = 380.0f * 1e-3f;
-
-    Orbit::Control::FOCDriver.initialize( cfg, params );
-    Orbit::Control::FOCDriver.calibrate();
-
-    Chimera::delayMilliseconds( 1000 );
-    // Orbit::Control::FOCDriver.sendSystemEvent( Orbit::Control::EventId::ARM );
-    // Chimera::delayMilliseconds( 1000 );
-    // Orbit::Control::FOCDriver.driveTestSignal( 1, 50.0f );
-
-    // Orbit::Control::FOCDriver.mTimerDriver.enableOutput();
+    // testing
+    size_t last_assert = Chimera::millis();
+    size_t last_dump = Chimera::millis();
 
     /*-------------------------------------------------------------------------
-    Run the CTRLSYS thread
+    Run the HWM thread
     -------------------------------------------------------------------------*/
     size_t wake_up_tick = Chimera::millis();
-    while ( 1 )
+    while( 1 )
     {
       /*-----------------------------------------------------------------------
-      Run the main FOC loop
+      Do long-running operations
       -----------------------------------------------------------------------*/
-      Orbit::Control::FOCDriver.run();
+      Log::flushCache();
+
+      /*-----------------------------------------------------------------------
+      TESTING!
+      -----------------------------------------------------------------------*/
+      // if( wake_up_tick >= ( last_assert + Chimera::Thread::TIMEOUT_1S ) )
+      // {
+      //   //Data::testNORDevice();
+      //   last_assert = wake_up_tick;
+      //   LOG_ERROR( "Test file logger %d\r\n", wake_up_tick );
+      // }
+
+      // if( wake_up_tick >= ( last_dump + ( 10 * Chimera::Thread::TIMEOUT_1S ) ) )
+      // {
+      //   last_dump = wake_up_tick;
+      //   Log::dumpToConsole();
+      // }
 
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically
@@ -76,4 +76,4 @@ namespace Orbit::Tasks::CTRLSYS
       wake_up_tick = Chimera::millis();
     }
   }
-}    // namespace Orbit::Tasks::CTRLSYS
+}  // namespace Orbit::Tasks::DIO

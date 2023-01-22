@@ -5,7 +5,7 @@
  *  Description:
  *    Project task declaration
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -26,10 +26,11 @@ namespace Orbit::Tasks
   ---------------------------------------------------------------------------*/
   enum PrjTaskId : uint8_t
   {
-    TASK_IDLE,     /**< Background task */
-    TASK_HWM,      /**< Hardware manager */
-    TASK_HWM_DIO,  /**< Delayed IO HW manager */
-    TASK_CTRL_SYS, /**< Control system task */
+    TASK_IDLE, /**< Background task */
+    TASK_HWM,  /**< Hardware manager */
+    TASK_DIO,  /**< Delayed IO HW manager */
+    TASK_CTL,  /**< Control system task */
+    TASK_COM,  /**< Networking/communications processing */
 
     TASK_NUM_OPTIONS,
     TASK_UNKNOWN
@@ -61,6 +62,6 @@ namespace Orbit::Tasks
    */
   Chimera::Thread::TaskId getTaskId( const PrjTaskId task );
 
-}  // namespace Orbit::Tasks
+}    // namespace Orbit::Tasks
 
-#endif  /* !ORBIT_ESC_TASKS_HPP */
+#endif /* !ORBIT_ESC_TASKS_HPP */

@@ -1,16 +1,16 @@
 /******************************************************************************
  *  File Name:
- *    tsk_idle.hpp
+ *    tsk_com.hpp
  *
  *  Description:
- *    Interface to the Idle task
+ *    Task for handling system communication busses
  *
- *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
-#ifndef ORBIT_ESC_TASK_IDLE_HPP
-#define ORBIT_ESC_TASK_IDLE_HPP
+#ifndef ORBIT_TSK_COM_HPP
+#define ORBIT_TSK_COM_HPP
 
 /*-----------------------------------------------------------------------------
 Includes
@@ -18,25 +18,26 @@ Includes
 #include <Chimera/thread>
 #include <string>
 
-namespace Orbit::Tasks::BKD
+namespace Orbit::Tasks::COM
 {
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr size_t                        STACK    = STACK_BYTES( 4096 );
-  static constexpr std::string_view              NAME     = "bkd";
-  static constexpr Chimera::Thread::TaskPriority PRIORITY = 0;
+  static constexpr size_t                        PERIOD_MS = 15;
+  static constexpr size_t                        STACK     = STACK_BYTES( 8192 );
+  static constexpr std::string_view              NAME      = "com";
+  static constexpr Chimera::Thread::TaskPriority PRIORITY  = 4;
 
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   /**
-   * @brief Main thread for idle task
+   * @brief Main thread for COM task
    *
    * @param arg   Unused
    */
-  void IdleThread( void *arg );
+  void COMThread( void *arg );
 
-}    // namespace Orbit::Tasks::BKD
+}  // namespace Orbit::Tasks::COM
 
-#endif /* !ORBIT_ESC_TASK_IDLE_HPP */
+#endif  /* !ORBIT_TSK_COM_HPP */

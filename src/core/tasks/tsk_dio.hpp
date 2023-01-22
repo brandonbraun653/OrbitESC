@@ -1,11 +1,11 @@
 /******************************************************************************
  *  File Name:
- *    tsk_hwm_dio.hpp
+ *    tsk_dio.hpp
  *
  *  Description:
  *    Task for handling delayed/slow IO operations
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -24,9 +24,9 @@ namespace Orbit::Tasks::DIO
   Constants
   ---------------------------------------------------------------------------*/
   static constexpr size_t                        PERIOD_MS = 25;
-  static constexpr size_t                        STACK     = STACK_BYTES( 4096 );
+  static constexpr size_t                        STACK     = STACK_BYTES( 6144 );
   static constexpr std::string_view              NAME      = "dio";
-  static constexpr Chimera::Thread::TaskPriority PRIORITY  = 5;
+  static constexpr Chimera::Thread::TaskPriority PRIORITY  = 3;
 
   /*---------------------------------------------------------------------------
   Public Functions

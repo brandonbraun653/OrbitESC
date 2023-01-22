@@ -10,17 +10,20 @@
 #endif
 
 /* Struct definitions */
-/* Instrumentation message header common to all types */
+/* Instrumentation message header common to all types. Each functional message type **must**
+ have this first in their list of declarations. */
 typedef struct _InstHeader {
-    uint8_t msgId;
-    uint8_t subId;
-    uint8_t size;
+    uint8_t msgId; /* Root message identifier */
+    uint8_t subId; /* Possible sub-identifier to specify root ID details */
+    uint8_t size; /* Total length of the message following the header */
 } InstHeader;
 
+/* Root type that parsers can use to peek at messages */
 typedef struct _BaseMessage {
     InstHeader header;
 } BaseMessage;
 
+/* Generic ACK or NACK to a previous message */
 typedef struct _AckNackMessage {
     InstHeader header;
     bool acknowledge;
