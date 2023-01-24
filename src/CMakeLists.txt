@@ -24,7 +24,7 @@ gen_intf_lib_variants(
     thor_hld_gpio_rel_dbg
     thor_hld_i2c_rel_dbg
     thor_hld_interrupt_rel_dbg
-    thor_hld_serial_rel_dbg
+    thor_hld_serial_dbg
     thor_hld_spi_rel_dbg
     thor_hld_system_rel_dbg
     thor_hld_timer_rel_dbg
@@ -40,7 +40,7 @@ gen_intf_lib_variants(
     thor_lld_intf_i2c_rel_dbg
     thor_lld_intf_interrupt_rel_dbg
     thor_lld_intf_rcc_rel_dbg
-    thor_lld_intf_serial_rel_dbg
+    thor_lld_intf_serial_dbg
     thor_lld_intf_spi_rel_dbg
     thor_lld_intf_sys_rel_dbg
     thor_lld_intf_timer_rel_dbg

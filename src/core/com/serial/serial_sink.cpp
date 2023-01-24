@@ -24,7 +24,7 @@ namespace Orbit::Serial
   /*---------------------------------------------------------------------------
   Driver Implementation
   ---------------------------------------------------------------------------*/
-  EncodedLogSink::EncodedLogSink() : mSerial( nullptr )
+  EncodedLogSink::EncodedLogSink() : mSerial( nullptr ), mFrameUUID( 0 )
   {
   }
 
@@ -93,14 +93,16 @@ namespace Orbit::Serial
     -------------------------------------------------------------------------*/
     Message::Console msg;
     ConsoleMessage   pb_data;
-    size_t           bytes_to_write = length;
     size_t           byte_offset    = 0;
     uint8_t          frame_number   = 0;
+    const uint8_t    frame_uuid     = mFrameUUID++;
+    const uint8_t    max_frames     = ( length / sizeof( ConsoleMessage::data ) ) + 1u;
     const uint8_t   *p_usr_data     = reinterpret_cast<const uint8_t *>( message );
 
-    while ( bytes_to_write )
+    while ( frame_number < max_frames)
     {
-      const uint8_t chunk_size = std::min<uint8_t>( sizeof( ConsoleMessage::data ), bytes_to_write );
+      const size_t remaining  = length - byte_offset;
+      const size_t chunk_size = std::min<size_t>( sizeof( ConsoleMessage::data.bytes ), remaining );
 
       /*-----------------------------------------------------------------------
       Construct the message
@@ -109,9 +111,11 @@ namespace Orbit::Serial
       msg.reset();
 
       pb_data.header.msgId = Message::Console::MessageId;
-      pb_data.header.size  = chunk_size;
+      pb_data.header.size  = static_cast<uint8_t>( chunk_size );
       pb_data.header.subId = 0;
-      pb_data.frame        = frame_number++;
+      pb_data.uuid         = frame_uuid;
+      pb_data.this_frame   = frame_number;
+      pb_data.total_frames = max_frames;
       pb_data.data.size    = chunk_size;
       memcpy( pb_data.data.bytes, p_usr_data + byte_offset, chunk_size );
 
@@ -126,7 +130,7 @@ namespace Orbit::Serial
       if ( msg.send( mSerial, true ) == Chimera::Status::OK )
       {
         byte_offset += chunk_size;
-        bytes_to_write -= chunk_size;
+        frame_number++;
       }
       else
       {

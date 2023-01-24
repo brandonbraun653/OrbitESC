@@ -17,6 +17,7 @@ class MessageId(IntEnum):
     AckNack = 0
     PingCmd = 1
     Terminal = 2
+    SystemTick = 3
 
 
 class BaseMessage:
@@ -62,6 +63,49 @@ class PingMessage(BaseMessage):
         self._pb_msg.header.size = 0
 
 
+class SystemTick(BaseMessage):
+
+    def __init__(self):
+        super().__init__()
+        self._pb_msg = proto.SystemTick()
+        self._pb_msg.header.msgId = MessageId.SystemTick.value
+        self._pb_msg.header.subId = 0
+        self._pb_msg.header.size = 0
+        self._pb_msg.tick = 0
+
+    @property
+    def tick(self) -> int:
+        return self._pb_msg.tick
+
+
+class ConsoleMessage(BaseMessage):
+
+    def __init__(self):
+        super().__init__()
+        self._pb_msg = proto.ConsoleMessage()
+        self._pb_msg.header.msgId = MessageId.SystemTick.value
+        self._pb_msg.header.subId = 0
+        self._pb_msg.header.size = 0
+
+    @property
+    def uuid(self) -> int:
+        return self._pb_msg.uuid
+
+    @property
+    def frame_number(self) -> int:
+        return self._pb_msg.this_frame
+
+    @property
+    def total_frames(self) -> int:
+        return self._pb_msg.total_frames
+
+    @property
+    def data(self) -> bytes:
+        return self._pb_msg.data
+
+
 MessageTypeMap = {
-    MessageId.PingCmd: PingMessage
+    MessageId.PingCmd: PingMessage,
+    MessageId.SystemTick: SystemTick,
+    MessageId.Terminal: ConsoleMessage
 }

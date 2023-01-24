@@ -234,3 +234,23 @@ class SpeedReference(BaseMessage):
 
     _period_ = 0.1
     _id_ = 0x25
+
+
+MessageTypeMap = {
+    Ping._id_: Ping,
+    SetSystemMode._id_: SetSystemMode,
+    SetMotorSpeed._id_: SetMotorSpeed,
+    SetConfigData._id_: SetConfigData,
+    GetConfigData._id_: GetConfigData,
+    RspConfigData._id_: RspConfigData,
+    EmergencyHalt._id_: EmergencyHalt,
+    SystemReset._id_: SystemReset,
+    SystemTick._id_: SystemTick,
+    SystemMode._id_: SystemMode,
+    PowerSupplyVoltage._id_: PowerSupplyVoltage,
+    PhaseACurrent._id_: PhaseACurrent,
+    PhaseBCurrent._id_: PhaseBCurrent,
+    PhaseCCurrent._id_: PhaseCCurrent,
+    MotorSpeed._id_: MotorSpeed,
+    SpeedReference._id_: SpeedReference
+}

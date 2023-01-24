@@ -18,6 +18,9 @@ PB_BIND(AckNackMessage, AckNackMessage, AUTO)
 PB_BIND(PingMessage, PingMessage, AUTO)
 
 
+PB_BIND(SystemTick, SystemTick, AUTO)
+
+
 PB_BIND(ConsoleMessage, ConsoleMessage, AUTO)
 
 

@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from threading import Event
 from collections import deque
-from pyorbit.can_pipe import MessageObserver
+from pyorbit.observer import MessageObserver
 from pyorbit.can_messages import BaseMessage
 
 
@@ -109,7 +109,7 @@ class LivePlotter:
         """
         self._y_axis = deque(np.zeros(sample_history))
         self._x_axis = deque(np.zeros(sample_history))
-        self._observer = MessageObserver(func=self.can_observer, arb_id=message.id())
+        self._observer = MessageObserver(func=self.can_observer, msg_type=message)
         self._message = message
         self._attr_key = attr_key
         self._time_key = time_key
@@ -154,8 +154,8 @@ class LivePlotter:
         Returns:
             None
         """
-        # Convert the binary data in to the specific message structure
-        self._message.unpack(bytes(can_msg.data))
+        assert isinstance(can_msg, self._message.__class__)
+        self._message = can_msg
 
         # Get the timestamp used for plotting
         time_data = time.time() - self._start_time

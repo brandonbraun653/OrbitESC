@@ -24,7 +24,7 @@ namespace Orbit::Serial
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static etl::circular_buffer<uint8_t, 512> s_msg_buffer;
+  static etl::circular_buffer<uint8_t, 1024> s_msg_buffer;
   static Orbit::Serial::DispatchServer      s_server;
 
   /*---------------------------------------------------------------------------

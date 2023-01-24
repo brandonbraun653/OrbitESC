@@ -21,7 +21,7 @@ namespace Orbit::Serial
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  DispatchServer::DispatchServer() : mSerial( nullptr ), mRXBuffer( nullptr ), mRXSearchOfst( 0 )
+  DispatchServer::DispatchServer() : mSerial( nullptr ), mRXBuffer( nullptr ), mRXSearchOfst( 0 ), mLastTick( 0 )
   {
   }
 
@@ -46,6 +46,7 @@ namespace Orbit::Serial
     Initialize memory
     -------------------------------------------------------------------------*/
     mRXBuffer->clear();
+    mLastTick = Chimera::millis();
 
     return Chimera::Status::OK;
   }
@@ -88,6 +89,23 @@ namespace Orbit::Serial
       -----------------------------------------------------------------------*/
       free_size = mRXBuffer->available();
     } while ( ( free_size > 0 ) && ( act_read_size > 0 ) );
+
+    /*-------------------------------------------------------------------------
+    Ship the system tick message as needed
+    -------------------------------------------------------------------------*/
+    size_t current_tick = Chimera::millis();
+    if( ( current_tick - mLastTick ) >= 1000 )
+    {
+      Message::SysTick tick;
+      tick.reset();
+      tick.payload.header.msgId = Message::Id::MSG_SYS_TICK;
+      tick.payload.tick         = current_tick;
+
+      tick.encode();
+      tick.send( mSerial );
+
+      mLastTick = current_tick;
+    }
   }
 
 
@@ -130,9 +148,13 @@ namespace Orbit::Serial
         out.fill( 0 );
         in.fill( 0 );
 
-        RT_DBG_ASSERT( in.size() >= mRXBuffer->size() );
-        RT_DBG_ASSERT( in.size() > mRXSearchOfst );
-        etl::copy( mRXBuffer->begin(), mRXBuffer->begin() + mRXSearchOfst, in.begin() );
+        RT_DBG_ASSERT( in.size() >= mRXSearchOfst );
+        size_t copy_bytes = 0;
+        while( copy_bytes < mRXSearchOfst )
+        {
+          in[ copy_bytes ] = mRXBuffer->front();
+          mRXBuffer->pop();
+        }
 
         /*---------------------------------------------------------------------
         Attempt to decode the frame
@@ -166,15 +188,6 @@ namespace Orbit::Serial
                 break;
             }
           }
-        }
-
-        /*---------------------------------------------------------------------
-        Regardless of what happened, empty the frame from the ring buffer
-        ---------------------------------------------------------------------*/
-        while( mRXSearchOfst )
-        {
-          mRXBuffer->pop();
-          mRXSearchOfst--;
         }
       }
     }

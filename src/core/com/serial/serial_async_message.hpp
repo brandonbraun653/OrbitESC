@@ -30,7 +30,7 @@ namespace Orbit::Serial::Message
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr size_t _msg_size_array[] = { AckNackMessage_size, PingMessage_size, ConsoleMessage_size };
+  static constexpr size_t _msg_size_array[] = { AckNackMessage_size, PingMessage_size, ConsoleMessage_size, SystemTick_size, SystemInfoMessage_size };
   static constexpr size_t MAX_RAW_MSG_SIZE  = *std::max_element( std::begin( _msg_size_array ), std::end( _msg_size_array ) );
   static constexpr size_t MAX_COBS_MSG_SIZE = COBS_ENCODE_DST_BUF_LEN_MAX( MAX_RAW_MSG_SIZE );
 
@@ -42,6 +42,8 @@ namespace Orbit::Serial::Message
     MSG_ACK_NACK = 0, /**< Generic ack/nack type message */
     MSG_PING_CMD = 1, /**< Simple PING to see if the node is alive */
     MSG_TERMINAL = 2, /**< Terminal command for printing text/debug data */
+    MSG_SYS_TICK = 3, /**< System time tick */
+    MSG_SYS_INFO = 4, /**< System information */
 
     MSG_ID_COUNT
   };
@@ -187,7 +189,21 @@ namespace Orbit::Serial::Message
       Ship the data through the port
       -----------------------------------------------------------------------*/
       auto timeout = block ? TIMEOUT_BLOCK : TIMEOUT_DONT_WAIT;
-      return serial->write( io_buffer.data(), bytes_written, timeout );
+
+      size_t offset = 0;
+      size_t remaining = bytes_written;
+
+      while( offset < bytes_written )
+      {
+        size_t act_written = serial->write( io_buffer.data() + offset, remaining, timeout );
+
+        offset += act_written;
+        remaining -= act_written;
+
+        RT_DBG_ASSERT( remaining <= bytes_written );
+      }
+
+      return ( offset == bytes_written ) ? Chimera::Status::OK : Chimera::Status::FAIL;
     }
 
   protected:
@@ -216,6 +232,14 @@ namespace Orbit::Serial::Message
   };
 
   class Console : public MessageExt<MSG_TERMINAL, ConsoleMessage, ConsoleMessage_size, ConsoleMessage_fields>
+  {
+  };
+
+  class SysTick : public MessageExt<MSG_SYS_TICK, SystemTick, SystemTick_size, SystemTick_fields>
+  {
+  };
+
+  class SysInfo : public MessageExt<MSG_SYS_INFO, SystemInfoMessage, SystemInfoMessage_size, SystemInfoMessage_fields>
   {
   };
 

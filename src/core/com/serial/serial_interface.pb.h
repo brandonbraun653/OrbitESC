@@ -33,10 +33,17 @@ typedef struct _PingMessage {
     InstHeader header;
 } PingMessage;
 
+typedef struct _SystemTick {
+    InstHeader header;
+    uint32_t tick;
+} SystemTick;
+
 typedef PB_BYTES_ARRAY_T(128) ConsoleMessage_data_t;
 typedef struct _ConsoleMessage {
     InstHeader header;
-    uint8_t frame;
+    uint8_t uuid;
+    uint8_t this_frame;
+    uint8_t total_frames;
     ConsoleMessage_data_t data;
 } ConsoleMessage;
 
@@ -58,13 +65,15 @@ extern "C" {
 #define BaseMessage_init_default                 {InstHeader_init_default}
 #define AckNackMessage_init_default              {InstHeader_init_default, 0}
 #define PingMessage_init_default                 {InstHeader_init_default}
-#define ConsoleMessage_init_default              {InstHeader_init_default, 0, {0, {0}}}
+#define SystemTick_init_default                  {InstHeader_init_default, 0}
+#define ConsoleMessage_init_default              {InstHeader_init_default, 0, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_default           {InstHeader_init_default, 0, "", "", ""}
 #define InstHeader_init_zero                     {0, 0, 0}
 #define BaseMessage_init_zero                    {InstHeader_init_zero}
 #define AckNackMessage_init_zero                 {InstHeader_init_zero, 0}
 #define PingMessage_init_zero                    {InstHeader_init_zero}
-#define ConsoleMessage_init_zero                 {InstHeader_init_zero, 0, {0, {0}}}
+#define SystemTick_init_zero                     {InstHeader_init_zero, 0}
+#define ConsoleMessage_init_zero                 {InstHeader_init_zero, 0, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_zero              {InstHeader_init_zero, 0, "", "", ""}
 
 /* Field tags (for use in manual encoding/decoding) */
@@ -75,9 +84,13 @@ extern "C" {
 #define AckNackMessage_header_tag                1
 #define AckNackMessage_acknowledge_tag           2
 #define PingMessage_header_tag                   1
+#define SystemTick_header_tag                    1
+#define SystemTick_tick_tag                      2
 #define ConsoleMessage_header_tag                1
-#define ConsoleMessage_frame_tag                 2
-#define ConsoleMessage_data_tag                  3
+#define ConsoleMessage_uuid_tag                  2
+#define ConsoleMessage_this_frame_tag            3
+#define ConsoleMessage_total_frames_tag          4
+#define ConsoleMessage_data_tag                  5
 #define SystemInfoMessage_header_tag             1
 #define SystemInfoMessage_systemTick_tag         2
 #define SystemInfoMessage_swVersion_tag          3
@@ -111,10 +124,19 @@ X(a, STATIC,   REQUIRED, MESSAGE,  header,            1)
 #define PingMessage_DEFAULT NULL
 #define PingMessage_header_MSGTYPE InstHeader
 
+#define SystemTick_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
+X(a, STATIC,   REQUIRED, UINT32,   tick,              2)
+#define SystemTick_CALLBACK NULL
+#define SystemTick_DEFAULT NULL
+#define SystemTick_header_MSGTYPE InstHeader
+
 #define ConsoleMessage_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
-X(a, STATIC,   REQUIRED, UINT32,   frame,             2) \
-X(a, STATIC,   REQUIRED, BYTES,    data,              3)
+X(a, STATIC,   REQUIRED, UINT32,   uuid,              2) \
+X(a, STATIC,   REQUIRED, UINT32,   this_frame,        3) \
+X(a, STATIC,   REQUIRED, UINT32,   total_frames,      4) \
+X(a, STATIC,   REQUIRED, BYTES,    data,              5)
 #define ConsoleMessage_CALLBACK NULL
 #define ConsoleMessage_DEFAULT NULL
 #define ConsoleMessage_header_MSGTYPE InstHeader
@@ -133,6 +155,7 @@ extern const pb_msgdesc_t InstHeader_msg;
 extern const pb_msgdesc_t BaseMessage_msg;
 extern const pb_msgdesc_t AckNackMessage_msg;
 extern const pb_msgdesc_t PingMessage_msg;
+extern const pb_msgdesc_t SystemTick_msg;
 extern const pb_msgdesc_t ConsoleMessage_msg;
 extern const pb_msgdesc_t SystemInfoMessage_msg;
 
@@ -141,16 +164,18 @@ extern const pb_msgdesc_t SystemInfoMessage_msg;
 #define BaseMessage_fields &BaseMessage_msg
 #define AckNackMessage_fields &AckNackMessage_msg
 #define PingMessage_fields &PingMessage_msg
+#define SystemTick_fields &SystemTick_msg
 #define ConsoleMessage_fields &ConsoleMessage_msg
 #define SystemInfoMessage_fields &SystemInfoMessage_msg
 
 /* Maximum encoded size of messages (where known) */
 #define AckNackMessage_size                      13
 #define BaseMessage_size                         11
-#define ConsoleMessage_size                      145
+#define ConsoleMessage_size                      151
 #define InstHeader_size                          9
 #define PingMessage_size                         11
 #define SystemInfoMessage_size                   68
+#define SystemTick_size                          17
 
 #ifdef __cplusplus
 } /* extern "C" */

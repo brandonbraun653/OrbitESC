@@ -5,7 +5,7 @@
  *  Description:
  *    Serial sink for logging infrastructure that uses COBS & nanopb encoding
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -42,6 +42,7 @@ namespace Orbit::Serial
 
   private:
     Chimera::Serial::Driver_rPtr mSerial;
+    uint8_t                      mFrameUUID;
   };
 }    // namespace Orbit::Serial
 

@@ -14,20 +14,24 @@ import pyorbit.nanopb.serial_interface_pb2 as proto
 import google.protobuf.message as g_proto_msg
 from cobs import cobs
 from loguru import logger
-from pyorbit.serial_messages import MessageId, MessageTypeMap
 from serial import Serial
 from threading import Thread, Event
 from queue import Queue
+from pyorbit.observer import Observer
+from pyorbit.serial_messages import MessageTypeMap
 
 
-class SerialPipe:
+class SerialPipe(Observer):
     """ Message server for RTX-ing encoded messages over a serial connection """
 
     def __init__(self):
+        super().__init__()
+
         self._serial = Serial(timeout=5)
-        self._thread_kill = Event()
+        self._kill_event = Event()
         self._rx_thread = Thread()
         self._tx_thread = Thread()
+        self._dispatch_thread = Thread()
         self._rx_msgs = Queue()
         self._tx_msgs = Queue()
 
@@ -47,11 +51,13 @@ class SerialPipe:
         self._serial.open()
 
         # Spawn the IO threads for enabling communication
-        self._thread_kill.clear()
-        self._rx_thread = Thread(target=self._rx_decoder, name="RX")
+        self._kill_event.clear()
+        self._rx_thread = Thread(target=self._rx_decoder, name="RXDecoder")
         self._rx_thread.start()
-        self._tx_thread = Thread(target=self._tx_encoder, name="TX")
+        self._tx_thread = Thread(target=self._tx_encoder, name="TXEncoder")
         self._tx_thread.start()
+        self._dispatch_thread = Thread(target=self._rx_dispatcher, name="RXDispatch")
+        self._dispatch_thread.start()
 
     def close(self) -> None:
         """
@@ -60,24 +66,15 @@ class SerialPipe:
             None
         """
         # Kill the threads first since they consume the serial port
-        self._thread_kill.set()
+        self._kill_event.set()
         self._rx_thread.join() if self._rx_thread.is_alive() else None
         self._tx_thread.join() if self._tx_thread.is_alive() else None
+        self._dispatch_thread.join() if self._dispatch_thread.is_alive() else None
 
         # Push any remaining information and then close out resources
         if self._serial.is_open:
             self._serial.flush()
             self._serial.close()
-
-    def get(self) -> bytes:
-        """
-        Returns:
-            Latest message received on the pipe
-        """
-        try:
-            return self._rx_msgs.get(block=False)
-        except queue.Empty:
-            return bytes()
 
     def put(self, data: bytes) -> None:
         """
@@ -93,6 +90,24 @@ class SerialPipe:
     def _teardown(self):
         self._serial.close()
 
+    def _tx_encoder(self):
+        """
+        Encodes queued TX packets with COBS framing and sends it on the wire
+        Returns:
+            None
+        """
+        while not self._kill_event.is_set():
+            # Pull the latest data off the queue
+            try:
+                raw_frame = self._tx_msgs.get(block=True, timeout=0.1)  # type: bytes
+            except queue.Empty:
+                continue
+
+            # Encode the frame w/termination byte, then transmit
+            encoded_frame = cobs.encode(raw_frame) + b'\x00'
+            logger.trace(f"Write {len(encoded_frame)} bytes: {repr(encoded_frame)}")
+            self._serial.write(encoded_frame)
+
     def _rx_decoder(self):
         """
         Thread to handle reception of data from the connected endpoint, encoded
@@ -104,7 +119,7 @@ class SerialPipe:
         """
         rx_byte_buffer = bytearray()
 
-        while not self._thread_kill.is_set():
+        while not self._kill_event.is_set():
             # Allow other threads time to execute
             time.sleep(0)
             if not self._serial.is_open:
@@ -114,6 +129,7 @@ class SerialPipe:
             new_data = self._serial.read_all()
             if new_data:
                 rx_byte_buffer.extend(new_data)
+                logger.debug(f"Received {new_data}")
 
             # Parse the data in the cache to extract all waiting COBS frames
             frames_available = True
@@ -131,7 +147,7 @@ class SerialPipe:
                         frame_list.append(decoded_frame)
                     except cobs.DecodeError:
                         # Data frame misaligned most likely
-                        logger.trace("Partial COBS frame received")
+                        logger.error("Partial COBS frame received")
                 except ValueError:
                     # Frame delimiter byte was not found
                     frames_available = False
@@ -160,30 +176,20 @@ class SerialPipe:
                 # Now push the completed message onto the queue for someone else to handle
                 self._rx_msgs.put(full_msg)
 
-    def _tx_encoder(self):
+    def _rx_dispatcher(self):
         """
-        Encodes queued TX packets with COBS framing and sends it on the wire
+        Takes new messages and dispatches them to all observers
         Returns:
             None
         """
-        while not self._thread_kill.is_set():
-            # Pull the latest data off the queue
+        logger.trace("Starting OrbitESC internal Serial message dispatcher")
+
+        while not self._kill_event.is_set():
+            self.prune_expired_observers()
             try:
-                raw_frame = self._tx_msgs.get(block=True, timeout=0.1)  # type: bytes
+                while msg := self._rx_msgs.get(block=True, timeout=0.01):
+                    self.accept(msg)
             except queue.Empty:
                 continue
 
-            # Encode the frame w/termination byte, then transmit
-            encoded_frame = cobs.encode(raw_frame) + b'\x00'
-            logger.trace(f"Write {len(encoded_frame)} bytes: {repr(encoded_frame)}")
-            self._serial.write(encoded_frame)
-
-
-if __name__ == "__main__":
-    from pyorbit.serial_messages import PingMessage
-    ping = PingMessage()
-    pipe = SerialPipe()
-    pipe.open(port="/dev/ttyUSB0", baudrate=921600)
-    pipe.put(ping.serialize())
-    time.sleep(1)
-    pipe.close()
+        logger.trace("Terminating OrbitESC internal Serial message dispatcher")

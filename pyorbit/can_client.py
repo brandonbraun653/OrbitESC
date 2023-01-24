@@ -1,6 +1,6 @@
 # **********************************************************************************************************************
 #   FileName:
-#       esc.py
+#       can_client.py
 #
 #   Description:
 #       Interface to control an ESC
@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import atexit
 import copy
-import can
 import time
 import uuid
 from enum import IntEnum
@@ -20,10 +19,11 @@ from loguru import logger
 from functools import wraps
 from threading import Event, Thread
 from typing import Any, Callable, List, Union
-from pyorbit.can_pipe import CANPipe, MessageObserver
+from pyorbit.can_pipe import CANPipe
 from pyorbit.can_messages import NodeID, Ping, SystemTick, SystemMode, SetSystemMode, EmergencyHalt, SetMotorSpeed, \
     SystemReset
 from pyorbit.exceptions import NotOnlineException
+from pyorbit.observer import MessageObserver
 
 
 def online_checker(method: Callable) -> Any:
@@ -42,9 +42,9 @@ def online_checker(method: Callable) -> Any:
     """
 
     @wraps(method)
-    def _impl(self: OrbitESC, *method_args, **method_kwargs):
+    def _impl(self: CANClient, *method_args, **method_kwargs):
         # Ensure this decorator is only used on OrbitESC classes
-        assert isinstance(self, OrbitESC)
+        assert isinstance(self, CANClient)
         if not self.is_online:
             raise NotOnlineException()
 
@@ -55,7 +55,7 @@ def online_checker(method: Callable) -> Any:
     return _impl
 
 
-class OrbitESC:
+class CANClient:
     """ Core class for interacting/controlling an ESC over CAN bus """
 
     class Mode(IntEnum):
@@ -68,12 +68,12 @@ class OrbitESC:
         Fault = 5
 
         def __str__(self):
-            mapping = {OrbitESC.Mode.Idle.value: "Idle",
-                       OrbitESC.Mode.Armed.value: "Armed",
-                       OrbitESC.Mode.Park.value: "Park",
-                       OrbitESC.Mode.Ramp.value: "Ramp",
-                       OrbitESC.Mode.Run.value: "Run",
-                       OrbitESC.Mode.Fault.value: "Fault"}
+            mapping = {CANClient.Mode.Idle.value: "Idle",
+                       CANClient.Mode.Armed.value: "Armed",
+                       CANClient.Mode.Park.value: "Park",
+                       CANClient.Mode.Ramp.value: "Ramp",
+                       CANClient.Mode.Run.value: "Run",
+                       CANClient.Mode.Fault.value: "Fault"}
 
             try:
                 return mapping[self.value]
@@ -81,7 +81,7 @@ class OrbitESC:
                 return "Unknown"
 
         @classmethod
-        def switchable_modes(cls) -> List[OrbitESC.Mode]:
+        def switchable_modes(cls) -> List[CANClient.Mode]:
             """
             Returns:
                 List of modes that can be directly switched into
@@ -106,12 +106,11 @@ class OrbitESC:
         # Start up the background thread
         self._kill_signal = Event()
         self._notify_signal = Event()
-        self._thread = Thread(target=self._background_thread, daemon=True,
-                              name=f"OrbitESC_BackgroundThread_Node{dst_node}")
+        self._thread = Thread(target=self._background_thread, daemon=True, name=f"CANClient_BackgroundNode{dst_node}")
         self._thread.start()
 
         # Register known observers
-        self.com_pipe.subscribe_observer(MessageObserver(func=self._observer_esc_tick, arb_id=SystemTick.id()))
+        self.com_pipe.subscribe_observer(MessageObserver(func=self._observer_esc_tick, msg_type=SystemTick))
 
         # Register the cleanup method
         atexit.register(self._destroy)
@@ -148,7 +147,7 @@ class OrbitESC:
         return bool(rx_msg)
 
     @online_checker
-    def switch_mode(self, mode: OrbitESC.Mode) -> bool:
+    def switch_mode(self, mode: CANClient.Mode) -> bool:
         """
         Attempts to switch the ESC into the desired mode
         Args:
@@ -157,7 +156,7 @@ class OrbitESC:
         Returns:
             True if the switch was successful, False if not
         """
-        if mode not in OrbitESC.Mode.switchable_modes():
+        if mode not in CANClient.Mode.switchable_modes():
             logger.warning(f"Cannot switch directly into {str(mode)} mode")
             return False
 
@@ -177,7 +176,7 @@ class OrbitESC:
         return self._listen_for_mode_switch(sub_id=sub_id, mode=mode)
 
     @online_checker
-    def get_mode(self) -> Union[OrbitESC.Mode, None]:
+    def get_mode(self) -> Union[CANClient.Mode, None]:
         """
         Returns:
             Current mode announced by the ESC
@@ -188,7 +187,7 @@ class OrbitESC:
         if not rx_msg:
             return None
         else:
-            return OrbitESC.Mode(rx_msg[0].mode)
+            return CANClient.Mode(rx_msg[0].mode)
 
     @online_checker
     def set_speed_reference(self, rpm: Union[float, int]) -> None:
@@ -243,7 +242,7 @@ class OrbitESC:
         self.com_pipe.bus.send(msg.as_bus_msg())
 
         # Listen for the mode switch
-        return self._listen_for_mode_switch(sub_id=sub_id, mode=OrbitESC.Mode.Fault)
+        return self._listen_for_mode_switch(sub_id=sub_id, mode=CANClient.Mode.Fault)
 
     def system_reset(self, all_nodes: bool = False) -> bool:
         """
@@ -309,7 +308,7 @@ class OrbitESC:
                 logger.warning(f"Node {self._dst_node} is offline")
                 self._online = False
 
-    def _observer_esc_tick(self, can_msg: can.Message) -> None:
+    def _observer_esc_tick(self, can_msg: SystemTick) -> None:
         """
         Looks for the SystemTick of the registered node to determine online/offline status
         Args:
@@ -318,16 +317,14 @@ class OrbitESC:
         Returns:
             None
         """
-        msg = SystemTick().unpack(can_msg)
-
-        if msg.src.node_id == self._dst_node:
+        if can_msg.src.node_id == self._dst_node:
             self._time_last_online = time.time()
-            self._last_tick = msg.tick
+            self._last_tick = can_msg.tick
             if not self._online:
                 logger.info(f"Node {self._dst_node} is online")
                 self._online = True
 
-    def _listen_for_mode_switch(self, sub_id: uuid.UUID, mode: OrbitESC.Mode) -> bool:
+    def _listen_for_mode_switch(self, sub_id: uuid.UUID, mode: CANClient.Mode) -> bool:
         """
         Listens for the SystemMode packet to determine if a mode change has occurred
         Args:

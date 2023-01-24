@@ -3,7 +3,7 @@ import sys
 from pyorbit.can_pipe import CANPipe
 from pyorbit.can_messages import NodeID, MotorSpeed, PowerSupplyVoltage
 from pyorbit.plotter import LivePlotter
-from pyorbit.esc import OrbitESC
+from pyorbit.can_client import CANClient
 import matplotlib.pyplot as plt
 from loguru import logger
 
@@ -15,9 +15,9 @@ if __name__ == "__main__":
     plotter = LivePlotter(message=PowerSupplyVoltage(), attr_key="vdd")
     plt.show(block=False)
 
-    esc = OrbitESC(dst_node=NodeID.NODE_1)
+    esc = CANClient(dst_node=NodeID.NODE_1)
     esc.com_pipe.subscribe_observer(plotter.observer_handle)
-    time.sleep(1)
+    time.sleep(500)
 
     # esc.system_reset()
     #
@@ -30,5 +30,5 @@ if __name__ == "__main__":
     # time.sleep(10)
     # esc.emergency_stop()
 
-    plotter.live_animate()
+    # plotter.live_animate()
     # time.sleep(5)

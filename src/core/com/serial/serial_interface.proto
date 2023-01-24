@@ -25,10 +25,17 @@ message PingMessage {
   required InstHeader header = 1;
 }
 
+message SystemTick {
+  required InstHeader header = 1;
+  required uint32 tick = 2;
+}
+
 message ConsoleMessage {
   required InstHeader header = 1;
-  required uint32 frame = 2 [(nanopb).int_size = IS_8];
-  required bytes data = 3 [(nanopb).max_size = 128];
+  required uint32 uuid = 2 [(nanopb).int_size = IS_8];
+  required uint32 this_frame = 3 [(nanopb).int_size = IS_8];
+  required uint32 total_frames = 4 [(nanopb).int_size = IS_8];
+  required bytes data = 5 [(nanopb).max_size = 128];
 }
 
 message SystemInfoMessage {
