@@ -28,11 +28,18 @@ Includes
 namespace Orbit::Serial::Message
 {
   /*---------------------------------------------------------------------------
+  Aliases
+  ---------------------------------------------------------------------------*/
+  using UniqueId_t = uint16_t;
+
+  /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
   static constexpr size_t _msg_size_array[] = { AckNackMessage_size, PingMessage_size, ConsoleMessage_size, SystemTick_size, SystemInfoMessage_size };
   static constexpr size_t MAX_RAW_MSG_SIZE  = *std::max_element( std::begin( _msg_size_array ), std::end( _msg_size_array ) );
   static constexpr size_t MAX_COBS_MSG_SIZE = COBS_ENCODE_DST_BUF_LEN_MAX( MAX_RAW_MSG_SIZE );
+  static constexpr size_t MIN_RAW_MSG_SIZE  = sizeof( InstHeader );
+  static constexpr size_t MIN_COBS_MSG_SIZE = COBS_ENCODE_DST_BUF_LEN_MAX( MIN_RAW_MSG_SIZE );
 
   /*---------------------------------------------------------------------------
   Enumerations
@@ -48,6 +55,20 @@ namespace Orbit::Serial::Message
     MSG_ID_COUNT
   };
   static_assert( MSG_ID_COUNT == ARRAY_COUNT( _msg_size_array ) );
+
+  /*---------------------------------------------------------------------------
+  Public Functions
+  ---------------------------------------------------------------------------*/
+  /**
+   * @brief Initialize the async message module
+   */
+  void moduleInit();
+
+  /**
+   * @brief Atomically retrieve the next unique message identifier
+   * @return UniqueId_t
+   */
+  UniqueId_t getNextUUID();
 
   /*---------------------------------------------------------------------------
   Classes

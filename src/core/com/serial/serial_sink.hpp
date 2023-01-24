@@ -42,7 +42,6 @@ namespace Orbit::Serial
 
   private:
     Chimera::Serial::Driver_rPtr mSerial;
-    uint8_t                      mFrameUUID;
   };
 }    // namespace Orbit::Serial
 

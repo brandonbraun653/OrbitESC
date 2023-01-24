@@ -67,7 +67,7 @@ class ConsoleObserver(MessageObserver):
             for frame in self.frames:
                 final_msg = final_msg + frame.data.decode("utf-8")
 
-            logger.info(final_msg)
+            logger.info(final_msg.strip('\n'))
 
     def __init__(self):
         super().__init__(func=self._frame_accumulator, msg_type=ConsoleMessage)
@@ -90,11 +90,11 @@ class ConsoleObserver(MessageObserver):
             if msg.uuid not in self._in_progress_frames.keys():
                 self._in_progress_frames[msg.uuid] = self.FrameBuffer()
                 self._in_progress_frames[msg.uuid].total_frames = msg.total_frames
-                logger.debug(f"Added start of new message {msg.uuid}")
+                logger.trace(f"Added start of new message {msg.uuid}")
 
             # Insert the new message
             self._in_progress_frames[msg.uuid].frames.append(msg)
-            logger.debug(f"Added frame {msg.frame_number} for message {msg.uuid}")
+            logger.trace(f"Added frame {msg.frame_number} for message {msg.uuid}")
 
     def _frame_processor(self) -> None:
         """

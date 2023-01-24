@@ -127,9 +127,11 @@ namespace Orbit::Serial
       }
 
       /*-----------------------------------------------------------------------
-      Clear the buffer if it's full and no message frame was found
+      Clear the buffer if no message is found and either:
+        a) Buffer is full
+        b) Doesn't meet minimum message size requirements
       -----------------------------------------------------------------------*/
-      if( ( eof == false ) && ( mRXSearchOfst == mRXBuffer->max_size() ) )
+      if( ( eof == false ) && ( ( mRXSearchOfst == mRXBuffer->max_size() ) || ( mRXSearchOfst < Message::MIN_COBS_MSG_SIZE ) ) )
       {
         mRXBuffer->clear();
         mRXSearchOfst = 0;

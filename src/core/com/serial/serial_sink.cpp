@@ -24,7 +24,7 @@ namespace Orbit::Serial
   /*---------------------------------------------------------------------------
   Driver Implementation
   ---------------------------------------------------------------------------*/
-  EncodedLogSink::EncodedLogSink() : mSerial( nullptr ), mFrameUUID( 0 )
+  EncodedLogSink::EncodedLogSink() : mSerial( nullptr )
   {
   }
 
@@ -91,13 +91,13 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Construct the encoded data
     -------------------------------------------------------------------------*/
-    Message::Console msg;
-    ConsoleMessage   pb_data;
-    size_t           byte_offset    = 0;
-    uint8_t          frame_number   = 0;
-    const uint8_t    frame_uuid     = mFrameUUID++;
-    const uint8_t    max_frames     = ( length / sizeof( ConsoleMessage::data ) ) + 1u;
-    const uint8_t   *p_usr_data     = reinterpret_cast<const uint8_t *>( message );
+    Message::Console    msg;
+    ConsoleMessage      pb_data;
+    Message::UniqueId_t msg_uuid     = Message::getNextUUID();
+    size_t              byte_offset  = 0;
+    uint8_t             frame_number = 0;
+    const uint8_t       max_frames   = ( length / sizeof( ConsoleMessage::data ) ) + 1u;
+    const uint8_t      *p_usr_data   = reinterpret_cast<const uint8_t *>( message );
 
     while ( frame_number < max_frames)
     {
@@ -111,9 +111,8 @@ namespace Orbit::Serial
       msg.reset();
 
       pb_data.header.msgId = Message::Console::MessageId;
-      pb_data.header.size  = static_cast<uint8_t>( chunk_size );
       pb_data.header.subId = 0;
-      pb_data.uuid         = frame_uuid;
+      pb_data.header.uuid  = msg_uuid;
       pb_data.this_frame   = frame_number;
       pb_data.total_frames = max_frames;
       pb_data.data.size    = chunk_size;

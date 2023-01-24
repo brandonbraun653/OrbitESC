@@ -129,7 +129,7 @@ class SerialPipe(Observer):
             new_data = self._serial.read_all()
             if new_data:
                 rx_byte_buffer.extend(new_data)
-                logger.debug(f"Received {new_data}")
+                logger.trace(f"Received {new_data}")
 
             # Parse the data in the cache to extract all waiting COBS frames
             frames_available = True
@@ -147,7 +147,7 @@ class SerialPipe(Observer):
                         frame_list.append(decoded_frame)
                     except cobs.DecodeError:
                         # Data frame misaligned most likely
-                        logger.error("Partial COBS frame received")
+                        logger.warning("Partial COBS frame received")
                 except ValueError:
                     # Frame delimiter byte was not found
                     frames_available = False

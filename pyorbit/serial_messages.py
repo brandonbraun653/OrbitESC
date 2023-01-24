@@ -59,8 +59,6 @@ class PingMessage(BaseMessage):
 
         self._pb_msg = proto.PingMessage()
         self._pb_msg.header.msgId = MessageId.PingCmd.value
-        self._pb_msg.header.subId = 0
-        self._pb_msg.header.size = 0
 
 
 class SystemTick(BaseMessage):
@@ -69,8 +67,6 @@ class SystemTick(BaseMessage):
         super().__init__()
         self._pb_msg = proto.SystemTick()
         self._pb_msg.header.msgId = MessageId.SystemTick.value
-        self._pb_msg.header.subId = 0
-        self._pb_msg.header.size = 0
         self._pb_msg.tick = 0
 
     @property
@@ -84,12 +80,10 @@ class ConsoleMessage(BaseMessage):
         super().__init__()
         self._pb_msg = proto.ConsoleMessage()
         self._pb_msg.header.msgId = MessageId.SystemTick.value
-        self._pb_msg.header.subId = 0
-        self._pb_msg.header.size = 0
 
     @property
     def uuid(self) -> int:
-        return self._pb_msg.uuid
+        return self._pb_msg.header.uuid
 
     @property
     def frame_number(self) -> int:

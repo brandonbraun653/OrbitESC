@@ -7,7 +7,7 @@ import "nanopb.proto";
 message InstHeader {
   required uint32 msgId = 1 [(nanopb).int_size = IS_8]; // Root message identifier
   required uint32 subId = 2 [(nanopb).int_size = IS_8]; // Possible sub-identifier to specify root ID details
-  required uint32 size = 3 [(nanopb).int_size = IS_8];  // Total length of the message following the header
+  required uint32 uuid = 3 [(nanopb).int_size = IS_16]; // Unique ID for the message
 }
 
 // Root type that parsers can use to peek at messages
@@ -32,10 +32,9 @@ message SystemTick {
 
 message ConsoleMessage {
   required InstHeader header = 1;
-  required uint32 uuid = 2 [(nanopb).int_size = IS_8];
-  required uint32 this_frame = 3 [(nanopb).int_size = IS_8];
-  required uint32 total_frames = 4 [(nanopb).int_size = IS_8];
-  required bytes data = 5 [(nanopb).max_size = 128];
+  required uint32 this_frame = 2 [(nanopb).int_size = IS_8];
+  required uint32 total_frames = 3 [(nanopb).int_size = IS_8];
+  required bytes data = 4 [(nanopb).max_size = 128];
 }
 
 message SystemInfoMessage {
