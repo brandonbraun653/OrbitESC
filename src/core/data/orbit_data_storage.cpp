@@ -14,12 +14,15 @@ Includes
 #include <ArduinoJson.h>
 #include <Aurora/filesystem>
 #include <Aurora/logging>
+#include <Chimera/thread>
 #include <algorithm>
 #include <array>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/data/orbit_data_internal.hpp>
 #include <src/core/data/orbit_data_storage.hpp>
 #include <src/core/data/orbit_data_types.hpp>
+#include <nanoprintf.h>
+#include <etl/to_arithmetic.h>
 
 namespace Orbit::Data
 {
@@ -31,7 +34,8 @@ namespace Orbit::Data
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr size_t JSON_FILE_SIZE_MAX = 4096;
+  static constexpr size_t      JSON_FILE_SIZE_MAX = 1024;
+  static constexpr const char *FMT_UINT32         = "%d";
 
   /*-------------------------------------------------------------------
   EEPROM Addressing Limits and Registry Info
@@ -48,7 +52,8 @@ namespace Orbit::Data
   struct ParameterNode
   {
     ParamId          id;      /**< Software enumeration tied to parameter */
-    etl::string_view key;     /**< String to use in JSON data storage */
+    const char      *key;     /**< String to use in JSON data storage */
+    const char      *fmt;     /**< String format for serialization */
     void            *address; /**< Fixed location in memory where data lives */
     size_t           maxSize; /**< Max possible size of the data */
   };
@@ -68,7 +73,7 @@ namespace Orbit::Data
 
     static constexpr ParameterList _unsorted_parameters = {
       /* clang-format off */
-      ParameterNode{.id = PARAM_BOOT_COUNT, .key = "boot_count", .address = &SysInfo.bootCount, .maxSize = sizeof( SysInfo.bootCount ) }
+      ParameterNode{.id = PARAM_BOOT_COUNT, .key = "boot_count", .fmt = FMT_UINT32, .address = &SysInfo.bootCount, .maxSize = sizeof( SysInfo.bootCount ) }
 
       /***** Add new entries above here *****/
       /* clang-format on */
@@ -78,6 +83,47 @@ namespace Orbit::Data
   static const ParameterList s_param_info = Internal::_compile_time_sort( Internal::_unsorted_parameters );
 
   static StaticJsonDocument<JSON_FILE_SIZE_MAX> s_json_cache;
+  static Chimera::Thread::RecursiveMutex        s_json_lock;
+  static etl::array<char, 64>                   s_fmt_buffer;
+
+  /*---------------------------------------------------------------------------
+  Static Functions
+  ---------------------------------------------------------------------------*/
+  static void load_defaults()
+  {
+    SysCalibration.setDefaults();
+    SysControl.setDefaults();
+    SysInfo.setDefaults();
+  }
+
+  static void deserialize_disk_cache()
+  {
+    for( size_t idx = 0; idx < ParamId::PARAM_COUNT; idx++ )
+    {
+      /*-----------------------------------------------------------------------
+      Validate the key exists in the document
+      -----------------------------------------------------------------------*/
+      const ParameterNode *node = &s_param_info[ idx ];
+      if( !s_json_cache.containsKey( node->key ) )
+      {
+        LOG_WARN( "Configuration backing store missing key: %s", node->key );
+        continue;
+      }
+
+      /*-----------------------------------------------------------------------
+      Decode according to the marked format
+      -----------------------------------------------------------------------*/
+      if( node->fmt == FMT_UINT32 )
+      {
+        uint32_t *val = static_cast<uint32_t *>( node->address );
+        *val = s_json_cache[ node->key ].as<uint32_t>();
+      }
+      else
+      {
+        LOG_WARN( "Unsupported format specifier for key: %s", node->key );
+      }
+    }
+  }
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -166,13 +212,18 @@ namespace Orbit::Data
 
   bool loadDisk()
   {
+    Chimera::Thread::LockGuard _lck( s_json_lock );
+
+    /*-------------------------------------------------------------------------
+    Local Variables
+    -------------------------------------------------------------------------*/
     FS::FileId      fd    = -1;
     FS::AccessFlags flags = ( FS::AccessFlags::O_RDWR | FS::AccessFlags::O_APPEND );
-    bool            result = true;
 
     /*-------------------------------------------------------------------------
     Open the file
     -------------------------------------------------------------------------*/
+    LOG_INFO( "Loading configuration from disk..." );
     if( 0 != FS::fopen( Internal::SystemConfigFile.cbegin(), flags, fd ) )
     {
       LOG_ERROR( "Failed to open configuration file: %s", Internal::SystemConfigFile.cbegin() );
@@ -182,32 +233,129 @@ namespace Orbit::Data
     /*-------------------------------------------------------------------------
     Check the size of the file and load default parameters if required
     -------------------------------------------------------------------------*/
+    size_t file_size = FS::fsize( fd );
 
+    if( file_size > JSON_FILE_SIZE_MAX )
+    {
+      LOG_ERROR( "Not enough memory to load file of size %d bytes", file_size );
+      FS::fclose( fd );
+      load_defaults();
+      return false;
+    }
+    else if( file_size == 0 )
+    {
+      LOG_INFO( "Empty configuration. Loading defaults and syncing with disk." );
+      FS::fclose( fd );
+      load_defaults();
+      RT_HARD_ASSERT( updateDiskCache() );
+      RT_HARD_ASSERT( flushDisk() );
+    }
 
+    /*-------------------------------------------------------------------------
+    Read the raw data onto the stack. Unfortunately the JSON library doesn't
+    handle chunking very well (depends on manual JSON object boundary parsing).
+    OrbitESC is unlikely to have massive amounts of configuration data, so this
+    will work in a pinch. Several tasks already have large stacks anyways.
+    -------------------------------------------------------------------------*/
+    uint8_t file_data[ JSON_FILE_SIZE_MAX ];
+    memset( file_data, 0, sizeof( file_data ) );
 
-    //deserializeJson()
+    FS::frewind( fd );
+    size_t read_bytes = FS::fread( file_data, 1u, file_size, fd );
+    RT_HARD_ASSERT( read_bytes == file_size );
     FS::fclose( fd );
-    return result;
+
+    /*-------------------------------------------------------------------------
+    Parse the JSON information
+    -------------------------------------------------------------------------*/
+    DeserializationError error = deserializeJson( s_json_cache, file_data );
+    if( error )
+    {
+      LOG_ERROR( "Failed json decode: %s", error.c_str() );
+      return false;
+    }
+
+    deserialize_disk_cache();
+    return true;
   }
 
 
   bool flushDisk()
   {
-    // serializeJson
-    return false;
+    Chimera::Thread::LockGuard _lck( s_json_lock );
+
+    /*-------------------------------------------------------------------------
+    Take whatever is in the cache right now and serialize it to disk
+    -------------------------------------------------------------------------*/
+    uint8_t file_data[ JSON_FILE_SIZE_MAX ];
+    memset( file_data, 0, sizeof( file_data ) );
+    const size_t serialized_size = serializeJson( s_json_cache, file_data, sizeof( file_data ) );
+
+    /*-------------------------------------------------------------------------
+    Flush the data to disk
+    -------------------------------------------------------------------------*/
+    FS::FileId fd = -1;
+
+    if ( 0 == FS::fopen( Internal::SystemConfigFile.cbegin(), FS::AccessFlags::O_RDWR, fd ) )
+    {
+      FS::frewind( fd );
+      const size_t written = FS::fwrite( file_data, 1u, serialized_size, fd );
+      FS::fclose( fd );
+      LOG_ERROR_IF( written != serialized_size, "Failed to flush all bytes to disk. Act:%d, Exp:%d", written, serialized_size );
+      return written == serialized_size;
+    }
+    else
+    {
+      LOG_ERROR( "Disk flush failed. Cannot open file." );
+      return false;
+    }
   }
 
 
   bool updateDiskCache( const ParamId param )
   {
-    RT_DBG_ASSERT( param < ParamId::PARAM_COUNT );
-    return false;
+    Chimera::Thread::LockGuard _lck( s_json_lock );
+
+    RT_DBG_ASSERT( param < s_param_info.size() );
+    const ParameterNode *node = &s_param_info[ param ];
+
+    s_fmt_buffer.fill( 0 );
+
+    /*-------------------------------------------------------------------------
+    Serialize the data to string for storage
+    -------------------------------------------------------------------------*/
+    if( node->fmt == FMT_UINT32 )
+    {
+      RT_DBG_ASSERT( node->maxSize == sizeof( uint32_t ) );
+      auto val = reinterpret_cast<uint32_t*>( node->address );
+      npf_snprintf( s_fmt_buffer.data(), s_fmt_buffer.size(), node->fmt, *( val ) );
+    }
+    else
+    {
+      /* Missing format specifier */
+      RT_DBG_ASSERT( false );
+      return false;
+    }
+
+    /*-------------------------------------------------------------------------
+    Update the JSON document cache with the value
+    -------------------------------------------------------------------------*/
+    s_json_cache[ node->key ] = s_fmt_buffer.data();
+    return true;
   }
 
 
   bool updateDiskCache()
   {
-    return false;
+    Chimera::Thread::LockGuard _lck( s_json_lock );
+
+    bool sticky_result = true;
+    for( size_t idx = 0; idx < ParamId::PARAM_COUNT; idx++ )
+    {
+      sticky_result &= updateDiskCache( static_cast<ParamId>( idx ) );
+    }
+
+    return sticky_result;
   }
 
 }  // namespace Orbit::Data

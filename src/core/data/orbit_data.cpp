@@ -190,6 +190,11 @@ namespace Orbit::Data
 
     RT_HARD_ASSERT( 0 == FS::fopen( Internal::SystemLogFile.cbegin(), flags, fd ) );
     RT_HARD_ASSERT( 0 == FS::fclose( fd ) );
+
+    /*-------------------------------------------------------------------------
+    Load the stored configuration data
+    -------------------------------------------------------------------------*/
+    RT_HARD_ASSERT( loadDisk() );
   }
 
 

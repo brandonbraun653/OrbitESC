@@ -76,6 +76,11 @@ namespace Orbit::Data
     {
 
     }
+
+    void setDefaults()
+    {
+
+    }
   };
 
   struct Controls
@@ -85,6 +90,10 @@ namespace Orbit::Data
     {
 
     }
+
+    void setDefaults()
+    {
+    }
   };
 
   struct Information
@@ -92,6 +101,11 @@ namespace Orbit::Data
     uint32_t bootCount;
 
     void clear()
+    {
+      bootCount = 0;
+    }
+
+    void setDefaults()
     {
       bootCount = 0;
     }

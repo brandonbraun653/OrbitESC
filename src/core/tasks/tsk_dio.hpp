@@ -24,7 +24,7 @@ namespace Orbit::Tasks::DIO
   Constants
   ---------------------------------------------------------------------------*/
   static constexpr size_t                        PERIOD_MS = 25;
-  static constexpr size_t                        STACK     = STACK_BYTES( 12 * 1024 );
+  static constexpr size_t                        STACK     = STACK_BYTES( 16 * 1024 );
   static constexpr std::string_view              NAME      = "dio";
   static constexpr Chimera::Thread::TaskPriority PRIORITY  = 3;
 
