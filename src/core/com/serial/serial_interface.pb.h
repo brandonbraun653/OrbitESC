@@ -15,8 +15,14 @@ typedef enum _SerialMsgId {
     SerialMsgId_MSG_PING_CMD = 1, /* Simple PING to see if the node is alive */
     SerialMsgId_MSG_TERMINAL = 2, /* Terminal command for printing text/debug data */
     SerialMsgId_MSG_SYS_TICK = 3, /* System time tick */
-    SerialMsgId_MSG_SYS_INFO = 4 /* System information */
+    SerialMsgId_MSG_SYS_INFO = 4, /* System information */
+    SerialMsgId_MSG_PUT_PARAM = 5,
+    SerialMsgId_MSG_GET_PARAM = 6
 } SerialMsgId;
+
+typedef enum _ParamSubId {
+    ParamSubId_PARAM_BOOT_COUNT = 0
+} ParamSubId;
 
 /* Struct definitions */
 /* Instrumentation message header common to all types. Each functional message type **must**
@@ -66,8 +72,12 @@ typedef struct _SystemInfoMessage {
 
 /* Helper constants for enums */
 #define _SerialMsgId_MIN SerialMsgId_MSG_ACK_NACK
-#define _SerialMsgId_MAX SerialMsgId_MSG_SYS_INFO
-#define _SerialMsgId_ARRAYSIZE ((SerialMsgId)(SerialMsgId_MSG_SYS_INFO+1))
+#define _SerialMsgId_MAX SerialMsgId_MSG_GET_PARAM
+#define _SerialMsgId_ARRAYSIZE ((SerialMsgId)(SerialMsgId_MSG_GET_PARAM+1))
+
+#define _ParamSubId_MIN ParamSubId_PARAM_BOOT_COUNT
+#define _ParamSubId_MAX ParamSubId_PARAM_BOOT_COUNT
+#define _ParamSubId_ARRAYSIZE ((ParamSubId)(ParamSubId_PARAM_BOOT_COUNT+1))
 
 
 

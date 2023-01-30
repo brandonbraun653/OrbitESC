@@ -46,10 +46,18 @@ namespace Orbit::Data
   bool loadDisk();
 
   /**
-   * @brief Serialize all parameters to disk
+   * @brief Immediately serialize all parameters to disk
    * @return bool
    */
   bool flushDisk();
+
+  /**
+   * @brief Synchronize any cache updates to disk
+   *
+   * Should only perform work if the RAM backing store has been changed. This
+   * only occurs upon a manual call to updateDiskCache().
+   */
+  void syncDisk();
 
   /**
    * @brief Updates cache with a single parameter information

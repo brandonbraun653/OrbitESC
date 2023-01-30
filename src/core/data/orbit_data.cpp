@@ -39,10 +39,11 @@ namespace Orbit::Data
   /*---------------------------------------------------------------------------
   Public Data
   ---------------------------------------------------------------------------*/
-  Identity    SysIdentity;
-  Calibration SysCalibration;
-  Controls    SysControl;
-  Information SysInfo;
+  Identity      SysIdentity;
+  Calibration   SysCalibration;
+  Controls      SysControl;
+  Information   SysInfo;
+  Configuration SysConfig;
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -64,6 +65,7 @@ namespace Orbit::Data
     SysCalibration.clear();
     SysControl.clear();
     SysInfo.clear();
+    SysConfig.clear();
 
     /*-------------------------------------------------------------------------
     Initialize the EEPROM driver
@@ -200,8 +202,8 @@ namespace Orbit::Data
 
   void printSystemInfo()
   {
-    LOG_INFO( "OrbitESC -- HW: %d, SW:%d.%d.%d, SN:%s\r\n", SysIdentity.hwVersion, SysIdentity.swVerMajor,
-              SysIdentity.swVerMinor, SysIdentity.swVerPatch, SysIdentity.serialNumber );
+    LOG_INFO( "OrbitESC --Boot#: %d, HW: %d, SW:%d.%d.%d, SN:%s\r\n", SysInfo.bootCount, SysIdentity.hwVersion,
+              SysIdentity.swVerMajor, SysIdentity.swVerMinor, SysIdentity.swVerPatch, SysIdentity.serialNumber );
   }
 
 }    // namespace Orbit::Data
@@ -213,4 +215,4 @@ namespace Orbit::Data::Internal
   Public Data
   ---------------------------------------------------------------------------*/
   Aurora::Memory::Flash::EEPROM::Driver EepromCtrl;
-}
+}    // namespace Orbit::Data::Internal

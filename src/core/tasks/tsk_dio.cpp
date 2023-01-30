@@ -13,13 +13,24 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/logging>
 #include <Chimera/thread>
+#include <src/core/data/orbit_data.hpp>
+#include <src/core/data/orbit_data_storage.hpp>
+#include <src/core/data/orbit_log_io.hpp>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_dio.hpp>
-#include <src/core/data/orbit_data.hpp>
-#include <src/core/data/orbit_log_io.hpp>
 
 namespace Orbit::Tasks::DIO
 {
+  /*---------------------------------------------------------------------------
+  Static Functions
+  ---------------------------------------------------------------------------*/
+  static void incrementBootCount()
+  {
+
+
+  }
+
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
@@ -38,20 +49,23 @@ namespace Orbit::Tasks::DIO
     Log::initialize();
     Log::enable();
 
-    // testing
-    size_t last_assert = Chimera::millis();
-    size_t last_dump = Chimera::millis();
-
     /*-------------------------------------------------------------------------
     Run the HWM thread
     -------------------------------------------------------------------------*/
     size_t wake_up_tick = Chimera::millis();
+    size_t next_sync    = wake_up_tick + Data::SysConfig.disk_update_period;
     while( 1 )
     {
       /*-----------------------------------------------------------------------
       Do long-running operations
       -----------------------------------------------------------------------*/
       Log::flushCache();
+
+      if( wake_up_tick >= next_sync )
+      {
+        next_sync = wake_up_tick + Data::SysConfig.disk_update_period;
+        Data::syncDisk();
+      }
 
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically

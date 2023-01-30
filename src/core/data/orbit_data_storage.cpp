@@ -85,6 +85,7 @@ namespace Orbit::Data
   static StaticJsonDocument<JSON_FILE_SIZE_MAX> s_json_cache;
   static Chimera::Thread::RecursiveMutex        s_json_lock;
   static etl::array<char, 64>                   s_fmt_buffer;
+  static bool                                   s_json_pend_changes;
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -94,6 +95,7 @@ namespace Orbit::Data
     SysCalibration.setDefaults();
     SysControl.setDefaults();
     SysInfo.setDefaults();
+    SysConfig.setDefaults();
   }
 
   static void deserialize_disk_cache()
@@ -219,6 +221,12 @@ namespace Orbit::Data
     -------------------------------------------------------------------------*/
     FS::FileId      fd    = -1;
     FS::AccessFlags flags = ( FS::AccessFlags::O_RDWR | FS::AccessFlags::O_APPEND );
+    s_json_pend_changes   = false;
+
+    /*-------------------------------------------------------------------------
+    Always load the default configuration as a fallback
+    -------------------------------------------------------------------------*/
+    load_defaults();
 
     /*-------------------------------------------------------------------------
     Open the file
@@ -239,14 +247,12 @@ namespace Orbit::Data
     {
       LOG_ERROR( "Not enough memory to load file of size %d bytes", file_size );
       FS::fclose( fd );
-      load_defaults();
       return false;
     }
     else if( file_size == 0 )
     {
       LOG_INFO( "Empty configuration. Loading defaults and syncing with disk." );
       FS::fclose( fd );
-      load_defaults();
       RT_HARD_ASSERT( updateDiskCache() );
       RT_HARD_ASSERT( flushDisk() );
     }
@@ -294,7 +300,8 @@ namespace Orbit::Data
     /*-------------------------------------------------------------------------
     Flush the data to disk
     -------------------------------------------------------------------------*/
-    FS::FileId fd = -1;
+    FS::FileId fd       = -1;
+    s_json_pend_changes = false;
 
     if ( 0 == FS::fopen( Internal::SystemConfigFile.cbegin(), FS::AccessFlags::O_RDWR, fd ) )
     {
@@ -308,6 +315,16 @@ namespace Orbit::Data
     {
       LOG_ERROR( "Disk flush failed. Cannot open file." );
       return false;
+    }
+  }
+
+
+  void syncDisk()
+  {
+    if( s_json_pend_changes )
+    {
+      auto result = flushDisk();
+      LOG_ERROR_IF( result == false, "Failed disk sync" );
     }
   }
 
@@ -341,6 +358,7 @@ namespace Orbit::Data
     Update the JSON document cache with the value
     -------------------------------------------------------------------------*/
     s_json_cache[ node->key ] = s_fmt_buffer.data();
+    s_json_pend_changes       = true;
     return true;
   }
 

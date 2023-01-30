@@ -22,6 +22,14 @@ Includes
 namespace Orbit::Data
 {
   /*---------------------------------------------------------------------------
+  System Configuration
+  ---------------------------------------------------------------------------*/
+  /**
+   * @brief How often to synchronize the data storage disk
+   */
+  static constexpr size_t DFLT_DISK_SYNC_PERIOD_MS = 500;
+
+  /*---------------------------------------------------------------------------
   System Identity
   ---------------------------------------------------------------------------*/
   static constexpr etl::string_view DFLT_BOARD_NAME = "OrbitESC";

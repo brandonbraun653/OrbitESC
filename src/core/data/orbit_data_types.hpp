@@ -18,7 +18,7 @@ Includes
 #include <cstdint>
 #include <Aurora/datastruct>
 #include <Chimera/common>
-
+#include "serial_interface.pb.h"
 
 namespace Orbit::Data
 {
@@ -33,7 +33,7 @@ namespace Orbit::Data
 
   enum ParamId : uint8_t
   {
-    PARAM_BOOT_COUNT,
+    PARAM_BOOT_COUNT = ParamSubId_PARAM_BOOT_COUNT,
     PARAM_COUNT
   };
 
@@ -110,6 +110,21 @@ namespace Orbit::Data
       bootCount = 0;
     }
   };
+
+  struct Configuration
+  {
+    size_t disk_update_period;
+
+    void clear()
+    {
+      disk_update_period = 0;
+    }
+
+    void setDefaults()
+    {
+      disk_update_period = DFLT_DISK_SYNC_PERIOD_MS;
+    }
+  }
 }  // namespace Orbit::Data
 
 #endif  /* !ORBIT_ESC_SYSTEM_DATA_TYPES_HPP */

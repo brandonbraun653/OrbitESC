@@ -7,6 +7,12 @@ enum SerialMsgId {
   MSG_TERMINAL = 2; // Terminal command for printing text/debug data
   MSG_SYS_TICK = 3; // System time tick
   MSG_SYS_INFO = 4; // System information
+  MSG_PUT_PARAM = 5;
+  MSG_GET_PARAM = 6;
+}
+
+enum ParamSubId {
+  PARAM_BOOT_COUNT = 0;
 }
 
 // Instrumentation message header common to all types. Each functional message type **must**

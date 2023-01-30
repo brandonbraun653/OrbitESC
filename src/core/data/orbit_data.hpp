@@ -26,10 +26,11 @@ namespace Orbit::Data
   /*---------------------------------------------------------------------------
   Public Data
   ---------------------------------------------------------------------------*/
-  extern Identity    SysIdentity;
-  extern Calibration SysCalibration;
-  extern Controls    SysControl;
-  extern Information SysInfo;
+  extern Identity      SysIdentity;
+  extern Calibration   SysCalibration;
+  extern Controls      SysControl;
+  extern Information   SysInfo;
+  extern Configuration SysConfig;
 
   /*---------------------------------------------------------------------------
   Public Functions

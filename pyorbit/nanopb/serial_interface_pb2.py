@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto2',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x16serial_interface.proto\x1a\x0cnanopb.proto\"I\n\x06Header\x12\x14\n\x05msgId\x18\x01 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x05subId\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x13\n\x04uuid\x18\x03 \x02(\rB\x05\x92?\x02\x38\x10\"&\n\x0b\x42\x61seMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\">\n\x0e\x41\x63kNackMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x13\n\x0b\x61\x63knowledge\x18\x02 \x02(\x08\"&\n\x0bPingMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\"3\n\nSystemTick\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x0c\n\x04tick\x18\x02 \x02(\r\"w\n\x0e\x43onsoleMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x19\n\nthis_frame\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x1b\n\x0ctotal_frames\x18\x03 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x04\x64\x61ta\x18\x04 \x02(\x0c\x42\x06\x92?\x03\x08\x80\x01\"\xa2\x01\n\x11SystemInfoMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x12\n\nsystemTick\x18\x02 \x02(\r\x12\x1d\n\tswVersion\x18\x03 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12\x1f\n\x0b\x64\x65scription\x18\x04 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12 \n\x0cserialNumber\x18\x05 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01*g\n\x0bSerialMsgId\x12\x10\n\x0cMSG_ACK_NACK\x10\x00\x12\x10\n\x0cMSG_PING_CMD\x10\x01\x12\x10\n\x0cMSG_TERMINAL\x10\x02\x12\x10\n\x0cMSG_SYS_TICK\x10\x03\x12\x10\n\x0cMSG_SYS_INFO\x10\x04'
+  serialized_pb=b'\n\x16serial_interface.proto\x1a\x0cnanopb.proto\"I\n\x06Header\x12\x14\n\x05msgId\x18\x01 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x05subId\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x13\n\x04uuid\x18\x03 \x02(\rB\x05\x92?\x02\x38\x10\"&\n\x0b\x42\x61seMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\">\n\x0e\x41\x63kNackMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x13\n\x0b\x61\x63knowledge\x18\x02 \x02(\x08\"&\n\x0bPingMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\"3\n\nSystemTick\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x0c\n\x04tick\x18\x02 \x02(\r\"w\n\x0e\x43onsoleMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x19\n\nthis_frame\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x1b\n\x0ctotal_frames\x18\x03 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x04\x64\x61ta\x18\x04 \x02(\x0c\x42\x06\x92?\x03\x08\x80\x01\"\xa2\x01\n\x11SystemInfoMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x12\n\nsystemTick\x18\x02 \x02(\r\x12\x1d\n\tswVersion\x18\x03 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12\x1f\n\x0b\x64\x65scription\x18\x04 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12 \n\x0cserialNumber\x18\x05 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01*\x8d\x01\n\x0bSerialMsgId\x12\x10\n\x0cMSG_ACK_NACK\x10\x00\x12\x10\n\x0cMSG_PING_CMD\x10\x01\x12\x10\n\x0cMSG_TERMINAL\x10\x02\x12\x10\n\x0cMSG_SYS_TICK\x10\x03\x12\x10\n\x0cMSG_SYS_INFO\x10\x04\x12\x11\n\rMSG_PUT_PARAM\x10\x05\x12\x11\n\rMSG_GET_PARAM\x10\x06*\"\n\nParamSubId\x12\x14\n\x10PARAM_BOOT_COUNT\x10\x00'
   ,
   dependencies=[nanopb__pb2.DESCRIPTOR,])
 
@@ -57,20 +57,54 @@ _SERIALMSGID = _descriptor.EnumDescriptor(
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='MSG_PUT_PARAM', index=5, number=5,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='MSG_GET_PARAM', index=6, number=6,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=598,
-  serialized_end=701,
+  serialized_start=599,
+  serialized_end=740,
 )
 _sym_db.RegisterEnumDescriptor(_SERIALMSGID)
 
 SerialMsgId = enum_type_wrapper.EnumTypeWrapper(_SERIALMSGID)
+_PARAMSUBID = _descriptor.EnumDescriptor(
+  name='ParamSubId',
+  full_name='ParamSubId',
+  filename=None,
+  file=DESCRIPTOR,
+  create_key=_descriptor._internal_create_key,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='PARAM_BOOT_COUNT', index=0, number=0,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+  ],
+  containing_type=None,
+  serialized_options=None,
+  serialized_start=742,
+  serialized_end=776,
+)
+_sym_db.RegisterEnumDescriptor(_PARAMSUBID)
+
+ParamSubId = enum_type_wrapper.EnumTypeWrapper(_PARAMSUBID)
 MSG_ACK_NACK = 0
 MSG_PING_CMD = 1
 MSG_TERMINAL = 2
 MSG_SYS_TICK = 3
 MSG_SYS_INFO = 4
+MSG_PUT_PARAM = 5
+MSG_GET_PARAM = 6
+PARAM_BOOT_COUNT = 0
 
 
 
@@ -388,6 +422,7 @@ DESCRIPTOR.message_types_by_name['SystemTick'] = _SYSTEMTICK
 DESCRIPTOR.message_types_by_name['ConsoleMessage'] = _CONSOLEMESSAGE
 DESCRIPTOR.message_types_by_name['SystemInfoMessage'] = _SYSTEMINFOMESSAGE
 DESCRIPTOR.enum_types_by_name['SerialMsgId'] = _SERIALMSGID
+DESCRIPTOR.enum_types_by_name['ParamSubId'] = _PARAMSUBID
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Header = _reflection.GeneratedProtocolMessageType('Header', (_message.Message,), {
