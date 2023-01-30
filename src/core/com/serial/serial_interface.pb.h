@@ -9,45 +9,54 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
+/* Enum definitions */
+typedef enum _SerialMsgId {
+    SerialMsgId_MSG_ACK_NACK = 0, /* Generic ack/nack type message */
+    SerialMsgId_MSG_PING_CMD = 1, /* Simple PING to see if the node is alive */
+    SerialMsgId_MSG_TERMINAL = 2, /* Terminal command for printing text/debug data */
+    SerialMsgId_MSG_SYS_TICK = 3, /* System time tick */
+    SerialMsgId_MSG_SYS_INFO = 4 /* System information */
+} SerialMsgId;
+
 /* Struct definitions */
 /* Instrumentation message header common to all types. Each functional message type **must**
  have this first in their list of declarations. */
-typedef struct _InstHeader {
+typedef struct _Header {
     uint8_t msgId; /* Root message identifier */
     uint8_t subId; /* Possible sub-identifier to specify root ID details */
     uint16_t uuid; /* Unique ID for the message */
-} InstHeader;
+} Header;
 
 /* Root type that parsers can use to peek at messages */
 typedef struct _BaseMessage {
-    InstHeader header;
+    Header header;
 } BaseMessage;
 
 /* Generic ACK or NACK to a previous message */
 typedef struct _AckNackMessage {
-    InstHeader header;
+    Header header;
     bool acknowledge;
 } AckNackMessage;
 
 typedef struct _PingMessage {
-    InstHeader header;
+    Header header;
 } PingMessage;
 
 typedef struct _SystemTick {
-    InstHeader header;
+    Header header;
     uint32_t tick;
 } SystemTick;
 
 typedef PB_BYTES_ARRAY_T(128) ConsoleMessage_data_t;
 typedef struct _ConsoleMessage {
-    InstHeader header;
+    Header header;
     uint8_t this_frame;
     uint8_t total_frames;
     ConsoleMessage_data_t data;
 } ConsoleMessage;
 
 typedef struct _SystemInfoMessage {
-    InstHeader header;
+    Header header;
     uint32_t systemTick;
     char swVersion[16];
     char description[16];
@@ -55,30 +64,43 @@ typedef struct _SystemInfoMessage {
 } SystemInfoMessage;
 
 
+/* Helper constants for enums */
+#define _SerialMsgId_MIN SerialMsgId_MSG_ACK_NACK
+#define _SerialMsgId_MAX SerialMsgId_MSG_SYS_INFO
+#define _SerialMsgId_ARRAYSIZE ((SerialMsgId)(SerialMsgId_MSG_SYS_INFO+1))
+
+
+
+
+
+
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define InstHeader_init_default                  {0, 0, 0}
-#define BaseMessage_init_default                 {InstHeader_init_default}
-#define AckNackMessage_init_default              {InstHeader_init_default, 0}
-#define PingMessage_init_default                 {InstHeader_init_default}
-#define SystemTick_init_default                  {InstHeader_init_default, 0}
-#define ConsoleMessage_init_default              {InstHeader_init_default, 0, 0, {0, {0}}}
-#define SystemInfoMessage_init_default           {InstHeader_init_default, 0, "", "", ""}
-#define InstHeader_init_zero                     {0, 0, 0}
-#define BaseMessage_init_zero                    {InstHeader_init_zero}
-#define AckNackMessage_init_zero                 {InstHeader_init_zero, 0}
-#define PingMessage_init_zero                    {InstHeader_init_zero}
-#define SystemTick_init_zero                     {InstHeader_init_zero, 0}
-#define ConsoleMessage_init_zero                 {InstHeader_init_zero, 0, 0, {0, {0}}}
-#define SystemInfoMessage_init_zero              {InstHeader_init_zero, 0, "", "", ""}
+#define Header_init_default                      {0, 0, 0}
+#define BaseMessage_init_default                 {Header_init_default}
+#define AckNackMessage_init_default              {Header_init_default, 0}
+#define PingMessage_init_default                 {Header_init_default}
+#define SystemTick_init_default                  {Header_init_default, 0}
+#define ConsoleMessage_init_default              {Header_init_default, 0, 0, {0, {0}}}
+#define SystemInfoMessage_init_default           {Header_init_default, 0, "", "", ""}
+#define Header_init_zero                         {0, 0, 0}
+#define BaseMessage_init_zero                    {Header_init_zero}
+#define AckNackMessage_init_zero                 {Header_init_zero, 0}
+#define PingMessage_init_zero                    {Header_init_zero}
+#define SystemTick_init_zero                     {Header_init_zero, 0}
+#define ConsoleMessage_init_zero                 {Header_init_zero, 0, 0, {0, {0}}}
+#define SystemInfoMessage_init_zero              {Header_init_zero, 0, "", "", ""}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define InstHeader_msgId_tag                     1
-#define InstHeader_subId_tag                     2
-#define InstHeader_uuid_tag                      3
+#define Header_msgId_tag                         1
+#define Header_subId_tag                         2
+#define Header_uuid_tag                          3
 #define BaseMessage_header_tag                   1
 #define AckNackMessage_header_tag                1
 #define AckNackMessage_acknowledge_tag           2
@@ -96,38 +118,38 @@ extern "C" {
 #define SystemInfoMessage_serialNumber_tag       5
 
 /* Struct field encoding specification for nanopb */
-#define InstHeader_FIELDLIST(X, a) \
+#define Header_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, UINT32,   msgId,             1) \
 X(a, STATIC,   REQUIRED, UINT32,   subId,             2) \
 X(a, STATIC,   REQUIRED, UINT32,   uuid,              3)
-#define InstHeader_CALLBACK NULL
-#define InstHeader_DEFAULT NULL
+#define Header_CALLBACK NULL
+#define Header_DEFAULT NULL
 
 #define BaseMessage_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1)
 #define BaseMessage_CALLBACK NULL
 #define BaseMessage_DEFAULT NULL
-#define BaseMessage_header_MSGTYPE InstHeader
+#define BaseMessage_header_MSGTYPE Header
 
 #define AckNackMessage_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
 X(a, STATIC,   REQUIRED, BOOL,     acknowledge,       2)
 #define AckNackMessage_CALLBACK NULL
 #define AckNackMessage_DEFAULT NULL
-#define AckNackMessage_header_MSGTYPE InstHeader
+#define AckNackMessage_header_MSGTYPE Header
 
 #define PingMessage_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1)
 #define PingMessage_CALLBACK NULL
 #define PingMessage_DEFAULT NULL
-#define PingMessage_header_MSGTYPE InstHeader
+#define PingMessage_header_MSGTYPE Header
 
 #define SystemTick_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
 X(a, STATIC,   REQUIRED, UINT32,   tick,              2)
 #define SystemTick_CALLBACK NULL
 #define SystemTick_DEFAULT NULL
-#define SystemTick_header_MSGTYPE InstHeader
+#define SystemTick_header_MSGTYPE Header
 
 #define ConsoleMessage_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
@@ -136,7 +158,7 @@ X(a, STATIC,   REQUIRED, UINT32,   total_frames,      3) \
 X(a, STATIC,   REQUIRED, BYTES,    data,              4)
 #define ConsoleMessage_CALLBACK NULL
 #define ConsoleMessage_DEFAULT NULL
-#define ConsoleMessage_header_MSGTYPE InstHeader
+#define ConsoleMessage_header_MSGTYPE Header
 
 #define SystemInfoMessage_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
@@ -146,9 +168,9 @@ X(a, STATIC,   REQUIRED, STRING,   description,       4) \
 X(a, STATIC,   REQUIRED, STRING,   serialNumber,      5)
 #define SystemInfoMessage_CALLBACK NULL
 #define SystemInfoMessage_DEFAULT NULL
-#define SystemInfoMessage_header_MSGTYPE InstHeader
+#define SystemInfoMessage_header_MSGTYPE Header
 
-extern const pb_msgdesc_t InstHeader_msg;
+extern const pb_msgdesc_t Header_msg;
 extern const pb_msgdesc_t BaseMessage_msg;
 extern const pb_msgdesc_t AckNackMessage_msg;
 extern const pb_msgdesc_t PingMessage_msg;
@@ -157,7 +179,7 @@ extern const pb_msgdesc_t ConsoleMessage_msg;
 extern const pb_msgdesc_t SystemInfoMessage_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
-#define InstHeader_fields &InstHeader_msg
+#define Header_fields &Header_msg
 #define BaseMessage_fields &BaseMessage_msg
 #define AckNackMessage_fields &AckNackMessage_msg
 #define PingMessage_fields &PingMessage_msg
@@ -169,7 +191,7 @@ extern const pb_msgdesc_t SystemInfoMessage_msg;
 #define AckNackMessage_size                      14
 #define BaseMessage_size                         12
 #define ConsoleMessage_size                      149
-#define InstHeader_size                          10
+#define Header_size                              10
 #define PingMessage_size                         12
 #define SystemInfoMessage_size                   69
 #define SystemTick_size                          18

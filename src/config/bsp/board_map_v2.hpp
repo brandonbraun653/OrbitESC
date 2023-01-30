@@ -242,6 +242,7 @@ namespace Orbit::IO
     Serial
     -------------------------------------------------------------------------*/
     static constexpr Chimera::Serial::Channel serialChannel = Chimera::Serial::Channel::SERIAL2;
+    static constexpr size_t                   baudRate      = 2000000;
 
     /*-------------------------------------------------------------------------
     GPIO

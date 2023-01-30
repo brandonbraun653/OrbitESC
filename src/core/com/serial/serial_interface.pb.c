@@ -6,7 +6,7 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
-PB_BIND(InstHeader, InstHeader, AUTO)
+PB_BIND(Header, Header, AUTO)
 
 
 PB_BIND(BaseMessage, BaseMessage, AUTO)
@@ -25,6 +25,7 @@ PB_BIND(ConsoleMessage, ConsoleMessage, AUTO)
 
 
 PB_BIND(SystemInfoMessage, SystemInfoMessage, AUTO)
+
 
 
 

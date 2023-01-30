@@ -190,7 +190,7 @@ class SerialClient:
             self._notify_signal.wait(timeout=0.1)
 
             # Do a tick timeout check to ensure the node hasn't dropped off the face of the earth
-            if self._online and ((time.time() - self._time_last_online) > 2.0):
+            if self._online and ((time.time() - self._time_last_online) > 3.0):
                 logger.warning("Serial link is offline")
                 self._online = False
 
@@ -213,6 +213,6 @@ class SerialClient:
 if __name__ == "__main__":
     from pyorbit.serial_messages import PingMessage
     ping = PingMessage()
-    client = SerialClient(port="/dev/ttyUSB0", baudrate=921600)
+    client = SerialClient(port="/dev/ttyUSB0", baudrate=2000000)
     # pipe.put(ping.serialize())
     time.sleep(500)

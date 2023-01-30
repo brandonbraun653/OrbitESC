@@ -38,19 +38,22 @@ namespace Orbit::Serial::Message
   static constexpr size_t _msg_size_array[] = { AckNackMessage_size, PingMessage_size, ConsoleMessage_size, SystemTick_size, SystemInfoMessage_size };
   static constexpr size_t MAX_RAW_MSG_SIZE  = *std::max_element( std::begin( _msg_size_array ), std::end( _msg_size_array ) );
   static constexpr size_t MAX_COBS_MSG_SIZE = COBS_ENCODE_DST_BUF_LEN_MAX( MAX_RAW_MSG_SIZE );
-  static constexpr size_t MIN_RAW_MSG_SIZE  = sizeof( InstHeader );
+  static constexpr size_t MIN_RAW_MSG_SIZE  = sizeof( Header );
   static constexpr size_t MIN_COBS_MSG_SIZE = COBS_ENCODE_DST_BUF_LEN_MAX( MIN_RAW_MSG_SIZE );
 
   /*---------------------------------------------------------------------------
   Enumerations
   ---------------------------------------------------------------------------*/
+  /**
+   * @brief Alias the definitions from the protocol buffer interface spec
+   */
   enum Id : etl::message_id_t
   {
-    MSG_ACK_NACK = 0, /**< Generic ack/nack type message */
-    MSG_PING_CMD = 1, /**< Simple PING to see if the node is alive */
-    MSG_TERMINAL = 2, /**< Terminal command for printing text/debug data */
-    MSG_SYS_TICK = 3, /**< System time tick */
-    MSG_SYS_INFO = 4, /**< System information */
+    MSG_ACK_NACK = SerialMsgId_MSG_ACK_NACK,
+    MSG_PING_CMD = SerialMsgId_MSG_PING_CMD,
+    MSG_TERMINAL = SerialMsgId_MSG_TERMINAL,
+    MSG_SYS_TICK = SerialMsgId_MSG_SYS_TICK,
+    MSG_SYS_INFO = SerialMsgId_MSG_SYS_INFO,
 
     MSG_ID_COUNT
   };
