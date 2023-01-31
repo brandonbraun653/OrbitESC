@@ -18,7 +18,7 @@ Includes
 #include <cstdint>
 #include <Aurora/datastruct>
 #include <Chimera/common>
-#include "serial_interface.pb.h"
+#include <src/core/com/serial/serial_interface.pb.h>
 
 namespace Orbit::Data
 {
@@ -124,7 +124,7 @@ namespace Orbit::Data
     {
       disk_update_period = DFLT_DISK_SYNC_PERIOD_MS;
     }
-  }
+  };
 }  // namespace Orbit::Data
 
 #endif  /* !ORBIT_ESC_SYSTEM_DATA_TYPES_HPP */

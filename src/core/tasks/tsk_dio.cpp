@@ -26,8 +26,8 @@ namespace Orbit::Tasks::DIO
   ---------------------------------------------------------------------------*/
   static void incrementBootCount()
   {
-
-
+    Data::SysInfo.bootCount++;
+    Data::updateDiskCache( Data::PARAM_BOOT_COUNT );
   }
 
 
@@ -50,6 +50,11 @@ namespace Orbit::Tasks::DIO
     Log::enable();
 
     /*-------------------------------------------------------------------------
+    Finalize the power up sequence
+    -------------------------------------------------------------------------*/
+    incrementBootCount();
+
+    /*-------------------------------------------------------------------------
     Run the HWM thread
     -------------------------------------------------------------------------*/
     size_t wake_up_tick = Chimera::millis();
@@ -57,10 +62,13 @@ namespace Orbit::Tasks::DIO
     while( 1 )
     {
       /*-----------------------------------------------------------------------
-      Do long-running operations
+      Push any pending log messages
       -----------------------------------------------------------------------*/
       Log::flushCache();
 
+      /*-----------------------------------------------------------------------
+      Synchronize any updates to the configuration backing store
+      -----------------------------------------------------------------------*/
       if( wake_up_tick >= next_sync )
       {
         next_sync = wake_up_tick + Data::SysConfig.disk_update_period;

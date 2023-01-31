@@ -34,8 +34,9 @@ namespace Orbit::Data
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr size_t      JSON_FILE_SIZE_MAX = 1024;
-  static constexpr const char *FMT_UINT32         = "%d";
+  static constexpr FS::AccessFlags FILE_FLAGS         = FS::AccessFlags::O_RDWR | FS::AccessFlags::O_CREAT;
+  static constexpr size_t          JSON_FILE_SIZE_MAX = 1024;
+  static constexpr const char     *FMT_UINT32         = "%d";
 
   /*-------------------------------------------------------------------
   EEPROM Addressing Limits and Registry Info
@@ -220,7 +221,6 @@ namespace Orbit::Data
     Local Variables
     -------------------------------------------------------------------------*/
     FS::FileId      fd    = -1;
-    FS::AccessFlags flags = ( FS::AccessFlags::O_RDWR | FS::AccessFlags::O_APPEND );
     s_json_pend_changes   = false;
 
     /*-------------------------------------------------------------------------
@@ -232,7 +232,7 @@ namespace Orbit::Data
     Open the file
     -------------------------------------------------------------------------*/
     LOG_INFO( "Loading configuration from disk..." );
-    if( 0 != FS::fopen( Internal::SystemConfigFile.cbegin(), flags, fd ) )
+    if( 0 != FS::fopen( Internal::SystemConfigFile.cbegin(), FILE_FLAGS, fd ) )
     {
       LOG_ERROR( "Failed to open configuration file: %s", Internal::SystemConfigFile.cbegin() );
       return false;
@@ -263,7 +263,7 @@ namespace Orbit::Data
     OrbitESC is unlikely to have massive amounts of configuration data, so this
     will work in a pinch. Several tasks already have large stacks anyways.
     -------------------------------------------------------------------------*/
-    uint8_t file_data[ JSON_FILE_SIZE_MAX ];
+    char file_data[ JSON_FILE_SIZE_MAX ];
     memset( file_data, 0, sizeof( file_data ) );
 
     FS::frewind( fd );
@@ -272,9 +272,11 @@ namespace Orbit::Data
     FS::fclose( fd );
 
     /*-------------------------------------------------------------------------
-    Parse the JSON information
+    Parse the JSON information using the copy-on-write interface
+    https://arduinojson.org/v6/api/json/deserializejson/
     -------------------------------------------------------------------------*/
-    DeserializationError error = deserializeJson( s_json_cache, file_data );
+    const char *copy_ptr = file_data;
+    DeserializationError error = deserializeJson( s_json_cache, copy_ptr );
     if( error )
     {
       LOG_ERROR( "Failed json decode: %s", error.c_str() );
@@ -293,7 +295,7 @@ namespace Orbit::Data
     /*-------------------------------------------------------------------------
     Take whatever is in the cache right now and serialize it to disk
     -------------------------------------------------------------------------*/
-    uint8_t file_data[ JSON_FILE_SIZE_MAX ];
+    char file_data[ JSON_FILE_SIZE_MAX ];
     memset( file_data, 0, sizeof( file_data ) );
     const size_t serialized_size = serializeJson( s_json_cache, file_data, sizeof( file_data ) );
 
@@ -303,7 +305,7 @@ namespace Orbit::Data
     FS::FileId fd       = -1;
     s_json_pend_changes = false;
 
-    if ( 0 == FS::fopen( Internal::SystemConfigFile.cbegin(), FS::AccessFlags::O_RDWR, fd ) )
+    if ( 0 == FS::fopen( Internal::SystemConfigFile.cbegin(), FILE_FLAGS, fd ) )
     {
       FS::frewind( fd );
       const size_t written = FS::fwrite( file_data, 1u, serialized_size, fd );

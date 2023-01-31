@@ -15,15 +15,15 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <array>
 #include "cobs.h"
-#include "serial_interface.pb.h"
-#include "pb_encode.h"
 #include "pb_decode.h"
+#include "pb_encode.h"
 #include <Chimera/common>
 #include <Chimera/serial>
-#include <etl/message.h>
+#include <array>
 #include <etl/array.h>
+#include <etl/message.h>
+#include <src/core/com/serial/serial_interface.pb.h>
 
 namespace Orbit::Serial::Message
 {
