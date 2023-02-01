@@ -15,9 +15,39 @@ Includes
 #include <Chimera/assert>
 #include <Chimera/serial>
 #include <src/core/com/serial/serial_server.hpp>
+#include <src/core/hw/orbit_usart.hpp>
 
 namespace Orbit::Serial
 {
+  /*---------------------------------------------------------------------------
+  Public Functions
+  ---------------------------------------------------------------------------*/
+  Chimera::Status_t sendAckNack( const bool ack_or_nack, const Header &header )
+  {
+    /*-------------------------------------------------------------------------
+    Populate the core message type
+    -------------------------------------------------------------------------*/
+    AckNackMessage payload;
+    memset( &payload, 0, sizeof( payload ) );
+    payload.header      = header;
+    payload.acknowledge = ack_or_nack;
+
+    /*-------------------------------------------------------------------------
+    Ship the response on the wire
+    -------------------------------------------------------------------------*/
+    Message::AckNack reply;
+    reply.reset();
+
+    if( reply.encode( payload ) )
+    {
+      return reply.send( Orbit::USART::SerialDriver );
+    }
+    else
+    {
+      return Chimera::Status::ENCODE_ERROR;
+    }
+  }
+
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/

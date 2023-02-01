@@ -12,6 +12,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <src/core/com/serial/serial_router.hpp>
+#include <src/core/com/serial/serial_server.hpp>
 #include <src/core/hw/orbit_usart.hpp>
 
 namespace Orbit::Serial::Router
@@ -26,21 +27,7 @@ namespace Orbit::Serial::Router
 
   void PingRouter::on_receive( const Message::Ping &msg )
   {
-    /*-------------------------------------------------------------------------
-    Populate the core message type
-    -------------------------------------------------------------------------*/
-    AckNackMessage payload;
-    memset( &payload, 0, sizeof( payload ) );
-    payload.header      = msg.payload.header;
-    payload.acknowledge = true;
-
-    /*-------------------------------------------------------------------------
-    Ship the response on the wire
-    -------------------------------------------------------------------------*/
-    Message::AckNack reply;
-    reply.reset();
-    reply.encode( payload );
-    reply.send( Orbit::USART::SerialDriver );
+    sendAckNack( true, msg.payload.header );
   }
 
 

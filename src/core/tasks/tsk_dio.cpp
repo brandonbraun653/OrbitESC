@@ -16,6 +16,7 @@ Includes
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/data/orbit_data_storage.hpp>
 #include <src/core/data/orbit_log_io.hpp>
+#include <src/core/runtime/serial_runtime.hpp>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_dio.hpp>
 
@@ -69,7 +70,15 @@ namespace Orbit::Tasks::DIO
       -----------------------------------------------------------------------*/
       if ( this_thread::receiveTaskMsg( tsk_msg, TIMEOUT_DONT_WAIT ) )
       {
+        switch( tsk_msg )
+        {
+          case TASK_MSG_PARAM_IO_EVENT:
+            Serial::handleParamIOEvent();
+            break;
 
+          default:
+            break;
+        }
       }
 
       /*-----------------------------------------------------------------------

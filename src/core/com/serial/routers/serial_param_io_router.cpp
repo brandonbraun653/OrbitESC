@@ -24,24 +24,6 @@ namespace Orbit::Serial::Router
   Public Data
   ---------------------------------------------------------------------------*/
   ParamIOQueue ParamIOEventQueue;
-  static void handle_get( const Message::ParamIO &msg )
-  {
-  }
-
-
-  static void handle_put( const Message::ParamIO &msg )
-  {
-  }
-
-
-  static void handle_load( const Message::ParamIO &msg )
-  {
-  }
-
-
-  static void handle_sync( const Message::ParamIO &msg )
-  {
-  }
 
 
   /*---------------------------------------------------------------------------
@@ -59,7 +41,7 @@ namespace Orbit::Serial::Router
     /*-------------------------------------------------------------------------
     Ensure enough space to handle the message
     -------------------------------------------------------------------------*/
-    if( ParamIOEventQueue.full() )
+    if ( ParamIOEventQueue.full() )
     {
       LOG_ERROR( "Dropped ParamIO request: %d", msg.payload.header.uuid );
       return;
@@ -70,30 +52,6 @@ namespace Orbit::Serial::Router
     -------------------------------------------------------------------------*/
     ParamIOEventQueue.push( msg );
     Chimera::Thread::sendTaskMsg( TASK_DIO, TASK_MSG_PARAM_IO_EVENT, Chimera::Thread::TIMEOUT_DONT_WAIT );
-
-
-    switch( msg.payload.header.subId )
-    {
-      case Message::SUB_MSG_PARAM_IO_GET:
-        handle_get( msg );
-        break;
-
-      case Message::SUB_MSG_PARAM_IO_PUT:
-        handle_put( msg );
-        break;
-
-      case Message::SUB_MSG_PARAM_IO_LOAD:
-        handle_load( msg );
-        break;
-
-      case Message::SUB_MSG_PARAM_IO_SYNC:
-        handle_sync( msg );
-        break;
-
-      default:
-        LOG_ERROR( "Unhandled ParamIO subId: %d", msg.payload.header.subId );
-        break;
-    }
   }
 
 
@@ -101,4 +59,4 @@ namespace Orbit::Serial::Router
   {
     /* Do nothing */
   }
-}  // namespace Orbit::Serial::Router
+}    // namespace Orbit::Serial::Router

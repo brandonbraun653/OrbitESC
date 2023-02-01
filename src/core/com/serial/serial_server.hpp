@@ -26,6 +26,18 @@ Includes
 namespace Orbit::Serial
 {
   /*---------------------------------------------------------------------------
+  Public Functions
+  ---------------------------------------------------------------------------*/
+  /**
+   * @brief Construct and ship an ACK/NACK packet response to a previous message
+   *
+   * @param ack_or_nack   True if ACK, false if NACK
+   * @param header        Header responding to
+   * @return Chimera::Status_t
+   */
+  Chimera::Status_t sendAckNack( const bool ack_or_nack, const Header &header );
+
+  /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
   /**
@@ -55,7 +67,7 @@ namespace Orbit::Serial
     void process();
 
   private:
-    using DecodeBuffer_t  = etl::array<uint8_t, Message::MAX_COBS_MSG_SIZE>;
+    using DecodeBuffer_t = etl::array<uint8_t, Message::MAX_COBS_MSG_SIZE>;
 
     Chimera::Serial::Driver_rPtr    mSerial;       /**< Serial port to communicate with */
     etl::icircular_buffer<uint8_t> *mRXBuffer;     /**< Input ring buffer for accumulating messages */

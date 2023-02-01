@@ -18,6 +18,18 @@ class MessageId(IntEnum):
     PingCmd = proto.MSG_PING_CMD
     Terminal = proto.MSG_TERMINAL
     SystemTick = proto.MSG_SYS_TICK
+    ParamIO = proto.MSG_PARAM_IO
+
+
+class MessageSubId(IntEnum):
+    ParamIO_Put = proto.SUB_MSG_PARAM_IO_PUT
+    ParamIO_Get = proto.SUB_MSG_PARAM_IO_GET
+    ParamIO_Sync = proto.SUB_MSG_PARAM_IO_SYNC
+    ParamIO_Load = proto.SUB_MSG_PARAM_IO_LOAD
+
+
+class ParameterId(IntEnum):
+    BootCount = proto.PARAM_BOOT_COUNT
 
 
 class BaseMessage:
@@ -32,6 +44,10 @@ class BaseMessage:
     @property
     def pb_message(self) -> Message:
         return self._pb_msg
+
+    @property
+    def uuid(self) -> int:
+        return self._pb_msg.header.uuid
 
     def deserialize(self, serialized: bytes) -> int:
         """
@@ -91,10 +107,6 @@ class ConsoleMessage(BaseMessage):
         self._pb_msg.header.msgId = MessageId.SystemTick.value
 
     @property
-    def uuid(self) -> int:
-        return self._pb_msg.header.uuid
-
-    @property
     def frame_number(self) -> int:
         return self._pb_msg.this_frame
 
@@ -107,9 +119,22 @@ class ConsoleMessage(BaseMessage):
         return self._pb_msg.data
 
 
+class ParamIOMessage(BaseMessage):
+
+    def __init__(self):
+        super().__init__()
+        self._pb_msg = proto.ParamIOMessage()
+        self._pb_msg.header.msgId = MessageId.ParamIO.value
+
+    @property
+    def sub_id(self) -> MessageSubId:
+        return MessageSubId(self._pb_msg.header.sub_id)
+
+
 MessageTypeMap = {
     MessageId.AckNack: AckNackMessage,
     MessageId.PingCmd: PingMessage,
     MessageId.SystemTick: SystemTick,
-    MessageId.Terminal: ConsoleMessage
+    MessageId.Terminal: ConsoleMessage,
+    MessageId.ParamIO: ParamIOMessage
 }

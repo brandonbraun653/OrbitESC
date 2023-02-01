@@ -17,7 +17,7 @@ from loguru import logger
 from typing import Any, Callable, Dict, List, Union
 from pyorbit.serial_pipe import SerialPipe
 from pyorbit.exceptions import NotOnlineException
-from pyorbit.serial_messages import BaseMessage, PingMessage, SystemTick, ConsoleMessage
+from pyorbit.serial_messages import *
 from pyorbit.observer import MessageObserver
 from threading import Event, Thread, Lock
 from queue import Queue
@@ -125,6 +125,31 @@ class ConsoleObserver(MessageObserver):
                     self._in_progress_frames.pop(uuid)
 
 
+class ParameterObserver(MessageObserver):
+
+    def __init__(self, pipe: SerialPipe):
+        super().__init__(func=self._observer_func, msg_type=ParamIOMessage)
+        self._com_pipe = pipe
+
+    def get(self, param: ParameterId) -> Any:
+        pass
+
+    def put(self, param: ParameterId, value: Any) -> bool:
+        pass
+
+    def load(self) -> bool:
+        pass
+
+    def store(self) -> bool:
+        pass
+
+    def dump(self) -> str:
+        pass
+
+    def _observer_func(self, msg: ParamIOMessage) -> None:
+        pass
+
+
 class SerialClient:
     """ High level serial client to connect with the debug server running on OrbitESC """
 
@@ -150,8 +175,10 @@ class SerialClient:
         self._thread.start()
 
         # Register known observers
+        self._param_observer = ParameterObserver(pipe=self.com_pipe)
         self.com_pipe.subscribe_observer(MessageObserver(func=self._observer_esc_tick, msg_type=SystemTick))
         self.com_pipe.subscribe_observer(ConsoleObserver())
+        self.com_pipe.subscribe_observer(self._param_observer)
 
         atexit.register(self._teardown)
 
@@ -162,6 +189,29 @@ class SerialClient:
     @property
     def is_online(self) -> bool:
         return self._online
+
+    def ping(self) -> bool:
+        """
+        Returns:
+            True if the device was ping-able, False otherwise
+        """
+        # Do async await with thread events in a registered observer
+        pass
+
+    def get_parameter(self, param: ParameterId) -> Any:
+        return self._param_observer.get(param)
+
+    def put_parameter(self, param: ParameterId, value) -> bool:
+        return self._param_observer.put(param, value)
+
+    def sync_parameter_cache(self) -> bool:
+        return self._param_observer.store()
+
+    def load_parameter_cache(self) -> bool:
+        return self._param_observer.load()
+
+    def dump_parameter_cache(self) -> str:
+        return self._param_observer.dump()
 
     def put(self, data: bytes) -> None:
         """

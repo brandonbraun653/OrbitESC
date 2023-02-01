@@ -15,10 +15,11 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <cstdint>
 #include <Aurora/datastruct>
 #include <Chimera/common>
+#include <cstdint>
 #include <src/core/com/serial/serial_interface.pb.h>
+#include <src/core/data/orbit_data_defaults.hpp>
 
 namespace Orbit::Data
 {
