@@ -21,13 +21,13 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto2',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x16serial_interface.proto\x1a\x0cnanopb.proto\"I\n\x06Header\x12\x14\n\x05msgId\x18\x01 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x05subId\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x13\n\x04uuid\x18\x03 \x02(\rB\x05\x92?\x02\x38\x10\"&\n\x0b\x42\x61seMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\">\n\x0e\x41\x63kNackMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x13\n\x0b\x61\x63knowledge\x18\x02 \x02(\x08\"&\n\x0bPingMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\"3\n\nSystemTick\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x0c\n\x04tick\x18\x02 \x02(\r\"w\n\x0e\x43onsoleMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x19\n\nthis_frame\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x1b\n\x0ctotal_frames\x18\x03 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x04\x64\x61ta\x18\x04 \x02(\x0c\x42\x06\x92?\x03\x08\x80\x01\"\xa2\x01\n\x11SystemInfoMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x12\n\nsystemTick\x18\x02 \x02(\r\x12\x1d\n\tswVersion\x18\x03 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12\x1f\n\x0b\x64\x65scription\x18\x04 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12 \n\x0cserialNumber\x18\x05 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01*\x8d\x01\n\x0bSerialMsgId\x12\x10\n\x0cMSG_ACK_NACK\x10\x00\x12\x10\n\x0cMSG_PING_CMD\x10\x01\x12\x10\n\x0cMSG_TERMINAL\x10\x02\x12\x10\n\x0cMSG_SYS_TICK\x10\x03\x12\x10\n\x0cMSG_SYS_INFO\x10\x04\x12\x11\n\rMSG_PUT_PARAM\x10\x05\x12\x11\n\rMSG_GET_PARAM\x10\x06*\"\n\nParamSubId\x12\x14\n\x10PARAM_BOOT_COUNT\x10\x00'
+  serialized_pb=b'\n\x16serial_interface.proto\x1a\x0cnanopb.proto\"I\n\x06Header\x12\x14\n\x05msgId\x18\x01 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x05subId\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x13\n\x04uuid\x18\x03 \x02(\rB\x05\x92?\x02\x38\x10\"&\n\x0b\x42\x61seMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\">\n\x0e\x41\x63kNackMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x13\n\x0b\x61\x63knowledge\x18\x02 \x02(\x08\"&\n\x0bPingMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\"3\n\nSystemTick\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x0c\n\x04tick\x18\x02 \x02(\r\"w\n\x0e\x43onsoleMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x19\n\nthis_frame\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x1b\n\x0ctotal_frames\x18\x03 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x04\x64\x61ta\x18\x04 \x02(\x0c\x42\x06\x92?\x03\x08\x80\x01\"\xa2\x01\n\x11SystemInfoMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x12\n\nsystemTick\x18\x02 \x02(\r\x12\x1d\n\tswVersion\x18\x03 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12\x1f\n\x0b\x64\x65scription\x18\x04 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12 \n\x0cserialNumber\x18\x05 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\"\xa0\x02\n\tParamData\x12\x1a\n\tas_string\x18\x01 \x01(\tB\x05\x92?\x02\x08@H\x00\x12\x19\n\x08\x61s_bytes\x18\x02 \x01(\x0c\x42\x05\x92?\x02\x08@H\x00\x12\x12\n\x08\x61s_float\x18\x03 \x01(\x02H\x00\x12\x13\n\tas_double\x18\x04 \x01(\x01H\x00\x12\x18\n\x07\x61s_int8\x18\x05 \x01(\x05\x42\x05\x92?\x02\x38\x08H\x00\x12\x19\n\x08\x61s_int16\x18\x06 \x01(\x05\x42\x05\x92?\x02\x38\x10H\x00\x12\x12\n\x08\x61s_int32\x18\x07 \x01(\x05H\x00\x12\x19\n\x08\x61s_uint8\x18\x08 \x01(\rB\x05\x92?\x02\x38\x08H\x00\x12\x1a\n\tas_uint16\x18\t \x01(\rB\x05\x92?\x02\x38\x10H\x00\x12\x13\n\tas_uint32\x18\n \x01(\rH\x00\x12\x11\n\x07\x61s_bool\x18\x0b \x01(\x08H\x00\x42\x0b\n\tDataField\"\x81\x01\n\x0eParamIOMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x1b\n\x02id\x18\x02 \x02(\x0e\x32\x08.ParamIdB\x05\x92?\x02\x38\x08\x12\x1f\n\x04type\x18\x03 \x01(\x0e\x32\n.ParamTypeB\x05\x92?\x02\x38\x08\x12\x18\n\x04\x64\x61ta\x18\x04 \x01(\x0b\x32\n.ParamData*s\n\x05MsgId\x12\x10\n\x0cMSG_ACK_NACK\x10\x00\x12\x10\n\x0cMSG_PING_CMD\x10\x01\x12\x10\n\x0cMSG_TERMINAL\x10\x02\x12\x10\n\x0cMSG_SYS_TICK\x10\x03\x12\x10\n\x0cMSG_SYS_INFO\x10\x04\x12\x10\n\x0cMSG_PARAM_IO\x10\x05*q\n\x05SubId\x12\x18\n\x14SUB_MSG_PARAM_IO_GET\x10\x00\x12\x18\n\x14SUB_MSG_PARAM_IO_PUT\x10\x01\x12\x19\n\x15SUB_MSG_PARAM_IO_SYNC\x10\x02\x12\x19\n\x15SUB_MSG_PARAM_IO_LOAD\x10\x03*\x1f\n\x07ParamId\x12\x14\n\x10PARAM_BOOT_COUNT\x10\x00*{\n\tParamType\x12\x14\n\x10PARAM_TYPE_UINT8\x10\x00\x12\x15\n\x11PARAM_TYPE_UINT16\x10\x01\x12\x15\n\x11PARAM_TYPE_UINT32\x10\x02\x12\x14\n\x10PARAM_TYPE_FLOAT\x10\x03\x12\x14\n\x10PARAM_TYPE_BYTES\x10\x04'
   ,
   dependencies=[nanopb__pb2.DESCRIPTOR,])
 
-_SERIALMSGID = _descriptor.EnumDescriptor(
-  name='SerialMsgId',
-  full_name='SerialMsgId',
+_MSGID = _descriptor.EnumDescriptor(
+  name='MsgId',
+  full_name='MsgId',
   filename=None,
   file=DESCRIPTOR,
   create_key=_descriptor._internal_create_key,
@@ -58,27 +58,58 @@ _SERIALMSGID = _descriptor.EnumDescriptor(
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='MSG_PUT_PARAM', index=5, number=5,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='MSG_GET_PARAM', index=6, number=6,
+      name='MSG_PARAM_IO', index=5, number=5,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=599,
-  serialized_end=740,
+  serialized_start=1021,
+  serialized_end=1136,
 )
-_sym_db.RegisterEnumDescriptor(_SERIALMSGID)
+_sym_db.RegisterEnumDescriptor(_MSGID)
 
-SerialMsgId = enum_type_wrapper.EnumTypeWrapper(_SERIALMSGID)
-_PARAMSUBID = _descriptor.EnumDescriptor(
-  name='ParamSubId',
-  full_name='ParamSubId',
+MsgId = enum_type_wrapper.EnumTypeWrapper(_MSGID)
+_SUBID = _descriptor.EnumDescriptor(
+  name='SubId',
+  full_name='SubId',
+  filename=None,
+  file=DESCRIPTOR,
+  create_key=_descriptor._internal_create_key,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='SUB_MSG_PARAM_IO_GET', index=0, number=0,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='SUB_MSG_PARAM_IO_PUT', index=1, number=1,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='SUB_MSG_PARAM_IO_SYNC', index=2, number=2,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='SUB_MSG_PARAM_IO_LOAD', index=3, number=3,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+  ],
+  containing_type=None,
+  serialized_options=None,
+  serialized_start=1138,
+  serialized_end=1251,
+)
+_sym_db.RegisterEnumDescriptor(_SUBID)
+
+SubId = enum_type_wrapper.EnumTypeWrapper(_SUBID)
+_PARAMID = _descriptor.EnumDescriptor(
+  name='ParamId',
+  full_name='ParamId',
   filename=None,
   file=DESCRIPTOR,
   create_key=_descriptor._internal_create_key,
@@ -91,20 +122,69 @@ _PARAMSUBID = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=742,
-  serialized_end=776,
+  serialized_start=1253,
+  serialized_end=1284,
 )
-_sym_db.RegisterEnumDescriptor(_PARAMSUBID)
+_sym_db.RegisterEnumDescriptor(_PARAMID)
 
-ParamSubId = enum_type_wrapper.EnumTypeWrapper(_PARAMSUBID)
+ParamId = enum_type_wrapper.EnumTypeWrapper(_PARAMID)
+_PARAMTYPE = _descriptor.EnumDescriptor(
+  name='ParamType',
+  full_name='ParamType',
+  filename=None,
+  file=DESCRIPTOR,
+  create_key=_descriptor._internal_create_key,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='PARAM_TYPE_UINT8', index=0, number=0,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='PARAM_TYPE_UINT16', index=1, number=1,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='PARAM_TYPE_UINT32', index=2, number=2,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='PARAM_TYPE_FLOAT', index=3, number=3,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='PARAM_TYPE_BYTES', index=4, number=4,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+  ],
+  containing_type=None,
+  serialized_options=None,
+  serialized_start=1286,
+  serialized_end=1409,
+)
+_sym_db.RegisterEnumDescriptor(_PARAMTYPE)
+
+ParamType = enum_type_wrapper.EnumTypeWrapper(_PARAMTYPE)
 MSG_ACK_NACK = 0
 MSG_PING_CMD = 1
 MSG_TERMINAL = 2
 MSG_SYS_TICK = 3
 MSG_SYS_INFO = 4
-MSG_PUT_PARAM = 5
-MSG_GET_PARAM = 6
+MSG_PARAM_IO = 5
+SUB_MSG_PARAM_IO_GET = 0
+SUB_MSG_PARAM_IO_PUT = 1
+SUB_MSG_PARAM_IO_SYNC = 2
+SUB_MSG_PARAM_IO_LOAD = 3
 PARAM_BOOT_COUNT = 0
+PARAM_TYPE_UINT8 = 0
+PARAM_TYPE_UINT16 = 1
+PARAM_TYPE_UINT32 = 2
+PARAM_TYPE_FLOAT = 3
+PARAM_TYPE_BYTES = 4
 
 
 
@@ -408,12 +488,209 @@ _SYSTEMINFOMESSAGE = _descriptor.Descriptor(
   serialized_end=596,
 )
 
+
+_PARAMDATA = _descriptor.Descriptor(
+  name='ParamData',
+  full_name='ParamData',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='as_string', full_name='ParamData.as_string', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222?\002\010@', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='as_bytes', full_name='ParamData.as_bytes', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"",
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222?\002\010@', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='as_float', full_name='ParamData.as_float', index=2,
+      number=3, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='as_double', full_name='ParamData.as_double', index=3,
+      number=4, type=1, cpp_type=5, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='as_int8', full_name='ParamData.as_int8', index=4,
+      number=5, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222?\0028\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='as_int16', full_name='ParamData.as_int16', index=5,
+      number=6, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222?\0028\020', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='as_int32', full_name='ParamData.as_int32', index=6,
+      number=7, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='as_uint8', full_name='ParamData.as_uint8', index=7,
+      number=8, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222?\0028\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='as_uint16', full_name='ParamData.as_uint16', index=8,
+      number=9, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222?\0028\020', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='as_uint32', full_name='ParamData.as_uint32', index=9,
+      number=10, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='as_bool', full_name='ParamData.as_bool', index=10,
+      number=11, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='DataField', full_name='ParamData.DataField',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+  ],
+  serialized_start=599,
+  serialized_end=887,
+)
+
+
+_PARAMIOMESSAGE = _descriptor.Descriptor(
+  name='ParamIOMessage',
+  full_name='ParamIOMessage',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='header', full_name='ParamIOMessage.header', index=0,
+      number=1, type=11, cpp_type=10, label=2,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='id', full_name='ParamIOMessage.id', index=1,
+      number=2, type=14, cpp_type=8, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222?\0028\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='type', full_name='ParamIOMessage.type', index=2,
+      number=3, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222?\0028\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='data', full_name='ParamIOMessage.data', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=890,
+  serialized_end=1019,
+)
+
 _BASEMESSAGE.fields_by_name['header'].message_type = _HEADER
 _ACKNACKMESSAGE.fields_by_name['header'].message_type = _HEADER
 _PINGMESSAGE.fields_by_name['header'].message_type = _HEADER
 _SYSTEMTICK.fields_by_name['header'].message_type = _HEADER
 _CONSOLEMESSAGE.fields_by_name['header'].message_type = _HEADER
 _SYSTEMINFOMESSAGE.fields_by_name['header'].message_type = _HEADER
+_PARAMDATA.oneofs_by_name['DataField'].fields.append(
+  _PARAMDATA.fields_by_name['as_string'])
+_PARAMDATA.fields_by_name['as_string'].containing_oneof = _PARAMDATA.oneofs_by_name['DataField']
+_PARAMDATA.oneofs_by_name['DataField'].fields.append(
+  _PARAMDATA.fields_by_name['as_bytes'])
+_PARAMDATA.fields_by_name['as_bytes'].containing_oneof = _PARAMDATA.oneofs_by_name['DataField']
+_PARAMDATA.oneofs_by_name['DataField'].fields.append(
+  _PARAMDATA.fields_by_name['as_float'])
+_PARAMDATA.fields_by_name['as_float'].containing_oneof = _PARAMDATA.oneofs_by_name['DataField']
+_PARAMDATA.oneofs_by_name['DataField'].fields.append(
+  _PARAMDATA.fields_by_name['as_double'])
+_PARAMDATA.fields_by_name['as_double'].containing_oneof = _PARAMDATA.oneofs_by_name['DataField']
+_PARAMDATA.oneofs_by_name['DataField'].fields.append(
+  _PARAMDATA.fields_by_name['as_int8'])
+_PARAMDATA.fields_by_name['as_int8'].containing_oneof = _PARAMDATA.oneofs_by_name['DataField']
+_PARAMDATA.oneofs_by_name['DataField'].fields.append(
+  _PARAMDATA.fields_by_name['as_int16'])
+_PARAMDATA.fields_by_name['as_int16'].containing_oneof = _PARAMDATA.oneofs_by_name['DataField']
+_PARAMDATA.oneofs_by_name['DataField'].fields.append(
+  _PARAMDATA.fields_by_name['as_int32'])
+_PARAMDATA.fields_by_name['as_int32'].containing_oneof = _PARAMDATA.oneofs_by_name['DataField']
+_PARAMDATA.oneofs_by_name['DataField'].fields.append(
+  _PARAMDATA.fields_by_name['as_uint8'])
+_PARAMDATA.fields_by_name['as_uint8'].containing_oneof = _PARAMDATA.oneofs_by_name['DataField']
+_PARAMDATA.oneofs_by_name['DataField'].fields.append(
+  _PARAMDATA.fields_by_name['as_uint16'])
+_PARAMDATA.fields_by_name['as_uint16'].containing_oneof = _PARAMDATA.oneofs_by_name['DataField']
+_PARAMDATA.oneofs_by_name['DataField'].fields.append(
+  _PARAMDATA.fields_by_name['as_uint32'])
+_PARAMDATA.fields_by_name['as_uint32'].containing_oneof = _PARAMDATA.oneofs_by_name['DataField']
+_PARAMDATA.oneofs_by_name['DataField'].fields.append(
+  _PARAMDATA.fields_by_name['as_bool'])
+_PARAMDATA.fields_by_name['as_bool'].containing_oneof = _PARAMDATA.oneofs_by_name['DataField']
+_PARAMIOMESSAGE.fields_by_name['header'].message_type = _HEADER
+_PARAMIOMESSAGE.fields_by_name['id'].enum_type = _PARAMID
+_PARAMIOMESSAGE.fields_by_name['type'].enum_type = _PARAMTYPE
+_PARAMIOMESSAGE.fields_by_name['data'].message_type = _PARAMDATA
 DESCRIPTOR.message_types_by_name['Header'] = _HEADER
 DESCRIPTOR.message_types_by_name['BaseMessage'] = _BASEMESSAGE
 DESCRIPTOR.message_types_by_name['AckNackMessage'] = _ACKNACKMESSAGE
@@ -421,8 +698,12 @@ DESCRIPTOR.message_types_by_name['PingMessage'] = _PINGMESSAGE
 DESCRIPTOR.message_types_by_name['SystemTick'] = _SYSTEMTICK
 DESCRIPTOR.message_types_by_name['ConsoleMessage'] = _CONSOLEMESSAGE
 DESCRIPTOR.message_types_by_name['SystemInfoMessage'] = _SYSTEMINFOMESSAGE
-DESCRIPTOR.enum_types_by_name['SerialMsgId'] = _SERIALMSGID
-DESCRIPTOR.enum_types_by_name['ParamSubId'] = _PARAMSUBID
+DESCRIPTOR.message_types_by_name['ParamData'] = _PARAMDATA
+DESCRIPTOR.message_types_by_name['ParamIOMessage'] = _PARAMIOMESSAGE
+DESCRIPTOR.enum_types_by_name['MsgId'] = _MSGID
+DESCRIPTOR.enum_types_by_name['SubId'] = _SUBID
+DESCRIPTOR.enum_types_by_name['ParamId'] = _PARAMID
+DESCRIPTOR.enum_types_by_name['ParamType'] = _PARAMTYPE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Header = _reflection.GeneratedProtocolMessageType('Header', (_message.Message,), {
@@ -474,6 +755,20 @@ SystemInfoMessage = _reflection.GeneratedProtocolMessageType('SystemInfoMessage'
   })
 _sym_db.RegisterMessage(SystemInfoMessage)
 
+ParamData = _reflection.GeneratedProtocolMessageType('ParamData', (_message.Message,), {
+  'DESCRIPTOR' : _PARAMDATA,
+  '__module__' : 'serial_interface_pb2'
+  # @@protoc_insertion_point(class_scope:ParamData)
+  })
+_sym_db.RegisterMessage(ParamData)
+
+ParamIOMessage = _reflection.GeneratedProtocolMessageType('ParamIOMessage', (_message.Message,), {
+  'DESCRIPTOR' : _PARAMIOMESSAGE,
+  '__module__' : 'serial_interface_pb2'
+  # @@protoc_insertion_point(class_scope:ParamIOMessage)
+  })
+_sym_db.RegisterMessage(ParamIOMessage)
+
 
 _HEADER.fields_by_name['msgId']._options = None
 _HEADER.fields_by_name['subId']._options = None
@@ -484,4 +779,12 @@ _CONSOLEMESSAGE.fields_by_name['data']._options = None
 _SYSTEMINFOMESSAGE.fields_by_name['swVersion']._options = None
 _SYSTEMINFOMESSAGE.fields_by_name['description']._options = None
 _SYSTEMINFOMESSAGE.fields_by_name['serialNumber']._options = None
+_PARAMDATA.fields_by_name['as_string']._options = None
+_PARAMDATA.fields_by_name['as_bytes']._options = None
+_PARAMDATA.fields_by_name['as_int8']._options = None
+_PARAMDATA.fields_by_name['as_int16']._options = None
+_PARAMDATA.fields_by_name['as_uint8']._options = None
+_PARAMDATA.fields_by_name['as_uint16']._options = None
+_PARAMIOMESSAGE.fields_by_name['id']._options = None
+_PARAMIOMESSAGE.fields_by_name['type']._options = None
 # @@protoc_insertion_point(module_scope)

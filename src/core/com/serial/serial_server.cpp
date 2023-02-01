@@ -98,7 +98,7 @@ namespace Orbit::Serial
     {
       Message::SysTick tick;
       tick.reset();
-      tick.payload.header.msgId = Message::Id::MSG_SYS_TICK;
+      tick.payload.header.msgId = Message::MSG_SYS_TICK;
       tick.payload.tick         = current_tick;
 
       tick.encode();
@@ -176,7 +176,7 @@ namespace Orbit::Serial
           {
             switch( msg.header.msgId )
             {
-              case Message::Id::MSG_PING_CMD:
+              case Message::MSG_PING_CMD:
                 {
                   Message::Ping ping;
                   ping.decode( in.data(), mRXSearchOfst - 1u );
@@ -184,7 +184,7 @@ namespace Orbit::Serial
                 }
                 break;
 
-              case Message::Id::MSG_ID_COUNT:
+              case Message::MSG_ID_COUNT:
               default:
                 LOG_ERROR( "Unhandled msg ID: %d", msg.header.msgId );
                 break;

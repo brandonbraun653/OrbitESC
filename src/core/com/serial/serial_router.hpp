@@ -17,9 +17,26 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <src/core/com/serial/serial_async_message.hpp>
 #include <etl/message_router.h>
+#include <etl/queue_spsc_atomic.h>
 
 namespace Orbit::Serial::Router
 {
+  /*---------------------------------------------------------------------------
+  Aliases
+  ---------------------------------------------------------------------------*/
+  using ParamIOQueue = etl::queue_spsc_atomic<Message::ParamIO, 3, etl::memory_model::MEMORY_MODEL_SMALL>;
+
+  /*---------------------------------------------------------------------------
+  Public Data
+  ---------------------------------------------------------------------------*/
+  /**
+   * @brief SPSC queue for Parameter IO messages received
+   *
+   * Producer: ParamIORouter
+   * Consumer: DIOThread
+   */
+  extern ParamIOQueue ParamIOEventQueue;
+
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
@@ -28,6 +45,14 @@ namespace Orbit::Serial::Router
   public:
     PingRouter();
     void on_receive( const Message::Ping &msg );
+    void on_receive_unknown( const etl::imessage &msg );
+  };
+
+  class ParamIORouter : public etl::message_router<ParamIORouter, Message::ParamIO>
+  {
+  public:
+    ParamIORouter();
+    void on_receive( const Message::ParamIO &msg );
     void on_receive_unknown( const etl::imessage &msg );
   };
 

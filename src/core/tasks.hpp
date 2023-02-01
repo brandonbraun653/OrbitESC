@@ -37,6 +37,13 @@ namespace Orbit::Tasks
   };
   static_assert( TASK_IDLE == 0 );
 
+  enum PrjTaskMsg : uint8_t
+  {
+    TASK_MSG_PARAM_IO_EVENT,    /**< Handle incoming ParamIO messages */
+
+    TASK_MSG_NUM_OPTIONS
+  };
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/

@@ -52,13 +52,13 @@ namespace Orbit::Data
   ---------------------------------------------------------------------------*/
   struct ParameterNode
   {
-    ParamId          id;      /**< Software enumeration tied to parameter */
+    ParameterId          id;      /**< Software enumeration tied to parameter */
     const char      *key;     /**< String to use in JSON data storage */
     const char      *fmt;     /**< String format for serialization */
     void            *address; /**< Fixed location in memory where data lives */
     size_t           maxSize; /**< Max possible size of the data */
   };
-  using ParameterList = std::array<ParameterNode, ParamId::PARAM_COUNT>;
+  using ParameterList = std::array<ParameterNode, ParameterId::PARAM_COUNT>;
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -101,7 +101,7 @@ namespace Orbit::Data
 
   static void deserialize_disk_cache()
   {
-    for( size_t idx = 0; idx < ParamId::PARAM_COUNT; idx++ )
+    for( size_t idx = 0; idx < ParameterId::PARAM_COUNT; idx++ )
     {
       /*-----------------------------------------------------------------------
       Validate the key exists in the document
@@ -331,7 +331,7 @@ namespace Orbit::Data
   }
 
 
-  bool updateDiskCache( const ParamId param )
+  bool updateDiskCache( const ParameterId param )
   {
     Chimera::Thread::LockGuard _lck( s_json_lock );
 
@@ -370,9 +370,9 @@ namespace Orbit::Data
     Chimera::Thread::LockGuard _lck( s_json_lock );
 
     bool sticky_result = true;
-    for( size_t idx = 0; idx < ParamId::PARAM_COUNT; idx++ )
+    for( size_t idx = 0; idx < ParameterId::PARAM_COUNT; idx++ )
     {
-      sticky_result &= updateDiskCache( static_cast<ParamId>( idx ) );
+      sticky_result &= updateDiskCache( static_cast<ParameterId>( idx ) );
     }
 
     return sticky_result;

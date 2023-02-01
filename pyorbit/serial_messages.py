@@ -14,10 +14,10 @@ from enum import IntEnum
 
 
 class MessageId(IntEnum):
-    AckNack = 0
-    PingCmd = 1
-    Terminal = 2
-    SystemTick = 3
+    AckNack = proto.MSG_ACK_NACK
+    PingCmd = proto.MSG_PING_CMD
+    Terminal = proto.MSG_TERMINAL
+    SystemTick = proto.MSG_SYS_TICK
 
 
 class BaseMessage:
@@ -50,6 +50,15 @@ class BaseMessage:
             Serialized message
         """
         return self.pb_message.SerializeToString()
+
+
+class AckNackMessage(BaseMessage):
+
+    def __init__(self):
+        super().__init__()
+
+        self._pb_msg = proto.AckNackMessage()
+        self._pb_msg.header.msgId = MessageId.AckNack.value
 
 
 class PingMessage(BaseMessage):
@@ -99,6 +108,7 @@ class ConsoleMessage(BaseMessage):
 
 
 MessageTypeMap = {
+    MessageId.AckNack: AckNackMessage,
     MessageId.PingCmd: PingMessage,
     MessageId.SystemTick: SystemTick,
     MessageId.Terminal: ConsoleMessage

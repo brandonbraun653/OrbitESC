@@ -1,18 +1,35 @@
 syntax = "proto2";
 import "nanopb.proto";
 
-enum SerialMsgId {
+enum MsgId {
   MSG_ACK_NACK = 0; // Generic ack/nack type message
   MSG_PING_CMD = 1; // Simple PING to see if the node is alive
   MSG_TERMINAL = 2; // Terminal command for printing text/debug data
   MSG_SYS_TICK = 3; // System time tick
   MSG_SYS_INFO = 4; // System information
-  MSG_PUT_PARAM = 5;
-  MSG_GET_PARAM = 6;
+  MSG_PARAM_IO = 5; // Do operations on configurable parameters
 }
 
-enum ParamSubId {
+enum SubId {
+  //option allow_alias = true;
+  SUB_MSG_PARAM_IO_GET = 0;   // Retrieve the current value of a parameter
+  SUB_MSG_PARAM_IO_PUT = 1;   // Commit a new value of a parameter
+  SUB_MSG_PARAM_IO_SYNC = 2;  // Synchronize all parameters to disk
+  SUB_MSG_PARAM_IO_LOAD = 3;  // Load all parameters from disk
+
+  // Add more here
+}
+
+enum ParamId {
   PARAM_BOOT_COUNT = 0;
+}
+
+enum ParamType {
+  PARAM_TYPE_UINT8 = 0;
+  PARAM_TYPE_UINT16 = 1;
+  PARAM_TYPE_UINT32 = 2;
+  PARAM_TYPE_FLOAT = 3;
+  PARAM_TYPE_BYTES = 4;
 }
 
 // Instrumentation message header common to all types. Each functional message type **must**
@@ -56,4 +73,27 @@ message SystemInfoMessage {
   required string swVersion = 3 [(nanopb).max_size = 16, (nanopb).fixed_length = true];
   required string description = 4 [(nanopb).max_size = 16, (nanopb).fixed_length = true];
   required string serialNumber = 5 [(nanopb).max_size = 16, (nanopb).fixed_length = true];
+}
+
+message ParamData {
+  oneof DataField {
+    string as_string = 1 [(nanopb).max_size = 64];
+    bytes as_bytes = 2 [(nanopb).max_size = 64 ];
+    float as_float = 3;
+    double as_double = 4;
+    int32 as_int8 = 5 [(nanopb).int_size = IS_8];
+    int32 as_int16 = 6 [(nanopb).int_size = IS_16];
+    int32 as_int32 = 7;
+    uint32 as_uint8 = 8 [(nanopb).int_size = IS_8];
+    uint32 as_uint16 = 9 [(nanopb).int_size = IS_16];
+    uint32 as_uint32 = 10;
+    bool as_bool = 11;
+  }
+}
+
+message ParamIOMessage {
+  required Header header = 1;
+  required ParamId id = 2 [(nanopb).int_size = IS_8];
+  optional ParamType type = 3 [(nanopb).int_size = IS_8];
+  optional ParamData data = 4;
 }

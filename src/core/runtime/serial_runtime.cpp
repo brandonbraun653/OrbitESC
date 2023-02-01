@@ -25,12 +25,13 @@ namespace Orbit::Serial
   Static Data
   ---------------------------------------------------------------------------*/
   static etl::circular_buffer<uint8_t, 1024> s_msg_buffer;
-  static Orbit::Serial::DispatchServer      s_server;
+  static Orbit::Serial::DispatchServer       s_server;
 
   /*---------------------------------------------------------------------------
   Router Declarations
   ---------------------------------------------------------------------------*/
-  static Router::PingRouter s_ping_router;
+  static Router::PingRouter    s_ping_router;
+  static Router::ParamIORouter s_param_router;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -46,6 +47,7 @@ namespace Orbit::Serial
     Register the routers to handle incoming messages
     -------------------------------------------------------------------------*/
     RT_HARD_ASSERT( s_server.subscribe( s_ping_router ) );
+    RT_HARD_ASSERT( s_server.subscribe( s_param_router ) );
   }
 
   void processSerial()

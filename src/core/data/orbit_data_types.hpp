@@ -31,9 +31,9 @@ namespace Orbit::Data
     NUM_OPTIONS
   };
 
-  enum ParamId : uint8_t
+  enum ParameterId : uint8_t
   {
-    PARAM_BOOT_COUNT = ParamSubId_PARAM_BOOT_COUNT,
+    PARAM_BOOT_COUNT = ParamId_PARAM_BOOT_COUNT,
     PARAM_COUNT
   };
 

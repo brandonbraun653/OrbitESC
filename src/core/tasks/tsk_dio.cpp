@@ -36,6 +36,8 @@ namespace Orbit::Tasks::DIO
   ---------------------------------------------------------------------------*/
   void DIOThread( void *arg )
   {
+    using namespace Chimera::Thread;
+
     /*-------------------------------------------------------------------------
     Wait for the start signal
     -------------------------------------------------------------------------*/
@@ -59,8 +61,17 @@ namespace Orbit::Tasks::DIO
     -------------------------------------------------------------------------*/
     size_t wake_up_tick = Chimera::millis();
     size_t next_sync    = wake_up_tick + Data::SysConfig.disk_update_period;
+    TaskMsg tsk_msg     = TASK_MSG_NUM_OPTIONS;
     while( 1 )
     {
+      /*-----------------------------------------------------------------------
+      Process any task messages that may have arrived
+      -----------------------------------------------------------------------*/
+      if ( this_thread::receiveTaskMsg( tsk_msg, TIMEOUT_DONT_WAIT ) )
+      {
+
+      }
+
       /*-----------------------------------------------------------------------
       Push any pending log messages
       -----------------------------------------------------------------------*/

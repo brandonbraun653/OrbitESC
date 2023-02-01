@@ -65,7 +65,7 @@ namespace Orbit::Data
    * @param param   Which parameter to store
    * @return bool
    */
-  bool updateDiskCache( const ParamId param );
+  bool updateDiskCache( const ParameterId param );
 
   /**
    * @brief Update the disk cache for all parameters

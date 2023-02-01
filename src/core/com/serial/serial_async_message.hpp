@@ -35,8 +35,21 @@ namespace Orbit::Serial::Message
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr size_t _msg_size_array[] = { AckNackMessage_size, PingMessage_size, ConsoleMessage_size, SystemTick_size, SystemInfoMessage_size };
-  static constexpr size_t MAX_RAW_MSG_SIZE  = *std::max_element( std::begin( _msg_size_array ), std::end( _msg_size_array ) );
+  namespace Internal
+  {
+    static constexpr size_t _msg_size_array[] = {
+      /* clang-format off */
+      AckNackMessage_size,
+      PingMessage_size,
+      ConsoleMessage_size,
+      SystemTick_size,
+      SystemInfoMessage_size,
+      ParamIOMessage_size
+      /* clang-format on */
+    };
+  }
+  static constexpr size_t MAX_RAW_MSG_SIZE =
+      *std::max_element( std::begin( Internal::_msg_size_array ), std::end( Internal::_msg_size_array ) );
   static constexpr size_t MAX_COBS_MSG_SIZE = COBS_ENCODE_DST_BUF_LEN_MAX( MAX_RAW_MSG_SIZE );
   static constexpr size_t MIN_RAW_MSG_SIZE  = sizeof( Header );
   static constexpr size_t MIN_COBS_MSG_SIZE = COBS_ENCODE_DST_BUF_LEN_MAX( MIN_RAW_MSG_SIZE );
@@ -47,17 +60,26 @@ namespace Orbit::Serial::Message
   /**
    * @brief Alias the definitions from the protocol buffer interface spec
    */
-  enum Id : etl::message_id_t
+  enum _Id : etl::message_id_t
   {
-    MSG_ACK_NACK = SerialMsgId_MSG_ACK_NACK,
-    MSG_PING_CMD = SerialMsgId_MSG_PING_CMD,
-    MSG_TERMINAL = SerialMsgId_MSG_TERMINAL,
-    MSG_SYS_TICK = SerialMsgId_MSG_SYS_TICK,
-    MSG_SYS_INFO = SerialMsgId_MSG_SYS_INFO,
+    MSG_ACK_NACK = MsgId_MSG_ACK_NACK,
+    MSG_PING_CMD = MsgId_MSG_PING_CMD,
+    MSG_TERMINAL = MsgId_MSG_TERMINAL,
+    MSG_SYS_TICK = MsgId_MSG_SYS_TICK,
+    MSG_SYS_INFO = MsgId_MSG_SYS_INFO,
+    MSG_PARAM_IO = MsgId_MSG_PARAM_IO,
 
     MSG_ID_COUNT
   };
-  static_assert( MSG_ID_COUNT == ARRAY_COUNT( _msg_size_array ) );
+  static_assert( MSG_ID_COUNT == ARRAY_COUNT( Internal::_msg_size_array ) );
+
+  enum _SubId : uint8_t
+  {
+    SUB_MSG_PARAM_IO_GET  = SubId_SUB_MSG_PARAM_IO_GET,
+    SUB_MSG_PARAM_IO_PUT  = SubId_SUB_MSG_PARAM_IO_PUT,
+    SUB_MSG_PARAM_IO_SYNC = SubId_SUB_MSG_PARAM_IO_SYNC,
+    SUB_MSG_PARAM_IO_LOAD = SubId_SUB_MSG_PARAM_IO_LOAD,
+  };
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -89,7 +111,7 @@ namespace Orbit::Serial::Message
   {
   public:
     static constexpr etl::message_id_t MessageId = MSG_ID;
-    PayloadType payload;
+    PayloadType                        payload;
 
     /**
      * @brief Resets the message payload to empty
@@ -177,7 +199,7 @@ namespace Orbit::Serial::Message
       Unpack the COBS encoded frame
       -----------------------------------------------------------------------*/
       cobs_decode_result cobsResult = cobs_decode( io_buffer.data(), io_buffer.size(), src, length );
-      if( cobsResult.status != COBS_DECODE_OK )
+      if ( cobsResult.status != COBS_DECODE_OK )
       {
         return false;
       }
@@ -185,7 +207,8 @@ namespace Orbit::Serial::Message
       /*-----------------------------------------------------------------------
       Decode the nanopb data
       -----------------------------------------------------------------------*/
-      pb_istream_t stream = pb_istream_from_buffer( reinterpret_cast<const pb_byte_t *>( io_buffer.data() ), cobsResult.out_len );
+      pb_istream_t stream =
+          pb_istream_from_buffer( reinterpret_cast<const pb_byte_t *>( io_buffer.data() ), cobsResult.out_len );
       return pb_decode( &stream, PayloadFields, &dst );
     }
 
@@ -214,10 +237,10 @@ namespace Orbit::Serial::Message
       -----------------------------------------------------------------------*/
       auto timeout = block ? TIMEOUT_BLOCK : TIMEOUT_DONT_WAIT;
 
-      size_t offset = 0;
+      size_t offset    = 0;
       size_t remaining = bytes_written;
 
-      while( offset < bytes_written )
+      while ( offset < bytes_written )
       {
         size_t act_written = serial->write( io_buffer.data() + offset, remaining, timeout );
 
@@ -231,8 +254,6 @@ namespace Orbit::Serial::Message
     }
 
   protected:
-    static_assert( sizeof( PayloadType ) <= PayloadSize );
-
     static constexpr size_t EncodeSize = COBS_ENCODE_DST_BUF_LEN_MAX( PayloadSize );
     static constexpr size_t DecodeSize = COBS_DECODE_DST_BUF_LEN_MAX( PayloadSize );
     static constexpr size_t IOBuffSize = std::max<size_t>( EncodeSize, DecodeSize ) + 1u;
@@ -264,6 +285,10 @@ namespace Orbit::Serial::Message
   };
 
   class SysInfo : public MessageExt<MSG_SYS_INFO, SystemInfoMessage, SystemInfoMessage_size, SystemInfoMessage_fields>
+  {
+  };
+
+  class ParamIO : public MessageExt<MSG_PARAM_IO, ParamIOMessage, ParamIOMessage_size, ParamIOMessage_fields>
   {
   };
 
