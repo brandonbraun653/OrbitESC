@@ -38,7 +38,7 @@ namespace Orbit::Serial
     Message::AckNack reply;
     reply.reset();
 
-    if( reply.encode( payload ) )
+    if ( reply.encode( payload ) )
     {
       return reply.send( Orbit::USART::SerialDriver );
     }
@@ -124,7 +124,7 @@ namespace Orbit::Serial
     Ship the system tick message as needed
     -------------------------------------------------------------------------*/
     size_t current_tick = Chimera::millis();
-    if( ( current_tick - mLastTick ) >= 1000 )
+    if ( ( current_tick - mLastTick ) >= 1000 )
     {
       Message::SysTick tick;
       tick.reset();
@@ -145,80 +145,80 @@ namespace Orbit::Serial
     Parse the buffer for messages until none are found or the buffer is empty
     -------------------------------------------------------------------------*/
     bool eof = false;
-    while( ( mRXBuffer->size() > 0 ) && ( eof == false ) )
+    mRXSearchOfst = 0;
+
+    /*-----------------------------------------------------------------------
+    Search for the tail of a COBS message, indicated by a \x00 byte
+    -----------------------------------------------------------------------*/
+    for ( auto idx = mRXBuffer->begin() + mRXSearchOfst; ( ( eof == false ) && ( idx != mRXBuffer->end() ) );
+          idx++, mRXSearchOfst++ )
     {
-      /*-----------------------------------------------------------------------
-      Search for the tail of a COBS message, indicated by a \x00 byte
-      -----------------------------------------------------------------------*/
-      for( auto idx = mRXBuffer->begin() + mRXSearchOfst; ( ( eof == false ) && ( idx != mRXBuffer->end() ) ); idx++, mRXSearchOfst++ )
+      RT_DBG_ASSERT( mRXSearchOfst <= mRXBuffer->max_size() );
+      eof = ( *idx == '\x00' );
+    }
+
+    /*-----------------------------------------------------------------------
+    Clear the buffer if no message is found and either:
+      a) Buffer is full
+      b) Doesn't meet minimum message size requirements
+    -----------------------------------------------------------------------*/
+    if ( ( eof == false ) && ( ( mRXSearchOfst == mRXBuffer->max_size() ) || ( mRXSearchOfst < Message::MIN_COBS_MSG_SIZE ) ) )
+    {
+      mRXBuffer->clear();
+      mRXSearchOfst = 0;
+      return;
+    }
+
+    /*-----------------------------------------------------------------------
+    Decode the COBS message and inspect it for a supported header
+    -----------------------------------------------------------------------*/
+    if ( eof )
+    {
+      /*---------------------------------------------------------------------
+      Copy the frame out into local contiguous working buffers
+      ---------------------------------------------------------------------*/
+      DecodeBuffer_t out, in;
+      out.fill( 0 );
+      in.fill( 0 );
+
+      RT_DBG_ASSERT( in.size() >= mRXSearchOfst );
+      size_t copy_bytes = 0;
+      while ( mRXBuffer->size() )
       {
-        RT_DBG_ASSERT( mRXSearchOfst <= mRXBuffer->max_size() );
-        eof = ( *idx == '\x00' );
+        in[ copy_bytes ] = mRXBuffer->front();
+        mRXBuffer->pop();
+        copy_bytes++;
       }
 
-      /*-----------------------------------------------------------------------
-      Clear the buffer if no message is found and either:
-        a) Buffer is full
-        b) Doesn't meet minimum message size requirements
-      -----------------------------------------------------------------------*/
-      if( ( eof == false ) && ( ( mRXSearchOfst == mRXBuffer->max_size() ) || ( mRXSearchOfst < Message::MIN_COBS_MSG_SIZE ) ) )
+      /*---------------------------------------------------------------------
+      Attempt to decode the frame
+      ---------------------------------------------------------------------*/
+      RT_DBG_ASSERT( in[ mRXSearchOfst ] == '\x00' );
+
+      cobs_decode_result cobsResult = cobs_decode( out.data(), out.size(), in.cbegin(), mRXSearchOfst - 1u );
+      if ( cobsResult.status == COBS_DECODE_OK )
       {
-        mRXBuffer->clear();
-        mRXSearchOfst = 0;
-        continue;
-      }
+        /*-----------------------------------------------------------------------
+        Decode the nanopb data
+        -----------------------------------------------------------------------*/
+        BaseMessage  msg;
+        pb_istream_t stream = pb_istream_from_buffer( reinterpret_cast<const pb_byte_t *>( out.data() ), cobsResult.out_len );
 
-      /*-----------------------------------------------------------------------
-      Decode the COBS message and inspect it for a supported header
-      -----------------------------------------------------------------------*/
-      if( eof )
-      {
-        /*---------------------------------------------------------------------
-        Copy the frame out into local contiguous working buffers
-        ---------------------------------------------------------------------*/
-        DecodeBuffer_t out, in;
-        out.fill( 0 );
-        in.fill( 0 );
-
-        RT_DBG_ASSERT( in.size() >= mRXSearchOfst );
-        size_t copy_bytes = 0;
-        while( copy_bytes < mRXSearchOfst )
+        if ( pb_decode( &stream, BaseMessage_fields, &msg ) )
         {
-          in[ copy_bytes ] = mRXBuffer->front();
-          mRXBuffer->pop();
-        }
-
-        /*---------------------------------------------------------------------
-        Attempt to decode the frame
-        ---------------------------------------------------------------------*/
-        RT_DBG_ASSERT( in[ mRXSearchOfst ] == '\x00' );
-
-        cobs_decode_result cobsResult = cobs_decode( out.data(), out.size(), in.cbegin(), mRXSearchOfst - 1u );
-        if( cobsResult.status == COBS_DECODE_OK )
-        {
-          /*-----------------------------------------------------------------------
-          Decode the nanopb data
-          -----------------------------------------------------------------------*/
-          BaseMessage msg;
-          pb_istream_t stream = pb_istream_from_buffer( reinterpret_cast<const pb_byte_t *>( out.data() ), cobsResult.out_len );
-
-          if( pb_decode( &stream, BaseMessage_fields, &msg ) )
+          switch ( msg.header.msgId )
           {
-            switch( msg.header.msgId )
-            {
-              case Message::MSG_PING_CMD:
-                {
-                  Message::Ping ping;
-                  ping.decode( in.data(), mRXSearchOfst - 1u );
-                  this->receive( ping );
-                }
-                break;
-
-              case Message::MSG_ID_COUNT:
-              default:
-                LOG_ERROR( "Unhandled msg ID: %d", msg.header.msgId );
-                break;
+            case Message::MSG_PING_CMD: {
+              Message::Ping ping;
+              ping.decode( in.data(), mRXSearchOfst - 1u );
+              this->receive( ping );
             }
+            break;
+
+            case Message::MSG_ID_COUNT:
+            default:
+              LOG_ERROR( "Unhandled msg ID: %d", msg.header.msgId );
+              break;
           }
         }
       }

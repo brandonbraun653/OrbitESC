@@ -24,7 +24,7 @@ namespace Orbit::Tasks::COM
   Constants
   ---------------------------------------------------------------------------*/
   static constexpr size_t                        PERIOD_MS = 15;
-  static constexpr size_t                        STACK     = STACK_BYTES( 8192 );
+  static constexpr size_t                        STACK     = STACK_BYTES( 12 * 1024 );
   static constexpr std::string_view              NAME      = "com";
   static constexpr Chimera::Thread::TaskPriority PRIORITY  = 4;
 

@@ -11,6 +11,8 @@
 import pyorbit.nanopb.serial_interface_pb2 as proto
 from google.protobuf.message import Message
 from enum import IntEnum
+from pyorbit.utils import Singleton
+from threading import RLock
 
 
 class MessageId(IntEnum):
@@ -32,9 +34,23 @@ class ParameterId(IntEnum):
     BootCount = proto.PARAM_BOOT_COUNT
 
 
+class UUIDGenerator(metaclass=Singleton):
+
+    def __init__(self):
+        self._uuid = 0
+        self._lock = RLock()
+
+    @property
+    def next_uuid(self) -> int:
+        with self._lock:
+            self._uuid = (self._uuid + 1) % 256
+            return self._uuid
+
+
 class BaseMessage:
 
     def __init__(self):
+        self._id_gen = UUIDGenerator()
         self._pb_msg = None
 
     @property
@@ -84,6 +100,8 @@ class PingMessage(BaseMessage):
 
         self._pb_msg = proto.PingMessage()
         self._pb_msg.header.msgId = MessageId.PingCmd.value
+        self._pb_msg.header.subId = 0
+        self._pb_msg.header.uuid = self._id_gen.next_uuid
 
 
 class SystemTick(BaseMessage):
@@ -125,6 +143,7 @@ class ParamIOMessage(BaseMessage):
         super().__init__()
         self._pb_msg = proto.ParamIOMessage()
         self._pb_msg.header.msgId = MessageId.ParamIO.value
+        self._pb_msg.header.uuid = self._id_gen.next_uuid
 
     @property
     def sub_id(self) -> MessageSubId:

@@ -195,8 +195,12 @@ class SerialClient:
         Returns:
             True if the device was ping-able, False otherwise
         """
-        # Do async await with thread events in a registered observer
-        pass
+        sub_id = self.com_pipe.subscribe(msg=PingMessage, qty=1, timeout=5.0)
+        self.com_pipe.put(PingMessage().serialize())
+        responses = self.com_pipe.get_subscription_data(sub_id, terminate=True)
+        if not responses:
+            logger.warning("Node did not respond to ping")
+        return bool(responses)
 
     def get_parameter(self, param: ParameterId) -> Any:
         return self._param_observer.get(param)
@@ -262,7 +266,8 @@ class SerialClient:
 
 if __name__ == "__main__":
     from pyorbit.serial_messages import PingMessage
-    ping = PingMessage()
     client = SerialClient(port="/dev/ttyUSB0", baudrate=2000000)
-    # pipe.put(ping.serialize())
+    if client.ping():
+        logger.info("Pinged the node")
+
     time.sleep(500)

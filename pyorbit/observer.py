@@ -54,7 +54,6 @@ class MessageQueue:
 
         # All good. Initialize the rest of the class.
         self._msg_type = instantiated_msg.__class__
-        self._arb_id = instantiated_msg.id()
         self._qty = qty
         self._timeout = timeout
         self._verbose = verbose
