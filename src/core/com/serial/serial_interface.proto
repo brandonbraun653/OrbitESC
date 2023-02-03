@@ -25,11 +25,22 @@ enum ParamId {
 }
 
 enum ParamType {
-  PARAM_TYPE_UINT8 = 0;
-  PARAM_TYPE_UINT16 = 1;
-  PARAM_TYPE_UINT32 = 2;
-  PARAM_TYPE_FLOAT = 3;
-  PARAM_TYPE_BYTES = 4;
+  UNKNOWN = 0;
+  UINT8 = 1;
+  UINT16 = 2;
+  UINT32 = 3;
+  FLOAT = 4;
+  BYTES = 5;
+  STRING = 6;
+}
+
+enum StatusCode {
+  NO_ERROR = 0;
+  UNKNOWN_ERROR = 1;
+  INVALID_PARAM = 2;
+  INVALID_TYPE = 3;
+  INVALID_VALUE = 4;
+  REQUEST_FAILED = 5;
 }
 
 // Instrumentation message header common to all types. Each functional message type **must**
@@ -49,6 +60,7 @@ message BaseMessage {
 message AckNackMessage {
   required Header header = 1;
   required bool acknowledge = 2;
+  required StatusCode status_code = 3 [(nanopb).int_size = IS_8];
 }
 
 message PingMessage {
@@ -75,25 +87,9 @@ message SystemInfoMessage {
   required string serialNumber = 5 [(nanopb).max_size = 16, (nanopb).fixed_length = true];
 }
 
-message ParamData {
-  oneof DataField {
-    string as_string = 1 [(nanopb).max_size = 64];
-    bytes as_bytes = 2 [(nanopb).max_size = 64 ];
-    float as_float = 3;
-    double as_double = 4;
-    int32 as_int8 = 5 [(nanopb).int_size = IS_8];
-    int32 as_int16 = 6 [(nanopb).int_size = IS_16];
-    int32 as_int32 = 7;
-    uint32 as_uint8 = 8 [(nanopb).int_size = IS_8];
-    uint32 as_uint16 = 9 [(nanopb).int_size = IS_16];
-    uint32 as_uint32 = 10;
-    bool as_bool = 11;
-  }
-}
-
 message ParamIOMessage {
   required Header header = 1;
   optional ParamId id = 2 [(nanopb).int_size = IS_8];
   optional ParamType type = 3 [(nanopb).int_size = IS_8];
-  optional ParamData data = 4;
+  optional bytes data = 4 [(nanopb).max_size = 64 ];
 }

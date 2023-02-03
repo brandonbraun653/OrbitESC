@@ -22,7 +22,7 @@ namespace Orbit::Serial
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
-  Chimera::Status_t sendAckNack( const bool ack_or_nack, const Header &header )
+  Chimera::Status_t sendAckNack( const bool ack_or_nack, const Header &header, const StatusCode code )
   {
     /*-------------------------------------------------------------------------
     Populate the core message type
@@ -33,6 +33,7 @@ namespace Orbit::Serial
     payload.header.subId = header.subId;
     payload.header.uuid  = header.uuid;
     payload.acknowledge  = ack_or_nack;
+    payload.status_code  = code;
 
     /*-------------------------------------------------------------------------
     Ship the response on the wire

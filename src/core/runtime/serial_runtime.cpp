@@ -18,7 +18,9 @@ Includes
 #include <src/core/com/serial/serial_router.hpp>
 #include <src/core/com/serial/serial_server.hpp>
 #include <src/core/data/orbit_data_storage.hpp>
+#include <src/core/hw/orbit_usart.hpp>
 #include <src/core/runtime/serial_runtime.hpp>
+
 
 namespace Orbit::Serial
 {
@@ -43,6 +45,52 @@ namespace Orbit::Serial
    */
   static void handle_get( const Message::ParamIO &msg )
   {
+    using namespace Orbit::Data;
+
+    /*-------------------------------------------------------------------------
+    Ensure the parameter ID is valid
+    -------------------------------------------------------------------------*/
+    ParameterId id = static_cast<ParameterId>( msg.payload.id );
+    if ( id >= ParameterId::PARAM_COUNT )
+    {
+      sendAckNack( false, msg.payload.header, StatusCode_INVALID_PARAM );
+      return;
+    }
+
+    /*-------------------------------------------------------------------------
+    Prepare the response
+    -------------------------------------------------------------------------*/
+    ParamIOMessage response;
+    response.header   = msg.payload.header;
+    response.id       = msg.payload.id;
+    response.type     = getParamType( id );
+    response.has_type = true;
+    response.has_data = true;
+    memset( response.data.bytes, 0, sizeof( response.data.bytes ) );
+
+    /*-------------------------------------------------------------------------
+    Copy out the serialized data
+    -------------------------------------------------------------------------*/
+    if ( copyFromCache( id, response.data.bytes, sizeof( response.data.bytes ) ) )
+    {
+      response.data.size = strlen( reinterpret_cast<const char *>( response.data.bytes ) );
+    }
+    else
+    {
+      sendAckNack( false, msg.payload.header, StatusCode_REQUEST_FAILED );
+      return;
+    }
+
+    /*-------------------------------------------------------------------------
+    Ship the response on the wire
+    -------------------------------------------------------------------------*/
+    Message::ParamIO reply;
+    reply.reset();
+    reply.encode( response );
+    if ( reply.send( Orbit::USART::SerialDriver ) != Chimera::Status::OK )
+    {
+      LOG_ERROR( "Failed to send response to GET request" );
+    }
   }
 
 
@@ -52,6 +100,7 @@ namespace Orbit::Serial
    */
   static void handle_put( const Message::ParamIO &msg )
   {
+    sendAckNack( false, msg.payload.header );
   }
 
 

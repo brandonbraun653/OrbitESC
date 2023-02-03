@@ -30,8 +30,26 @@ class MessageSubId(IntEnum):
     ParamIO_Load = proto.SUB_MSG_PARAM_IO_LOAD
 
 
+class ParameterType(IntEnum):
+    Unknown = proto.UNKNOWN
+    UINT8   = proto.UINT8
+    UINT16  = proto.UINT16
+    UINT32  = proto.UINT32
+    FLOAT   = proto.FLOAT
+    BYTES   = proto.BYTES
+    STRING  = proto.STRING
+
 class ParameterId(IntEnum):
     BootCount = proto.PARAM_BOOT_COUNT
+
+
+class StatusCode(IntEnum):
+    NO_ERROR = proto.NO_ERROR
+    UNKNOWN_ERROR = proto.UNKNOWN_ERROR
+    INVALID_PARAM = proto.INVALID_PARAM
+    INVALID_TYPE = proto.INVALID_TYPE
+    INVALID_VALUE = proto.INVALID_VALUE
+    REQUEST_FAILED = proto.REQUEST_FAILED
 
 
 class UUIDGenerator(metaclass=Singleton):
@@ -115,6 +133,14 @@ class AckNackMessage(BaseMessage):
     def nack(self) -> bool:
         return not self._pb_msg.acknowledge
 
+    @property
+    def status_code(self) -> StatusCode:
+        return self._pb_msg.status_code
+
+    @status_code.setter
+    def status_code(self, sc: StatusCode):
+        self._pb_msg.status_code = sc.value
+
 
 class PingMessage(BaseMessage):
 
@@ -167,6 +193,30 @@ class ParamIOMessage(BaseMessage):
         self._pb_msg = proto.ParamIOMessage()
         self._pb_msg.header.msgId = MessageId.ParamIO.value
         self._pb_msg.header.uuid = self._id_gen.next_uuid
+
+    @property
+    def param_id(self) -> ParameterId:
+        return ParameterId(self._pb_msg.id)
+
+    @param_id.setter
+    def param_id(self, pid: ParameterId):
+        self._pb_msg.id = pid.value
+
+    @property
+    def param_type(self) -> ParameterType:
+        return ParameterType(self._pb_msg.type)
+
+    @param_type.setter
+    def param_type(self, pt: ParameterType):
+        self._pb_msg.type = pt.value
+
+    @property
+    def data(self) -> bytes:
+        return self._pb_msg.data
+
+    @data.setter
+    def data(self, d: bytes):
+        self._pb_msg.data = d
 
 
 MessageTypeMap = {

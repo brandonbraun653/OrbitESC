@@ -58,7 +58,7 @@ class ConsoleObserver(MessageObserver):
         def __init__(self):
             self.start_time = time.time()
             self.total_frames = 0
-            self.frames = []    # type: List[ConsoleMessage]
+            self.frames = []  # type: List[ConsoleMessage]
 
         def print_message(self) -> None:
             self.frames = sorted(self.frames, key=cmp_to_key(lambda x1, x2: x1.frame_number - x2.frame_number))
@@ -71,7 +71,7 @@ class ConsoleObserver(MessageObserver):
     def __init__(self):
         super().__init__(func=self._frame_accumulator, msg_type=ConsoleMessage)
         self._frame_lock = Lock()
-        self._in_progress_frames = {}   # type: Dict[int, ConsoleObserver.FrameBuffer]
+        self._in_progress_frames = {}  # type: Dict[int, ConsoleObserver.FrameBuffer]
         self._processing_thread = Thread(target=self._frame_processor, name="FrameProcessor", daemon=True)
         self._processing_thread.start()
 
@@ -131,7 +131,53 @@ class ParameterObserver(MessageObserver):
         self._com_pipe = pipe
 
     def get(self, param: ParameterId) -> Any:
-        pass
+        """
+        Requests the current value of a parameter
+        Args:
+            param: Which parameter to get
+
+        Returns:
+            Deserialized value
+        """
+        # Subscribe to the messages expected to received
+        nack_sub_id = self._com_pipe.subscribe(AckNackMessage, qty=1, timeout=3.0)
+        data_sub_id = self._com_pipe.subscribe(ParamIOMessage, qty=1, timeout=3.0)
+
+        # Format and publish the request
+        msg = ParamIOMessage()
+        msg.sub_id = MessageSubId.ParamIO_Get
+        msg.param_id = param
+
+        # Push the request onto the wire
+        self._com_pipe.put(msg.serialize())
+
+        # Listen for return messages
+        start_time = time.time()
+        while True:
+            time.sleep(0.01)
+            nack_messages = self._com_pipe.get_subscription_data(nack_sub_id, block=False)  # type: List[AckNackMessage]
+            data_messages = self._com_pipe.get_subscription_data(data_sub_id, block=False)  # type: List[ParamIOMessage]
+
+            if nack_messages or data_messages or ((time.time() - start_time) > 3.0):
+                self._com_pipe.get_subscription_data(nack_sub_id, block=False, terminate=True)
+                self._com_pipe.get_subscription_data(data_sub_id, block=False, terminate=True)
+                break
+
+        # Server denied the request for some reason
+        if nack_messages:
+            logger.error(f"GET parameter {param} failed with status code: {nack_messages[0].status_code}")
+            return
+
+        if data_messages:
+            rsp = data_messages[0]
+            if rsp.param_type == ParameterType.UINT32:
+                return int(rsp.data.decode('utf-8'))
+            else:
+                logger.warning(f"Don't know how to decode parameter type {rsp.param_type}")
+                return rsp.data
+
+        logger.error("No response from server")
+        return None
 
     def put(self, param: ParameterId, value: Any) -> bool:
         pass
@@ -149,7 +195,7 @@ class ParameterObserver(MessageObserver):
 
         self._com_pipe.put(msg.serialize())
         messages = self._com_pipe.get_subscription_data(sub_id, terminate=True)
-        for rsp in messages:   # type: AckNackMessage
+        for rsp in messages:  # type: AckNackMessage
             if rsp.uuid != msg.uuid:
                 continue
             else:
@@ -168,7 +214,7 @@ class ParameterObserver(MessageObserver):
 
         self._com_pipe.put(msg.serialize())
         messages = self._com_pipe.get_subscription_data(sub_id, terminate=True)
-        for rsp in messages:   # type: AckNackMessage
+        for rsp in messages:  # type: AckNackMessage
             if rsp.uuid != msg.uuid:
                 continue
             else:
@@ -300,12 +346,16 @@ class SerialClient:
 
 if __name__ == "__main__":
     import sys
+
     logger.remove()
     logger.add(sys.stderr, level="DEBUG")
 
     client = SerialClient(port="/dev/ttyUSB0", baudrate=2000000)
-    if not client.load_parameter_cache():
-        logger.info("Failed to load cache")
-    if not client.sync_parameter_cache():
-        logger.info("Failed to sync cache")
+    # if not client.load_parameter_cache():
+    #     logger.info("Failed to load cache")
+    # if not client.sync_parameter_cache():
+    #     logger.info("Failed to sync cache")
+
+    boot_count = client.get_parameter(ParameterId.BootCount)
+    logger.info(f"Current boot count is: {boot_count}")
     client.close()

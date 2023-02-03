@@ -73,6 +73,24 @@ namespace Orbit::Data
    */
   bool updateDiskCache();
 
+  /**
+   * @brief Copies a serialized parameter from the cache to the destination
+   *
+   * @param param   Which parameter to copy
+   * @param dest    Where to copy the data to
+   * @param size    How many bytes to copy
+   * @return bool   True if success, false if not
+   */
+  bool copyFromCache( const ParameterId param, void *const dest, const size_t size );
+
+  /**
+   * @brief Get storage type of the parameter
+   *
+   * @param param   Which parameter to query
+   * @return ParamType
+   */
+  ParamType getParamType( const ParameterId param );
+
 }    // namespace Orbit::Data
 
 #endif /* !ORBIT_DATA_STORAGE_HPP */

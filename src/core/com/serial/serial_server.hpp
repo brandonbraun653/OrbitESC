@@ -33,9 +33,10 @@ namespace Orbit::Serial
    *
    * @param ack_or_nack   True if ACK, false if NACK
    * @param header        Header responding to
+   * @param code          Optional status code to include in the response
    * @return Chimera::Status_t
    */
-  Chimera::Status_t sendAckNack( const bool ack_or_nack, const Header &header );
+  Chimera::Status_t sendAckNack( const bool ack_or_nack, const Header &header, const StatusCode code = StatusCode_NO_ERROR );
 
   /*---------------------------------------------------------------------------
   Classes

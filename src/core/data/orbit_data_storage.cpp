@@ -36,15 +36,15 @@ namespace Orbit::Data
   ---------------------------------------------------------------------------*/
   static constexpr FS::AccessFlags FILE_FLAGS         = FS::AccessFlags::O_RDWR | FS::AccessFlags::O_CREAT;
   static constexpr size_t          JSON_FILE_SIZE_MAX = 1024;
-  static constexpr const char     *FMT_UINT32         = "%d";
+  static constexpr const char     *FMT_UINT32         = "%lu";
 
   /*-------------------------------------------------------------------
   EEPROM Addressing Limits and Registry Info
   -------------------------------------------------------------------*/
-  static constexpr uint16_t EEPROM_IDENTITY_ADDR    = 0x0000;
-  static constexpr uint16_t EEPROM_IDENTITY_SZ      = 512;
-  static constexpr uint8_t  EEPROM_IDENTITY_VER     = 0;
-  static constexpr uint8_t  EEPROM_IDENTITY_TAG     = 0x23;
+  static constexpr uint16_t EEPROM_IDENTITY_ADDR = 0x0000;
+  static constexpr uint16_t EEPROM_IDENTITY_SZ   = 512;
+  static constexpr uint8_t  EEPROM_IDENTITY_VER  = 0;
+  static constexpr uint8_t  EEPROM_IDENTITY_TAG  = 0x23;
   static_assert( sizeof( Identity ) <= EEPROM_IDENTITY_SZ );
 
   /*---------------------------------------------------------------------------
@@ -52,11 +52,11 @@ namespace Orbit::Data
   ---------------------------------------------------------------------------*/
   struct ParameterNode
   {
-    ParameterId          id;      /**< Software enumeration tied to parameter */
-    const char      *key;     /**< String to use in JSON data storage */
-    const char      *fmt;     /**< String format for serialization */
-    void            *address; /**< Fixed location in memory where data lives */
-    size_t           maxSize; /**< Max possible size of the data */
+    ParameterId id;      /**< Software enumeration tied to parameter */
+    ParamType   type;    /**< Type of data stored in the parameter */
+    const char *key;     /**< String to use in JSON data storage */
+    void       *address; /**< Fixed location in memory where data lives */
+    size_t      maxSize; /**< Max possible size of the data */
   };
   using ParameterList = std::array<ParameterNode, ParameterId::PARAM_COUNT>;
 
@@ -68,13 +68,14 @@ namespace Orbit::Data
     static constexpr ParameterList _compile_time_sort( const ParameterList &list )
     {
       auto result = list;
-      std::sort( result.begin(), result.end(), []( const ParameterNode &a, const ParameterNode &b ) -> bool { return a.id > b.id; } );
+      std::sort( result.begin(), result.end(),
+                 []( const ParameterNode &a, const ParameterNode &b ) -> bool { return a.id > b.id; } );
       return result;
     }
 
     static constexpr ParameterList _unsorted_parameters = {
       /* clang-format off */
-      ParameterNode{.id = PARAM_BOOT_COUNT, .key = "boot_count", .fmt = FMT_UINT32, .address = &SysInfo.bootCount, .maxSize = sizeof( SysInfo.bootCount ) }
+      ParameterNode{.id = PARAM_BOOT_COUNT, .type = ParamType_UINT32, .key = "boot_count", .address = &SysInfo.bootCount, .maxSize = sizeof( SysInfo.bootCount ) }
 
       /***** Add new entries above here *****/
       /* clang-format on */
@@ -101,13 +102,13 @@ namespace Orbit::Data
 
   static void deserialize_disk_cache()
   {
-    for( size_t idx = 0; idx < ParameterId::PARAM_COUNT; idx++ )
+    for ( size_t idx = 0; idx < ParameterId::PARAM_COUNT; idx++ )
     {
       /*-----------------------------------------------------------------------
       Validate the key exists in the document
       -----------------------------------------------------------------------*/
       const ParameterNode *node = &s_param_info[ idx ];
-      if( !s_json_cache.containsKey( node->key ) )
+      if ( !s_json_cache.containsKey( node->key ) )
       {
         LOG_WARN( "Configuration backing store missing key: %s", node->key );
         continue;
@@ -116,10 +117,10 @@ namespace Orbit::Data
       /*-----------------------------------------------------------------------
       Decode according to the marked format
       -----------------------------------------------------------------------*/
-      if( node->fmt == FMT_UINT32 )
+      if ( node->type == ParamType_UINT32 )
       {
         uint32_t *val = static_cast<uint32_t *>( node->address );
-        *val = s_json_cache[ node->key ].as<uint32_t>();
+        *val          = s_json_cache[ node->key ].as<uint32_t>();
       }
       else
       {
@@ -220,8 +221,8 @@ namespace Orbit::Data
     /*-------------------------------------------------------------------------
     Local Variables
     -------------------------------------------------------------------------*/
-    FS::FileId      fd    = -1;
-    s_json_pend_changes   = false;
+    FS::FileId fd       = -1;
+    s_json_pend_changes = false;
 
     /*-------------------------------------------------------------------------
     Always load the default configuration as a fallback
@@ -232,7 +233,7 @@ namespace Orbit::Data
     Open the file
     -------------------------------------------------------------------------*/
     LOG_INFO( "Loading configuration from disk..." );
-    if( 0 != FS::fopen( Internal::SystemConfigFile.cbegin(), FILE_FLAGS, fd ) )
+    if ( 0 != FS::fopen( Internal::SystemConfigFile.cbegin(), FILE_FLAGS, fd ) )
     {
       LOG_ERROR( "Failed to open configuration file: %s", Internal::SystemConfigFile.cbegin() );
       return false;
@@ -243,13 +244,13 @@ namespace Orbit::Data
     -------------------------------------------------------------------------*/
     size_t file_size = FS::fsize( fd );
 
-    if( file_size > JSON_FILE_SIZE_MAX )
+    if ( file_size > JSON_FILE_SIZE_MAX )
     {
       LOG_ERROR( "Not enough memory to load file of size %d bytes", file_size );
       FS::fclose( fd );
       return false;
     }
-    else if( file_size == 0 )
+    else if ( file_size == 0 )
     {
       LOG_INFO( "Empty configuration. Loading defaults and syncing with disk." );
       FS::fclose( fd );
@@ -275,9 +276,9 @@ namespace Orbit::Data
     Parse the JSON information using the copy-on-write interface
     https://arduinojson.org/v6/api/json/deserializejson/
     -------------------------------------------------------------------------*/
-    const char *copy_ptr = file_data;
-    DeserializationError error = deserializeJson( s_json_cache, copy_ptr );
-    if( error )
+    const char          *copy_ptr = file_data;
+    DeserializationError error    = deserializeJson( s_json_cache, copy_ptr );
+    if ( error )
     {
       LOG_ERROR( "Failed json decode: %s", error.c_str() );
       return false;
@@ -324,7 +325,7 @@ namespace Orbit::Data
 
   void syncDisk()
   {
-    if( s_json_pend_changes )
+    if ( s_json_pend_changes )
     {
       auto result = flushDisk();
       LOG_ERROR_IF( result == false, "Failed disk sync" );
@@ -339,16 +340,16 @@ namespace Orbit::Data
     RT_DBG_ASSERT( param < s_param_info.size() );
     const ParameterNode *node = &s_param_info[ param ];
 
+    /*-------------------------------------------------------------------------
+    Serialize the data to strings for storage
+    -------------------------------------------------------------------------*/
     s_fmt_buffer.fill( 0 );
 
-    /*-------------------------------------------------------------------------
-    Serialize the data to string for storage
-    -------------------------------------------------------------------------*/
-    if( node->fmt == FMT_UINT32 )
+    if ( node->type == ParamType_UINT32 )
     {
       RT_DBG_ASSERT( node->maxSize == sizeof( uint32_t ) );
-      auto val = reinterpret_cast<uint32_t*>( node->address );
-      npf_snprintf( s_fmt_buffer.data(), s_fmt_buffer.size(), node->fmt, *( val ) );
+      auto val = reinterpret_cast<uint32_t *>( node->address );
+      npf_snprintf( s_fmt_buffer.data(), s_fmt_buffer.size(), FMT_UINT32, *( val ) );
     }
     else
     {
@@ -371,7 +372,7 @@ namespace Orbit::Data
     Chimera::Thread::LockGuard _lck( s_json_lock );
 
     bool sticky_result = true;
-    for( size_t idx = 0; idx < ParameterId::PARAM_COUNT; idx++ )
+    for ( size_t idx = 0; idx < ParameterId::PARAM_COUNT; idx++ )
     {
       sticky_result &= updateDiskCache( static_cast<ParameterId>( idx ) );
     }
@@ -379,4 +380,40 @@ namespace Orbit::Data
     return sticky_result;
   }
 
-}  // namespace Orbit::Data
+
+  bool copyFromCache( const ParameterId param, void *const dest, const size_t size )
+  {
+    if ( param >= s_param_info.size() )
+    {
+      return false;
+    }
+
+    Chimera::Thread::LockGuard _lck( s_json_lock );
+    const ParameterNode       *node = &s_param_info[ param ];
+
+    if ( s_json_cache.containsKey( node->key ) )
+    {
+      const auto proxy = s_json_cache[ node->key ];
+      const auto data  = proxy.as<std::string_view>();
+      memcpy( dest, data.data(), std::min( size, data.size() ) );
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+
+  ParamType getParamType( const ParameterId param )
+  {
+    if ( param < s_param_info.size() )
+    {
+      return s_param_info[ param ].type;
+    }
+    else
+    {
+      return ParamType::ParamType_UNKNOWN;
+    }
+  }
+}    // namespace Orbit::Data

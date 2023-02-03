@@ -32,12 +32,23 @@ typedef enum _ParamId {
 } ParamId;
 
 typedef enum _ParamType {
-    ParamType_PARAM_TYPE_UINT8 = 0,
-    ParamType_PARAM_TYPE_UINT16 = 1,
-    ParamType_PARAM_TYPE_UINT32 = 2,
-    ParamType_PARAM_TYPE_FLOAT = 3,
-    ParamType_PARAM_TYPE_BYTES = 4
+    ParamType_UNKNOWN = 0,
+    ParamType_UINT8 = 1,
+    ParamType_UINT16 = 2,
+    ParamType_UINT32 = 3,
+    ParamType_FLOAT = 4,
+    ParamType_BYTES = 5,
+    ParamType_STRING = 6
 } ParamType;
+
+typedef enum _StatusCode {
+    StatusCode_NO_ERROR = 0,
+    StatusCode_UNKNOWN_ERROR = 1,
+    StatusCode_INVALID_PARAM = 2,
+    StatusCode_INVALID_TYPE = 3,
+    StatusCode_INVALID_VALUE = 4,
+    StatusCode_REQUEST_FAILED = 5
+} StatusCode;
 
 /* Struct definitions */
 /* Instrumentation message header common to all types. Each functional message type **must**
@@ -57,6 +68,7 @@ typedef struct _BaseMessage {
 typedef struct _AckNackMessage {
     Header header;
     bool acknowledge;
+    StatusCode status_code;
 } AckNackMessage;
 
 typedef struct _PingMessage {
@@ -84,24 +96,7 @@ typedef struct _SystemInfoMessage {
     char serialNumber[16];
 } SystemInfoMessage;
 
-typedef PB_BYTES_ARRAY_T(64) ParamData_as_bytes_t;
-typedef struct _ParamData {
-    pb_size_t which_DataField;
-    union {
-        char as_string[64];
-        ParamData_as_bytes_t as_bytes;
-        float as_float;
-        double as_double;
-        int8_t as_int8;
-        int16_t as_int16;
-        int32_t as_int32;
-        uint8_t as_uint8;
-        uint16_t as_uint16;
-        uint32_t as_uint32;
-        bool as_bool;
-    } DataField;
-} ParamData;
-
+typedef PB_BYTES_ARRAY_T(64) ParamIOMessage_data_t;
 typedef struct _ParamIOMessage {
     Header header;
     bool has_id;
@@ -109,7 +104,7 @@ typedef struct _ParamIOMessage {
     bool has_type;
     ParamType type;
     bool has_data;
-    ParamData data;
+    ParamIOMessage_data_t data;
 } ParamIOMessage;
 
 
@@ -126,13 +121,17 @@ typedef struct _ParamIOMessage {
 #define _ParamId_MAX ParamId_PARAM_BOOT_COUNT
 #define _ParamId_ARRAYSIZE ((ParamId)(ParamId_PARAM_BOOT_COUNT+1))
 
-#define _ParamType_MIN ParamType_PARAM_TYPE_UINT8
-#define _ParamType_MAX ParamType_PARAM_TYPE_BYTES
-#define _ParamType_ARRAYSIZE ((ParamType)(ParamType_PARAM_TYPE_BYTES+1))
+#define _ParamType_MIN ParamType_UNKNOWN
+#define _ParamType_MAX ParamType_STRING
+#define _ParamType_ARRAYSIZE ((ParamType)(ParamType_STRING+1))
+
+#define _StatusCode_MIN StatusCode_NO_ERROR
+#define _StatusCode_MAX StatusCode_REQUEST_FAILED
+#define _StatusCode_ARRAYSIZE ((StatusCode)(StatusCode_REQUEST_FAILED+1))
 
 
 
-
+#define AckNackMessage_status_code_ENUMTYPE StatusCode
 
 
 
@@ -149,22 +148,20 @@ extern "C" {
 /* Initializer values for message structs */
 #define Header_init_default                      {0, 0, 0}
 #define BaseMessage_init_default                 {Header_init_default}
-#define AckNackMessage_init_default              {Header_init_default, 0}
+#define AckNackMessage_init_default              {Header_init_default, 0, _StatusCode_MIN}
 #define PingMessage_init_default                 {Header_init_default}
 #define SystemTick_init_default                  {Header_init_default, 0}
 #define ConsoleMessage_init_default              {Header_init_default, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_default           {Header_init_default, 0, "", "", ""}
-#define ParamData_init_default                   {0, {""}}
-#define ParamIOMessage_init_default              {Header_init_default, false, _ParamId_MIN, false, _ParamType_MIN, false, ParamData_init_default}
+#define ParamIOMessage_init_default              {Header_init_default, false, _ParamId_MIN, false, _ParamType_MIN, false, {0, {0}}}
 #define Header_init_zero                         {0, 0, 0}
 #define BaseMessage_init_zero                    {Header_init_zero}
-#define AckNackMessage_init_zero                 {Header_init_zero, 0}
+#define AckNackMessage_init_zero                 {Header_init_zero, 0, _StatusCode_MIN}
 #define PingMessage_init_zero                    {Header_init_zero}
 #define SystemTick_init_zero                     {Header_init_zero, 0}
 #define ConsoleMessage_init_zero                 {Header_init_zero, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_zero              {Header_init_zero, 0, "", "", ""}
-#define ParamData_init_zero                      {0, {""}}
-#define ParamIOMessage_init_zero                 {Header_init_zero, false, _ParamId_MIN, false, _ParamType_MIN, false, ParamData_init_zero}
+#define ParamIOMessage_init_zero                 {Header_init_zero, false, _ParamId_MIN, false, _ParamType_MIN, false, {0, {0}}}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define Header_msgId_tag                         1
@@ -173,6 +170,7 @@ extern "C" {
 #define BaseMessage_header_tag                   1
 #define AckNackMessage_header_tag                1
 #define AckNackMessage_acknowledge_tag           2
+#define AckNackMessage_status_code_tag           3
 #define PingMessage_header_tag                   1
 #define SystemTick_header_tag                    1
 #define SystemTick_tick_tag                      2
@@ -185,17 +183,6 @@ extern "C" {
 #define SystemInfoMessage_swVersion_tag          3
 #define SystemInfoMessage_description_tag        4
 #define SystemInfoMessage_serialNumber_tag       5
-#define ParamData_as_string_tag                  1
-#define ParamData_as_bytes_tag                   2
-#define ParamData_as_float_tag                   3
-#define ParamData_as_double_tag                  4
-#define ParamData_as_int8_tag                    5
-#define ParamData_as_int16_tag                   6
-#define ParamData_as_int32_tag                   7
-#define ParamData_as_uint8_tag                   8
-#define ParamData_as_uint16_tag                  9
-#define ParamData_as_uint32_tag                  10
-#define ParamData_as_bool_tag                    11
 #define ParamIOMessage_header_tag                1
 #define ParamIOMessage_id_tag                    2
 #define ParamIOMessage_type_tag                  3
@@ -217,7 +204,8 @@ X(a, STATIC,   REQUIRED, MESSAGE,  header,            1)
 
 #define AckNackMessage_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
-X(a, STATIC,   REQUIRED, BOOL,     acknowledge,       2)
+X(a, STATIC,   REQUIRED, BOOL,     acknowledge,       2) \
+X(a, STATIC,   REQUIRED, UENUM,    status_code,       3)
 #define AckNackMessage_CALLBACK NULL
 #define AckNackMessage_DEFAULT NULL
 #define AckNackMessage_header_MSGTYPE Header
@@ -254,30 +242,14 @@ X(a, STATIC,   REQUIRED, STRING,   serialNumber,      5)
 #define SystemInfoMessage_DEFAULT NULL
 #define SystemInfoMessage_header_MSGTYPE Header
 
-#define ParamData_FIELDLIST(X, a) \
-X(a, STATIC,   ONEOF,    STRING,   (DataField,as_string,DataField.as_string),   1) \
-X(a, STATIC,   ONEOF,    BYTES,    (DataField,as_bytes,DataField.as_bytes),   2) \
-X(a, STATIC,   ONEOF,    FLOAT,    (DataField,as_float,DataField.as_float),   3) \
-X(a, STATIC,   ONEOF,    DOUBLE,   (DataField,as_double,DataField.as_double),   4) \
-X(a, STATIC,   ONEOF,    INT32,    (DataField,as_int8,DataField.as_int8),   5) \
-X(a, STATIC,   ONEOF,    INT32,    (DataField,as_int16,DataField.as_int16),   6) \
-X(a, STATIC,   ONEOF,    INT32,    (DataField,as_int32,DataField.as_int32),   7) \
-X(a, STATIC,   ONEOF,    UINT32,   (DataField,as_uint8,DataField.as_uint8),   8) \
-X(a, STATIC,   ONEOF,    UINT32,   (DataField,as_uint16,DataField.as_uint16),   9) \
-X(a, STATIC,   ONEOF,    UINT32,   (DataField,as_uint32,DataField.as_uint32),  10) \
-X(a, STATIC,   ONEOF,    BOOL,     (DataField,as_bool,DataField.as_bool),  11)
-#define ParamData_CALLBACK NULL
-#define ParamData_DEFAULT NULL
-
 #define ParamIOMessage_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
 X(a, STATIC,   OPTIONAL, UENUM,    id,                2) \
 X(a, STATIC,   OPTIONAL, UENUM,    type,              3) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  data,              4)
+X(a, STATIC,   OPTIONAL, BYTES,    data,              4)
 #define ParamIOMessage_CALLBACK NULL
 #define ParamIOMessage_DEFAULT NULL
 #define ParamIOMessage_header_MSGTYPE Header
-#define ParamIOMessage_data_MSGTYPE ParamData
 
 extern const pb_msgdesc_t Header_msg;
 extern const pb_msgdesc_t BaseMessage_msg;
@@ -286,7 +258,6 @@ extern const pb_msgdesc_t PingMessage_msg;
 extern const pb_msgdesc_t SystemTick_msg;
 extern const pb_msgdesc_t ConsoleMessage_msg;
 extern const pb_msgdesc_t SystemInfoMessage_msg;
-extern const pb_msgdesc_t ParamData_msg;
 extern const pb_msgdesc_t ParamIOMessage_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
@@ -297,16 +268,14 @@ extern const pb_msgdesc_t ParamIOMessage_msg;
 #define SystemTick_fields &SystemTick_msg
 #define ConsoleMessage_fields &ConsoleMessage_msg
 #define SystemInfoMessage_fields &SystemInfoMessage_msg
-#define ParamData_fields &ParamData_msg
 #define ParamIOMessage_fields &ParamIOMessage_msg
 
 /* Maximum encoded size of messages (where known) */
-#define AckNackMessage_size                      14
+#define AckNackMessage_size                      16
 #define BaseMessage_size                         12
 #define ConsoleMessage_size                      149
 #define Header_size                              10
-#define ParamData_size                           66
-#define ParamIOMessage_size                      84
+#define ParamIOMessage_size                      82
 #define PingMessage_size                         12
 #define SystemInfoMessage_size                   69
 #define SystemTick_size                          18
