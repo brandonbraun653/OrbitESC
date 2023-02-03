@@ -93,7 +93,7 @@ message ParamData {
 
 message ParamIOMessage {
   required Header header = 1;
-  required ParamId id = 2 [(nanopb).int_size = IS_8];
+  optional ParamId id = 2 [(nanopb).int_size = IS_8];
   optional ParamType type = 3 [(nanopb).int_size = IS_8];
   optional ParamData data = 4;
 }

@@ -104,6 +104,7 @@ typedef struct _ParamData {
 
 typedef struct _ParamIOMessage {
     Header header;
+    bool has_id;
     ParamId id;
     bool has_type;
     ParamType type;
@@ -154,7 +155,7 @@ extern "C" {
 #define ConsoleMessage_init_default              {Header_init_default, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_default           {Header_init_default, 0, "", "", ""}
 #define ParamData_init_default                   {0, {""}}
-#define ParamIOMessage_init_default              {Header_init_default, _ParamId_MIN, false, _ParamType_MIN, false, ParamData_init_default}
+#define ParamIOMessage_init_default              {Header_init_default, false, _ParamId_MIN, false, _ParamType_MIN, false, ParamData_init_default}
 #define Header_init_zero                         {0, 0, 0}
 #define BaseMessage_init_zero                    {Header_init_zero}
 #define AckNackMessage_init_zero                 {Header_init_zero, 0}
@@ -163,7 +164,7 @@ extern "C" {
 #define ConsoleMessage_init_zero                 {Header_init_zero, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_zero              {Header_init_zero, 0, "", "", ""}
 #define ParamData_init_zero                      {0, {""}}
-#define ParamIOMessage_init_zero                 {Header_init_zero, _ParamId_MIN, false, _ParamType_MIN, false, ParamData_init_zero}
+#define ParamIOMessage_init_zero                 {Header_init_zero, false, _ParamId_MIN, false, _ParamType_MIN, false, ParamData_init_zero}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define Header_msgId_tag                         1
@@ -270,7 +271,7 @@ X(a, STATIC,   ONEOF,    BOOL,     (DataField,as_bool,DataField.as_bool),  11)
 
 #define ParamIOMessage_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
-X(a, STATIC,   REQUIRED, UENUM,    id,                2) \
+X(a, STATIC,   OPTIONAL, UENUM,    id,                2) \
 X(a, STATIC,   OPTIONAL, UENUM,    type,              3) \
 X(a, STATIC,   OPTIONAL, MESSAGE,  data,              4)
 #define ParamIOMessage_CALLBACK NULL

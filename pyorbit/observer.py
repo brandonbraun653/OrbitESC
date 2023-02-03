@@ -173,8 +173,7 @@ class MessageQueue:
 
         # Attempt to insert the new message into the queue
         try:
-            msg_object = self._msg_type().unpack(msg)
-            self._msg_queue.put(msg_object, block=False)
+            self._msg_queue.put(msg, block=False)
 
             # No limit? Notify on any message received. Otherwise, notify when the limit is reached
             # or allow the timeout to expire.

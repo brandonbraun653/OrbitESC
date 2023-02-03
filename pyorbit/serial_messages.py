@@ -65,6 +65,22 @@ class BaseMessage:
     def uuid(self) -> int:
         return self._pb_msg.header.uuid
 
+    @property
+    def sub_id(self) -> MessageSubId:
+        return MessageSubId(self._pb_msg.header.subId)
+
+    @sub_id.setter
+    def sub_id(self, sid: MessageSubId) -> None:
+        self._pb_msg.header.subId = sid.value
+
+    @property
+    def msg_id(self) -> MessageId:
+        return self._pb_msg.header.msgId
+
+    @msg_id.setter
+    def msg_id(self, mid: MessageId):
+        self._pb_msg.header.msgId = mid.value
+
     def deserialize(self, serialized: bytes) -> int:
         """
         Decodes a number of bytes into the message type for this class
@@ -88,9 +104,16 @@ class AckNackMessage(BaseMessage):
 
     def __init__(self):
         super().__init__()
-
         self._pb_msg = proto.AckNackMessage()
         self._pb_msg.header.msgId = MessageId.AckNack.value
+
+    @property
+    def ack(self) -> bool:
+        return self._pb_msg.acknowledge
+
+    @property
+    def nack(self) -> bool:
+        return not self._pb_msg.acknowledge
 
 
 class PingMessage(BaseMessage):
@@ -122,7 +145,7 @@ class ConsoleMessage(BaseMessage):
     def __init__(self):
         super().__init__()
         self._pb_msg = proto.ConsoleMessage()
-        self._pb_msg.header.msgId = MessageId.SystemTick.value
+        self._pb_msg.header.msgId = MessageId.Terminal.value
 
     @property
     def frame_number(self) -> int:
@@ -144,10 +167,6 @@ class ParamIOMessage(BaseMessage):
         self._pb_msg = proto.ParamIOMessage()
         self._pb_msg.header.msgId = MessageId.ParamIO.value
         self._pb_msg.header.uuid = self._id_gen.next_uuid
-
-    @property
-    def sub_id(self) -> MessageSubId:
-        return MessageSubId(self._pb_msg.header.sub_id)
 
 
 MessageTypeMap = {

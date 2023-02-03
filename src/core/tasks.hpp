@@ -39,7 +39,7 @@ namespace Orbit::Tasks
 
   enum PrjTaskMsg : uint8_t
   {
-    TASK_MSG_PARAM_IO_EVENT,    /**< Handle incoming ParamIO messages */
+    TASK_MSG_PARAM_IO_EVENT = ( 1u << 0 ), /**< Handle incoming ParamIO messages */
 
     TASK_MSG_NUM_OPTIONS
   };

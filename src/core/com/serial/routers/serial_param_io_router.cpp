@@ -51,7 +51,7 @@ namespace Orbit::Serial::Router
     Notify the DIO thread of the message
     -------------------------------------------------------------------------*/
     ParamIOEventQueue.push( msg );
-    Chimera::Thread::sendTaskMsg( TASK_DIO, TASK_MSG_PARAM_IO_EVENT, Chimera::Thread::TIMEOUT_DONT_WAIT );
+    Chimera::Thread::sendTaskMsg( getTaskId( TASK_DIO ), TASK_MSG_PARAM_IO_EVENT, Chimera::Thread::TIMEOUT_DONT_WAIT );
   }
 
 

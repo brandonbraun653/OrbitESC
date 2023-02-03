@@ -29,8 +29,10 @@ namespace Orbit::Serial
     -------------------------------------------------------------------------*/
     AckNackMessage payload;
     memset( &payload, 0, sizeof( payload ) );
-    payload.header      = header;
-    payload.acknowledge = ack_or_nack;
+    payload.header.msgId = Message::MSG_ACK_NACK;
+    payload.header.subId = header.subId;
+    payload.header.uuid  = header.uuid;
+    payload.acknowledge  = ack_or_nack;
 
     /*-------------------------------------------------------------------------
     Ship the response on the wire
@@ -144,7 +146,7 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Parse the buffer for messages until none are found or the buffer is empty
     -------------------------------------------------------------------------*/
-    bool eof = false;
+    bool eof      = false;
     mRXSearchOfst = 0;
 
     /*-----------------------------------------------------------------------
@@ -212,6 +214,13 @@ namespace Orbit::Serial
               Message::Ping ping;
               ping.decode( in.data(), mRXSearchOfst - 1u );
               this->receive( ping );
+            }
+            break;
+
+            case Message::MSG_PARAM_IO: {
+              Message::ParamIO param;
+              param.decode( in.data(), mRXSearchOfst - 1u );
+              this->receive( param );
             }
             break;
 

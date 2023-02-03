@@ -20,7 +20,6 @@ from pyorbit.exceptions import NotOnlineException
 from pyorbit.serial_messages import *
 from pyorbit.observer import MessageObserver
 from threading import Event, Thread, Lock
-from queue import Queue
 
 
 def online_checker(method: Callable) -> Any:
@@ -73,7 +72,7 @@ class ConsoleObserver(MessageObserver):
         super().__init__(func=self._frame_accumulator, msg_type=ConsoleMessage)
         self._frame_lock = Lock()
         self._in_progress_frames = {}   # type: Dict[int, ConsoleObserver.FrameBuffer]
-        self._processing_thread = Thread(target=self._frame_processor, name="FrameProcessor")
+        self._processing_thread = Thread(target=self._frame_processor, name="FrameProcessor", daemon=True)
         self._processing_thread.start()
 
     def _frame_accumulator(self, msg: ConsoleMessage) -> None:
@@ -104,7 +103,7 @@ class ConsoleObserver(MessageObserver):
         """
         while True:
             # Yield time quantum to other threads
-            time.sleep(0)
+            time.sleep(0.01)
 
             # Process all frames
             with self._frame_lock:
@@ -138,10 +137,42 @@ class ParameterObserver(MessageObserver):
         pass
 
     def load(self) -> bool:
-        pass
+        """
+        Requests a complete reload from disk of all supported parameters
+        Returns:
+            True if the operation succeeds, False if not
+        """
+        sub_id = self._com_pipe.subscribe(AckNackMessage, qty=1, timeout=5.0)
+
+        msg = ParamIOMessage()
+        msg.sub_id = MessageSubId.ParamIO_Load
+
+        self._com_pipe.put(msg.serialize())
+        messages = self._com_pipe.get_subscription_data(sub_id, terminate=True)
+        for rsp in messages:   # type: AckNackMessage
+            if rsp.uuid != msg.uuid:
+                continue
+            else:
+                return rsp.ack
 
     def store(self) -> bool:
-        pass
+        """
+        Requests a complete serialize to disk of all supported parameters
+        Returns:
+            True if the operation succeeds, False if not
+        """
+        sub_id = self._com_pipe.subscribe(AckNackMessage, qty=1, timeout=5.0)
+
+        msg = ParamIOMessage()
+        msg.sub_id = MessageSubId.ParamIO_Sync
+
+        self._com_pipe.put(msg.serialize())
+        messages = self._com_pipe.get_subscription_data(sub_id, terminate=True)
+        for rsp in messages:   # type: AckNackMessage
+            if rsp.uuid != msg.uuid:
+                continue
+            else:
+                return rsp.ack
 
     def dump(self) -> str:
         pass
@@ -228,6 +259,9 @@ class SerialClient:
         """
         self.com_pipe.put(data)
 
+    def close(self) -> None:
+        return self._teardown()
+
     def _teardown(self) -> None:
         self._kill_signal.set()
         self._thread.join() if self._thread.is_alive() else None
@@ -265,9 +299,13 @@ class SerialClient:
 
 
 if __name__ == "__main__":
-    from pyorbit.serial_messages import PingMessage
-    client = SerialClient(port="/dev/ttyUSB0", baudrate=2000000)
-    if client.ping():
-        logger.info("Pinged the node")
+    import sys
+    logger.remove()
+    logger.add(sys.stderr, level="DEBUG")
 
-    time.sleep(500)
+    client = SerialClient(port="/dev/ttyUSB0", baudrate=2000000)
+    if not client.load_parameter_cache():
+        logger.info("Failed to load cache")
+    if not client.sync_parameter_cache():
+        logger.info("Failed to sync cache")
+    client.close()

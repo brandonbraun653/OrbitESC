@@ -61,8 +61,7 @@ namespace Orbit::Serial
    */
   static void handle_load( const Message::ParamIO &msg )
   {
-    Data::loadDisk();
-    sendAckNack( true, msg.payload.header );
+    sendAckNack( Data::loadDisk(), msg.payload.header );
   }
 
 
@@ -72,8 +71,7 @@ namespace Orbit::Serial
    */
   static void handle_sync( const Message::ParamIO &msg )
   {
-    Data::syncDisk();
-    sendAckNack( true, msg.payload.header );
+    sendAckNack( Data::flushDisk(), msg.payload.header );
   }
 
   /*---------------------------------------------------------------------------

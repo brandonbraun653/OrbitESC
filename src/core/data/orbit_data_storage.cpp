@@ -302,6 +302,7 @@ namespace Orbit::Data
     /*-------------------------------------------------------------------------
     Flush the data to disk
     -------------------------------------------------------------------------*/
+    LOG_INFO( "Storing configuration to disk..." );
     FS::FileId fd       = -1;
     s_json_pend_changes = false;
 

@@ -121,7 +121,7 @@ class SerialPipe(Observer):
 
         while not self._kill_event.is_set():
             # Allow other threads time to execute
-            time.sleep(0)
+            time.sleep(0.01)
             if not self._serial.is_open:
                 continue
 
@@ -175,6 +175,7 @@ class SerialPipe(Observer):
 
                 # Now push the completed message onto the queue for someone else to handle
                 self._rx_msgs.put(full_msg)
+                logger.trace(f"Received message type {full_msg.name}. UUID: {full_msg.uuid}")
 
     def _rx_dispatcher(self):
         """
