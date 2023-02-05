@@ -22,6 +22,7 @@ Includes
 #include <src/core/data/orbit_data_storage.hpp>
 #include <src/core/data/orbit_data_types.hpp>
 #include <nanoprintf.h>
+#include <etl/algorithm.h>
 #include <etl/crc32.h>
 
 namespace Orbit::Data
@@ -44,15 +45,6 @@ namespace Orbit::Data
   static constexpr const char     *FMT_STRING         = "%s";
   static constexpr const char     *FMT_BOOL           = "%d";
 
-  /*-------------------------------------------------------------------
-  EEPROM Addressing Limits and Registry Info
-  -------------------------------------------------------------------*/
-  static constexpr uint16_t EEPROM_IDENTITY_ADDR = 0x0000;
-  static constexpr uint16_t EEPROM_IDENTITY_SZ   = 512;
-  static constexpr uint8_t  EEPROM_IDENTITY_VER  = 0;
-  static constexpr uint8_t  EEPROM_IDENTITY_TAG  = 0x23;
-  static_assert( sizeof( Identity ) <= EEPROM_IDENTITY_SZ );
-
   /*---------------------------------------------------------------------------
   Structures
   ---------------------------------------------------------------------------*/
@@ -64,7 +56,7 @@ namespace Orbit::Data
     void           *address;  /**< Fixed location in memory where data lives */
     size_t          maxSize;  /**< Max possible size of the data */
   };
-  using ParameterList = std::array<ParameterNode, ParamId_PARAM_COUNT>;
+  using ParameterList = std::array<ParameterNode, 8>;
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -81,11 +73,21 @@ namespace Orbit::Data
 
     static constexpr ParameterList _unsorted_parameters = {
       /* clang-format off */
-      ParameterNode{ .id = ParamId_PARAM_BOOT_COUNT,    .type = ParamType_UINT32, .key = "boot_count", .address = &SysInfo.bootCount,        .maxSize = sizeof( SysInfo.bootCount )       },
-      ParameterNode{ .id = ParamId_PARAM_HW_VERSION,    .type = ParamType_UINT8,  .key = "hw_ver",     .address = &SysIdentity.hwVersion,    .maxSize = sizeof( SysIdentity.hwVersion )   },
-      ParameterNode{ .id = ParamId_PARAM_SW_VERSION,    .type = ParamType_STRING, .key = "sw_ver",     .address = &SysIdentity.swVersion,    .maxSize = SysIdentity.swVersion.MAX_SIZE    },
-      ParameterNode{ .id = ParamId_PARAM_SERIAL_NUMBER, .type = ParamType_STRING, .key = "serial_num", .address = &SysIdentity.serialNumber, .maxSize = SysIdentity.serialNumber.MAX_SIZE },
-      ParameterNode{ .id = ParamId_PARAM_DEVICE_ID,     .type = ParamType_UINT32, .key = "device_id",  .address = &SysIdentity.deviceId,     .maxSize = sizeof( SysIdentity.deviceId )    },
+      /*-----------------------------------------------------------------------
+      Read Only Parameters
+      -----------------------------------------------------------------------*/
+      ParameterNode{ .id = ParamId_PARAM_BOOT_COUNT,    .type = ParamType_UINT32, .key = "pwr_cnt", .address = &SysInfo.bootCount,        .maxSize = sizeof( SysInfo.bootCount )       },
+      ParameterNode{ .id = ParamId_PARAM_HW_VERSION,    .type = ParamType_UINT8,  .key = "hw_ver",  .address = &SysIdentity.hwVersion,    .maxSize = sizeof( SysIdentity.hwVersion )   },
+      ParameterNode{ .id = ParamId_PARAM_SW_VERSION,    .type = ParamType_STRING, .key = "sw_ver",  .address = &SysIdentity.swVersion,    .maxSize = SysIdentity.swVersion.MAX_SIZE    },
+      ParameterNode{ .id = ParamId_PARAM_DEVICE_ID,     .type = ParamType_UINT32, .key = "dev_id",  .address = &SysIdentity.deviceId,     .maxSize = sizeof( SysIdentity.deviceId )    },
+      ParameterNode{ .id = ParamId_PARAM_BOARD_NAME,    .type = ParamType_STRING, .key = "name",    .address = &SysIdentity.boardName,    .maxSize = SysIdentity.boardName.MAX_SIZE    },
+      ParameterNode{ .id = ParamId_PARAM_DESCRIPTION,   .type = ParamType_STRING, .key = "desc",    .address = &SysIdentity.description,  .maxSize = SysIdentity.description.MAX_SIZE  },
+
+      /*-----------------------------------------------------------------------
+      Read/Write Parameters
+      -----------------------------------------------------------------------*/
+      ParameterNode{ .id = ParamId_PARAM_SERIAL_NUMBER,       .type = ParamType_STRING, .key = "ser_num",  .address = &SysIdentity.serialNumber,   .maxSize = SysIdentity.serialNumber.MAX_SIZE    },
+      ParameterNode{ .id = ParamId_PARAM_DISK_UPDATE_RATE_MS, .type = ParamType_UINT32, .key = "dsk_updt", .address = &SysConfig.diskUpdateRateMs, .maxSize = sizeof( SysConfig.diskUpdateRateMs ) },
 
       /***** Add new entries above here *****/
       /* clang-format on */
@@ -129,7 +131,6 @@ namespace Orbit::Data
       const ParameterNode *node = &s_param_info[ idx ];
       if ( !s_json_cache.containsKey( node->key ) )
       {
-        LOG_WARN( "Configuration backing store missing key: %s", node->key );
         continue;
       }
 
@@ -209,6 +210,69 @@ namespace Orbit::Data
     return crc.value();
   }
 
+
+  /**
+   * @brief Finds a parameter node by its ID
+   *
+   * @param id    The ID of the parameter to find
+   * @return const ParameterNode*
+   */
+  static const ParameterNode *find_parameter( const int id )
+  {
+    auto iterator = etl::find_if( s_param_info.begin(), s_param_info.end(),
+                                  [ id ]( const ParameterNode &node ) { return static_cast<int>( node.id ) == id; } );
+
+    if( iterator != s_param_info.end() )
+    {
+      return iterator;
+    }
+    else
+    {
+      return nullptr;
+    }
+  }
+
+
+  /**
+   * @brief Finds a parameter node by its key
+   *
+   * @param key   The key of the parameter to find
+   * @return const ParameterNode*
+   */
+  static const ParameterNode *find_parameter( const etl::string_view &key )
+  {
+    auto iterator = etl::find_if( s_param_info.begin(), s_param_info.end(),
+                                  [ key ]( const ParameterNode &node ) { return key.compare( node.key ) == 0; } );
+
+    if( iterator != s_param_info.end() )
+    {
+      return iterator;
+    }
+    else
+    {
+      return nullptr;
+    }
+  }
+
+
+  /**
+   * @brief Prunes the JSON cache of any keys that are no longer valid
+   */
+  static void prune_json_document()
+  {
+    JsonObject root = s_json_cache.as<JsonObject>();
+    for ( JsonPair kv : root )
+    {
+      const ParameterNode *node = find_parameter( kv.key().c_str() );
+      if( !node )
+      {
+        s_json_cache.remove( kv.key().c_str() );
+      }
+    }
+
+    s_json_cache.garbageCollect();
+  }
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
@@ -283,8 +347,22 @@ namespace Orbit::Data
       return false;
     }
 
+    /*-------------------------------------------------------------------------
+    Update the CRC and deserialize the disk cache into the parameter nodes
+    -------------------------------------------------------------------------*/
     s_json_last_crc = get_json_crc();
     deserialize_disk_cache();
+
+    /*-------------------------------------------------------------------------
+    Once the disk cache is loaded, update the disk cache with new defaults
+    -------------------------------------------------------------------------*/
+    updateDiskCache();
+
+    /*-------------------------------------------------------------------------
+    Prune the JSON document of any keys that are no longer valid
+    -------------------------------------------------------------------------*/
+    prune_json_document();
+
     return true;
   }
 
@@ -348,14 +426,20 @@ namespace Orbit::Data
 
   bool updateDiskCache( const ParamId param )
   {
-    Chimera::Thread::LockGuard _lck( s_json_lock );
-
-    RT_DBG_ASSERT( param < s_param_info.size() );
-    const ParameterNode *node = &s_param_info[ param ];
+    /*-------------------------------------------------------------------------
+    Find the parameter in the list
+    -------------------------------------------------------------------------*/
+    const ParameterNode *node = find_parameter( param );
+    if( !node )
+    {
+      return false;
+    }
 
     /*-------------------------------------------------------------------------
     Serialize the data to strings for storage
     -------------------------------------------------------------------------*/
+    Chimera::Thread::LockGuard _lck( s_json_lock );
+
     s_fmt_buffer.fill( 0 );
     switch ( node->type )
     {
@@ -430,7 +514,8 @@ namespace Orbit::Data
     bool sticky_result = true;
     for ( size_t idx = 0; idx < s_param_info.size(); idx++ )
     {
-      sticky_result &= updateDiskCache( static_cast<ParamId>( idx ) );
+      auto &node = s_param_info[ idx ];
+      sticky_result &= updateDiskCache( node.id );
     }
 
     return sticky_result;
@@ -439,14 +524,19 @@ namespace Orbit::Data
 
   bool copyFromCache( const ParamId param, void *const dest, const size_t size )
   {
-    if ( param >= s_param_info.size() )
+    /*-------------------------------------------------------------------------
+    Find the parameter in the list
+    -------------------------------------------------------------------------*/
+    const ParameterNode *node = find_parameter( param );
+    if( !node )
     {
       return false;
     }
 
+    /*-------------------------------------------------------------------------
+    Copy the data from the cache
+    -------------------------------------------------------------------------*/
     Chimera::Thread::LockGuard _lck( s_json_lock );
-    const ParameterNode       *node = &s_param_info[ param ];
-
     if ( s_json_cache.containsKey( node->key ) )
     {
       const auto proxy = s_json_cache[ node->key ];
@@ -463,13 +553,20 @@ namespace Orbit::Data
 
   ParamType getParamType( const ParamId param )
   {
-    if ( param < s_param_info.size() )
+    const ParameterNode *node = find_parameter( param );
+    if( node )
     {
-      return s_param_info[ param ].type;
+      return node->type;
     }
     else
     {
       return ParamType::ParamType_UNKNOWN;
     }
+  }
+
+
+  bool paramExists( const int param )
+  {
+    return find_parameter( param ) != nullptr;
   }
 }    // namespace Orbit::Data

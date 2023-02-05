@@ -53,7 +53,7 @@ namespace Orbit::Tasks::DIO
     Run the delayed-io thread
     -------------------------------------------------------------------------*/
     size_t wake_up_tick = Chimera::millis();
-    size_t next_sync    = wake_up_tick + Data::SysConfig.disk_update_period;
+    size_t next_sync    = wake_up_tick + Data::SysConfig.diskUpdateRateMs;
     TaskMsg tsk_msg     = TASK_MSG_NUM_OPTIONS;
     while( 1 )
     {
@@ -83,7 +83,7 @@ namespace Orbit::Tasks::DIO
       -----------------------------------------------------------------------*/
       if( wake_up_tick >= next_sync )
       {
-        next_sync = wake_up_tick + Data::SysConfig.disk_update_period;
+        next_sync = wake_up_tick + Data::SysConfig.diskUpdateRateMs;
         Data::syncDisk();
       }
 

@@ -32,12 +32,12 @@ namespace Orbit::Data
   class Identity
   {
   public:
-    etl::string<16> boardName;
-    etl::string<32> description;
-    etl::string<8>  serialNumber;
-    etl::string<8>  swVersion;
-    uint8_t         hwVersion;
-    uint32_t        deviceId;
+    etl::string<16> boardName;    /**< PARAM_BOARD_NAME */
+    etl::string<32> description;  /**< PARAM_DESCRIPTION */
+    etl::string<8>  serialNumber; /**< PARAM_SERIAL_NUMBER */
+    etl::string<8>  swVersion;    /**< PARAM_SW_VERSION */
+    uint8_t         hwVersion;    /**< PARAM_HW_VERSION */
+    uint32_t        deviceId;     /**< PARAM_DEVICE_ID */
 
     void clear();
     void setDefaults();
@@ -62,7 +62,7 @@ namespace Orbit::Data
   class Information
   {
   public:
-    uint32_t bootCount;
+    uint32_t bootCount; /**< PARAM_BOOT_COUNT */
 
     void clear();
     void setDefaults();
@@ -71,8 +71,8 @@ namespace Orbit::Data
   class Configuration
   {
   public:
-    size_t disk_update_period;
-    Orbit::CAN::NodeId can_node_id;
+    size_t             diskUpdateRateMs; /**< PARAM_DISK_UPDATE_RATE_MS */
+    Orbit::CAN::NodeId canNodeId;
 
     void clear();
     void setDefaults();

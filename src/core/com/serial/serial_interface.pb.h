@@ -28,15 +28,18 @@ typedef enum _SubId {
 } SubId;
 
 typedef enum _ParamId {
-    /* option allow_alias = true;
- Read Only Parameters */
+    /* Housekeeping parameters */
+    ParamId_PARAM_INVALID = -1, /* Invalid parameter */
+    /* Read Only Parameters */
     ParamId_PARAM_BOOT_COUNT = 0, /* Number of times the software has booted */
     ParamId_PARAM_HW_VERSION = 1, /* Hardware version of the PCB */
     ParamId_PARAM_SW_VERSION = 2, /* Software version of the firmware */
     ParamId_PARAM_DEVICE_ID = 3, /* Factory programmed unique device ID */
+    ParamId_PARAM_BOARD_NAME = 4, /* Name of the board */
+    ParamId_PARAM_DESCRIPTION = 5, /* Description of the project */
     /* Read/Write Parameters */
-    ParamId_PARAM_SERIAL_NUMBER = 4, /* Serial number of the device */
-    ParamId_PARAM_COUNT = 5
+    ParamId_PARAM_SERIAL_NUMBER = 10, /* Serial number of the device */
+    ParamId_PARAM_DISK_UPDATE_RATE_MS = 11 /* How often to write parameters to disk */
 } ParamId;
 
 typedef enum _ParamType {
@@ -127,9 +130,9 @@ typedef struct _ParamIOMessage {
 #define _SubId_MAX SubId_SUB_MSG_PARAM_IO_LOAD
 #define _SubId_ARRAYSIZE ((SubId)(SubId_SUB_MSG_PARAM_IO_LOAD+1))
 
-#define _ParamId_MIN ParamId_PARAM_BOOT_COUNT
-#define _ParamId_MAX ParamId_PARAM_COUNT
-#define _ParamId_ARRAYSIZE ((ParamId)(ParamId_PARAM_COUNT+1))
+#define _ParamId_MIN ParamId_PARAM_INVALID
+#define _ParamId_MAX ParamId_PARAM_DISK_UPDATE_RATE_MS
+#define _ParamId_ARRAYSIZE ((ParamId)(ParamId_PARAM_DISK_UPDATE_RATE_MS+1))
 
 #define _ParamType_MIN ParamType_UNKNOWN
 #define _ParamType_MAX ParamType_STRING
@@ -254,11 +257,11 @@ X(a, STATIC,   REQUIRED, STRING,   serialNumber,      5)
 
 #define ParamIOMessage_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
-X(a, STATIC,   OPTIONAL, UENUM,    id,                2) \
+X(a, STATIC,   OPTIONAL, ENUM,     id,                2) \
 X(a, STATIC,   OPTIONAL, UENUM,    type,              3) \
 X(a, STATIC,   OPTIONAL, BYTES,    data,              4)
 #define ParamIOMessage_CALLBACK NULL
-#define ParamIOMessage_DEFAULT NULL
+#define ParamIOMessage_DEFAULT (const pb_byte_t*)"\x10\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01\x00"
 #define ParamIOMessage_header_MSGTYPE Header
 
 extern const pb_msgdesc_t Header_msg;
@@ -285,7 +288,7 @@ extern const pb_msgdesc_t ParamIOMessage_msg;
 #define BaseMessage_size                         12
 #define ConsoleMessage_size                      149
 #define Header_size                              10
-#define ParamIOMessage_size                      82
+#define ParamIOMessage_size                      91
 #define PingMessage_size                         12
 #define SystemInfoMessage_size                   69
 #define SystemTick_size                          18

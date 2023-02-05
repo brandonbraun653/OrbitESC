@@ -75,6 +75,14 @@ namespace Orbit::Data
    */
   ParamType getParamType( const ParamId param );
 
+  /**
+   * @brief Checks if the given parameter ID exists
+   *
+   * @param param   Parameter ID to check
+   * @return bool   True if the parameter exists, false if not
+   */
+  bool paramExists( const int param );
+
 }    // namespace Orbit::Data
 
 #endif /* !ORBIT_DATA_STORAGE_HPP */

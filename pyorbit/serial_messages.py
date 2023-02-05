@@ -43,8 +43,20 @@ class ParameterType(IntEnum):
 
 
 class ParameterId(IntEnum):
+    # Housekeeping parameters
+    Invalid = proto.PARAM_INVALID
+
+    # Read Only Parameters
     BootCount = proto.PARAM_BOOT_COUNT
+    HwVersion = proto.PARAM_HW_VERSION
+    SwVersion = proto.PARAM_SW_VERSION
     DeviceId = proto.PARAM_DEVICE_ID
+    BoardName = proto.PARAM_BOARD_NAME
+    Description = proto.PARAM_DESCRIPTION
+
+    # Read/Write Parameters
+    SerialNumber = proto.PARAM_SERIAL_NUMBER
+    DiskUpdateRateMS = proto.PARAM_DISK_UPDATE_RATE_MS
 
 
 class StatusCode(IntEnum):

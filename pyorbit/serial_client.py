@@ -165,8 +165,9 @@ class ParameterObserver(MessageObserver):
 
         # Server denied the request for some reason
         if nack_messages:
-            logger.error(f"GET parameter {param} failed with status code: {nack_messages[0].status_code}")
-            return
+            logger.error(
+                f"GET parameter {repr(param)} failed with status code: {repr(StatusCode(nack_messages[0].status_code))}")
+            return None
 
         # Deserialize the data returned
         if data_messages:

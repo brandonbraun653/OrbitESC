@@ -119,7 +119,7 @@ namespace Orbit::CAN
 
   NodeId thisNode()
   {
-    return Data::SysConfig.can_node_id;
+    return Data::SysConfig.canNodeId;
   }
 
 

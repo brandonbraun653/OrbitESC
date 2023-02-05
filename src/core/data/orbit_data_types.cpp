@@ -90,13 +90,13 @@ namespace Orbit::Data
   ---------------------------------------------------------------------------*/
   void Configuration::clear()
   {
-    disk_update_period = 0;
-    can_node_id        = Orbit::CAN::NodeId::INVALID;
+    diskUpdateRateMs = 0;
+    canNodeId        = Orbit::CAN::NodeId::INVALID;
   }
 
   void Configuration::setDefaults()
   {
-    disk_update_period = DFLT_DISK_SYNC_PERIOD_MS;
-    can_node_id        = DFLT_CAN_NODE_ID;
+    diskUpdateRateMs = DFLT_DISK_SYNC_PERIOD_MS;
+    canNodeId        = DFLT_CAN_NODE_ID;
   }
 }    // namespace Orbit::Data

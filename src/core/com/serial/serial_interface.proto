@@ -21,17 +21,20 @@ enum SubId {
 }
 
 enum ParamId {
-  //option allow_alias = true;
+  // Housekeeping parameters
+  PARAM_INVALID       = -1; // Invalid parameter
+
   // Read Only Parameters
   PARAM_BOOT_COUNT    = 0;  // Number of times the software has booted
   PARAM_HW_VERSION    = 1;  // Hardware version of the PCB
   PARAM_SW_VERSION    = 2;  // Software version of the firmware
   PARAM_DEVICE_ID     = 3;  // Factory programmed unique device ID
+  PARAM_BOARD_NAME    = 4;  // Name of the board
+  PARAM_DESCRIPTION   = 5;  // Description of the project
 
   // Read/Write Parameters
-  PARAM_SERIAL_NUMBER = 4;  // Serial number of the device
-
-  PARAM_COUNT = 5;
+  PARAM_SERIAL_NUMBER       = 10; // Serial number of the device
+  PARAM_DISK_UPDATE_RATE_MS = 11; // How often to write parameters to disk
 }
 
 enum ParamType {
@@ -101,7 +104,7 @@ message SystemInfoMessage {
 
 message ParamIOMessage {
   required Header header = 1;
-  optional ParamId id = 2 [(nanopb).int_size = IS_8];
+  optional ParamId id = 2 [(nanopb).int_size = IS_16];
   optional ParamType type = 3 [(nanopb).int_size = IS_8];
   optional bytes data = 4 [(nanopb).max_size = 64 ];
 }

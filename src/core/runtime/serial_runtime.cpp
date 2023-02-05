@@ -50,7 +50,7 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Ensure the parameter ID is valid
     -------------------------------------------------------------------------*/
-    if ( msg.payload.id >= ParamId_PARAM_COUNT )
+    if ( !paramExists( msg.payload.id ) )
     {
       sendAckNack( false, msg.payload.header, StatusCode_INVALID_PARAM );
       return;
