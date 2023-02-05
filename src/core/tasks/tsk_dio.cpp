@@ -23,16 +23,6 @@ Includes
 namespace Orbit::Tasks::DIO
 {
   /*---------------------------------------------------------------------------
-  Static Functions
-  ---------------------------------------------------------------------------*/
-  static void incrementBootCount()
-  {
-    Data::SysInfo.bootCount++;
-    Data::updateDiskCache( Data::PARAM_BOOT_COUNT );
-  }
-
-
-  /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   void DIOThread( void *arg )
@@ -55,10 +45,12 @@ namespace Orbit::Tasks::DIO
     /*-------------------------------------------------------------------------
     Finalize the power up sequence
     -------------------------------------------------------------------------*/
-    incrementBootCount();
+    Data::SysInfo.bootCount++;
+    Data::updateDiskCache( ParamId_PARAM_BOOT_COUNT );
+    Data::updateDiskCache( ParamId_PARAM_DEVICE_ID );
 
     /*-------------------------------------------------------------------------
-    Run the HWM thread
+    Run the delayed-io thread
     -------------------------------------------------------------------------*/
     size_t wake_up_tick = Chimera::millis();
     size_t next_sync    = wake_up_tick + Data::SysConfig.disk_update_period;

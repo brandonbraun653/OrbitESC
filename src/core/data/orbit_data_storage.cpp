@@ -22,7 +22,7 @@ Includes
 #include <src/core/data/orbit_data_storage.hpp>
 #include <src/core/data/orbit_data_types.hpp>
 #include <nanoprintf.h>
-#include <etl/to_arithmetic.h>
+#include <etl/crc32.h>
 
 namespace Orbit::Data
 {
@@ -36,7 +36,13 @@ namespace Orbit::Data
   ---------------------------------------------------------------------------*/
   static constexpr FS::AccessFlags FILE_FLAGS         = FS::AccessFlags::O_RDWR | FS::AccessFlags::O_CREAT;
   static constexpr size_t          JSON_FILE_SIZE_MAX = 1024;
+  static constexpr const char     *FMT_UINT8          = "%u";
+  static constexpr const char     *FMT_UINT16         = FMT_UINT8;
   static constexpr const char     *FMT_UINT32         = "%lu";
+  static constexpr const char     *FMT_FLOAT          = "%.9g";
+  static constexpr const char     *FMT_DOUBLE         = "%.17g";
+  static constexpr const char     *FMT_STRING         = "%s";
+  static constexpr const char     *FMT_BOOL           = "%d";
 
   /*-------------------------------------------------------------------
   EEPROM Addressing Limits and Registry Info
@@ -52,13 +58,13 @@ namespace Orbit::Data
   ---------------------------------------------------------------------------*/
   struct ParameterNode
   {
-    ParameterId id;      /**< Software enumeration tied to parameter */
-    ParamType   type;    /**< Type of data stored in the parameter */
-    const char *key;     /**< String to use in JSON data storage */
-    void       *address; /**< Fixed location in memory where data lives */
-    size_t      maxSize; /**< Max possible size of the data */
+    ParamId         id;       /**< Software enumeration tied to parameter */
+    ParamType       type;     /**< Type of data stored in the parameter */
+    const char     *key;      /**< String to use in JSON data storage */
+    void           *address;  /**< Fixed location in memory where data lives */
+    size_t          maxSize;  /**< Max possible size of the data */
   };
-  using ParameterList = std::array<ParameterNode, ParameterId::PARAM_COUNT>;
+  using ParameterList = std::array<ParameterNode, ParamId_PARAM_COUNT>;
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -69,13 +75,17 @@ namespace Orbit::Data
     {
       auto result = list;
       std::sort( result.begin(), result.end(),
-                 []( const ParameterNode &a, const ParameterNode &b ) -> bool { return a.id > b.id; } );
+                 []( const ParameterNode &a, const ParameterNode &b ) -> bool { return a.id < b.id; } );
       return result;
     }
 
     static constexpr ParameterList _unsorted_parameters = {
       /* clang-format off */
-      ParameterNode{.id = PARAM_BOOT_COUNT, .type = ParamType_UINT32, .key = "boot_count", .address = &SysInfo.bootCount, .maxSize = sizeof( SysInfo.bootCount ) }
+      ParameterNode{ .id = ParamId_PARAM_BOOT_COUNT,    .type = ParamType_UINT32, .key = "boot_count", .address = &SysInfo.bootCount,        .maxSize = sizeof( SysInfo.bootCount )       },
+      ParameterNode{ .id = ParamId_PARAM_HW_VERSION,    .type = ParamType_UINT8,  .key = "hw_ver",     .address = &SysIdentity.hwVersion,    .maxSize = sizeof( SysIdentity.hwVersion )   },
+      ParameterNode{ .id = ParamId_PARAM_SW_VERSION,    .type = ParamType_STRING, .key = "sw_ver",     .address = &SysIdentity.swVersion,    .maxSize = SysIdentity.swVersion.MAX_SIZE    },
+      ParameterNode{ .id = ParamId_PARAM_SERIAL_NUMBER, .type = ParamType_STRING, .key = "serial_num", .address = &SysIdentity.serialNumber, .maxSize = SysIdentity.serialNumber.MAX_SIZE },
+      ParameterNode{ .id = ParamId_PARAM_DEVICE_ID,     .type = ParamType_UINT32, .key = "device_id",  .address = &SysIdentity.deviceId,     .maxSize = sizeof( SysIdentity.deviceId )    },
 
       /***** Add new entries above here *****/
       /* clang-format on */
@@ -88,21 +98,30 @@ namespace Orbit::Data
   static Chimera::Thread::RecursiveMutex        s_json_lock;
   static etl::array<char, 64>                   s_fmt_buffer;
   static bool                                   s_json_pend_changes;
+  static uint32_t                               s_json_last_crc;
 
   /*---------------------------------------------------------------------------
   Static Functions
   ---------------------------------------------------------------------------*/
+  /**
+   * @brief Loads the default values for all parameters
+   */
   static void load_defaults()
   {
     SysCalibration.setDefaults();
-    SysControl.setDefaults();
-    SysInfo.setDefaults();
     SysConfig.setDefaults();
+    SysControl.setDefaults();
+    SysIdentity.setDefaults();
+    SysInfo.setDefaults();
   }
 
+
+  /**
+   * @brief Deserializes the JSON cache into the parameter registry
+   */
   static void deserialize_disk_cache()
   {
-    for ( size_t idx = 0; idx < ParameterId::PARAM_COUNT; idx++ )
+    for ( size_t idx = 0; idx < s_param_info.size(); idx++ )
     {
       /*-----------------------------------------------------------------------
       Validate the key exists in the document
@@ -117,103 +136,82 @@ namespace Orbit::Data
       /*-----------------------------------------------------------------------
       Decode according to the marked format
       -----------------------------------------------------------------------*/
-      if ( node->type == ParamType_UINT32 )
+      switch ( node->type )
       {
-        uint32_t *val = static_cast<uint32_t *>( node->address );
-        *val          = s_json_cache[ node->key ].as<uint32_t>();
-      }
-      else
-      {
-        LOG_WARN( "Unsupported format specifier for key: %s", node->key );
+        case ParamType_UINT8: {
+          uint8_t *val = static_cast<uint8_t *>( node->address );
+          *val         = s_json_cache[ node->key ].as<uint8_t>();
+          break;
+        }
+
+        case ParamType_UINT16: {
+          uint16_t *val = static_cast<uint16_t *>( node->address );
+          *val          = s_json_cache[ node->key ].as<uint16_t>();
+          break;
+        }
+
+        case ParamType_UINT32: {
+          uint32_t *val = static_cast<uint32_t *>( node->address );
+          *val          = s_json_cache[ node->key ].as<uint32_t>();
+          break;
+        }
+
+        case ParamType_FLOAT: {
+          float *val = static_cast<float *>( node->address );
+          *val       = s_json_cache[ node->key ].as<float>();
+          break;
+        }
+
+        case ParamType_DOUBLE: {
+          double *val = static_cast<double *>( node->address );
+          *val        = s_json_cache[ node->key ].as<double>();
+          break;
+        }
+
+        case ParamType_STRING: {
+          auto *val = static_cast<etl::istring *>( node->address );
+          val->assign( s_json_cache[ node->key ].as<const char *>() );
+          break;
+        }
+
+        default: {
+          LOG_WARN( "Unsupported format specifier for key: %s", node->key );
+          break;
+        }
       }
     }
+  }
+
+
+  /**
+   * @brief Get the CRC of the JSON cache
+   * @return uint32_t
+   */
+  static uint32_t get_json_crc()
+  {
+    /*-------------------------------------------------------------------------
+    Take a snapshot of the current JSON cache
+    -------------------------------------------------------------------------*/
+    char file_data[ JSON_FILE_SIZE_MAX ];
+    memset( file_data, 0, sizeof( file_data ) );
+    const size_t serialized_size = serializeJson( s_json_cache, file_data, sizeof( file_data ) );
+
+    /*-------------------------------------------------------------------------
+    Calculate the CRC of the snapshot
+    -------------------------------------------------------------------------*/
+    etl::crc32 crc;
+    size_t     idx = 0;
+    while ( idx < serialized_size )
+    {
+      crc.add( file_data[ idx++ ] );
+    }
+
+    return crc.value();
   }
 
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
-  bool storeEEPROMCache( const CacheId id )
-  {
-    /*-------------------------------------------------------------------------
-    Select the constraints for updating EEPROM
-    -------------------------------------------------------------------------*/
-    Aurora::DS::SecureHeader16_t *pObj    = nullptr;
-    size_t                        address = 0;
-    uint8_t                       version = 0;
-    uint8_t                       tag     = 0;
-    uint16_t                      size    = 0;
-
-    switch ( id )
-    {
-      case CacheId::IDENTITY:
-        pObj    = reinterpret_cast<Aurora::DS::SecureHeader16_t *>( &SysIdentity );
-        address = EEPROM_IDENTITY_ADDR;
-        version = EEPROM_IDENTITY_VER;
-        tag     = EEPROM_IDENTITY_TAG;
-        size    = sizeof( Identity );
-        break;
-
-      default:
-        return false;
-    };
-
-    /*-------------------------------------------------------------------------
-    Update the CRC
-    -------------------------------------------------------------------------*/
-    Aurora::DS::SH::initHeader( pObj, size, version, tag );
-    Aurora::DS::SH::addCRC( pObj, size );
-
-    /*-------------------------------------------------------------------------
-    Save the data
-    -------------------------------------------------------------------------*/
-    Chimera::Thread::LockGuard _lck( Internal::EepromCtrl );
-
-    auto result = Internal::EepromCtrl.write( address, pObj, size );
-    return result == Aurora::Memory::Status::ERR_OK;
-  }
-
-
-  bool loadEEPROMCache( const CacheId id )
-  {
-    /*-------------------------------------------------------------------------
-    Select the constraints for updating EEPROM
-    -------------------------------------------------------------------------*/
-    Aurora::DS::SecureHeader16_t *pObj    = nullptr;
-    size_t                        address = 0;
-    uint16_t                      size    = 0;
-
-    switch ( id )
-    {
-      case CacheId::IDENTITY:
-        pObj    = reinterpret_cast<Aurora::DS::SecureHeader16_t *>( &SysIdentity );
-        address = EEPROM_IDENTITY_ADDR;
-        size    = sizeof( Identity );
-        break;
-
-      default:
-        return false;
-    };
-
-    /*-------------------------------------------------------------------------
-    Read the header off first to determine how much data is stored
-    -------------------------------------------------------------------------*/
-    Chimera::Thread::LockGuard _lck( Internal::EepromCtrl );
-
-    auto tmpHdr = Aurora::DS::SecureHeader16_t();
-    Internal::EepromCtrl.read( address, &tmpHdr, sizeof( Aurora::DS::SecureHeader16_t ) );
-
-    /* Read the minimal amount of information */
-    size = std::min( tmpHdr.size, size );
-
-    /*-------------------------------------------------------------------------
-    Load the data
-    -------------------------------------------------------------------------*/
-    Internal::EepromCtrl.read( address, pObj, size );
-
-    return Aurora::DS::SH::isValid( pObj, size );
-  }
-
-
   bool loadDisk()
   {
     Chimera::Thread::LockGuard _lck( s_json_lock );
@@ -280,10 +278,12 @@ namespace Orbit::Data
     DeserializationError error    = deserializeJson( s_json_cache, copy_ptr );
     if ( error )
     {
+      s_json_last_crc = 0;
       LOG_ERROR( "Failed json decode: %s", error.c_str() );
       return false;
     }
 
+    s_json_last_crc = get_json_crc();
     deserialize_disk_cache();
     return true;
   }
@@ -327,13 +327,26 @@ namespace Orbit::Data
   {
     if ( s_json_pend_changes )
     {
-      auto result = flushDisk();
-      LOG_ERROR_IF( result == false, "Failed disk sync" );
+      Chimera::Thread::LockGuard _lck( s_json_lock );
+      const uint32_t new_crc = get_json_crc();
+
+      if ( new_crc != s_json_last_crc )
+      {
+        LOG_INFO( "Detected changes to configuration. Syncing with disk." );
+        if ( flushDisk() )
+        {
+          s_json_last_crc = new_crc;
+        }
+        else
+        {
+          LOG_ERROR( "Failed to sync configuration with disk." );
+        }
+      }
     }
   }
 
 
-  bool updateDiskCache( const ParameterId param )
+  bool updateDiskCache( const ParamId param )
   {
     Chimera::Thread::LockGuard _lck( s_json_lock );
 
@@ -344,18 +357,61 @@ namespace Orbit::Data
     Serialize the data to strings for storage
     -------------------------------------------------------------------------*/
     s_fmt_buffer.fill( 0 );
+    switch ( node->type )
+    {
+      case ParamType_BOOL: {
+        RT_DBG_ASSERT( node->maxSize == sizeof( bool ) );
+        auto val = reinterpret_cast<bool *>( node->address );
+        npf_snprintf( s_fmt_buffer.data(), s_fmt_buffer.size(), FMT_BOOL, *( val ) );
+        break;
+      }
 
-    if ( node->type == ParamType_UINT32 )
-    {
-      RT_DBG_ASSERT( node->maxSize == sizeof( uint32_t ) );
-      auto val = reinterpret_cast<uint32_t *>( node->address );
-      npf_snprintf( s_fmt_buffer.data(), s_fmt_buffer.size(), FMT_UINT32, *( val ) );
-    }
-    else
-    {
-      /* Missing format specifier */
-      RT_DBG_ASSERT( false );
-      return false;
+      case ParamType_UINT8: {
+        RT_DBG_ASSERT( node->maxSize == sizeof( uint8_t ) );
+        auto val = reinterpret_cast<uint8_t *>( node->address );
+        npf_snprintf( s_fmt_buffer.data(), s_fmt_buffer.size(), FMT_UINT8, *( val ) );
+        break;
+      }
+
+      case ParamType_UINT16: {
+        RT_DBG_ASSERT( node->maxSize == sizeof( uint16_t ) );
+        auto val = reinterpret_cast<uint16_t *>( node->address );
+        npf_snprintf( s_fmt_buffer.data(), s_fmt_buffer.size(), FMT_UINT16, *( val ) );
+        break;
+      }
+
+      case ParamType_UINT32: {
+        RT_DBG_ASSERT( node->maxSize == sizeof( uint32_t ) );
+        auto val = reinterpret_cast<uint32_t *>( node->address );
+        npf_snprintf( s_fmt_buffer.data(), s_fmt_buffer.size(), FMT_UINT32, *( val ) );
+        break;
+      }
+
+      case ParamType_FLOAT: {
+        RT_DBG_ASSERT( node->maxSize == sizeof( float ) );
+        auto val = reinterpret_cast<float *>( node->address );
+        npf_snprintf( s_fmt_buffer.data(), s_fmt_buffer.size(), FMT_FLOAT, *( val ) );
+        break;
+      }
+
+      case ParamType_DOUBLE: {
+        RT_DBG_ASSERT( node->maxSize == sizeof( double ) );
+        auto val = reinterpret_cast<double *>( node->address );
+        npf_snprintf( s_fmt_buffer.data(), s_fmt_buffer.size(), FMT_DOUBLE, *( val ) );
+        break;
+      }
+
+      case ParamType_STRING: {
+        auto val = reinterpret_cast<etl::istring *>( node->address );
+        npf_snprintf( s_fmt_buffer.data(), s_fmt_buffer.size(), FMT_STRING, val->cbegin() );
+        break;
+      }
+
+      default: {
+        /* Missing format specifier */
+        RT_DBG_ASSERT( false );
+        return false;
+      }
     }
 
     /*-------------------------------------------------------------------------
@@ -372,16 +428,16 @@ namespace Orbit::Data
     Chimera::Thread::LockGuard _lck( s_json_lock );
 
     bool sticky_result = true;
-    for ( size_t idx = 0; idx < ParameterId::PARAM_COUNT; idx++ )
+    for ( size_t idx = 0; idx < s_param_info.size(); idx++ )
     {
-      sticky_result &= updateDiskCache( static_cast<ParameterId>( idx ) );
+      sticky_result &= updateDiskCache( static_cast<ParamId>( idx ) );
     }
 
     return sticky_result;
   }
 
 
-  bool copyFromCache( const ParameterId param, void *const dest, const size_t size )
+  bool copyFromCache( const ParamId param, void *const dest, const size_t size )
   {
     if ( param >= s_param_info.size() )
     {
@@ -405,7 +461,7 @@ namespace Orbit::Data
   }
 
 
-  ParamType getParamType( const ParameterId param )
+  ParamType getParamType( const ParamId param )
   {
     if ( param < s_param_info.size() )
     {

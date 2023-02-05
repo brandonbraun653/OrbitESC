@@ -24,22 +24,6 @@ namespace Orbit::Data
   Public Functions
   ---------------------------------------------------------------------------*/
   /**
-   * @brief Flushes one of the cached data structures to disk
-   *
-   * @param id      Which cache item to save
-   * @return bool   True if success, false if not
-   */
-  bool storeEEPROMCache( const CacheId id );
-
-  /**
-   * @brief Loads one of the cached data structures from disk
-   *
-   * @param id      Which cache item to load
-   * @return bool   True if success, false if not
-   */
-  bool loadEEPROMCache( const CacheId id );
-
-  /**
    * @brief Loads all parameters from disk
    * @return bool
    */
@@ -65,7 +49,7 @@ namespace Orbit::Data
    * @param param   Which parameter to store
    * @return bool
    */
-  bool updateDiskCache( const ParameterId param );
+  bool updateDiskCache( const ParamId param );
 
   /**
    * @brief Update the disk cache for all parameters
@@ -81,7 +65,7 @@ namespace Orbit::Data
    * @param size    How many bytes to copy
    * @return bool   True if success, false if not
    */
-  bool copyFromCache( const ParameterId param, void *const dest, const size_t size );
+  bool copyFromCache( const ParamId param, void *const dest, const size_t size );
 
   /**
    * @brief Get storage type of the parameter
@@ -89,7 +73,7 @@ namespace Orbit::Data
    * @param param   Which parameter to query
    * @return ParamType
    */
-  ParamType getParamType( const ParameterId param );
+  ParamType getParamType( const ParamId param );
 
 }    // namespace Orbit::Data
 

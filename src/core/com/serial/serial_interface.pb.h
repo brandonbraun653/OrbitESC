@@ -28,17 +28,27 @@ typedef enum _SubId {
 } SubId;
 
 typedef enum _ParamId {
-    ParamId_PARAM_BOOT_COUNT = 0
+    /* option allow_alias = true;
+ Read Only Parameters */
+    ParamId_PARAM_BOOT_COUNT = 0, /* Number of times the software has booted */
+    ParamId_PARAM_HW_VERSION = 1, /* Hardware version of the PCB */
+    ParamId_PARAM_SW_VERSION = 2, /* Software version of the firmware */
+    ParamId_PARAM_DEVICE_ID = 3, /* Factory programmed unique device ID */
+    /* Read/Write Parameters */
+    ParamId_PARAM_SERIAL_NUMBER = 4, /* Serial number of the device */
+    ParamId_PARAM_COUNT = 5
 } ParamId;
 
 typedef enum _ParamType {
     ParamType_UNKNOWN = 0,
-    ParamType_UINT8 = 1,
-    ParamType_UINT16 = 2,
-    ParamType_UINT32 = 3,
-    ParamType_FLOAT = 4,
-    ParamType_BYTES = 5,
-    ParamType_STRING = 6
+    ParamType_BOOL = 1,
+    ParamType_UINT8 = 2,
+    ParamType_UINT16 = 3,
+    ParamType_UINT32 = 4,
+    ParamType_FLOAT = 5,
+    ParamType_DOUBLE = 6,
+    ParamType_BYTES = 7,
+    ParamType_STRING = 8
 } ParamType;
 
 typedef enum _StatusCode {
@@ -118,8 +128,8 @@ typedef struct _ParamIOMessage {
 #define _SubId_ARRAYSIZE ((SubId)(SubId_SUB_MSG_PARAM_IO_LOAD+1))
 
 #define _ParamId_MIN ParamId_PARAM_BOOT_COUNT
-#define _ParamId_MAX ParamId_PARAM_BOOT_COUNT
-#define _ParamId_ARRAYSIZE ((ParamId)(ParamId_PARAM_BOOT_COUNT+1))
+#define _ParamId_MAX ParamId_PARAM_COUNT
+#define _ParamId_ARRAYSIZE ((ParamId)(ParamId_PARAM_COUNT+1))
 
 #define _ParamType_MIN ParamType_UNKNOWN
 #define _ParamType_MAX ParamType_STRING

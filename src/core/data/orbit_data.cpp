@@ -79,47 +79,7 @@ namespace Orbit::Data
     RT_HARD_ASSERT( Internal::EepromCtrl.configure( cfg ) );
     RT_HARD_ASSERT( Internal::EepromCtrl.open( nullptr ) == Aurora::Memory::Status::ERR_OK );
 
-    /*-------------------------------------------------------------------------
-    Pre-load the cache or initialize to defaults
-    -------------------------------------------------------------------------*/
-    bool result = true;
-    for ( size_t idx = 0; idx < EnumValue( CacheId::NUM_OPTIONS ); idx++ )
-    {
-      /*-----------------------------------------------------------------------
-      Attempt to load previously configured data
-      -----------------------------------------------------------------------*/
-      CacheId id = static_cast<CacheId>( idx );
-      if ( loadEEPROMCache( id ) )
-      {
-        continue;
-      }
-
-      /*-----------------------------------------------------------------------
-      Prepare the new data to be written
-      -----------------------------------------------------------------------*/
-      switch ( id )
-      {
-        case CacheId::IDENTITY:
-          SysIdentity.clear();
-          break;
-
-        case CacheId::NUM_OPTIONS:
-        default:
-          RT_DBG_ASSERT( false );
-          continue;
-      }
-
-      /*-----------------------------------------------------------------------
-      Save it off then attempt to read it back to verify it actually made it
-      -----------------------------------------------------------------------*/
-      bool tmp = storeEEPROMCache( id );
-      tmp &= loadEEPROMCache( id );
-      LOG_ERROR_IF( tmp == false, "Failed to load cache data %d\r\n", idx );
-
-      result &= tmp;
-    }
-
-    return result;
+    return true;
   }
 
 
@@ -202,8 +162,8 @@ namespace Orbit::Data
 
   void printSystemInfo()
   {
-    LOG_INFO( "OrbitESC --Boot#: %d, HW: %d, SW:%d.%d.%d, SN:%s\r\n", SysInfo.bootCount, SysIdentity.hwVersion,
-              SysIdentity.swVerMajor, SysIdentity.swVerMinor, SysIdentity.swVerPatch, SysIdentity.serialNumber );
+    LOG_INFO( "OrbitESC --Boot#: %d, HW: %d, SW:%s, SN:%s\r\n", SysInfo.bootCount, SysIdentity.hwVersion, SysIdentity.swVersion,
+              SysIdentity.serialNumber );
   }
 
 }    // namespace Orbit::Data

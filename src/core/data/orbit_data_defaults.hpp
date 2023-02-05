@@ -18,6 +18,7 @@ Includes
 #include <cstddef>
 #include <cstdint>
 #include <etl/string.h>
+#include <src/core/hw/orbit_can.hpp>
 
 namespace Orbit::Data
 {
@@ -29,11 +30,20 @@ namespace Orbit::Data
    */
   static constexpr size_t DFLT_DISK_SYNC_PERIOD_MS = 500;
 
+  /**
+   * @brief Default CAN node ID for the system
+   */
+  static constexpr Orbit::CAN::NodeId DFLT_CAN_NODE_ID = Orbit::CAN::NodeId::NODE_1;
+
   /*---------------------------------------------------------------------------
   System Identity
   ---------------------------------------------------------------------------*/
-  static constexpr etl::string_view DFLT_BOARD_NAME = "OrbitESC";
-  static constexpr etl::string_view DFLT_DESCRIPTION = "BLDC Motor Controller";
+  static constexpr etl::string_view DFLT_BOARD_NAME       = "OrbitESC";
+  static constexpr etl::string_view DFLT_DESCRIPTION      = "BLDC Motor Controller";
+  static constexpr etl::string_view DFLT_SERIAL_NUMBER    = "xxxxxx";
+  static constexpr etl::string_view DFLT_FIRMWARE_VERSION = "0.3.0";
+  static constexpr uint8_t          DFLT_HARDWARE_VERSION = 2;
+  static constexpr uint32_t         DFLT_DEVICE_ID        = 0x00000000;
 
   /*---------------------------------------------------------------------------
   Motor Characteristics

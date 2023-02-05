@@ -21,6 +21,7 @@ Includes
 #include <src/core/com/can/can_periodic_message.hpp>
 #include <src/core/com/can/can_router.hpp>
 #include <src/core/com/can/can_server.hpp>
+#include <src/core/data/orbit_data.hpp>
 #include <src/core/runtime/can_runtime.hpp>
 
 
@@ -29,7 +30,6 @@ namespace Orbit::CAN
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static NodeId s_this_node;
   static Server s_can_server;
 
   /*---------------------------------------------------------------------------
@@ -62,43 +62,6 @@ namespace Orbit::CAN
     Initialize the CAN bus dispatch server
     -------------------------------------------------------------------------*/
     RT_HARD_ASSERT( s_can_server.initialize( Orbit::IO::CAN::channel ) == Chimera::Status::OK );
-
-    /*-------------------------------------------------------------------------
-    Pull the STM32 unique ID and assign a node to it. For now this is just for
-    development purposes. Eventually node assignment will be handled by the
-    flight controller and stored in NVM.
-    -------------------------------------------------------------------------*/
-    Chimera::System::Information *sys_info = nullptr;
-    if ( Chimera::System::getSystemInformation( sys_info ); sys_info != nullptr )
-    {
-      uint32_t unique_id = 0;
-      memcpy( &unique_id, sys_info->uniqueId.data(), sizeof( unique_id ) );
-
-      switch ( unique_id )
-      {
-        /*---------------------------------------------------------------------
-        STM32L432KB
-        ---------------------------------------------------------------------*/
-        case 0x0043002E:
-        case 0x005A002D:
-          s_this_node = NodeId::NODE_0;
-          break;
-
-        /*---------------------------------------------------------------------
-        STM32L432KC
-        ---------------------------------------------------------------------*/
-        case 0x00700054:  // Hacked Luminary
-        case 0x003f0021:  // OrbitESC PCB Rev 1.0
-        case 0x0039006c:
-          s_this_node = NodeId::NODE_1;
-          break;
-
-        default:
-          s_this_node = NodeId::NUM_SUPPORTED_NODES;
-          RT_HARD_ASSERT( false );
-          break;
-      }
-    }
 
     /*-------------------------------------------------------------------------
     Register update functions for periodic messages
@@ -156,7 +119,7 @@ namespace Orbit::CAN
 
   NodeId thisNode()
   {
-    return s_this_node;
+    return Data::SysConfig.can_node_id;
   }
 
 

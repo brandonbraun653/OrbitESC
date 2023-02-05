@@ -12,8 +12,8 @@ enum MsgId {
 
 enum SubId {
   //option allow_alias = true;
-  SUB_MSG_PARAM_IO_GET = 0;   // Retrieve the current value of a parameter
-  SUB_MSG_PARAM_IO_PUT = 1;   // Commit a new value of a parameter
+  SUB_MSG_PARAM_IO_GET  = 0;  // Retrieve the current value of a parameter
+  SUB_MSG_PARAM_IO_PUT  = 1;  // Commit a new value of a parameter
   SUB_MSG_PARAM_IO_SYNC = 2;  // Synchronize all parameters to disk
   SUB_MSG_PARAM_IO_LOAD = 3;  // Load all parameters from disk
 
@@ -21,17 +21,29 @@ enum SubId {
 }
 
 enum ParamId {
-  PARAM_BOOT_COUNT = 0;
+  //option allow_alias = true;
+  // Read Only Parameters
+  PARAM_BOOT_COUNT    = 0;  // Number of times the software has booted
+  PARAM_HW_VERSION    = 1;  // Hardware version of the PCB
+  PARAM_SW_VERSION    = 2;  // Software version of the firmware
+  PARAM_DEVICE_ID     = 3;  // Factory programmed unique device ID
+
+  // Read/Write Parameters
+  PARAM_SERIAL_NUMBER = 4;  // Serial number of the device
+
+  PARAM_COUNT = 5;
 }
 
 enum ParamType {
-  UNKNOWN = 0;
-  UINT8 = 1;
-  UINT16 = 2;
-  UINT32 = 3;
-  FLOAT = 4;
-  BYTES = 5;
-  STRING = 6;
+  UNKNOWN  = 0;
+  BOOL     = 1;
+  UINT8    = 2;
+  UINT16   = 3;
+  UINT32   = 4;
+  FLOAT    = 5;
+  DOUBLE   = 6;
+  BYTES    = 7;
+  STRING   = 8;
 }
 
 enum StatusCode {

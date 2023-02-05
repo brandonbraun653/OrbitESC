@@ -50,8 +50,7 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Ensure the parameter ID is valid
     -------------------------------------------------------------------------*/
-    ParameterId id = static_cast<ParameterId>( msg.payload.id );
-    if ( id >= ParameterId::PARAM_COUNT )
+    if ( msg.payload.id >= ParamId_PARAM_COUNT )
     {
       sendAckNack( false, msg.payload.header, StatusCode_INVALID_PARAM );
       return;
@@ -63,7 +62,7 @@ namespace Orbit::Serial
     ParamIOMessage response;
     response.header   = msg.payload.header;
     response.id       = msg.payload.id;
-    response.type     = getParamType( id );
+    response.type     = getParamType( msg.payload.id );
     response.has_type = true;
     response.has_data = true;
     memset( response.data.bytes, 0, sizeof( response.data.bytes ) );
@@ -71,7 +70,7 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Copy out the serialized data
     -------------------------------------------------------------------------*/
-    if ( copyFromCache( id, response.data.bytes, sizeof( response.data.bytes ) ) )
+    if ( copyFromCache( msg.payload.id, response.data.bytes, sizeof( response.data.bytes ) ) )
     {
       response.data.size = strlen( reinterpret_cast<const char *>( response.data.bytes ) );
     }

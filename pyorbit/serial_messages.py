@@ -32,15 +32,19 @@ class MessageSubId(IntEnum):
 
 class ParameterType(IntEnum):
     Unknown = proto.UNKNOWN
-    UINT8   = proto.UINT8
-    UINT16  = proto.UINT16
-    UINT32  = proto.UINT32
-    FLOAT   = proto.FLOAT
-    BYTES   = proto.BYTES
-    STRING  = proto.STRING
+    BOOL = proto.BOOL
+    UINT8 = proto.UINT8
+    UINT16 = proto.UINT16
+    UINT32 = proto.UINT32
+    FLOAT = proto.FLOAT
+    DOUBLE = proto.DOUBLE
+    BYTES = proto.BYTES
+    STRING = proto.STRING
+
 
 class ParameterId(IntEnum):
     BootCount = proto.PARAM_BOOT_COUNT
+    DeviceId = proto.PARAM_DEVICE_ID
 
 
 class StatusCode(IntEnum):

@@ -36,7 +36,8 @@ namespace Orbit::CAN
     NODE_PC,
     NODE_ALL,
 
-    NUM_SUPPORTED_NODES
+    NUM_SUPPORTED_NODES,
+    INVALID
   };
 
   /*---------------------------------------------------------------------------

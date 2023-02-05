@@ -168,10 +168,18 @@ class ParameterObserver(MessageObserver):
             logger.error(f"GET parameter {param} failed with status code: {nack_messages[0].status_code}")
             return
 
+        # Deserialize the data returned
         if data_messages:
             rsp = data_messages[0]
-            if rsp.param_type == ParameterType.UINT32:
-                return int(rsp.data.decode('utf-8'))
+            msg = rsp.data.decode('utf-8')
+
+            if rsp.param_type == ParameterType.STRING:
+                return msg
+            elif rsp.param_type == ParameterType.FLOAT or rsp.param_type == ParameterType.DOUBLE:
+                return float(msg)
+            elif rsp.param_type == ParameterType.UINT8 or rsp.param_type == ParameterType.UINT16 or \
+                    rsp.param_type == ParameterType.UINT32:
+                return int(msg)
             else:
                 logger.warning(f"Don't know how to decode parameter type {rsp.param_type}")
                 return rsp.data
@@ -356,6 +364,9 @@ if __name__ == "__main__":
     # if not client.sync_parameter_cache():
     #     logger.info("Failed to sync cache")
 
-    boot_count = client.get_parameter(ParameterId.BootCount)
-    logger.info(f"Current boot count is: {boot_count}")
+    # boot_count = client.get_parameter(ParameterId.BootCount)
+    # logger.info(f"Current boot count is: {boot_count}")
+
+    device_id = client.get_parameter(ParameterId.DeviceId)
+    logger.info(f"Current device id is: {device_id}")
     client.close()
