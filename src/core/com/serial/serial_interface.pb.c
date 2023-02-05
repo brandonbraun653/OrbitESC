@@ -30,6 +30,9 @@ PB_BIND(SystemInfoMessage, SystemInfoMessage, AUTO)
 PB_BIND(ParamIOMessage, ParamIOMessage, AUTO)
 
 
+PB_BIND(SystemControlMessage, SystemControlMessage, AUTO)
+
+
 
 
 

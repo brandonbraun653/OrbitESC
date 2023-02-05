@@ -8,16 +8,20 @@ enum MsgId {
   MSG_SYS_TICK = 3; // System time tick
   MSG_SYS_INFO = 4; // System information
   MSG_PARAM_IO = 5; // Do operations on configurable parameters
+  MSG_SYS_CTRL = 6; // Perform system control operations
 }
 
 enum SubId {
-  //option allow_alias = true;
+  option allow_alias = true;
+
+  // Parameter IO messages
   SUB_MSG_PARAM_IO_GET  = 0;  // Retrieve the current value of a parameter
   SUB_MSG_PARAM_IO_PUT  = 1;  // Commit a new value of a parameter
   SUB_MSG_PARAM_IO_SYNC = 2;  // Synchronize all parameters to disk
   SUB_MSG_PARAM_IO_LOAD = 3;  // Load all parameters from disk
 
-  // Add more here
+  // System control messages
+  SUB_MSG_SYS_CTRL_RESET = 0; // Reset the system
 }
 
 enum ParamId {
@@ -107,4 +111,8 @@ message ParamIOMessage {
   optional ParamId id = 2 [(nanopb).int_size = IS_16];
   optional ParamType type = 3 [(nanopb).int_size = IS_8];
   optional bytes data = 4 [(nanopb).max_size = 64 ];
+}
+
+message SystemControlMessage {
+  required Header header = 1;
 }

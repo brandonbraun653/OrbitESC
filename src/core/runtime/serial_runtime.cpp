@@ -35,6 +35,7 @@ namespace Orbit::Serial
   ---------------------------------------------------------------------------*/
   static Router::PingRouter    s_ping_router;
   static Router::ParamIORouter s_param_router;
+  static Router::SysCtrlRouter s_sys_ctrl_router;
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -137,6 +138,7 @@ namespace Orbit::Serial
     -------------------------------------------------------------------------*/
     RT_HARD_ASSERT( s_server.subscribe( s_ping_router ) );
     RT_HARD_ASSERT( s_server.subscribe( s_param_router ) );
+    RT_HARD_ASSERT( s_server.subscribe( s_sys_ctrl_router ) );
   }
 
 

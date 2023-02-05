@@ -44,7 +44,8 @@ namespace Orbit::Serial::Message
       ConsoleMessage_size,
       SystemTick_size,
       SystemInfoMessage_size,
-      ParamIOMessage_size
+      ParamIOMessage_size,
+      SystemControlMessage_size,
       /* clang-format on */
     };
   }
@@ -68,6 +69,7 @@ namespace Orbit::Serial::Message
     MSG_SYS_TICK = MsgId_MSG_SYS_TICK,
     MSG_SYS_INFO = MsgId_MSG_SYS_INFO,
     MSG_PARAM_IO = MsgId_MSG_PARAM_IO,
+    MSG_SYS_CTRL = MsgId_MSG_SYS_CTRL,
 
     MSG_ID_COUNT
   };
@@ -75,10 +77,14 @@ namespace Orbit::Serial::Message
 
   enum _SubId : uint8_t
   {
+    /* Parameter IO */
     SUB_MSG_PARAM_IO_GET  = SubId_SUB_MSG_PARAM_IO_GET,
     SUB_MSG_PARAM_IO_PUT  = SubId_SUB_MSG_PARAM_IO_PUT,
     SUB_MSG_PARAM_IO_SYNC = SubId_SUB_MSG_PARAM_IO_SYNC,
     SUB_MSG_PARAM_IO_LOAD = SubId_SUB_MSG_PARAM_IO_LOAD,
+
+    /* System Control */
+    SUB_MSG_SYS_CTRL_RESET = SubId_SUB_MSG_SYS_CTRL_RESET,
   };
 
   /*---------------------------------------------------------------------------
@@ -289,6 +295,10 @@ namespace Orbit::Serial::Message
   };
 
   class ParamIO : public MessageExt<MSG_PARAM_IO, ParamIOMessage, ParamIOMessage_size, ParamIOMessage_fields>
+  {
+  };
+
+  class SysCtrl : public MessageExt<MSG_SYS_CTRL, SystemControlMessage, SystemControlMessage_size, SystemControlMessage_fields>
   {
   };
 

@@ -56,6 +56,14 @@ namespace Orbit::Serial::Router
     void on_receive_unknown( const etl::imessage &msg );
   };
 
+  class SysCtrlRouter : public etl::message_router<SysCtrlRouter, Message::SysCtrl>
+  {
+  public:
+    SysCtrlRouter();
+    void on_receive( const Message::SysCtrl &msg );
+    void on_receive_unknown( const etl::imessage &msg );
+  };
+
 }  // namespace Orbit::Serial::Router
 
 #endif  /* !ORBIT_SERIAL_ROUTERS_HPP */

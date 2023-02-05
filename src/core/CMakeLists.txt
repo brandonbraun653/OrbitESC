@@ -12,6 +12,7 @@ gen_static_lib_variants(
   SOURCES
     bootup.cpp
     syscalls.cpp
+    system.cpp
     tasks.cpp
     utility.cpp
   PRV_LIBRARIES

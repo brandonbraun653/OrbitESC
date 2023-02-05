@@ -1,9 +1,9 @@
 /******************************************************************************
  *  File Name:
- *    serial_ping_router.cpp
+ *    system.cpp
  *
  *  Description:
- *    Implementation of the Ping Router
+ *    High level system control implementation
  *
  *  2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
@@ -11,28 +11,17 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <src/core/com/serial/serial_router.hpp>
-#include <src/core/com/serial/serial_server.hpp>
+#include <Chimera/system>
+#include <src/core/system.hpp>
 
-namespace Orbit::Serial::Router
+namespace Orbit::System
 {
   /*---------------------------------------------------------------------------
-  Classes
+  Public Functions
   ---------------------------------------------------------------------------*/
-  PingRouter::PingRouter() : message_router( Message::MSG_PING_CMD )
+  void doSafeShutdown()
   {
+    // TODO: Add any other system shutdown tasks here
+    Chimera::System::softwareReset( false );
   }
-
-
-  void PingRouter::on_receive( const Message::Ping &msg )
-  {
-    sendAckNack( true, msg.payload.header );
-  }
-
-
-  void PingRouter::on_receive_unknown( const etl::imessage &msg )
-  {
-    /* Do nothing */
-  }
-
-}  // namespace Orbit::Serial::Router
+}    // namespace Orbit::System

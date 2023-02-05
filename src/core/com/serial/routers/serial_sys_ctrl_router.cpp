@@ -1,9 +1,9 @@
 /******************************************************************************
  *  File Name:
- *    serial_ping_router.cpp
+ *    serial_sys_ctrl_router.cpp
  *
  *  Description:
- *    Implementation of the Ping Router
+ *    System control message router
  *
  *  2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
@@ -13,26 +13,35 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <src/core/com/serial/serial_router.hpp>
 #include <src/core/com/serial/serial_server.hpp>
+#include <src/core/system.hpp>
 
 namespace Orbit::Serial::Router
 {
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  PingRouter::PingRouter() : message_router( Message::MSG_PING_CMD )
+  SysCtrlRouter::SysCtrlRouter() : message_router( Message::MSG_SYS_CTRL )
   {
   }
 
-
-  void PingRouter::on_receive( const Message::Ping &msg )
+  void SysCtrlRouter::on_receive( const Message::SysCtrl &msg )
   {
-    sendAckNack( true, msg.payload.header );
+    switch ( msg.payload.header.subId )
+    {
+      case Message::SUB_MSG_SYS_CTRL_RESET:
+        sendAckNack( true, msg.payload.header );
+        Chimera::delayMilliseconds( 50 );
+        Orbit::System::doSafeShutdown();
+        break;
+
+      default:
+        sendAckNack( false, msg.payload.header );
+        break;
+    }
   }
 
-
-  void PingRouter::on_receive_unknown( const etl::imessage &msg )
+  void SysCtrlRouter::on_receive_unknown( const etl::imessage &msg )
   {
-    /* Do nothing */
+    // Do nothing
   }
-
-}  // namespace Orbit::Serial::Router
+}    // namespace Orbit::Serial::Router

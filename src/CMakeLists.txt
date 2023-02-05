@@ -158,7 +158,16 @@ target_link_libraries(OrbitESC PRIVATE
   chimera_core_rel_dbg
   lib_cobs_rel_dbg
   lib_nanopb_rel_dbg
-  orbit_libs
+
+  # Orbit Libraries
+  lib_orbit_com_rel_dbg
+  lib_orbit_core_rel_dbg
+  lib_orbit_ctrl_rel_dbg
+  lib_orbit_data_rel_dbg
+  lib_orbit_hw_rel_dbg
+  lib_orbit_monitor_rel_dbg
+  lib_orbit_runtime_rel_dbg
+  lib_orbit_tasks_rel_dbg
 
   # Target Properties
   prj_device_target

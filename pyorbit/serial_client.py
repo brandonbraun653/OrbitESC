@@ -288,6 +288,20 @@ class SerialClient:
             logger.warning("Node did not respond to ping")
         return bool(responses)
 
+    def system_reset(self) -> bool:
+        """
+        Returns:
+            True if the device was reset, False otherwise
+        """
+        sub_id = self.com_pipe.subscribe(msg=AckNackMessage, qty=1, timeout=5.0)
+        self.com_pipe.put(SystemResetMessage().serialize())
+        responses = self.com_pipe.get_subscription_data(sub_id, terminate=True)
+        if not responses:
+            logger.warning("Node did not respond to system reset command")
+            return False
+        else:
+            return responses[0].ack
+
     def get_parameter(self, param: ParameterId) -> Any:
         return self._param_observer.get(param)
 

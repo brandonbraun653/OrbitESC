@@ -21,13 +21,18 @@ class MessageId(IntEnum):
     Terminal = proto.MSG_TERMINAL
     SystemTick = proto.MSG_SYS_TICK
     ParamIO = proto.MSG_PARAM_IO
+    SystemCtrl = proto.MSG_SYS_CTRL
 
 
 class MessageSubId(IntEnum):
+    # Parameter IO
     ParamIO_Put = proto.SUB_MSG_PARAM_IO_PUT
     ParamIO_Get = proto.SUB_MSG_PARAM_IO_GET
     ParamIO_Sync = proto.SUB_MSG_PARAM_IO_SYNC
     ParamIO_Load = proto.SUB_MSG_PARAM_IO_LOAD
+
+    # System Control
+    SystemControl_Reset = proto.SUB_MSG_SYS_CTRL_RESET
 
 
 class ParameterType(IntEnum):
@@ -233,6 +238,16 @@ class ParamIOMessage(BaseMessage):
     @data.setter
     def data(self, d: bytes):
         self._pb_msg.data = d
+
+
+class SystemResetMessage(BaseMessage):
+
+    def __init__(self):
+        super().__init__()
+        self._pb_msg = proto.SystemControlMessage()
+        self._pb_msg.header.msgId = MessageId.SystemCtrl.value
+        self._pb_msg.header.subId = MessageSubId.SystemControl_Reset.value
+        self._pb_msg.header.uuid = self._id_gen.next_uuid
 
 
 MessageTypeMap = {

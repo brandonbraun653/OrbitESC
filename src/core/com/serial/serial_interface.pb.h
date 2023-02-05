@@ -16,15 +16,18 @@ typedef enum _MsgId {
     MsgId_MSG_TERMINAL = 2, /* Terminal command for printing text/debug data */
     MsgId_MSG_SYS_TICK = 3, /* System time tick */
     MsgId_MSG_SYS_INFO = 4, /* System information */
-    MsgId_MSG_PARAM_IO = 5 /* Do operations on configurable parameters */
+    MsgId_MSG_PARAM_IO = 5, /* Do operations on configurable parameters */
+    MsgId_MSG_SYS_CTRL = 6 /* Perform system control operations */
 } MsgId;
 
 typedef enum _SubId {
-    /* option allow_alias = true; */
+    /* Parameter IO messages */
     SubId_SUB_MSG_PARAM_IO_GET = 0, /* Retrieve the current value of a parameter */
     SubId_SUB_MSG_PARAM_IO_PUT = 1, /* Commit a new value of a parameter */
     SubId_SUB_MSG_PARAM_IO_SYNC = 2, /* Synchronize all parameters to disk */
-    SubId_SUB_MSG_PARAM_IO_LOAD = 3 /* Load all parameters from disk */
+    SubId_SUB_MSG_PARAM_IO_LOAD = 3, /* Load all parameters from disk */
+    /* System control messages */
+    SubId_SUB_MSG_SYS_CTRL_RESET = 0 /* Reset the system */
 } SubId;
 
 typedef enum _ParamId {
@@ -120,11 +123,15 @@ typedef struct _ParamIOMessage {
     ParamIOMessage_data_t data;
 } ParamIOMessage;
 
+typedef struct _SystemControlMessage {
+    Header header;
+} SystemControlMessage;
+
 
 /* Helper constants for enums */
 #define _MsgId_MIN MsgId_MSG_ACK_NACK
-#define _MsgId_MAX MsgId_MSG_PARAM_IO
-#define _MsgId_ARRAYSIZE ((MsgId)(MsgId_MSG_PARAM_IO+1))
+#define _MsgId_MAX MsgId_MSG_SYS_CTRL
+#define _MsgId_ARRAYSIZE ((MsgId)(MsgId_MSG_SYS_CTRL+1))
 
 #define _SubId_MIN SubId_SUB_MSG_PARAM_IO_GET
 #define _SubId_MAX SubId_SUB_MSG_PARAM_IO_LOAD
@@ -154,6 +161,7 @@ typedef struct _ParamIOMessage {
 #define ParamIOMessage_type_ENUMTYPE ParamType
 
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -167,6 +175,7 @@ extern "C" {
 #define ConsoleMessage_init_default              {Header_init_default, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_default           {Header_init_default, 0, "", "", ""}
 #define ParamIOMessage_init_default              {Header_init_default, false, _ParamId_MIN, false, _ParamType_MIN, false, {0, {0}}}
+#define SystemControlMessage_init_default        {Header_init_default}
 #define Header_init_zero                         {0, 0, 0}
 #define BaseMessage_init_zero                    {Header_init_zero}
 #define AckNackMessage_init_zero                 {Header_init_zero, 0, _StatusCode_MIN}
@@ -175,6 +184,7 @@ extern "C" {
 #define ConsoleMessage_init_zero                 {Header_init_zero, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_zero              {Header_init_zero, 0, "", "", ""}
 #define ParamIOMessage_init_zero                 {Header_init_zero, false, _ParamId_MIN, false, _ParamType_MIN, false, {0, {0}}}
+#define SystemControlMessage_init_zero           {Header_init_zero}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define Header_msgId_tag                         1
@@ -200,6 +210,7 @@ extern "C" {
 #define ParamIOMessage_id_tag                    2
 #define ParamIOMessage_type_tag                  3
 #define ParamIOMessage_data_tag                  4
+#define SystemControlMessage_header_tag          1
 
 /* Struct field encoding specification for nanopb */
 #define Header_FIELDLIST(X, a) \
@@ -264,6 +275,12 @@ X(a, STATIC,   OPTIONAL, BYTES,    data,              4)
 #define ParamIOMessage_DEFAULT (const pb_byte_t*)"\x10\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01\x00"
 #define ParamIOMessage_header_MSGTYPE Header
 
+#define SystemControlMessage_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, MESSAGE,  header,            1)
+#define SystemControlMessage_CALLBACK NULL
+#define SystemControlMessage_DEFAULT NULL
+#define SystemControlMessage_header_MSGTYPE Header
+
 extern const pb_msgdesc_t Header_msg;
 extern const pb_msgdesc_t BaseMessage_msg;
 extern const pb_msgdesc_t AckNackMessage_msg;
@@ -272,6 +289,7 @@ extern const pb_msgdesc_t SystemTick_msg;
 extern const pb_msgdesc_t ConsoleMessage_msg;
 extern const pb_msgdesc_t SystemInfoMessage_msg;
 extern const pb_msgdesc_t ParamIOMessage_msg;
+extern const pb_msgdesc_t SystemControlMessage_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define Header_fields &Header_msg
@@ -282,6 +300,7 @@ extern const pb_msgdesc_t ParamIOMessage_msg;
 #define ConsoleMessage_fields &ConsoleMessage_msg
 #define SystemInfoMessage_fields &SystemInfoMessage_msg
 #define ParamIOMessage_fields &ParamIOMessage_msg
+#define SystemControlMessage_fields &SystemControlMessage_msg
 
 /* Maximum encoded size of messages (where known) */
 #define AckNackMessage_size                      16
@@ -290,6 +309,7 @@ extern const pb_msgdesc_t ParamIOMessage_msg;
 #define Header_size                              10
 #define ParamIOMessage_size                      91
 #define PingMessage_size                         12
+#define SystemControlMessage_size                12
 #define SystemInfoMessage_size                   69
 #define SystemTick_size                          18
 

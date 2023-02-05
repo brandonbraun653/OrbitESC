@@ -1,16 +1,9 @@
-
-import pytest
+from pyorbit.tests.fixtures import *
 from pyorbit.serial_client import SerialClient
-from pyorbit.serial_messages import MessageId, MessageSubId, ParameterId, ParameterType, StatusCode
+from pyorbit.serial_messages import ParameterId
 
 
-@pytest.fixture()
-def serial_client() -> SerialClient:
-    client = SerialClient(port="/dev/ttyUSB0", baudrate=2000000)
-    yield client
-    client.close()
-
-
+@pytest.mark.usefixtures("serial_client")
 class TestReadOnlyParameters:
 
     def test_get_invalid_parameter(self, serial_client: SerialClient):
