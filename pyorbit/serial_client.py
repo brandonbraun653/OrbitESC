@@ -174,16 +174,20 @@ class ParameterObserver(MessageObserver):
             rsp = data_messages[0]
             msg = rsp.data.decode('utf-8')
 
-            if rsp.param_type == ParameterType.STRING:
-                return msg
-            elif rsp.param_type == ParameterType.FLOAT or rsp.param_type == ParameterType.DOUBLE:
-                return float(msg)
-            elif rsp.param_type == ParameterType.UINT8 or rsp.param_type == ParameterType.UINT16 or \
-                    rsp.param_type == ParameterType.UINT32:
-                return int(msg)
-            else:
-                logger.warning(f"Don't know how to decode parameter type {rsp.param_type}")
-                return rsp.data
+            try:
+                if rsp.param_type == ParameterType.STRING:
+                    return msg
+                elif rsp.param_type == ParameterType.FLOAT or rsp.param_type == ParameterType.DOUBLE:
+                    return float(msg)
+                elif rsp.param_type == ParameterType.UINT8 or rsp.param_type == ParameterType.UINT16 or \
+                        rsp.param_type == ParameterType.UINT32:
+                    return int(msg)
+                else:
+                    logger.warning(f"Don't know how to decode parameter type {rsp.param_type}")
+                    return rsp.data
+            except ValueError:
+                logger.error(f"Failed to decode response: {msg}")
+                return None
 
         logger.error("No response from server")
         return None

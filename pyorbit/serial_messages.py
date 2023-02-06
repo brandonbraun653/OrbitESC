@@ -63,6 +63,7 @@ class ParameterId(IntEnum):
     # Read/Write Parameters
     SerialNumber = proto.PARAM_SERIAL_NUMBER
     DiskUpdateRateMS = proto.PARAM_DISK_UPDATE_RATE_MS
+    ActivityLedScaler = proto.PARAM_ACTIVITY_LED_SCALER
 
 
 class StatusCode(IntEnum):
@@ -259,6 +260,7 @@ class SetActivityLedBlinkScalerMessage(BaseMessage):
         self._pb_msg.header.msgId = MessageId.ParamIO.value
         self._pb_msg.header.subId = MessageSubId.ParamIO_Put.value
         self._pb_msg.header.uuid = self._id_gen.next_uuid
+        self._pb_msg.id = ParameterId.ActivityLedScaler.value
         self._pb_msg.type = ParameterType.FLOAT.value
         self._pb_msg.data = struct.pack('<f', scaler)
 

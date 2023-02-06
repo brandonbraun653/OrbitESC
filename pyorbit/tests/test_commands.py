@@ -1,4 +1,6 @@
+import math
 import time
+import numpy as np
 from pyorbit.tests.fixtures import *
 from pyorbit.serial_client import SerialClient
 from pyorbit.serial_messages import ParameterId
@@ -15,3 +17,13 @@ class TestSystemControlCommands:
         time.sleep(2.0)
         boot_count_new = serial_client.get_parameter(ParameterId.BootCount)
         assert (boot_count_new - boot_count_prev) == 1
+
+    def test_activity_led_rate_change(self, serial_client: SerialClient):
+        test_values = np.arange(0.1, 3.0, 0.25)
+        for value in test_values:
+            serial_client.set_activity_led_blink_scaler(value)
+            time.sleep(0.5)
+            new_rate = serial_client.get_parameter(ParameterId.ActivityLedScaler)
+            assert math.isclose(new_rate, value, rel_tol=0.00001)
+
+        serial_client.set_activity_led_blink_scaler(1.0)

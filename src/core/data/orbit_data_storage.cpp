@@ -14,6 +14,7 @@ Includes
 #include <ArduinoJson.h>
 #include <Aurora/filesystem>
 #include <Aurora/logging>
+#include <Chimera/system>
 #include <Chimera/thread>
 #include <algorithm>
 #include <array>
@@ -40,8 +41,8 @@ namespace Orbit::Data
   static constexpr const char     *FMT_UINT8          = "%u";
   static constexpr const char     *FMT_UINT16         = FMT_UINT8;
   static constexpr const char     *FMT_UINT32         = "%lu";
-  static constexpr const char     *FMT_FLOAT          = "%.9g";
-  static constexpr const char     *FMT_DOUBLE         = "%.17g";
+  static constexpr const char     *FMT_FLOAT          = "%4.9f";
+  static constexpr const char     *FMT_DOUBLE         = "%4.17f";
   static constexpr const char     *FMT_STRING         = "%s";
   static constexpr const char     *FMT_BOOL           = "%d";
 
@@ -86,9 +87,9 @@ namespace Orbit::Data
       /*-----------------------------------------------------------------------
       Read/Write Parameters
       -----------------------------------------------------------------------*/
-      ParameterNode{ .id = ParamId_PARAM_SERIAL_NUMBER,       .type = ParamType_STRING, .key = "ser_num",         .address = &SysIdentity.serialNumber,    .maxSize = SysIdentity.serialNumber.MAX_SIZE     },
-      ParameterNode{ .id = ParamId_PARAM_DISK_UPDATE_RATE_MS, .type = ParamType_UINT32, .key = "dsk_updt",        .address = &SysConfig.diskUpdateRateMs,  .maxSize = sizeof( SysConfig.diskUpdateRateMs )  },
-      ParameterNode{ .id = ParamId_PARAM_ACTIVITY_LED_SCALER, .type = ParamType_FLOAT,  .key = "actv_led_scaler", .address = &SysConfig.activityLedScaler, .maxSize = sizeof( SysConfig.activityLedScaler ) },
+      ParameterNode{ .id = ParamId_PARAM_SERIAL_NUMBER,       .type = ParamType_STRING, .key = "ser_num",        .address = &SysIdentity.serialNumber,    .maxSize = SysIdentity.serialNumber.MAX_SIZE     },
+      ParameterNode{ .id = ParamId_PARAM_DISK_UPDATE_RATE_MS, .type = ParamType_UINT32, .key = "dsk_updt",       .address = &SysConfig.diskUpdateRateMs,  .maxSize = sizeof( SysConfig.diskUpdateRateMs )  },
+      ParameterNode{ .id = ParamId_PARAM_ACTIVITY_LED_SCALER, .type = ParamType_FLOAT,  .key = "actv_led_scale", .address = &SysConfig.activityLedScaler, .maxSize = sizeof( SysConfig.activityLedScaler ) },
 
       /***** Add new entries above here *****/
       /* clang-format on */
@@ -564,10 +565,22 @@ namespace Orbit::Data
     }
 
     /*-------------------------------------------------------------------------
-    Copy the data from the cache
+    Safely copy data to the working cache, then update the JSON document cache
     -------------------------------------------------------------------------*/
     Chimera::Thread::LockGuard _lck( s_json_lock );
+    auto mask = Chimera::System::disableInterrupts();
+    {
+      if( size > node->maxSize )
+      {
+        Chimera::System::enableInterrupts( mask );
+        LOG_ERROR( "Parameter size mismatch. Max: %u, Size: %u", size, node->maxSize );
+        return false;
+      }
 
+      memcpy( node->address, src, size );
+    }
+    Chimera::System::enableInterrupts( mask );
+    return updateDiskCache( param );
   }
 
 
