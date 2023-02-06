@@ -71,7 +71,8 @@ namespace Orbit::Data
   class Configuration
   {
   public:
-    size_t             diskUpdateRateMs; /**< PARAM_DISK_UPDATE_RATE_MS */
+    size_t             diskUpdateRateMs;  /**< PARAM_DISK_UPDATE_RATE_MS */
+    float              activityLedScaler; /**< PARAM_ACTIVITY_LED_SCALER */
     Orbit::CAN::NodeId canNodeId;
 
     void clear();

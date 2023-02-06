@@ -39,6 +39,7 @@ enum ParamId {
   // Read/Write Parameters
   PARAM_SERIAL_NUMBER       = 10; // Serial number of the device
   PARAM_DISK_UPDATE_RATE_MS = 11; // How often to write parameters to disk
+  PARAM_ACTIVITY_LED_SCALER = 12; // Scale the activity LED blink rate
 }
 
 enum ParamType {

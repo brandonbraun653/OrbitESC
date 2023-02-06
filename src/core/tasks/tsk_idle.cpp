@@ -20,6 +20,7 @@ Includes
 #include <src/core/bootup.hpp>
 #include <src/core/hw/orbit_timer.hpp>
 #include <src/core/hw/orbit_led.hpp>
+#include <src/core/data/orbit_data.hpp>
 
 
 namespace Orbit::Tasks::BKD
@@ -52,25 +53,31 @@ namespace Orbit::Tasks::BKD
     while ( 1 )
     {
       /*-----------------------------------------------------------------------
+      Compute the flash and hold times
+      -----------------------------------------------------------------------*/
+      const uint32_t flash_delay = static_cast<uint32_t>( 100.0f * Data::SysConfig.activityLedScaler );
+      const uint32_t hold_delay  = static_cast<uint32_t>( 450.0f * Data::SysConfig.activityLedScaler );
+
+      /*-----------------------------------------------------------------------
       High Pulse #1
       -----------------------------------------------------------------------*/
       LED::setChannel( LED::Channel::HEARTBEAT );
-      Chimera::delayMilliseconds( 100 );
+      Chimera::delayMilliseconds( flash_delay );
       LED::clrChannel( LED::Channel::HEARTBEAT );
-      Chimera::delayMilliseconds( 100 );
+      Chimera::delayMilliseconds( flash_delay );
 
       /*-----------------------------------------------------------------------
       High Pulse #2
       -----------------------------------------------------------------------*/
       LED::setChannel( LED::Channel::HEARTBEAT );
-      Chimera::delayMilliseconds( 100 );
+      Chimera::delayMilliseconds( flash_delay );
       LED::clrChannel( LED::Channel::HEARTBEAT );
-      Chimera::delayMilliseconds( 100 );
+      Chimera::delayMilliseconds( flash_delay );
 
       /*-----------------------------------------------------------------------
       Hold longer in the off state
       -----------------------------------------------------------------------*/
-      Chimera::delayMilliseconds( 450 );
+      Chimera::delayMilliseconds( hold_delay );
     }
   }
 }    // namespace Orbit::Tasks::BKD

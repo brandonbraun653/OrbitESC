@@ -68,6 +68,16 @@ namespace Orbit::Data
   bool copyFromCache( const ParamId param, void *const dest, const size_t size );
 
   /**
+   * @brief Copies a serialized parameter into the cache
+   *
+   * @param param   Which parameter to update
+   * @param src     Where to copy the data from
+   * @param size    How many bytes to copy
+   * @return bool   True if success, false if not
+   */
+  bool copyToCache( const ParamId param, const void *const src, const size_t size );
+
+  /**
    * @brief Get storage type of the parameter
    *
    * @param param   Which parameter to query

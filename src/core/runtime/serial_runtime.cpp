@@ -100,7 +100,28 @@ namespace Orbit::Serial
    */
   static void handle_put( const Message::ParamIO &msg )
   {
-    sendAckNack( false, msg.payload.header );
+    using namespace Orbit::Data;
+
+    /*-------------------------------------------------------------------------
+    Ensure the parameter ID is valid
+    -------------------------------------------------------------------------*/
+    if ( !paramExists( msg.payload.id ) )
+    {
+      sendAckNack( false, msg.payload.header, StatusCode_INVALID_PARAM );
+      return;
+    }
+
+    /*-------------------------------------------------------------------------
+    Load the data into the cache
+    -------------------------------------------------------------------------*/
+    if ( msg.payload.has_data && copyToCache( msg.payload.id, msg.payload.data.bytes, msg.payload.data.size ) )
+    {
+      sendAckNack( true, msg.payload.header );
+    }
+    else
+    {
+      sendAckNack( false, msg.payload.header, StatusCode_REQUEST_FAILED );
+    }
   }
 
 

@@ -8,6 +8,7 @@
 #   01/21/2023 | Brandon Braun | brandonbraun653@gmail.com
 # **********************************************************************************************************************
 
+import struct
 import pyorbit.nanopb.serial_interface_pb2 as proto
 from google.protobuf.message import Message
 from enum import IntEnum
@@ -248,6 +249,18 @@ class SystemResetMessage(BaseMessage):
         self._pb_msg.header.msgId = MessageId.SystemCtrl.value
         self._pb_msg.header.subId = MessageSubId.SystemControl_Reset.value
         self._pb_msg.header.uuid = self._id_gen.next_uuid
+
+
+class SetActivityLedBlinkScalerMessage(BaseMessage):
+
+    def __init__(self, scaler: float):
+        super().__init__()
+        self._pb_msg = proto.ParamIOMessage()
+        self._pb_msg.header.msgId = MessageId.ParamIO.value
+        self._pb_msg.header.subId = MessageSubId.ParamIO_Put.value
+        self._pb_msg.header.uuid = self._id_gen.next_uuid
+        self._pb_msg.type = ParameterType.FLOAT.value
+        self._pb_msg.data = struct.pack('<f', scaler)
 
 
 MessageTypeMap = {

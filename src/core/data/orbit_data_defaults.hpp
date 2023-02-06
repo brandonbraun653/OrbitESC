@@ -31,6 +31,11 @@ namespace Orbit::Data
   static constexpr size_t DFLT_DISK_SYNC_PERIOD_MS = 500;
 
   /**
+   * @brief Scaling constant for the activity LED blink rate
+   */
+  static constexpr float DFLT_ACTIVITY_LED_SCALER = 1.0f;
+
+  /**
    * @brief Default CAN node ID for the system
    */
   static constexpr Orbit::CAN::NodeId DFLT_CAN_NODE_ID = Orbit::CAN::NodeId::NODE_1;

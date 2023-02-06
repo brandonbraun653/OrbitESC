@@ -42,7 +42,8 @@ typedef enum _ParamId {
     ParamId_PARAM_DESCRIPTION = 5, /* Description of the project */
     /* Read/Write Parameters */
     ParamId_PARAM_SERIAL_NUMBER = 10, /* Serial number of the device */
-    ParamId_PARAM_DISK_UPDATE_RATE_MS = 11 /* How often to write parameters to disk */
+    ParamId_PARAM_DISK_UPDATE_RATE_MS = 11, /* How often to write parameters to disk */
+    ParamId_PARAM_ACTIVITY_LED_SCALER = 12 /* Scale the activity LED blink rate */
 } ParamId;
 
 typedef enum _ParamType {
@@ -138,8 +139,8 @@ typedef struct _SystemControlMessage {
 #define _SubId_ARRAYSIZE ((SubId)(SubId_SUB_MSG_PARAM_IO_LOAD+1))
 
 #define _ParamId_MIN ParamId_PARAM_INVALID
-#define _ParamId_MAX ParamId_PARAM_DISK_UPDATE_RATE_MS
-#define _ParamId_ARRAYSIZE ((ParamId)(ParamId_PARAM_DISK_UPDATE_RATE_MS+1))
+#define _ParamId_MAX ParamId_PARAM_ACTIVITY_LED_SCALER
+#define _ParamId_ARRAYSIZE ((ParamId)(ParamId_PARAM_ACTIVITY_LED_SCALER+1))
 
 #define _ParamType_MIN ParamType_UNKNOWN
 #define _ParamType_MAX ParamType_STRING

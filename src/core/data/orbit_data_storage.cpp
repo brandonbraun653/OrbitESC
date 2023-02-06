@@ -56,7 +56,7 @@ namespace Orbit::Data
     void           *address;  /**< Fixed location in memory where data lives */
     size_t          maxSize;  /**< Max possible size of the data */
   };
-  using ParameterList = std::array<ParameterNode, 8>;
+  using ParameterList = std::array<ParameterNode, 9>;
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -86,8 +86,9 @@ namespace Orbit::Data
       /*-----------------------------------------------------------------------
       Read/Write Parameters
       -----------------------------------------------------------------------*/
-      ParameterNode{ .id = ParamId_PARAM_SERIAL_NUMBER,       .type = ParamType_STRING, .key = "ser_num",  .address = &SysIdentity.serialNumber,   .maxSize = SysIdentity.serialNumber.MAX_SIZE    },
-      ParameterNode{ .id = ParamId_PARAM_DISK_UPDATE_RATE_MS, .type = ParamType_UINT32, .key = "dsk_updt", .address = &SysConfig.diskUpdateRateMs, .maxSize = sizeof( SysConfig.diskUpdateRateMs ) },
+      ParameterNode{ .id = ParamId_PARAM_SERIAL_NUMBER,       .type = ParamType_STRING, .key = "ser_num",         .address = &SysIdentity.serialNumber,    .maxSize = SysIdentity.serialNumber.MAX_SIZE     },
+      ParameterNode{ .id = ParamId_PARAM_DISK_UPDATE_RATE_MS, .type = ParamType_UINT32, .key = "dsk_updt",        .address = &SysConfig.diskUpdateRateMs,  .maxSize = sizeof( SysConfig.diskUpdateRateMs )  },
+      ParameterNode{ .id = ParamId_PARAM_ACTIVITY_LED_SCALER, .type = ParamType_FLOAT,  .key = "actv_led_scaler", .address = &SysConfig.activityLedScaler, .maxSize = sizeof( SysConfig.activityLedScaler ) },
 
       /***** Add new entries above here *****/
       /* clang-format on */
@@ -548,6 +549,25 @@ namespace Orbit::Data
     {
       return false;
     }
+  }
+
+
+  bool copyToCache( const ParamId param, const void *const src, const size_t size )
+  {
+    /*-------------------------------------------------------------------------
+    Find the parameter in the list
+    -------------------------------------------------------------------------*/
+    const ParameterNode *node = find_parameter( param );
+    if( !node )
+    {
+      return false;
+    }
+
+    /*-------------------------------------------------------------------------
+    Copy the data from the cache
+    -------------------------------------------------------------------------*/
+    Chimera::Thread::LockGuard _lck( s_json_lock );
+
   }
 
 

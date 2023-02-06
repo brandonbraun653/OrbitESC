@@ -302,6 +302,27 @@ class SerialClient:
         else:
             return responses[0].ack
 
+    def set_activity_led_blink_scaler(self, scaler: float = 1.0) -> bool:
+        """
+        Sets the activity LED blink scaler
+        Args:
+            scaler: New scaling constant to speed up or slow down the blink rate
+
+        Returns:
+            True if the command was successful, False otherwise
+
+        Notes:
+            The default scaler is 1.0, which means the LED will blink at the default pre-programmed rate.
+        """
+        sub_id = self.com_pipe.subscribe(msg=AckNackMessage, qty=1, timeout=5.0)
+        self.com_pipe.put(SetActivityLedBlinkScalerMessage(scaler=scaler).serialize())
+        responses = self.com_pipe.get_subscription_data(sub_id, terminate=True)
+        if not responses:
+            logger.warning("Node did not respond to set activity LED blink scaler command")
+            return False
+        else:
+            return responses[0].ack
+
     def get_parameter(self, param: ParameterId) -> Any:
         return self._param_observer.get(param)
 
