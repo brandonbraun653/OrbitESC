@@ -8,7 +8,7 @@ _conda=$(which conda)
 # Figure out where Anaconda was installed on this machine
 if [ ! -f "$_conda" ]
 then
-    echo "Conda application not found!"
+    echo "Conda application not found! -> $_conda"
     exit 1
 fi
 

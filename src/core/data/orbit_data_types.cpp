@@ -78,11 +78,13 @@ namespace Orbit::Data
   void Information::clear()
   {
     bootCount = 0;
+    bootMode  = System::Mode::NORMAL;
   }
 
   void Information::setDefaults()
   {
     bootCount = 0;
+    bootMode = System::Mode::NORMAL;
   }
 
   /*---------------------------------------------------------------------------

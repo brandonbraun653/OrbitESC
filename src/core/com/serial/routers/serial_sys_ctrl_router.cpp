@@ -31,7 +31,7 @@ namespace Orbit::Serial::Router
       case Message::SUB_MSG_SYS_CTRL_RESET:
         sendAckNack( true, msg.payload.header );
         Chimera::delayMilliseconds( 50 );
-        Orbit::System::doSafeShutdown();
+        Orbit::System::setMode( Orbit::System::getMode());
         break;
 
       default:

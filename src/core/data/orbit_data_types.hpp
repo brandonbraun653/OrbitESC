@@ -23,6 +23,7 @@ Includes
 #include <src/core/com/serial/serial_interface.pb.h>
 #include <src/core/data/orbit_data_defaults.hpp>
 #include <src/core/hw/orbit_can.hpp>
+#include <src/core/system_types.hpp>
 
 namespace Orbit::Data
 {
@@ -62,7 +63,8 @@ namespace Orbit::Data
   class Information
   {
   public:
-    uint32_t bootCount; /**< PARAM_BOOT_COUNT */
+    uint32_t     bootCount; /**< PARAM_BOOT_COUNT */
+    System::Mode bootMode;  /**< PARAM_BOOT_MODE */
 
     void clear();
     void setDefaults();

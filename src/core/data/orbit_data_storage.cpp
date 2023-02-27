@@ -57,7 +57,7 @@ namespace Orbit::Data
     void           *address;  /**< Fixed location in memory where data lives */
     size_t          maxSize;  /**< Max possible size of the data */
   };
-  using ParameterList = std::array<ParameterNode, 9>;
+  using ParameterList = std::array<ParameterNode, 10>;
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -90,7 +90,7 @@ namespace Orbit::Data
       ParameterNode{ .id = ParamId_PARAM_SERIAL_NUMBER,       .type = ParamType_STRING, .key = "ser_num",        .address = &SysIdentity.serialNumber,    .maxSize = SysIdentity.serialNumber.MAX_SIZE     },
       ParameterNode{ .id = ParamId_PARAM_DISK_UPDATE_RATE_MS, .type = ParamType_UINT32, .key = "dsk_updt",       .address = &SysConfig.diskUpdateRateMs,  .maxSize = sizeof( SysConfig.diskUpdateRateMs )  },
       ParameterNode{ .id = ParamId_PARAM_ACTIVITY_LED_SCALER, .type = ParamType_FLOAT,  .key = "actv_led_scale", .address = &SysConfig.activityLedScaler, .maxSize = sizeof( SysConfig.activityLedScaler ) },
-
+      ParameterNode{ .id = ParamId_PARAM_BOOT_MODE,           .type = ParamType_UINT8,  .key = "boot_mode",      .address = &SysInfo.bootMode,            .maxSize = sizeof( SysInfo.bootMode )            },
       /***** Add new entries above here *****/
       /* clang-format on */
     };
@@ -102,6 +102,7 @@ namespace Orbit::Data
   static Chimera::Thread::RecursiveMutex        s_json_lock;
   static etl::array<char, 64>                   s_fmt_buffer;
   static bool                                   s_json_pend_changes;
+  static bool                                   s_json_is_synced;
   static uint32_t                               s_json_last_crc;
 
   /*---------------------------------------------------------------------------
@@ -415,7 +416,8 @@ namespace Orbit::Data
         LOG_INFO( "Detected changes to configuration. Syncing with disk." );
         if ( flushDisk() )
         {
-          s_json_last_crc = new_crc;
+          s_json_last_crc  = new_crc;
+          s_json_is_synced = true;
         }
         else
         {
@@ -423,6 +425,12 @@ namespace Orbit::Data
         }
       }
     }
+  }
+
+
+  bool isSynced()
+  {
+    return s_json_is_synced;
   }
 
 
@@ -505,6 +513,7 @@ namespace Orbit::Data
     -------------------------------------------------------------------------*/
     s_json_cache[ node->key ] = s_fmt_buffer.data();
     s_json_pend_changes       = true;
+    s_json_is_synced          = false;
     return true;
   }
 

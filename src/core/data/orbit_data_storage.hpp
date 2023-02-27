@@ -44,6 +44,12 @@ namespace Orbit::Data
   void syncDisk();
 
   /**
+   * @brief Checks if the disk cache is in sync with the RAM backing store
+   * @return bool
+   */
+  bool syncedToDisk();
+
+  /**
    * @brief Updates cache with a single parameter information
    *
    * @param param   Which parameter to store
