@@ -23,6 +23,7 @@ class MessageId(IntEnum):
     SystemTick = proto.MSG_SYS_TICK
     ParamIO = proto.MSG_PARAM_IO
     SystemCtrl = proto.MSG_SYS_CTRL
+    SwitchMode = proto.MSG_SWITCH_MODE
 
 
 class MessageSubId(IntEnum):
@@ -64,6 +65,7 @@ class ParameterId(IntEnum):
     SerialNumber = proto.PARAM_SERIAL_NUMBER
     DiskUpdateRateMS = proto.PARAM_DISK_UPDATE_RATE_MS
     ActivityLedScaler = proto.PARAM_ACTIVITY_LED_SCALER
+    BootMode = proto.PARAM_BOOT_MODE
 
 
 class StatusCode(IntEnum):
@@ -73,6 +75,12 @@ class StatusCode(IntEnum):
     INVALID_TYPE = proto.INVALID_TYPE
     INVALID_VALUE = proto.INVALID_VALUE
     REQUEST_FAILED = proto.REQUEST_FAILED
+
+
+class Mode(IntEnum):
+    Normal = proto.BOOT_MODE_NORMAL
+    Test = proto.BOOT_MODE_TEST
+    Config = proto.BOOT_MODE_CONFIG
 
 
 class UUIDGenerator(metaclass=Singleton):
@@ -263,6 +271,17 @@ class SetActivityLedBlinkScalerMessage(BaseMessage):
         self._pb_msg.id = ParameterId.ActivityLedScaler.value
         self._pb_msg.type = ParameterType.FLOAT.value
         self._pb_msg.data = struct.pack('<f', scaler)
+
+
+class SwitchModeMessage(BaseMessage):
+
+    def __init__(self, mode: Mode):
+        super().__init__()
+        self._pb_msg = proto.SwitchModeMessage()
+        self._pb_msg.header.msgId = MessageId.SwitchMode.value
+        self._pb_msg.header.subId = 0
+        self._pb_msg.header.uuid = self._id_gen.next_uuid
+        self._pb_msg.mode = mode.value
 
 
 MessageTypeMap = {

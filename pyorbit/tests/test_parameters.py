@@ -38,3 +38,8 @@ class TestReadOnlyParameters:
         description = serial_client.get_parameter(ParameterId.Description)
         assert isinstance(description, str)
         assert description == "BLDC Motor Controller"
+
+    def test_get_boot_mode(self, serial_client: SerialClient):
+        boot_mode = serial_client.get_parameter(ParameterId.BootMode)
+        assert isinstance(boot_mode, int)
+        assert boot_mode >= 0

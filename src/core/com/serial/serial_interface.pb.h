@@ -17,7 +17,8 @@ typedef enum _MsgId {
     MsgId_MSG_SYS_TICK = 3, /* System time tick */
     MsgId_MSG_SYS_INFO = 4, /* System information */
     MsgId_MSG_PARAM_IO = 5, /* Do operations on configurable parameters */
-    MsgId_MSG_SYS_CTRL = 6 /* Perform system control operations */
+    MsgId_MSG_SYS_CTRL = 6, /* Perform system control operations */
+    MsgId_MSG_SWITCH_MODE = 7 /* Switch the boot mode of the device */
 } MsgId;
 
 typedef enum _SubId {
@@ -67,6 +68,12 @@ typedef enum _StatusCode {
     StatusCode_INVALID_VALUE = 4,
     StatusCode_REQUEST_FAILED = 5
 } StatusCode;
+
+typedef enum _BootMode {
+    BootMode_BOOT_MODE_NORMAL = 0,
+    BootMode_BOOT_MODE_TEST = 1,
+    BootMode_BOOT_MODE_CONFIG = 2
+} BootMode;
 
 /* Struct definitions */
 /* Instrumentation message header common to all types. Each functional message type **must**
@@ -129,11 +136,16 @@ typedef struct _SystemControlMessage {
     Header header;
 } SystemControlMessage;
 
+typedef struct _SwitchModeMessage {
+    Header header;
+    BootMode mode;
+} SwitchModeMessage;
+
 
 /* Helper constants for enums */
 #define _MsgId_MIN MsgId_MSG_ACK_NACK
-#define _MsgId_MAX MsgId_MSG_SYS_CTRL
-#define _MsgId_ARRAYSIZE ((MsgId)(MsgId_MSG_SYS_CTRL+1))
+#define _MsgId_MAX MsgId_MSG_SWITCH_MODE
+#define _MsgId_ARRAYSIZE ((MsgId)(MsgId_MSG_SWITCH_MODE+1))
 
 #define _SubId_MIN SubId_SUB_MSG_PARAM_IO_GET
 #define _SubId_MAX SubId_SUB_MSG_PARAM_IO_LOAD
@@ -151,6 +163,10 @@ typedef struct _SystemControlMessage {
 #define _StatusCode_MAX StatusCode_REQUEST_FAILED
 #define _StatusCode_ARRAYSIZE ((StatusCode)(StatusCode_REQUEST_FAILED+1))
 
+#define _BootMode_MIN BootMode_BOOT_MODE_NORMAL
+#define _BootMode_MAX BootMode_BOOT_MODE_CONFIG
+#define _BootMode_ARRAYSIZE ((BootMode)(BootMode_BOOT_MODE_CONFIG+1))
+
 
 
 #define AckNackMessage_status_code_ENUMTYPE StatusCode
@@ -162,6 +178,8 @@ typedef struct _SystemControlMessage {
 #define ParamIOMessage_id_ENUMTYPE ParamId
 #define ParamIOMessage_type_ENUMTYPE ParamType
 
+
+#define SwitchModeMessage_mode_ENUMTYPE BootMode
 
 
 #ifdef __cplusplus
@@ -178,6 +196,7 @@ extern "C" {
 #define SystemInfoMessage_init_default           {Header_init_default, 0, "", "", ""}
 #define ParamIOMessage_init_default              {Header_init_default, false, _ParamId_MIN, false, _ParamType_MIN, false, {0, {0}}}
 #define SystemControlMessage_init_default        {Header_init_default}
+#define SwitchModeMessage_init_default           {Header_init_default, _BootMode_MIN}
 #define Header_init_zero                         {0, 0, 0}
 #define BaseMessage_init_zero                    {Header_init_zero}
 #define AckNackMessage_init_zero                 {Header_init_zero, 0, _StatusCode_MIN}
@@ -187,6 +206,7 @@ extern "C" {
 #define SystemInfoMessage_init_zero              {Header_init_zero, 0, "", "", ""}
 #define ParamIOMessage_init_zero                 {Header_init_zero, false, _ParamId_MIN, false, _ParamType_MIN, false, {0, {0}}}
 #define SystemControlMessage_init_zero           {Header_init_zero}
+#define SwitchModeMessage_init_zero              {Header_init_zero, _BootMode_MIN}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define Header_msgId_tag                         1
@@ -213,6 +233,8 @@ extern "C" {
 #define ParamIOMessage_type_tag                  3
 #define ParamIOMessage_data_tag                  4
 #define SystemControlMessage_header_tag          1
+#define SwitchModeMessage_header_tag             1
+#define SwitchModeMessage_mode_tag               2
 
 /* Struct field encoding specification for nanopb */
 #define Header_FIELDLIST(X, a) \
@@ -283,6 +305,13 @@ X(a, STATIC,   REQUIRED, MESSAGE,  header,            1)
 #define SystemControlMessage_DEFAULT NULL
 #define SystemControlMessage_header_MSGTYPE Header
 
+#define SwitchModeMessage_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
+X(a, STATIC,   REQUIRED, UENUM,    mode,              2)
+#define SwitchModeMessage_CALLBACK NULL
+#define SwitchModeMessage_DEFAULT NULL
+#define SwitchModeMessage_header_MSGTYPE Header
+
 extern const pb_msgdesc_t Header_msg;
 extern const pb_msgdesc_t BaseMessage_msg;
 extern const pb_msgdesc_t AckNackMessage_msg;
@@ -292,6 +321,7 @@ extern const pb_msgdesc_t ConsoleMessage_msg;
 extern const pb_msgdesc_t SystemInfoMessage_msg;
 extern const pb_msgdesc_t ParamIOMessage_msg;
 extern const pb_msgdesc_t SystemControlMessage_msg;
+extern const pb_msgdesc_t SwitchModeMessage_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define Header_fields &Header_msg
@@ -303,6 +333,7 @@ extern const pb_msgdesc_t SystemControlMessage_msg;
 #define SystemInfoMessage_fields &SystemInfoMessage_msg
 #define ParamIOMessage_fields &ParamIOMessage_msg
 #define SystemControlMessage_fields &SystemControlMessage_msg
+#define SwitchModeMessage_fields &SwitchModeMessage_msg
 
 /* Maximum encoded size of messages (where known) */
 #define AckNackMessage_size                      16
@@ -311,6 +342,7 @@ extern const pb_msgdesc_t SystemControlMessage_msg;
 #define Header_size                              10
 #define ParamIOMessage_size                      91
 #define PingMessage_size                         12
+#define SwitchModeMessage_size                   14
 #define SystemControlMessage_size                12
 #define SystemInfoMessage_size                   69
 #define SystemTick_size                          18

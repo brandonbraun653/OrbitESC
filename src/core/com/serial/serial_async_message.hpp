@@ -46,6 +46,7 @@ namespace Orbit::Serial::Message
       SystemInfoMessage_size,
       ParamIOMessage_size,
       SystemControlMessage_size,
+      SwitchModeMessage_size,
       /* clang-format on */
     };
   }
@@ -63,13 +64,14 @@ namespace Orbit::Serial::Message
    */
   enum _Id : etl::message_id_t
   {
-    MSG_ACK_NACK = MsgId_MSG_ACK_NACK,
-    MSG_PING_CMD = MsgId_MSG_PING_CMD,
-    MSG_TERMINAL = MsgId_MSG_TERMINAL,
-    MSG_SYS_TICK = MsgId_MSG_SYS_TICK,
-    MSG_SYS_INFO = MsgId_MSG_SYS_INFO,
-    MSG_PARAM_IO = MsgId_MSG_PARAM_IO,
-    MSG_SYS_CTRL = MsgId_MSG_SYS_CTRL,
+    MSG_ACK_NACK    = MsgId_MSG_ACK_NACK,
+    MSG_PING_CMD    = MsgId_MSG_PING_CMD,
+    MSG_TERMINAL    = MsgId_MSG_TERMINAL,
+    MSG_SYS_TICK    = MsgId_MSG_SYS_TICK,
+    MSG_SYS_INFO    = MsgId_MSG_SYS_INFO,
+    MSG_PARAM_IO    = MsgId_MSG_PARAM_IO,
+    MSG_SYS_CTRL    = MsgId_MSG_SYS_CTRL,
+    MSG_SWITCH_MODE = MsgId_MSG_SWITCH_MODE,
 
     MSG_ID_COUNT
   };
@@ -299,6 +301,10 @@ namespace Orbit::Serial::Message
   };
 
   class SysCtrl : public MessageExt<MSG_SYS_CTRL, SystemControlMessage, SystemControlMessage_size, SystemControlMessage_fields>
+  {
+  };
+
+  class SwitchMode : public MessageExt<MSG_SWITCH_MODE, SwitchModeMessage, SwitchModeMessage_size, SwitchModeMessage_fields>
   {
   };
 

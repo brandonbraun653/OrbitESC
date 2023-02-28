@@ -33,9 +33,10 @@ namespace Orbit::Serial
   /*---------------------------------------------------------------------------
   Router Declarations
   ---------------------------------------------------------------------------*/
-  static Router::PingRouter    s_ping_router;
-  static Router::ParamIORouter s_param_router;
-  static Router::SysCtrlRouter s_sys_ctrl_router;
+  static Router::PingRouter       s_ping_router;
+  static Router::ParamIORouter    s_param_router;
+  static Router::SysCtrlRouter    s_sys_ctrl_router;
+  static Router::SwitchModeRouter s_switch_mode_router;
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -160,6 +161,7 @@ namespace Orbit::Serial
     RT_HARD_ASSERT( s_server.subscribe( s_ping_router ) );
     RT_HARD_ASSERT( s_server.subscribe( s_param_router ) );
     RT_HARD_ASSERT( s_server.subscribe( s_sys_ctrl_router ) );
+    RT_HARD_ASSERT( s_server.subscribe( s_switch_mode_router ) );
   }
 
 

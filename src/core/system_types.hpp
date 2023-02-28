@@ -16,7 +16,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <cstdint>
-
+#include <src/core/com/serial/serial_interface.pb.h>
 
 namespace Orbit::System
 {
@@ -25,9 +25,9 @@ namespace Orbit::System
   ---------------------------------------------------------------------------*/
   enum class Mode : uint8_t
   {
-    NORMAL,   /**< Standard operational mode for flight */
-    CONFIG,   /**< Non-flight mode for configuration and control */
-    TEST,     /**< Non-flight mode for testing */
+    NORMAL = BootMode_BOOT_MODE_NORMAL, /**< Standard operational mode for flight */
+    CONFIG = BootMode_BOOT_MODE_CONFIG, /**< Non-flight mode for configuration and control */
+    TEST   = BootMode_BOOT_MODE_TEST,   /**< Non-flight mode for testing */
     NUM_OPTIONS
   };
 }  // namespace Orbit::System

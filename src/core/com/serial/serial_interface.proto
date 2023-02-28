@@ -2,13 +2,14 @@ syntax = "proto2";
 import "nanopb.proto";
 
 enum MsgId {
-  MSG_ACK_NACK = 0; // Generic ack/nack type message
-  MSG_PING_CMD = 1; // Simple PING to see if the node is alive
-  MSG_TERMINAL = 2; // Terminal command for printing text/debug data
-  MSG_SYS_TICK = 3; // System time tick
-  MSG_SYS_INFO = 4; // System information
-  MSG_PARAM_IO = 5; // Do operations on configurable parameters
-  MSG_SYS_CTRL = 6; // Perform system control operations
+  MSG_ACK_NACK    = 0; // Generic ack/nack type message
+  MSG_PING_CMD    = 1; // Simple PING to see if the node is alive
+  MSG_TERMINAL    = 2; // Terminal command for printing text/debug data
+  MSG_SYS_TICK    = 3; // System time tick
+  MSG_SYS_INFO    = 4; // System information
+  MSG_PARAM_IO    = 5; // Do operations on configurable parameters
+  MSG_SYS_CTRL    = 6; // Perform system control operations
+  MSG_SWITCH_MODE = 7; // Switch the boot mode of the device
 }
 
 enum SubId {
@@ -64,6 +65,12 @@ enum StatusCode {
   REQUEST_FAILED = 5;
 }
 
+enum BootMode {
+  BOOT_MODE_NORMAL = 0;
+  BOOT_MODE_TEST = 1;
+  BOOT_MODE_CONFIG = 2;
+}
+
 // Instrumentation message header common to all types. Each functional message type **must**
 // have this first in their list of declarations.
 message Header {
@@ -117,4 +124,9 @@ message ParamIOMessage {
 
 message SystemControlMessage {
   required Header header = 1;
+}
+
+message SwitchModeMessage {
+  required Header header = 1;
+  required BootMode mode = 2 [(nanopb).int_size = IS_8];
 }

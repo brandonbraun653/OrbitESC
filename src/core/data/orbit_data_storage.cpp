@@ -51,11 +51,11 @@ namespace Orbit::Data
   ---------------------------------------------------------------------------*/
   struct ParameterNode
   {
-    ParamId         id;       /**< Software enumeration tied to parameter */
-    ParamType       type;     /**< Type of data stored in the parameter */
-    const char     *key;      /**< String to use in JSON data storage */
-    void           *address;  /**< Fixed location in memory where data lives */
-    size_t          maxSize;  /**< Max possible size of the data */
+    ParamId     id;      /**< Software enumeration tied to parameter */
+    ParamType   type;    /**< Type of data stored in the parameter */
+    const char *key;     /**< String to use in JSON data storage */
+    void       *address; /**< Fixed location in memory where data lives */
+    size_t      maxSize; /**< Max possible size of the data */
   };
   using ParameterList = std::array<ParameterNode, 10>;
 
@@ -225,7 +225,7 @@ namespace Orbit::Data
     auto iterator = etl::find_if( s_param_info.begin(), s_param_info.end(),
                                   [ id ]( const ParameterNode &node ) { return static_cast<int>( node.id ) == id; } );
 
-    if( iterator != s_param_info.end() )
+    if ( iterator != s_param_info.end() )
     {
       return iterator;
     }
@@ -247,7 +247,7 @@ namespace Orbit::Data
     auto iterator = etl::find_if( s_param_info.begin(), s_param_info.end(),
                                   [ key ]( const ParameterNode &node ) { return key.compare( node.key ) == 0; } );
 
-    if( iterator != s_param_info.end() )
+    if ( iterator != s_param_info.end() )
     {
       return iterator;
     }
@@ -267,7 +267,7 @@ namespace Orbit::Data
     for ( JsonPair kv : root )
     {
       const ParameterNode *node = find_parameter( kv.key().c_str() );
-      if( !node )
+      if ( !node )
       {
         s_json_cache.remove( kv.key().c_str() );
       }
@@ -409,7 +409,7 @@ namespace Orbit::Data
     if ( s_json_pend_changes )
     {
       Chimera::Thread::LockGuard _lck( s_json_lock );
-      const uint32_t new_crc = get_json_crc();
+      const uint32_t             new_crc = get_json_crc();
 
       if ( new_crc != s_json_last_crc )
       {
@@ -424,11 +424,15 @@ namespace Orbit::Data
           LOG_ERROR( "Failed to sync configuration with disk." );
         }
       }
+      else
+      {
+        s_json_is_synced = true;
+      }
     }
   }
 
 
-  bool isSynced()
+  bool syncedToDisk()
   {
     return s_json_is_synced;
   }
@@ -440,7 +444,7 @@ namespace Orbit::Data
     Find the parameter in the list
     -------------------------------------------------------------------------*/
     const ParameterNode *node = find_parameter( param );
-    if( !node )
+    if ( !node )
     {
       return false;
     }
@@ -539,7 +543,7 @@ namespace Orbit::Data
     Find the parameter in the list
     -------------------------------------------------------------------------*/
     const ParameterNode *node = find_parameter( param );
-    if( !node )
+    if ( !node )
     {
       return false;
     }
@@ -568,7 +572,7 @@ namespace Orbit::Data
     Find the parameter in the list
     -------------------------------------------------------------------------*/
     const ParameterNode *node = find_parameter( param );
-    if( !node )
+    if ( !node )
     {
       return false;
     }
@@ -577,9 +581,9 @@ namespace Orbit::Data
     Safely copy data to the working cache, then update the JSON document cache
     -------------------------------------------------------------------------*/
     Chimera::Thread::LockGuard _lck( s_json_lock );
-    auto mask = Chimera::System::disableInterrupts();
+    auto                       mask = Chimera::System::disableInterrupts();
     {
-      if( size > node->maxSize )
+      if ( size > node->maxSize )
       {
         Chimera::System::enableInterrupts( mask );
         LOG_ERROR( "Parameter size mismatch. Max: %u, Size: %u", size, node->maxSize );
@@ -596,7 +600,7 @@ namespace Orbit::Data
   ParamType getParamType( const ParamId param )
   {
     const ParameterNode *node = find_parameter( param );
-    if( node )
+    if ( node )
     {
       return node->type;
     }

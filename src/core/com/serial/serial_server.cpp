@@ -232,6 +232,12 @@ namespace Orbit::Serial
             }
             break;
 
+            case Message::MSG_SWITCH_MODE: {
+              Message::SwitchMode mode;
+              mode.decode( in.data(), mRXSearchOfst - 1u );
+              this->receive( mode );
+            }
+
             case Message::MSG_ID_COUNT:
             default:
               LOG_ERROR( "Unhandled msg ID: %d", msg.header.msgId );

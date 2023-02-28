@@ -64,6 +64,14 @@ namespace Orbit::Serial::Router
     void on_receive_unknown( const etl::imessage &msg );
   };
 
+  class SwitchModeRouter : public etl::message_router<SwitchModeRouter, Message::SwitchMode>
+  {
+  public:
+    SwitchModeRouter();
+    void on_receive( const Message::SwitchMode &msg );
+    void on_receive_unknown( const etl::imessage &msg );
+  };
+
 }  // namespace Orbit::Serial::Router
 
 #endif  /* !ORBIT_SERIAL_ROUTERS_HPP */

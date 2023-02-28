@@ -33,6 +33,10 @@ PB_BIND(ParamIOMessage, ParamIOMessage, AUTO)
 PB_BIND(SystemControlMessage, SystemControlMessage, AUTO)
 
 
+PB_BIND(SwitchModeMessage, SwitchModeMessage, AUTO)
+
+
+
 
 
 
