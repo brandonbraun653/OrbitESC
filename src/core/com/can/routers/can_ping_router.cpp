@@ -38,7 +38,7 @@ namespace Orbit::CAN::Router
 
     /* Re-pack and ship it back */
     pong.pack( tx_frame );
-    CANDriver->send( tx_frame );
+    MessageServer.transmit( tx_frame );
 
     LOG_INFO( "ACK ping from %s\r\n", getNodeName( static_cast<NodeId>( msg.payload.src.nodeId ) ).data() );
   }

@@ -21,7 +21,6 @@ Includes
 #include <Chimera/thread>
 #include <etl/message_bus.h>
 #include <etl/vector.h>
-#include <src/core/com/can/can_message.hpp>
 
 namespace Orbit::CAN
 {
@@ -29,7 +28,7 @@ namespace Orbit::CAN
   Aliases
   ---------------------------------------------------------------------------*/
   using StreamId       = uint8_t;
-  using PeriodicVector = etl::vector<Chimera::Scheduler::Polled, Message::numPeriodicMessageTypes()>;
+  using PeriodicVector = etl::vector<Chimera::Scheduler::Polled, 7>;
 
 
   /*---------------------------------------------------------------------------
@@ -79,6 +78,7 @@ namespace Orbit::CAN
   private:
     friend Chimera::Thread::Lockable<Server>;
 
+    uint16_t                  mFrameCount;     /**< Total number of frames processed */
     Chimera::CAN::Driver_rPtr mCANBus;         /**< CAN bus driver */
     PeriodicVector            mPeriodicEvents; /**< Vector of periodic events */
   };

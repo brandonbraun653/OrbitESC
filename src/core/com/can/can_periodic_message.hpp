@@ -16,6 +16,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <src/core/com/can/can_message.hpp>
+#include <src/core/com/can/can_message_intf.hpp>
 
 namespace Orbit::CAN::Message
 {
@@ -143,6 +144,12 @@ namespace Orbit::CAN::Message
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+  template<class... T>
+  static constexpr size_t calcPeriodicMessageTypes()
+  {
+    return ( 0 + ... + T::_foldExprPeriodicCounter() );
+  }
+
   static constexpr size_t numPeriodicMessageTypes()
   {
     return calcPeriodicMessageTypes<SystemTick, SystemMode, PowerSupplyVoltage, PhaseACurrent, PhaseBCurrent, PhaseCCurrent,

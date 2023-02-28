@@ -17,14 +17,16 @@ Includes
 #include <src/core/com/can/can_message.hpp>
 #include <src/core/com/can/can_periodic_message.hpp>
 #include <src/core/com/can/can_server.hpp>
+#include <src/core/hw/orbit_led.hpp>
 
 namespace Orbit::CAN
 {
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  Server::Server() : mCANBus( nullptr )
+  Server::Server() : mFrameCount( 0 ), mCANBus( nullptr )
   {
+    static_assert( PeriodicVector::MAX_SIZE == Message::numPeriodicMessageTypes() );
   }
 
 
@@ -52,7 +54,7 @@ namespace Orbit::CAN
     auto result = mCANBus->send( frame );
     if( result == Chimera::Status::OK )
     {
-      LED::toggleChannel( LED::Channel::CAN_ACTIVE );
+      mFrameCount++;
     }
 
     return result;
@@ -80,10 +82,7 @@ namespace Orbit::CAN
 
       if ( Chimera::Status::OK == result )
       {
-        /*---------------------------------------------------------------------
-        Indicate bus activity
-        ---------------------------------------------------------------------*/
-        LED::toggleChannel( LED::Channel::CAN_ACTIVE );
+        mFrameCount++;
 
         /*---------------------------------------------------------------------
         Handle the frame according to supported message types
@@ -132,6 +131,7 @@ namespace Orbit::CAN
 
           default:
             LOG_ERROR( "CANServer received unhandled message: 0x%X\r\n", frame.id );
+            mFrameCount--;
             break;
         }
       }
@@ -149,6 +149,15 @@ namespace Orbit::CAN
     for ( auto &event : mPeriodicEvents )
     {
       event.poll();
+    }
+
+    /*-------------------------------------------------------------------------
+    Update the active LED based on bus activity
+    -------------------------------------------------------------------------*/
+    if( mFrameCount > 10 )
+    {
+      mFrameCount = 0;
+      LED::toggleChannel( LED::Channel::CAN_ACTIVE );
     }
   }
 

@@ -28,9 +28,9 @@ Includes
 namespace Orbit::CAN
 {
   /*---------------------------------------------------------------------------
-  Static Data
+  Public Data
   ---------------------------------------------------------------------------*/
-  static Server s_can_server;
+  Server MessageServer;  /**< Driver for the board's CAN message server */
 
   /*---------------------------------------------------------------------------
   Periodic Message Declarations
@@ -61,7 +61,7 @@ namespace Orbit::CAN
     /*-------------------------------------------------------------------------
     Initialize the CAN bus dispatch server
     -------------------------------------------------------------------------*/
-    RT_HARD_ASSERT( s_can_server.initialize( Orbit::IO::CAN::channel ) == Chimera::Status::OK );
+    RT_HARD_ASSERT( MessageServer.initialize( Orbit::IO::CAN::channel ) == Chimera::Status::OK );
 
     /*-------------------------------------------------------------------------
     Register update functions for periodic messages
@@ -69,51 +69,51 @@ namespace Orbit::CAN
     /* System Tick */
     auto sys_tick_func =
         Chimera::Function::Opaque::create<Message::SystemTick, &Message::SystemTick::update>( s_msg_system_tick );
-    s_can_server.registerPeriodic( sys_tick_func, s_msg_system_tick.period() );
+    MessageServer.registerPeriodic( sys_tick_func, s_msg_system_tick.period() );
 
     /* System Mode */
     auto sys_mode_func =
         Chimera::Function::Opaque::create<Message::SystemMode, &Message::SystemMode::update>( s_msg_system_mode );
-    s_can_server.registerPeriodic( sys_mode_func, s_msg_system_mode.period() );
+    MessageServer.registerPeriodic( sys_mode_func, s_msg_system_mode.period() );
 
     /* Power Supply Voltage */
     auto pwr_supply_func = Chimera::Function::Opaque::create<Message::PowerSupplyVoltage, &Message::PowerSupplyVoltage::update>(
         s_msg_power_supply_voltage );
-    s_can_server.registerPeriodic( pwr_supply_func, s_msg_power_supply_voltage.period() );
+    MessageServer.registerPeriodic( pwr_supply_func, s_msg_power_supply_voltage.period() );
 
     /* Phase A Current */
     auto phase_a_current_func =
         Chimera::Function::Opaque::create<Message::PhaseACurrent, &Message::PhaseACurrent::update>( s_msg_phase_a_current );
-    s_can_server.registerPeriodic( phase_a_current_func, s_msg_phase_a_current.period() );
+    MessageServer.registerPeriodic( phase_a_current_func, s_msg_phase_a_current.period() );
 
     /* Phase B Current */
     auto phase_b_current_func =
         Chimera::Function::Opaque::create<Message::PhaseBCurrent, &Message::PhaseBCurrent::update>( s_msg_phase_b_current );
-    s_can_server.registerPeriodic( phase_b_current_func, s_msg_phase_b_current.period() );
+    MessageServer.registerPeriodic( phase_b_current_func, s_msg_phase_b_current.period() );
 
     /* Phase C Current */
     auto phase_c_current_func =
         Chimera::Function::Opaque::create<Message::PhaseCCurrent, &Message::PhaseCCurrent::update>( s_msg_phase_c_current );
-    s_can_server.registerPeriodic( phase_c_current_func, s_msg_phase_c_current.period() );
+    MessageServer.registerPeriodic( phase_c_current_func, s_msg_phase_c_current.period() );
 
     /* Motor Speed */
     auto motor_speed_func =
         Chimera::Function::Opaque::create<Message::MotorSpeed, &Message::MotorSpeed::update>( s_msg_motor_speed );
-    s_can_server.registerPeriodic( motor_speed_func, s_msg_motor_speed.period() );
+    MessageServer.registerPeriodic( motor_speed_func, s_msg_motor_speed.period() );
 
     /* Speed Reference */
     auto speed_ref_func =
         Chimera::Function::Opaque::create<Message::SpeedReference, &Message::SpeedReference::update>( s_msg_speed_reference );
-    s_can_server.registerPeriodic( speed_ref_func, s_msg_speed_reference.period() );
+    MessageServer.registerPeriodic( speed_ref_func, s_msg_speed_reference.period() );
 
     /*-------------------------------------------------------------------------
     Register the routers for incoming messages
     -------------------------------------------------------------------------*/
-    RT_HARD_ASSERT( s_can_server.subscribe( s_ping_router ) );
-    RT_HARD_ASSERT( s_can_server.subscribe( s_set_system_mode_router ) );
-    RT_HARD_ASSERT( s_can_server.subscribe( s_set_motor_speed_router ) );
-    RT_HARD_ASSERT( s_can_server.subscribe( s_emergency_halt_router ) );
-    RT_HARD_ASSERT( s_can_server.subscribe( s_system_reset_router ) );
+    RT_HARD_ASSERT( MessageServer.subscribe( s_ping_router ) );
+    RT_HARD_ASSERT( MessageServer.subscribe( s_set_system_mode_router ) );
+    RT_HARD_ASSERT( MessageServer.subscribe( s_set_motor_speed_router ) );
+    RT_HARD_ASSERT( MessageServer.subscribe( s_emergency_halt_router ) );
+    RT_HARD_ASSERT( MessageServer.subscribe( s_system_reset_router ) );
   }
 
 
@@ -125,7 +125,7 @@ namespace Orbit::CAN
 
   void processCANBus()
   {
-    s_can_server.processRTX();
+    MessageServer.processRTX();
   }
 
 }    // namespace Orbit::CAN

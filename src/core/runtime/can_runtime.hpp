@@ -16,10 +16,17 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/can>
-#include <src/core/com/can/can_message.hpp>
+#include <src/core/hw/orbit_can.hpp>
+#include <src/core/com/can/can_server.hpp>
 
 namespace Orbit::CAN
 {
+  /*---------------------------------------------------------------------------
+  Public Data
+  ---------------------------------------------------------------------------*/
+  extern Server MessageServer;  /**< Driver for the board's CAN message server */
+
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/

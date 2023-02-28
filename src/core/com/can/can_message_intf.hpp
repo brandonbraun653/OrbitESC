@@ -20,7 +20,8 @@ Includes
 #include <cstdint>
 #include <etl/message.h>
 #include <src/core/hw/orbit_can.hpp>
-#include <src/core/hw/orbit_led.hpp>
+#include <src/core/com/can/can_message.hpp>
+#include <src/core/runtime/can_runtime.hpp>
 
 namespace Orbit::CAN::Message
 {
@@ -37,15 +38,6 @@ namespace Orbit::CAN::Message
     uint8_t _pad : 2;   /**< Reserved for future use */
   };
   static_assert( sizeof( Header ) == sizeof( uint8_t ) );
-
-  /*---------------------------------------------------------------------------
-  Public Functions
-  ---------------------------------------------------------------------------*/
-  template<class... T>
-  static constexpr size_t calcPeriodicMessageTypes()
-  {
-    return ( 0 + ... + T::_foldExprPeriodicCounter() );
-  }
 
 
   /*---------------------------------------------------------------------------
@@ -148,15 +140,11 @@ namespace Orbit::CAN::Message
     }
 
     /**
-     * @brief Sends the message over the CAN bus
-     *
-     * @param driver Driver to use for sending the message
+     * @brief Sends the message over the project's CAN bus
      * @return Chimera::Status_t
      */
-    Chimera::Status_t send( Chimera::CAN::Driver_rPtr driver )
+    Chimera::Status_t send()
     {
-      RT_DBG_ASSERT( driver );
-
       /*-----------------------------------------------------------------------
       Encode the frame
       -----------------------------------------------------------------------*/
@@ -172,13 +160,7 @@ namespace Orbit::CAN::Message
       /*-----------------------------------------------------------------------
       Send the frame and indicate bus activity
       -----------------------------------------------------------------------*/
-      auto result = driver->send( frame );
-      if( result == Chimera::Status::OK )
-      {
-        LED::toggleChannel( LED::Channel::CAN_ACTIVE );
-      }
-
-      return result;
+      return MessageServer.transmit( frame );
     }
 
   };
