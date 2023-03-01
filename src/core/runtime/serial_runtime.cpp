@@ -184,7 +184,7 @@ namespace Orbit::Serial
           handle_get( msg );
           break;
 
-        case Message::SUB_MSG_PARAM_IO_PUT:
+        case Message::SUB_MSG_PARAM_IO_SET:
           handle_put( msg );
           break;
 

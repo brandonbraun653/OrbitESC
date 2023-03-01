@@ -7,39 +7,60 @@ from pyorbit.serial_messages import ParameterId
 class TestReadOnlyParameters:
 
     def test_get_invalid_parameter(self, serial_client: SerialClient):
-        invalid_value = serial_client.get_parameter(ParameterId.Invalid)
+        invalid_value = serial_client.parameter.get(ParameterId.Invalid)
         assert invalid_value is None
 
     def test_get_boot_count(self, serial_client: SerialClient):
-        boot_count = serial_client.get_parameter(ParameterId.BootCount)
+        boot_count = serial_client.parameter.get(ParameterId.BootCount)
         assert isinstance(boot_count, int)
         assert boot_count > 0
 
     def test_get_hw_version(self, serial_client: SerialClient):
-        hw_version = serial_client.get_parameter(ParameterId.HwVersion)
+        hw_version = serial_client.parameter.get(ParameterId.HwVersion)
         assert isinstance(hw_version, int)
         assert hw_version > 0
 
     def test_get_sw_version(self, serial_client: SerialClient):
-        sw_version = serial_client.get_parameter(ParameterId.SwVersion)
+        sw_version = serial_client.parameter.get(ParameterId.SwVersion)
         assert isinstance(sw_version, str)
 
     def test_get_device_id(self, serial_client: SerialClient):
-        device_id = serial_client.get_parameter(ParameterId.DeviceId)
+        device_id = serial_client.parameter.get(ParameterId.DeviceId)
         assert isinstance(device_id, int)
         assert device_id > 0
 
     def test_get_device_board_name(self, serial_client: SerialClient):
-        board_name = serial_client.get_parameter(ParameterId.BoardName)
+        board_name = serial_client.parameter.get(ParameterId.BoardName)
         assert isinstance(board_name, str)
         assert board_name == "OrbitESC"
 
     def test_get_device_description(self, serial_client: SerialClient):
-        description = serial_client.get_parameter(ParameterId.Description)
+        description = serial_client.parameter.get(ParameterId.Description)
         assert isinstance(description, str)
         assert description == "BLDC Motor Controller"
 
     def test_get_boot_mode(self, serial_client: SerialClient):
-        boot_mode = serial_client.get_parameter(ParameterId.BootMode)
+        boot_mode = serial_client.parameter.get(ParameterId.BootMode)
         assert isinstance(boot_mode, int)
         assert boot_mode >= 0
+
+
+@pytest.mark.usefixtures("serial_client")
+class TestSerialNumber:
+    NORMAL_SERIAL_NUMBER = "123456"
+
+    def test_assign_normal_serial_number(self, serial_client: SerialClient):
+        assert serial_client.parameter.set(ParameterId.SerialNumber, self.NORMAL_SERIAL_NUMBER)
+        assert serial_client.parameter.get(ParameterId.SerialNumber) == self.NORMAL_SERIAL_NUMBER
+
+    def test_assign_empty_serial_number(self, serial_client: SerialClient):
+        assert serial_client.parameter.set(ParameterId.SerialNumber, "")
+        assert serial_client.parameter.get(ParameterId.SerialNumber) == ""
+
+    def test_assign_too_long_serial_number(self, serial_client: SerialClient):
+        # Assign a valid serial number
+        self.test_assign_normal_serial_number(serial_client)
+
+        # Assign a too long serial number and validate it doesn't update
+        assert not serial_client.parameter.set(ParameterId.SerialNumber, "123456789")
+        assert serial_client.parameter.get(ParameterId.SerialNumber) == self.NORMAL_SERIAL_NUMBER

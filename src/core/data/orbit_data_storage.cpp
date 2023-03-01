@@ -586,11 +586,25 @@ namespace Orbit::Data
       if ( size > node->maxSize )
       {
         Chimera::System::enableInterrupts( mask );
-        LOG_ERROR( "Parameter size mismatch. Max: %u, Size: %u", size, node->maxSize );
+        LOG_WARN( "Parameter size mismatch. Max: %u, Size: %u", size, node->maxSize );
         return false;
       }
 
-      memcpy( node->address, src, size );
+      /*-----------------------------------------------------------------------
+      Adjust the copy method depending on the underlying type
+      -----------------------------------------------------------------------*/
+      switch ( node->type )
+      {
+        case ParamType_STRING: {
+          auto val = reinterpret_cast<etl::istring *>( node->address );
+          val->assign( reinterpret_cast<const char *>( src ), size );
+        }
+        break;
+
+        default:
+          memcpy( node->address, src, size );
+          break;
+      }
     }
     Chimera::System::enableInterrupts( mask );
     return updateDiskCache( param );

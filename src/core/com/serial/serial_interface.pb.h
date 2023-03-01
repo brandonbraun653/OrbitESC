@@ -24,7 +24,7 @@ typedef enum _MsgId {
 typedef enum _SubId {
     /* Parameter IO messages */
     SubId_SUB_MSG_PARAM_IO_GET = 0, /* Retrieve the current value of a parameter */
-    SubId_SUB_MSG_PARAM_IO_PUT = 1, /* Commit a new value of a parameter */
+    SubId_SUB_MSG_PARAM_IO_SET = 1, /* Commit a new value of a parameter */
     SubId_SUB_MSG_PARAM_IO_SYNC = 2, /* Synchronize all parameters to disk */
     SubId_SUB_MSG_PARAM_IO_LOAD = 3, /* Load all parameters from disk */
     /* System control messages */

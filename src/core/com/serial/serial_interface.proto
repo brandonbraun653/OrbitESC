@@ -17,7 +17,7 @@ enum SubId {
 
   // Parameter IO messages
   SUB_MSG_PARAM_IO_GET  = 0;  // Retrieve the current value of a parameter
-  SUB_MSG_PARAM_IO_PUT  = 1;  // Commit a new value of a parameter
+  SUB_MSG_PARAM_IO_SET  = 1;  // Commit a new value of a parameter
   SUB_MSG_PARAM_IO_SYNC = 2;  // Synchronize all parameters to disk
   SUB_MSG_PARAM_IO_LOAD = 3;  // Load all parameters from disk
 

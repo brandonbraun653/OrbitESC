@@ -28,7 +28,7 @@ class MessageId(IntEnum):
 
 class MessageSubId(IntEnum):
     # Parameter IO
-    ParamIO_Put = proto.SUB_MSG_PARAM_IO_PUT
+    ParamIO_Set = proto.SUB_MSG_PARAM_IO_SET
     ParamIO_Get = proto.SUB_MSG_PARAM_IO_GET
     ParamIO_Sync = proto.SUB_MSG_PARAM_IO_SYNC
     ParamIO_Load = proto.SUB_MSG_PARAM_IO_LOAD
@@ -284,10 +284,16 @@ class SwitchModeMessage(BaseMessage):
         self._pb_msg.mode = mode.value
 
 
+# Maps message IDs to message class types
 MessageTypeMap = {
     MessageId.AckNack: AckNackMessage,
     MessageId.PingCmd: PingMessage,
     MessageId.SystemTick: SystemTick,
     MessageId.Terminal: ConsoleMessage,
     MessageId.ParamIO: ParamIOMessage
+}
+
+# Maps parameter IDs to their associated types
+ParameterTypeMap = {
+    ParameterId.SerialNumber: ParameterType.STRING,
 }
