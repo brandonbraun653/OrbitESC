@@ -71,7 +71,7 @@ class TestSerialNumber:
 class TestCANNodeId:
 
     def test_assign_valid_can_id(self, serial_client: SerialClient):
-        valid_ids = [NodeID.NODE_PC, NodeID.NODE_1, NodeID.NODE_2, NodeID.NODE_3]
+        valid_ids = [NodeID.NODE_0, NodeID.NODE_1, NodeID.NODE_2, NodeID.NODE_3]
         for node_id in valid_ids:
             assert serial_client.parameter.set(ParameterId.CanNodeId, node_id)
             assert serial_client.parameter.get(ParameterId.CanNodeId) == node_id
