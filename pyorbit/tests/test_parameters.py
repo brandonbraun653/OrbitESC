@@ -1,6 +1,7 @@
 from pyorbit.tests.fixtures import *
 from pyorbit.serial_client import SerialClient
 from pyorbit.serial_messages import ParameterId
+from pyorbit.can_messages import NodeID
 
 
 @pytest.mark.usefixtures("serial_client")
@@ -64,3 +65,13 @@ class TestSerialNumber:
         # Assign a too long serial number and validate it doesn't update
         assert not serial_client.parameter.set(ParameterId.SerialNumber, "123456789")
         assert serial_client.parameter.get(ParameterId.SerialNumber) == self.NORMAL_SERIAL_NUMBER
+
+
+@pytest.mark.usefixtures("serial_client")
+class TestCANNodeId:
+
+    def test_assign_valid_can_id(self, serial_client: SerialClient):
+        valid_ids = [NodeID.NODE_PC, NodeID.NODE_1, NodeID.NODE_2, NodeID.NODE_3]
+        for node_id in valid_ids:
+            assert serial_client.parameter.set(ParameterId.CanNodeId, node_id)
+            assert serial_client.parameter.get(ParameterId.CanNodeId) == node_id

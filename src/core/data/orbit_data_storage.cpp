@@ -57,7 +57,7 @@ namespace Orbit::Data
     void       *address; /**< Fixed location in memory where data lives */
     size_t      maxSize; /**< Max possible size of the data */
   };
-  using ParameterList = std::array<ParameterNode, 10>;
+  using ParameterList = std::array<ParameterNode, 11>;
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -91,6 +91,7 @@ namespace Orbit::Data
       ParameterNode{ .id = ParamId_PARAM_DISK_UPDATE_RATE_MS, .type = ParamType_UINT32, .key = "dsk_updt",       .address = &SysConfig.diskUpdateRateMs,  .maxSize = sizeof( SysConfig.diskUpdateRateMs )  },
       ParameterNode{ .id = ParamId_PARAM_ACTIVITY_LED_SCALER, .type = ParamType_FLOAT,  .key = "actv_led_scale", .address = &SysConfig.activityLedScaler, .maxSize = sizeof( SysConfig.activityLedScaler ) },
       ParameterNode{ .id = ParamId_PARAM_BOOT_MODE,           .type = ParamType_UINT8,  .key = "boot_mode",      .address = &SysInfo.bootMode,            .maxSize = sizeof( SysInfo.bootMode )            },
+      ParameterNode{ .id = ParamId_PARAM_CAN_NODE_ID,         .type = ParamType_UINT8,  .key = "can_id",         .address = &SysConfig.canNodeId,         .maxSize = sizeof( SysConfig.canNodeId )         },
       /***** Add new entries above here *****/
       /* clang-format on */
     };
@@ -591,7 +592,8 @@ namespace Orbit::Data
       }
 
       /*-----------------------------------------------------------------------
-      Adjust the copy method depending on the underlying type
+      Adjust the copy method depending on the underlying type. Strings need to
+      be handled differently than the rest of the POD types.
       -----------------------------------------------------------------------*/
       switch ( node->type )
       {

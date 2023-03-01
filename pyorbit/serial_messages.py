@@ -66,6 +66,14 @@ class ParameterId(IntEnum):
     DiskUpdateRateMS = proto.PARAM_DISK_UPDATE_RATE_MS
     ActivityLedScaler = proto.PARAM_ACTIVITY_LED_SCALER
     BootMode = proto.PARAM_BOOT_MODE
+    CanNodeId = proto.PARAM_CAN_NODE_ID
+
+
+# Maps parameter IDs to their associated types
+ParameterTypeMap = {
+    ParameterId.SerialNumber: ParameterType.STRING,
+    ParameterId.CanNodeId: ParameterType.UINT8,
+}
 
 
 class StatusCode(IntEnum):
@@ -293,7 +301,3 @@ MessageTypeMap = {
     MessageId.ParamIO: ParamIOMessage
 }
 
-# Maps parameter IDs to their associated types
-ParameterTypeMap = {
-    ParameterId.SerialNumber: ParameterType.STRING,
-}

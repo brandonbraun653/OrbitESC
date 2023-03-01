@@ -75,7 +75,7 @@ namespace Orbit::Data
   public:
     size_t             diskUpdateRateMs;  /**< PARAM_DISK_UPDATE_RATE_MS */
     float              activityLedScaler; /**< PARAM_ACTIVITY_LED_SCALER */
-    Orbit::CAN::NodeId canNodeId;
+    Orbit::CAN::NodeId canNodeId;         /**< PARAM_CAN_NODE_ID */
 
     void clear();
     void setDefaults();

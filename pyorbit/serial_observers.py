@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import time
+import struct
 from functools import cmp_to_key
 from loguru import logger
 from typing import Any, Dict, List
@@ -181,6 +182,16 @@ class ParameterObserver(MessageObserver):
         # Serialize the data to be sent
         if msg.param_type == ParameterType.STRING:
             msg.data = str(value).encode('utf-8')
+        elif msg.param_type == ParameterType.FLOAT:
+            msg.data = struct.pack('<f', float(value))
+        elif msg.param_type == ParameterType.DOUBLE:
+            msg.data = struct.pack('<d', float(value))
+        elif msg.param_type == ParameterType.UINT8:
+            msg.data = struct.pack('<B', int(value))
+        elif msg.param_type == ParameterType.UINT16:
+            msg.data = struct.pack('<H', int(value))
+        elif msg.param_type == ParameterType.UINT32:
+            msg.data = struct.pack('<I', int(value))
         else:
             logger.error(f"Don't know how to serialize parameter type {msg.param_type}")
             return False
