@@ -37,7 +37,10 @@ namespace Orbit::CAN
     NODE_ALL,
 
     NUM_SUPPORTED_NODES,
-    INVALID
+    INVALID,
+
+    FIRST_ASSIGNABLE = NODE_0,
+    LAST_ASSIGNABLE = NODE_3,
   };
 
   /*---------------------------------------------------------------------------

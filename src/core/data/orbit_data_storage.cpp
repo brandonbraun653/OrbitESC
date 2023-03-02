@@ -20,6 +20,7 @@ Includes
 #include <array>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/data/orbit_data_internal.hpp>
+#include <src/core/data/orbit_data_params.hpp>
 #include <src/core/data/orbit_data_storage.hpp>
 #include <src/core/data/orbit_data_types.hpp>
 #include <nanoprintf.h>
@@ -36,69 +37,13 @@ namespace Orbit::Data
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr FS::AccessFlags FILE_FLAGS         = FS::AccessFlags::O_RDWR | FS::AccessFlags::O_CREAT;
   static constexpr size_t          JSON_FILE_SIZE_MAX = 1024;
-  static constexpr const char     *FMT_UINT8          = "%u";
-  static constexpr const char     *FMT_UINT16         = FMT_UINT8;
-  static constexpr const char     *FMT_UINT32         = "%lu";
-  static constexpr const char     *FMT_FLOAT          = "%4.9f";
-  static constexpr const char     *FMT_DOUBLE         = "%4.17f";
-  static constexpr const char     *FMT_STRING         = "%s";
-  static constexpr const char     *FMT_BOOL           = "%d";
-
-  /*---------------------------------------------------------------------------
-  Structures
-  ---------------------------------------------------------------------------*/
-  struct ParameterNode
-  {
-    ParamId     id;      /**< Software enumeration tied to parameter */
-    ParamType   type;    /**< Type of data stored in the parameter */
-    const char *key;     /**< String to use in JSON data storage */
-    void       *address; /**< Fixed location in memory where data lives */
-    size_t      maxSize; /**< Max possible size of the data */
-  };
-  using ParameterList = std::array<ParameterNode, 11>;
+  static constexpr FS::AccessFlags FILE_FLAGS         = FS::AccessFlags::O_RDWR | FS::AccessFlags::O_CREAT;
+  static const ParameterList       PARAM_INFO         = Internal::_compile_time_sort( Internal::_unsorted_parameters );
 
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  namespace Internal
-  {
-    static constexpr ParameterList _compile_time_sort( const ParameterList &list )
-    {
-      auto result = list;
-      std::sort( result.begin(), result.end(),
-                 []( const ParameterNode &a, const ParameterNode &b ) -> bool { return a.id < b.id; } );
-      return result;
-    }
-
-    static constexpr ParameterList _unsorted_parameters = {
-      /* clang-format off */
-      /*-----------------------------------------------------------------------
-      Read Only Parameters
-      -----------------------------------------------------------------------*/
-      ParameterNode{ .id = ParamId_PARAM_BOOT_COUNT,    .type = ParamType_UINT32, .key = "pwr_cnt", .address = &SysInfo.bootCount,        .maxSize = sizeof( SysInfo.bootCount )       },
-      ParameterNode{ .id = ParamId_PARAM_HW_VERSION,    .type = ParamType_UINT8,  .key = "hw_ver",  .address = &SysIdentity.hwVersion,    .maxSize = sizeof( SysIdentity.hwVersion )   },
-      ParameterNode{ .id = ParamId_PARAM_SW_VERSION,    .type = ParamType_STRING, .key = "sw_ver",  .address = &SysIdentity.swVersion,    .maxSize = SysIdentity.swVersion.MAX_SIZE    },
-      ParameterNode{ .id = ParamId_PARAM_DEVICE_ID,     .type = ParamType_UINT32, .key = "dev_id",  .address = &SysIdentity.deviceId,     .maxSize = sizeof( SysIdentity.deviceId )    },
-      ParameterNode{ .id = ParamId_PARAM_BOARD_NAME,    .type = ParamType_STRING, .key = "name",    .address = &SysIdentity.boardName,    .maxSize = SysIdentity.boardName.MAX_SIZE    },
-      ParameterNode{ .id = ParamId_PARAM_DESCRIPTION,   .type = ParamType_STRING, .key = "desc",    .address = &SysIdentity.description,  .maxSize = SysIdentity.description.MAX_SIZE  },
-
-      /*-----------------------------------------------------------------------
-      Read/Write Parameters
-      -----------------------------------------------------------------------*/
-      ParameterNode{ .id = ParamId_PARAM_SERIAL_NUMBER,       .type = ParamType_STRING, .key = "ser_num",        .address = &SysIdentity.serialNumber,    .maxSize = SysIdentity.serialNumber.MAX_SIZE     },
-      ParameterNode{ .id = ParamId_PARAM_DISK_UPDATE_RATE_MS, .type = ParamType_UINT32, .key = "dsk_updt",       .address = &SysConfig.diskUpdateRateMs,  .maxSize = sizeof( SysConfig.diskUpdateRateMs )  },
-      ParameterNode{ .id = ParamId_PARAM_ACTIVITY_LED_SCALER, .type = ParamType_FLOAT,  .key = "actv_led_scale", .address = &SysConfig.activityLedScaler, .maxSize = sizeof( SysConfig.activityLedScaler ) },
-      ParameterNode{ .id = ParamId_PARAM_BOOT_MODE,           .type = ParamType_UINT8,  .key = "boot_mode",      .address = &SysInfo.bootMode,            .maxSize = sizeof( SysInfo.bootMode )            },
-      ParameterNode{ .id = ParamId_PARAM_CAN_NODE_ID,         .type = ParamType_UINT8,  .key = "can_id",         .address = &SysConfig.canNodeId,         .maxSize = sizeof( SysConfig.canNodeId )         },
-      /***** Add new entries above here *****/
-      /* clang-format on */
-    };
-  }    // namespace Internal
-
-  static const ParameterList s_param_info = Internal::_compile_time_sort( Internal::_unsorted_parameters );
-
   static StaticJsonDocument<JSON_FILE_SIZE_MAX> s_json_cache;
   static Chimera::Thread::RecursiveMutex        s_json_lock;
   static etl::array<char, 64>                   s_fmt_buffer;
@@ -127,12 +72,12 @@ namespace Orbit::Data
    */
   static void deserialize_disk_cache()
   {
-    for ( size_t idx = 0; idx < s_param_info.size(); idx++ )
+    for ( size_t idx = 0; idx < PARAM_INFO.size(); idx++ )
     {
       /*-----------------------------------------------------------------------
       Validate the key exists in the document
       -----------------------------------------------------------------------*/
-      const ParameterNode *node = &s_param_info[ idx ];
+      const ParameterNode *node = &PARAM_INFO[ idx ];
       if ( !s_json_cache.containsKey( node->key ) )
       {
         continue;
@@ -223,10 +168,10 @@ namespace Orbit::Data
    */
   static const ParameterNode *find_parameter( const int id )
   {
-    auto iterator = etl::find_if( s_param_info.begin(), s_param_info.end(),
+    auto iterator = etl::find_if( PARAM_INFO.begin(), PARAM_INFO.end(),
                                   [ id ]( const ParameterNode &node ) { return static_cast<int>( node.id ) == id; } );
 
-    if ( iterator != s_param_info.end() )
+    if ( iterator != PARAM_INFO.end() )
     {
       return iterator;
     }
@@ -245,10 +190,10 @@ namespace Orbit::Data
    */
   static const ParameterNode *find_parameter( const etl::string_view &key )
   {
-    auto iterator = etl::find_if( s_param_info.begin(), s_param_info.end(),
+    auto iterator = etl::find_if( PARAM_INFO.begin(), PARAM_INFO.end(),
                                   [ key ]( const ParameterNode &node ) { return key.compare( node.key ) == 0; } );
 
-    if ( iterator != s_param_info.end() )
+    if ( iterator != PARAM_INFO.end() )
     {
       return iterator;
     }
@@ -528,9 +473,9 @@ namespace Orbit::Data
     Chimera::Thread::LockGuard _lck( s_json_lock );
 
     bool sticky_result = true;
-    for ( size_t idx = 0; idx < s_param_info.size(); idx++ )
+    for ( size_t idx = 0; idx < PARAM_INFO.size(); idx++ )
     {
-      auto &node = s_param_info[ idx ];
+      auto &node = PARAM_INFO[ idx ];
       sticky_result &= updateDiskCache( node.id );
     }
 
@@ -555,9 +500,11 @@ namespace Orbit::Data
     Chimera::Thread::LockGuard _lck( s_json_lock );
     if ( s_json_cache.containsKey( node->key ) )
     {
-      const auto proxy = s_json_cache[ node->key ];
-      const auto data  = proxy.as<std::string_view>();
-      memcpy( dest, data.data(), std::min( size, data.size() ) );
+      const auto proxy    = s_json_cache[ node->key ];
+      const auto data     = proxy.as<std::string_view>();
+      const auto copySize = std::min( size, data.size() );
+
+      memcpy( dest, data.data(), copySize );
       return true;
     }
     else
@@ -582,12 +529,15 @@ namespace Orbit::Data
     Safely copy data to the working cache, then update the JSON document cache
     -------------------------------------------------------------------------*/
     Chimera::Thread::LockGuard _lck( s_json_lock );
-    auto                       mask = Chimera::System::disableInterrupts();
+
+    auto mask = Chimera::System::disableInterrupts();
     {
-      if ( size > node->maxSize )
+      /*-----------------------------------------------------------------------
+      Validate the size and data before copying
+      -----------------------------------------------------------------------*/
+      if ( ( size > node->maxSize ) || ( node->validator && !node->validator( *node, src, size ) ) )
       {
         Chimera::System::enableInterrupts( mask );
-        LOG_WARN( "Parameter size mismatch. Max: %u, Size: %u", size, node->maxSize );
         return false;
       }
 
@@ -609,6 +559,10 @@ namespace Orbit::Data
       }
     }
     Chimera::System::enableInterrupts( mask );
+
+    /*-------------------------------------------------------------------------
+    Assuming we've made it here, the data is valid and can be copied to disk
+    -------------------------------------------------------------------------*/
     return updateDiskCache( param );
   }
 

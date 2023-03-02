@@ -7,6 +7,7 @@ gen_static_lib_variants(
     orbit_data.cpp
     orbit_data_storage.cpp
     orbit_data_types.cpp
+    orbit_data_validators.cpp
     orbit_log_io.cpp
     orbit_log_sink.cpp
   PRV_LIBRARIES

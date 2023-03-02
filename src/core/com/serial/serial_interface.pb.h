@@ -46,7 +46,30 @@ typedef enum _ParamId {
     ParamId_PARAM_DISK_UPDATE_RATE_MS = 11, /* How often to write parameters to disk */
     ParamId_PARAM_ACTIVITY_LED_SCALER = 12, /* Scale the activity LED blink rate */
     ParamId_PARAM_BOOT_MODE = 13, /* Boot mode of the device */
-    ParamId_PARAM_CAN_NODE_ID = 14 /* CAN node ID of the device */
+    ParamId_PARAM_CAN_NODE_ID = 14, /* CAN node ID of the device */
+    /* Motor Control Parameters */
+    ParamId_PARAM_STATOR_PWM_FREQ = 20, /* PWM frequency of the motor drive in Hz */
+    ParamId_PARAM_SPEED_CTRL_UPDATE_FREQ = 21, /* Speed controller core update frequency in Hz */
+    ParamId_PARAM_TARGET_IDLE_RPM = 22, /* Target RPM when the motor is idle */
+    ParamId_PARAM_SPEED_CTRL_KP = 23, /* Speed controller proportional gain */
+    ParamId_PARAM_SPEED_CTRL_KI = 24, /* Speed controller integral gain */
+    ParamId_PARAM_SPEED_CTRL_KD = 25, /* Speed controller derivative gain */
+    ParamId_PARAM_CURRENT_CTRL_Q_AXIS_KP = 26, /* Current controller Q-axis proportional gain */
+    ParamId_PARAM_CURRENT_CTRL_Q_AXIS_KI = 27, /* Current controller Q-axis integral gain */
+    ParamId_PARAM_CURRENT_CTRL_Q_AXIS_KD = 28, /* Current controller Q-axis derivative gain */
+    ParamId_PARAM_CURRENT_CTRL_D_AXIS_KP = 29, /* Current controller D-axis proportional gain */
+    ParamId_PARAM_CURRENT_CTRL_D_AXIS_KI = 30, /* Current controller D-axis integral gain */
+    ParamId_PARAM_CURRENT_CTRL_D_AXIS_KD = 31, /* Current controller D-axis derivative gain */
+    ParamId_PARAM_CURRENT_CTRL_Q_FIR_COEFFS = 32, /* Current controller Q-axis FIR filter coefficients */
+    ParamId_PARAM_CURRENT_CTRL_D_FIR_COEFFS = 33, /* Current controller D-axis FIR filter coefficients */
+    /* Motor Description */
+    ParamId_PARAM_ROTOR_POLES = 50, /* Number of poles in the motor */
+    ParamId_PARAM_STATOR_SLOTS = 51, /* Number of slots in the motor */
+    ParamId_PARAM_STATOR_RESISTANCE = 52, /* Stator resistance in Ohms */
+    ParamId_PARAM_STATOR_INDUCTANCE = 53, /* Stator inductance in Henrys */
+    /* Monitor Thresholds */
+    ParamId_PARAM_PEAK_CURRENT_THRESHOLD = 60, /* Peak current threshold in Amps */
+    ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD = 61 /* Peak voltage threshold in Volts */
 } ParamId;
 
 typedef enum _ParamType {
@@ -153,8 +176,8 @@ typedef struct _SwitchModeMessage {
 #define _SubId_ARRAYSIZE ((SubId)(SubId_SUB_MSG_PARAM_IO_LOAD+1))
 
 #define _ParamId_MIN ParamId_PARAM_INVALID
-#define _ParamId_MAX ParamId_PARAM_CAN_NODE_ID
-#define _ParamId_ARRAYSIZE ((ParamId)(ParamId_PARAM_CAN_NODE_ID+1))
+#define _ParamId_MAX ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD
+#define _ParamId_ARRAYSIZE ((ParamId)(ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD+1))
 
 #define _ParamType_MIN ParamType_UNKNOWN
 #define _ParamType_MAX ParamType_STRING

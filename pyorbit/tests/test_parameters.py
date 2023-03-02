@@ -75,3 +75,14 @@ class TestCANNodeId:
         for node_id in valid_ids:
             assert serial_client.parameter.set(ParameterId.CanNodeId, node_id)
             assert serial_client.parameter.get(ParameterId.CanNodeId) == node_id
+
+    def test_assign_invalid_can_id(self, serial_client: SerialClient):
+        invalid_ids = [NodeID.NODE_PC, 15]
+
+        # Assign a valid CAN ID first
+        assert serial_client.parameter.set(ParameterId.CanNodeId, NodeID.NODE_0)
+
+        # Validate the invalid IDs don't update
+        for node_id in invalid_ids:
+            assert not serial_client.parameter.set(ParameterId.CanNodeId, node_id)
+            assert serial_client.parameter.get(ParameterId.CanNodeId) == NodeID.NODE_0
