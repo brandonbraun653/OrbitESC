@@ -46,7 +46,7 @@ enum ParamId {
 
   // Motor Control Parameters
   PARAM_STATOR_PWM_FREQ = 20; // PWM frequency of the motor drive in Hz
-  PARAM_SPEED_CTRL_UPDATE_FREQ = 21; // Speed controller core update frequency in Hz
+  PARAM_SPEED_CTRL_FREQ = 21; // Speed controller core update frequency in Hz
   PARAM_TARGET_IDLE_RPM = 22; // Target RPM when the motor is idle
   PARAM_SPEED_CTRL_KP = 23; // Speed controller proportional gain
   PARAM_SPEED_CTRL_KI = 24; // Speed controller integral gain
@@ -57,8 +57,8 @@ enum ParamId {
   PARAM_CURRENT_CTRL_D_AXIS_KP = 29; // Current controller D-axis proportional gain
   PARAM_CURRENT_CTRL_D_AXIS_KI = 30; // Current controller D-axis integral gain
   PARAM_CURRENT_CTRL_D_AXIS_KD = 31; // Current controller D-axis derivative gain
-  PARAM_CURRENT_CTRL_Q_FIR_COEFFS = 32; // Current controller Q-axis FIR filter coefficients
-  PARAM_CURRENT_CTRL_D_FIR_COEFFS = 33; // Current controller D-axis FIR filter coefficients
+  // PARAM_CURRENT_CTRL_Q_FIR_COEFFS = 32; // Current controller Q-axis FIR filter coefficients
+  // PARAM_CURRENT_CTRL_D_FIR_COEFFS = 33; // Current controller D-axis FIR filter coefficients
 
   // Motor Description
   PARAM_ROTOR_POLES = 50; // Number of poles in the motor
@@ -72,15 +72,15 @@ enum ParamId {
 }
 
 enum ParamType {
-  UNKNOWN  = 0;
-  BOOL     = 1;
-  UINT8    = 2;
-  UINT16   = 3;
-  UINT32   = 4;
-  FLOAT    = 5;
-  DOUBLE   = 6;
-  BYTES    = 7;
-  STRING   = 8;
+  UNKNOWN = 0;
+  BOOL    = 1;
+  UINT8   = 2;
+  UINT16  = 3;
+  UINT32  = 4;
+  FLOAT   = 5;
+  DOUBLE  = 6;
+  BYTES   = 7;
+  STRING  = 8;
 }
 
 enum StatusCode {

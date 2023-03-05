@@ -49,7 +49,7 @@ typedef enum _ParamId {
     ParamId_PARAM_CAN_NODE_ID = 14, /* CAN node ID of the device */
     /* Motor Control Parameters */
     ParamId_PARAM_STATOR_PWM_FREQ = 20, /* PWM frequency of the motor drive in Hz */
-    ParamId_PARAM_SPEED_CTRL_UPDATE_FREQ = 21, /* Speed controller core update frequency in Hz */
+    ParamId_PARAM_SPEED_CTRL_FREQ = 21, /* Speed controller core update frequency in Hz */
     ParamId_PARAM_TARGET_IDLE_RPM = 22, /* Target RPM when the motor is idle */
     ParamId_PARAM_SPEED_CTRL_KP = 23, /* Speed controller proportional gain */
     ParamId_PARAM_SPEED_CTRL_KI = 24, /* Speed controller integral gain */
@@ -60,8 +60,6 @@ typedef enum _ParamId {
     ParamId_PARAM_CURRENT_CTRL_D_AXIS_KP = 29, /* Current controller D-axis proportional gain */
     ParamId_PARAM_CURRENT_CTRL_D_AXIS_KI = 30, /* Current controller D-axis integral gain */
     ParamId_PARAM_CURRENT_CTRL_D_AXIS_KD = 31, /* Current controller D-axis derivative gain */
-    ParamId_PARAM_CURRENT_CTRL_Q_FIR_COEFFS = 32, /* Current controller Q-axis FIR filter coefficients */
-    ParamId_PARAM_CURRENT_CTRL_D_FIR_COEFFS = 33, /* Current controller D-axis FIR filter coefficients */
     /* Motor Description */
     ParamId_PARAM_ROTOR_POLES = 50, /* Number of poles in the motor */
     ParamId_PARAM_STATOR_SLOTS = 51, /* Number of slots in the motor */

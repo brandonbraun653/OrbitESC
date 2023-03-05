@@ -24,6 +24,12 @@ namespace Orbit::Data
   Public Functions
   ---------------------------------------------------------------------------*/
   /**
+   * @brief Initializes the persistent storage layer
+   * @return void
+   */
+  void initStorage();
+
+  /**
    * @brief Loads all parameters from disk
    * @return bool
    */

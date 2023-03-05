@@ -20,8 +20,7 @@ Includes
 #include <Chimera/system>
 #include <cstdint>
 #include <etl/string.h>
-#include <src/core/com/serial/serial_interface.pb.h>
-#include <src/core/data/orbit_data_defaults.hpp>
+#include <src/control/filter.hpp>
 #include <src/core/hw/orbit_can.hpp>
 #include <src/core/system_types.hpp>
 
@@ -55,6 +54,26 @@ namespace Orbit::Data
   class Controls
   {
   public:
+    using FIRFilter = Control::Math::FIR<float, 15>;
+
+    /*-------------------------------------------------------------------------
+    Motor Control Parameters
+    -------------------------------------------------------------------------*/
+    float statorPWMFreq;                                  /**< PARAM_STATOR_PWM_FREQ */
+    float speedCtrlUpdateFreq;                            /**< PARAM_SPEED_CTRL_FREQ */
+    float speedCtrlKp;                                    /**< PARAM_SPEED_CTRL_KP */
+    float speedCtrlKi;                                    /**< PARAM_SPEED_CTRL_KI */
+    float speedCtrlKd;                                    /**< PARAM_SPEED_CTRL_KD */
+    float targetIdleRPM;                                  /**< PARAM_TARGET_IDLE_RPM */
+    float currentCtrl_Q_Kp;                               /**< PARAM_CURRENT_CTRL_Q_AXIS_KP */
+    float currentCtrl_Q_Ki;                               /**< PARAM_CURRENT_CTRL_Q_AXIS_KI */
+    float currentCtrl_Q_Kd;                               /**< PARAM_CURRENT_CTRL_Q_AXIS_KD */
+    float currentCtrl_D_Kp;                               /**< PARAM_CURRENT_CTRL_D_AXIS_KP */
+    float currentCtrl_D_Ki;                               /**< PARAM_CURRENT_CTRL_D_AXIS_KI */
+    float currentCtrl_D_Kd;                               /**< PARAM_CURRENT_CTRL_D_AXIS_KD */
+    float currentCtrl_Q_FIR[ FIRFilter::CoefData::SIZE ]; /**< PARAM_CURRENT_CTRL_Q_AXIS_FIR */
+    float currentCtrl_D_FIR[ FIRFilter::CoefData::SIZE ]; /**< PARAM_CURRENT_CTRL_D_AXIS_FIR */
+
     void clear();
     void setDefaults();
   };
@@ -73,9 +92,26 @@ namespace Orbit::Data
   class Configuration
   {
   public:
+    /*-------------------------------------------------------------------------
+    System Configuration
+    -------------------------------------------------------------------------*/
     size_t             diskUpdateRateMs;  /**< PARAM_DISK_UPDATE_RATE_MS */
     float              activityLedScaler; /**< PARAM_ACTIVITY_LED_SCALER */
     Orbit::CAN::NodeId canNodeId;         /**< PARAM_CAN_NODE_ID */
+
+    /*-------------------------------------------------------------------------
+    Motor Description
+    -------------------------------------------------------------------------*/
+    uint8_t rotorPoles;       /**< PARAM_ROTOR_POLES */
+    uint8_t statorSlots;      /**< PARAM_STATOR_SLOTS */
+    float   statorResistance; /**< PARAM_STATOR_RESISTANCE */
+    float   statorInductance; /**< PARAM_STATOR_INDUCTANCE */
+
+    /*-------------------------------------------------------------------------
+    Monitor Thresholds
+    -------------------------------------------------------------------------*/
+    float peakCurrentThreshold; /**< PARAM_PEAK_CURRENT_THRESHOLD */
+    float peakVoltageThreshold; /**< PARAM_PEAK_VOLTAGE_THRESHOLD */
 
     void clear();
     void setDefaults();

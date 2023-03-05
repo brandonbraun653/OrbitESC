@@ -80,6 +80,11 @@ namespace Orbit::Data
     RT_HARD_ASSERT( Internal::EepromCtrl.configure( cfg ) );
     RT_HARD_ASSERT( Internal::EepromCtrl.open( nullptr ) == Aurora::Memory::Status::ERR_OK );
 
+    /*-------------------------------------------------------------------------
+    Initialize sub-components
+    -------------------------------------------------------------------------*/
+    initStorage();
+
     return true;
   }
 

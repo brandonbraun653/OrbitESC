@@ -5,7 +5,7 @@
  *  Description:
  *    Discrete filter algorithms
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -17,6 +17,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <cstddef>
 #include <type_traits>
+#include <etl/array.h>
 
 namespace Orbit::Control::Math
 {
@@ -33,8 +34,11 @@ namespace Orbit::Control::Math
   class FIR
   {
   public:
-    using CoefData  = std::array<T, ORDER + 1u>;
-    using StateData = std::array<T, ORDER>;
+    using CoefData  = etl::array<T, ORDER + 1u>;
+    using StateData = etl::array<T, ORDER>;
+
+    static constexpr size_t StateSize = ORDER;
+    static constexpr size_t CoefSize  = ORDER + 1u;
 
     FIR() : mOutput( 0 ), mCoefficients( {} ), mStates( {} )
     {

@@ -1,3 +1,4 @@
+import math
 from pyorbit.tests.fixtures import *
 from pyorbit.serial_client import SerialClient
 from pyorbit.serial_messages import ParameterId
@@ -86,3 +87,54 @@ class TestCANNodeId:
         for node_id in invalid_ids:
             assert not serial_client.parameter.set(ParameterId.CanNodeId, node_id)
             assert serial_client.parameter.get(ParameterId.CanNodeId) == NodeID.NODE_0
+
+
+@pytest.mark.usefixtures("serial_client")
+class TestMotorControlParameters:
+
+    def test_stator_pwm_freq(self, serial_client: SerialClient):
+        assert serial_client.parameter.set(ParameterId.StatorPWMFrequency, 10000)
+        assert serial_client.parameter.get(ParameterId.StatorPWMFrequency) == 10000
+
+    def test_speed_control_freq(self, serial_client: SerialClient):
+        assert serial_client.parameter.set(ParameterId.SpeedControlFrequency, 1000)
+        assert serial_client.parameter.get(ParameterId.SpeedControlFrequency) == 1000
+
+    def test_target_idle_rpm(self, serial_client: SerialClient):
+        test_values = [1000.0, 1500.0, 2000.0, 500.0, 1000.0]
+
+        # TODO: Setting value 500 doesn't work. Returns nothing in the data field.
+
+        for setting in test_values:
+            assert serial_client.parameter.set(ParameterId.TargetIdleRPM, setting)
+            assert math.isclose(serial_client.parameter.get(ParameterId.TargetIdleRPM), setting, abs_tol=0.0001)
+
+    def test_speed_control_pid(self, serial_client: SerialClient):
+        test_values = [[0.1, 0.2, 0.3], [0.0, 0.0, 0.0], [1.0, 1.0, 1.0]]
+
+        for setting in test_values:
+            assert serial_client.parameter.set(ParameterId.SpeedControlKp, setting[0])
+            assert serial_client.parameter.set(ParameterId.SpeedControlKi, setting[1])
+            assert serial_client.parameter.set(ParameterId.SpeedControlKd, setting[2])
+            assert math.isclose(serial_client.parameter.get(ParameterId.SpeedControlKp), setting[0], abs_tol=0.0001)
+            assert math.isclose(serial_client.parameter.get(ParameterId.SpeedControlKi), setting[1], abs_tol=0.0001)
+            assert math.isclose(serial_client.parameter.get(ParameterId.SpeedControlKd), setting[2], abs_tol=0.0001)
+
+    def test_current_control_pid(self, serial_client: SerialClient):
+        test_values = [[0.1, 0.2, 0.3], [0.0, 0.0, 0.0], [1.0, 1.0, 1.0]]
+
+        # TODO: Some values aren't getting applied
+
+        for setting in test_values:
+            assert serial_client.parameter.set(ParameterId.CurrentControlQKp, setting[0])
+            assert serial_client.parameter.set(ParameterId.CurrentControlQKi, setting[1])
+            assert serial_client.parameter.set(ParameterId.CurrentControlQKd, setting[2])
+            assert serial_client.parameter.set(ParameterId.CurrentControlDKp, setting[0])
+            assert serial_client.parameter.set(ParameterId.CurrentControlDKi, setting[1])
+            assert serial_client.parameter.set(ParameterId.CurrentControlDKd, setting[2])
+            assert math.isclose(serial_client.parameter.get(ParameterId.CurrentControlQKp), setting[0], abs_tol=0.0001)
+            assert math.isclose(serial_client.parameter.get(ParameterId.CurrentControlQKi), setting[1], abs_tol=0.0001)
+            assert math.isclose(serial_client.parameter.get(ParameterId.CurrentControlQKd), setting[2], abs_tol=0.0001)
+            assert math.isclose(serial_client.parameter.get(ParameterId.CurrentControlDKp), setting[0], abs_tol=0.0001)
+            assert math.isclose(serial_client.parameter.get(ParameterId.CurrentControlDKi), setting[1], abs_tol=0.0001)
+            assert math.isclose(serial_client.parameter.get(ParameterId.CurrentControlDKd), setting[2], abs_tol=0.0001)

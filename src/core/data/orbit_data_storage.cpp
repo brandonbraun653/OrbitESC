@@ -38,6 +38,7 @@ namespace Orbit::Data
   Constants
   ---------------------------------------------------------------------------*/
   static constexpr size_t          JSON_FILE_SIZE_MAX = 1024;
+  static constexpr size_t          JSON_SYNC_DELAY_MS = 300;
   static constexpr FS::AccessFlags FILE_FLAGS         = FS::AccessFlags::O_RDWR | FS::AccessFlags::O_CREAT;
   static const ParameterList       PARAM_INFO         = Internal::_compile_time_sort( Internal::_unsorted_parameters );
 
@@ -50,6 +51,7 @@ namespace Orbit::Data
   static bool                                   s_json_pend_changes;
   static bool                                   s_json_is_synced;
   static uint32_t                               s_json_last_crc;
+  static uint32_t                               s_last_param_update_time;
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -225,6 +227,20 @@ namespace Orbit::Data
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+  void initStorage()
+  {
+    /*-------------------------------------------------------------------------
+    Initialize module variables to defaults
+    -------------------------------------------------------------------------*/
+    s_json_cache.clear();
+    s_fmt_buffer.fill( 0 );
+    s_json_pend_changes   = false;
+    s_json_is_synced      = false;
+    s_json_last_crc       = 0;
+    s_last_param_update_time = Chimera::millis();
+  }
+
+
   bool loadDisk()
   {
     Chimera::Thread::LockGuard _lck( s_json_lock );
@@ -352,14 +368,13 @@ namespace Orbit::Data
 
   void syncDisk()
   {
-    if ( s_json_pend_changes )
+    if ( s_json_pend_changes && ( ( Chimera::millis() - s_last_param_update_time ) > JSON_SYNC_DELAY_MS ) )
     {
       Chimera::Thread::LockGuard _lck( s_json_lock );
-      const uint32_t             new_crc = get_json_crc();
 
+      const uint32_t new_crc = get_json_crc();
       if ( new_crc != s_json_last_crc )
       {
-        LOG_INFO( "Detected changes to configuration. Syncing with disk." );
         if ( flushDisk() )
         {
           s_json_last_crc  = new_crc;
@@ -453,7 +468,7 @@ namespace Orbit::Data
 
       default: {
         /* Missing format specifier */
-        RT_DBG_ASSERT( false );
+        RT_HARD_ASSERT( false );
         return false;
       }
     }
@@ -464,6 +479,8 @@ namespace Orbit::Data
     s_json_cache[ node->key ] = s_fmt_buffer.data();
     s_json_pend_changes       = true;
     s_json_is_synced          = false;
+    s_last_param_update_time  = Chimera::millis();
+
     return true;
   }
 

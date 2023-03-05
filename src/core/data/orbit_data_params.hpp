@@ -26,7 +26,7 @@ namespace Orbit::Data
   /*---------------------------------------------------------------------------
   Aliases
   ---------------------------------------------------------------------------*/
-  using ParameterList = std::array<ParameterNode, 11>;
+  using ParameterList = std::array<ParameterNode, 29>;
 
   /*---------------------------------------------------------------------------
   Constants
@@ -53,9 +53,9 @@ namespace Orbit::Data
     }
 
     static constexpr ParameterList _unsorted_parameters = {
-      /*-----------------------------------------------------------------------
+      /*-----------------------------------------------------------------------------
       Read Only Parameters
-      -----------------------------------------------------------------------*/
+      -----------------------------------------------------------------------------*/
       ParameterNode{ .id        = ParamId_PARAM_BOOT_COUNT,
                      .type      = ParamType_UINT32,
                      .key       = "pwr_cnt",
@@ -98,9 +98,9 @@ namespace Orbit::Data
                      .maxSize   = SysIdentity.description.MAX_SIZE,
                      .validator = nullptr },
 
-      /*-----------------------------------------------------------------------
+      /*-----------------------------------------------------------------------------
       Read/Write Parameters
-      -----------------------------------------------------------------------*/
+      -----------------------------------------------------------------------------*/
       ParameterNode{ .id        = ParamId_PARAM_SERIAL_NUMBER,
                      .type      = ParamType_STRING,
                      .key       = "ser_num",
@@ -135,6 +135,139 @@ namespace Orbit::Data
                      .address   = &SysConfig.canNodeId,
                      .maxSize   = sizeof( SysConfig.canNodeId ),
                      .validator = ValidateParamId_PARAM_CAN_NODE_ID },
+
+      /*-----------------------------------------------------------------------
+      Motor Control Parameters
+      -----------------------------------------------------------------------*/
+      ParameterNode { .id       = ParamId_PARAM_STATOR_PWM_FREQ,
+                      .type     = ParamType_FLOAT,
+                      .key      = "stator_pwm_freq",
+                      .address  = &SysControl.statorPWMFreq,
+                      .maxSize  = sizeof( SysControl.statorPWMFreq ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_SPEED_CTRL_FREQ,
+                      .type     = ParamType_FLOAT,
+                      .key      = "spd_ctrl_freq",
+                      .address  = &SysControl.speedCtrlUpdateFreq,
+                      .maxSize  = sizeof( SysControl.speedCtrlUpdateFreq ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_SPEED_CTRL_KP,
+                      .type     = ParamType_FLOAT,
+                      .key      = "spd_ctrl_kp",
+                      .address  = &SysControl.speedCtrlKp,
+                      .maxSize  = sizeof( SysControl.speedCtrlKp ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_SPEED_CTRL_KI,
+                      .type     = ParamType_FLOAT,
+                      .key      = "spd_ctrl_ki",
+                      .address  = &SysControl.speedCtrlKi,
+                      .maxSize  = sizeof( SysControl.speedCtrlKi ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_SPEED_CTRL_KD,
+                      .type     = ParamType_FLOAT,
+                      .key      = "spd_ctrl_kd",
+                      .address  = &SysControl.speedCtrlKd,
+                      .maxSize  = sizeof( SysControl.speedCtrlKd ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_TARGET_IDLE_RPM,
+                      .type     = ParamType_FLOAT,
+                      .key      = "target_idle_rpm",
+                      .address  = &SysControl.targetIdleRPM,
+                      .maxSize  = sizeof( SysControl.targetIdleRPM ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_CURRENT_CTRL_Q_AXIS_KP,
+                      .type     = ParamType_FLOAT,
+                      .key      = "iq_ctrl_kd",
+                      .address  = &SysControl.currentCtrl_Q_Kp,
+                      .maxSize  = sizeof( SysControl.currentCtrl_Q_Kp ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_CURRENT_CTRL_Q_AXIS_KI,
+                      .type     = ParamType_FLOAT,
+                      .key      = "iq_ctrl_ki",
+                      .address  = &SysControl.currentCtrl_Q_Ki,
+                      .maxSize  = sizeof( SysControl.currentCtrl_Q_Ki ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_CURRENT_CTRL_Q_AXIS_KD,
+                      .type     = ParamType_FLOAT,
+                      .key      = "iq_ctrl_kd",
+                      .address  = &SysControl.currentCtrl_Q_Kd,
+                      .maxSize  = sizeof( SysControl.currentCtrl_Q_Kd ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_CURRENT_CTRL_D_AXIS_KP,
+                      .type     = ParamType_FLOAT,
+                      .key      = "id_ctrl_kp",
+                      .address  = &SysControl.currentCtrl_D_Kp,
+                      .maxSize  = sizeof( SysControl.currentCtrl_D_Kp ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_CURRENT_CTRL_D_AXIS_KI,
+                      .type     = ParamType_FLOAT,
+                      .key      = "id_ctrl_ki",
+                      .address  = &SysControl.currentCtrl_D_Ki,
+                      .maxSize  = sizeof( SysControl.currentCtrl_D_Ki ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_CURRENT_CTRL_D_AXIS_KD,
+                      .type     = ParamType_FLOAT,
+                      .key      = "id_ctrl_kd",
+                      .address  = &SysControl.currentCtrl_D_Kd,
+                      .maxSize  = sizeof( SysControl.currentCtrl_D_Kd ),
+                      .validator = nullptr },
+
+      /*-----------------------------------------------------------------------
+      Motor Description Parameters
+      -----------------------------------------------------------------------*/
+      ParameterNode { .id       = ParamId_PARAM_ROTOR_POLES,
+                      .type     = ParamType_UINT8,
+                      .key      = "rotor_poles",
+                      .address  = &SysConfig.rotorPoles,
+                      .maxSize  = sizeof( SysConfig.rotorPoles ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_STATOR_SLOTS,
+                      .type     = ParamType_UINT8,
+                      .key      = "stator_slots",
+                      .address  = &SysConfig.statorSlots,
+                      .maxSize  = sizeof( SysConfig.statorSlots ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_STATOR_RESISTANCE,
+                      .type     = ParamType_FLOAT,
+                      .key      = "stator_resistance",
+                      .address  = &SysConfig.statorResistance,
+                      .maxSize  = sizeof( SysConfig.statorResistance ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_STATOR_INDUCTANCE,
+                      .type     = ParamType_FLOAT,
+                      .key      = "stator_inductance",
+                      .address  = &SysConfig.statorInductance,
+                      .maxSize  = sizeof( SysConfig.statorInductance ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_PEAK_CURRENT_THRESHOLD,
+                      .type     = ParamType_FLOAT,
+                      .key      = "peak_current_threshold",
+                      .address  = &SysConfig.peakCurrentThreshold,
+                      .maxSize  = sizeof( SysConfig.peakCurrentThreshold ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD,
+                      .type     = ParamType_FLOAT,
+                      .key      = "peak_voltage_threshold",
+                      .address  = &SysConfig.peakVoltageThreshold,
+                      .maxSize  = sizeof( SysConfig.peakVoltageThreshold ),
+                      .validator = nullptr },
+
       /***** Add new entries above here *****/
     };
   }    // namespace Internal
