@@ -183,7 +183,7 @@ namespace Orbit::Data
 
       ParameterNode { .id       = ParamId_PARAM_CURRENT_CTRL_Q_AXIS_KP,
                       .type     = ParamType_FLOAT,
-                      .key      = "iq_ctrl_kd",
+                      .key      = "iq_ctrl_kp",
                       .address  = &SysControl.currentCtrl_Q_Kp,
                       .maxSize  = sizeof( SysControl.currentCtrl_Q_Kp ),
                       .validator = nullptr },

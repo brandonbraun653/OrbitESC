@@ -103,8 +103,6 @@ class TestMotorControlParameters:
     def test_target_idle_rpm(self, serial_client: SerialClient):
         test_values = [1000.0, 1500.0, 2000.0, 500.0, 1000.0]
 
-        # TODO: Setting value 500 doesn't work. Returns nothing in the data field.
-
         for setting in test_values:
             assert serial_client.parameter.set(ParameterId.TargetIdleRPM, setting)
             assert math.isclose(serial_client.parameter.get(ParameterId.TargetIdleRPM), setting, abs_tol=0.0001)

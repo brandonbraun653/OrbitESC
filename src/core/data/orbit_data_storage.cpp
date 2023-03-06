@@ -37,8 +37,8 @@ namespace Orbit::Data
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr size_t          JSON_FILE_SIZE_MAX = 1024;
-  static constexpr size_t          JSON_SYNC_DELAY_MS = 300;
+  static constexpr size_t          JSON_FILE_SIZE_MAX = 1536;
+  static constexpr size_t          JSON_SYNC_DELAY_MS = 600;
   static constexpr FS::AccessFlags FILE_FLAGS         = FS::AccessFlags::O_RDWR | FS::AccessFlags::O_CREAT;
   static const ParameterList       PARAM_INFO         = Internal::_compile_time_sort( Internal::_unsorted_parameters );
 
@@ -341,6 +341,7 @@ namespace Orbit::Data
     -------------------------------------------------------------------------*/
     char file_data[ JSON_FILE_SIZE_MAX ];
     memset( file_data, 0, sizeof( file_data ) );
+    s_json_cache.garbageCollect();
     const size_t serialized_size = serializeJson( s_json_cache, file_data, sizeof( file_data ) );
 
     /*-------------------------------------------------------------------------
@@ -490,17 +491,19 @@ namespace Orbit::Data
     Chimera::Thread::LockGuard _lck( s_json_lock );
 
     bool sticky_result = true;
+    s_json_cache.garbageCollect();
     for ( size_t idx = 0; idx < PARAM_INFO.size(); idx++ )
     {
       auto &node = PARAM_INFO[ idx ];
       sticky_result &= updateDiskCache( node.id );
     }
+    s_json_cache.garbageCollect();
 
     return sticky_result;
   }
 
 
-  bool copyFromCache( const ParamId param, void *const dest, const size_t size )
+  size_t copyFromCache( const ParamId param, void *const dest, const size_t size )
   {
     /*-------------------------------------------------------------------------
     Find the parameter in the list
@@ -508,7 +511,7 @@ namespace Orbit::Data
     const ParameterNode *node = find_parameter( param );
     if ( !node )
     {
-      return false;
+      return 0;
     }
 
     /*-------------------------------------------------------------------------
@@ -521,12 +524,14 @@ namespace Orbit::Data
       const auto data     = proxy.as<std::string_view>();
       const auto copySize = std::min( size, data.size() );
 
+      LOG_WARN_IF( copySize == 0, "Json cache empty for param %d. Possible memory exhaustion.", node->id );
+
       memcpy( dest, data.data(), copySize );
-      return true;
+      return copySize;
     }
     else
     {
-      return false;
+      return 0;
     }
   }
 

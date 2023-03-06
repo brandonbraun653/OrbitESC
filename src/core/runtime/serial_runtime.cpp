@@ -72,11 +72,8 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Copy out the serialized data
     -------------------------------------------------------------------------*/
-    if ( copyFromCache( msg.payload.id, response.data.bytes, sizeof( response.data.bytes ) ) )
-    {
-      response.data.size = strlen( reinterpret_cast<const char *>( response.data.bytes ) );
-    }
-    else
+    response.data.size = copyFromCache( msg.payload.id, response.data.bytes, sizeof( response.data.bytes ) );
+    if ( response.data.size == 0 )
     {
       sendAckNack( false, msg.payload.header, StatusCode_REQUEST_FAILED );
       return;
