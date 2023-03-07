@@ -121,8 +121,6 @@ class TestMotorControlParameters:
     def test_current_control_pid(self, serial_client: SerialClient):
         test_values = [[0.1, 0.2, 0.3], [0.0, 0.0, 0.0], [1.0, 1.0, 1.0]]
 
-        # TODO: Some values aren't getting applied
-
         for setting in test_values:
             assert serial_client.parameter.set(ParameterId.CurrentControlQKp, setting[0])
             assert serial_client.parameter.set(ParameterId.CurrentControlQKi, setting[1])
@@ -136,3 +134,47 @@ class TestMotorControlParameters:
             assert math.isclose(serial_client.parameter.get(ParameterId.CurrentControlDKp), setting[0], abs_tol=0.0001)
             assert math.isclose(serial_client.parameter.get(ParameterId.CurrentControlDKi), setting[1], abs_tol=0.0001)
             assert math.isclose(serial_client.parameter.get(ParameterId.CurrentControlDKd), setting[2], abs_tol=0.0001)
+
+
+@pytest.mark.usefixtures("serial_client")
+class TestMotorDescriptorParameters:
+
+    def test_rotor_poles(self, serial_client: SerialClient):
+        pole_values = [4, 6, 8, 10, 12, 14]
+        for pole in pole_values:
+            assert serial_client.parameter.set(ParameterId.RotorPoles, pole)
+            assert serial_client.parameter.get(ParameterId.RotorPoles) == pole
+
+    def test_stator_slots(self, serial_client: SerialClient):
+        slot_values = [8, 16, 32, 12]
+        for slot in slot_values:
+            assert serial_client.parameter.set(ParameterId.StatorSlots, slot)
+            assert serial_client.parameter.get(ParameterId.StatorSlots) == slot
+
+    def test_stator_resistance(self, serial_client: SerialClient):
+        resistance_values = [0.1, 0.2, 0.3, 0.4, 0.5]
+        for resistance in resistance_values:
+            assert serial_client.parameter.set(ParameterId.StatorResistance, resistance)
+            assert math.isclose(serial_client.parameter.get(ParameterId.StatorResistance), resistance, abs_tol=0.0001)
+
+    def test_stator_inductance(self, serial_client: SerialClient):
+        inductance_values = [0.1, 0.2, 0.3, 0.4, 0.5]
+        for inductance in inductance_values:
+            assert serial_client.parameter.set(ParameterId.StatorInductance, inductance)
+            assert math.isclose(serial_client.parameter.get(ParameterId.StatorInductance), inductance, abs_tol=0.0001)
+
+
+@pytest.mark.usefixtures("serial_client")
+class TestMonitorThresholds:
+
+    def test_peak_current_threshold(self, serial_client: SerialClient):
+        test_values = [0.1, 0.9, 10.0, 20.0, 5.0]
+        for setting in test_values:
+            assert serial_client.parameter.set(ParameterId.PeakCurrentThreshold, setting)
+            assert math.isclose(serial_client.parameter.get(ParameterId.PeakCurrentThreshold), setting, abs_tol=0.0001)
+
+    def test_peak_voltage_threshold(self, serial_client: SerialClient):
+        test_values = [0.1, 0.9, 10.0, 20.0, 16.0]
+        for setting in test_values:
+            assert serial_client.parameter.set(ParameterId.PeakVoltageThreshold, setting)
+            assert math.isclose(serial_client.parameter.get(ParameterId.PeakVoltageThreshold), setting, abs_tol=0.0001)
