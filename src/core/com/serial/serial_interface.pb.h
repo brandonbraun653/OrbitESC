@@ -28,7 +28,8 @@ typedef enum _SubId {
     SubId_SUB_MSG_PARAM_IO_SYNC = 2, /* Synchronize all parameters to disk */
     SubId_SUB_MSG_PARAM_IO_LOAD = 3, /* Load all parameters from disk */
     /* System control messages */
-    SubId_SUB_MSG_SYS_CTRL_RESET = 0 /* Reset the system */
+    SubId_SUB_MSG_SYS_CTRL_RESET = 0, /* Reset the system */
+    SubId_SUB_MSG_SYS_CTRL_MOTOR = 1 /* Inject manual motor control commands */
 } SubId;
 
 typedef enum _ParamId {
@@ -97,6 +98,11 @@ typedef enum _BootMode {
     BootMode_BOOT_MODE_CONFIG = 2
 } BootMode;
 
+typedef enum _MotorCtrlCmd {
+    MotorCtrlCmd_ENABLE_OUTPUT_STAGE = 0, /* Allow the power stage to drive the motor */
+    MotorCtrlCmd_DISABLE_OUTPUT_STAGE = 1 /* Disable the power stage */
+} MotorCtrlCmd;
+
 /* Struct definitions */
 /* Instrumentation message header common to all types. Each functional message type **must**
  have this first in their list of declarations. */
@@ -154,8 +160,14 @@ typedef struct _ParamIOMessage {
     ParamIOMessage_data_t data;
 } ParamIOMessage;
 
+typedef PB_BYTES_ARRAY_T(64) SystemControlMessage_data_t;
 typedef struct _SystemControlMessage {
     Header header;
+    bool has_motorCmd;
+    MotorCtrlCmd motorCmd;
+    /* Inject more commands here */
+    bool has_data;
+    SystemControlMessage_data_t data;
 } SystemControlMessage;
 
 typedef struct _SwitchModeMessage {
@@ -189,6 +201,10 @@ typedef struct _SwitchModeMessage {
 #define _BootMode_MAX BootMode_BOOT_MODE_CONFIG
 #define _BootMode_ARRAYSIZE ((BootMode)(BootMode_BOOT_MODE_CONFIG+1))
 
+#define _MotorCtrlCmd_MIN MotorCtrlCmd_ENABLE_OUTPUT_STAGE
+#define _MotorCtrlCmd_MAX MotorCtrlCmd_DISABLE_OUTPUT_STAGE
+#define _MotorCtrlCmd_ARRAYSIZE ((MotorCtrlCmd)(MotorCtrlCmd_DISABLE_OUTPUT_STAGE+1))
+
 
 
 #define AckNackMessage_status_code_ENUMTYPE StatusCode
@@ -200,6 +216,7 @@ typedef struct _SwitchModeMessage {
 #define ParamIOMessage_id_ENUMTYPE ParamId
 #define ParamIOMessage_type_ENUMTYPE ParamType
 
+#define SystemControlMessage_motorCmd_ENUMTYPE MotorCtrlCmd
 
 #define SwitchModeMessage_mode_ENUMTYPE BootMode
 
@@ -217,7 +234,7 @@ extern "C" {
 #define ConsoleMessage_init_default              {Header_init_default, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_default           {Header_init_default, 0, "", "", ""}
 #define ParamIOMessage_init_default              {Header_init_default, false, _ParamId_MIN, false, _ParamType_MIN, false, {0, {0}}}
-#define SystemControlMessage_init_default        {Header_init_default}
+#define SystemControlMessage_init_default        {Header_init_default, false, _MotorCtrlCmd_MIN, false, {0, {0}}}
 #define SwitchModeMessage_init_default           {Header_init_default, _BootMode_MIN}
 #define Header_init_zero                         {0, 0, 0}
 #define BaseMessage_init_zero                    {Header_init_zero}
@@ -227,7 +244,7 @@ extern "C" {
 #define ConsoleMessage_init_zero                 {Header_init_zero, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_zero              {Header_init_zero, 0, "", "", ""}
 #define ParamIOMessage_init_zero                 {Header_init_zero, false, _ParamId_MIN, false, _ParamType_MIN, false, {0, {0}}}
-#define SystemControlMessage_init_zero           {Header_init_zero}
+#define SystemControlMessage_init_zero           {Header_init_zero, false, _MotorCtrlCmd_MIN, false, {0, {0}}}
 #define SwitchModeMessage_init_zero              {Header_init_zero, _BootMode_MIN}
 
 /* Field tags (for use in manual encoding/decoding) */
@@ -255,6 +272,8 @@ extern "C" {
 #define ParamIOMessage_type_tag                  3
 #define ParamIOMessage_data_tag                  4
 #define SystemControlMessage_header_tag          1
+#define SystemControlMessage_motorCmd_tag        2
+#define SystemControlMessage_data_tag            3
 #define SwitchModeMessage_header_tag             1
 #define SwitchModeMessage_mode_tag               2
 
@@ -322,7 +341,9 @@ X(a, STATIC,   OPTIONAL, BYTES,    data,              4)
 #define ParamIOMessage_header_MSGTYPE Header
 
 #define SystemControlMessage_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, MESSAGE,  header,            1)
+X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
+X(a, STATIC,   OPTIONAL, UENUM,    motorCmd,          2) \
+X(a, STATIC,   OPTIONAL, BYTES,    data,              3)
 #define SystemControlMessage_CALLBACK NULL
 #define SystemControlMessage_DEFAULT NULL
 #define SystemControlMessage_header_MSGTYPE Header
@@ -365,7 +386,7 @@ extern const pb_msgdesc_t SwitchModeMessage_msg;
 #define ParamIOMessage_size                      91
 #define PingMessage_size                         12
 #define SwitchModeMessage_size                   14
-#define SystemControlMessage_size                12
+#define SystemControlMessage_size                80
 #define SystemInfoMessage_size                   69
 #define SystemTick_size                          18
 

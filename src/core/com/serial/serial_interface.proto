@@ -23,6 +23,7 @@ enum SubId {
 
   // System control messages
   SUB_MSG_SYS_CTRL_RESET = 0; // Reset the system
+  SUB_MSG_SYS_CTRL_MOTOR = 1; // Inject manual motor control commands
 }
 
 enum ParamId {
@@ -98,6 +99,12 @@ enum BootMode {
   BOOT_MODE_CONFIG = 2;
 }
 
+enum MotorCtrlCmd {
+  ENABLE_OUTPUT_STAGE  = 0;  // Allow the power stage to drive the motor
+  DISABLE_OUTPUT_STAGE = 1;  // Disable the power stage
+
+}
+
 // Instrumentation message header common to all types. Each functional message type **must**
 // have this first in their list of declarations.
 message Header {
@@ -151,6 +158,9 @@ message ParamIOMessage {
 
 message SystemControlMessage {
   required Header header = 1;
+  optional MotorCtrlCmd motorCmd = 2 [(nanopb).int_size = IS_8];
+  /* Inject more commands here */
+  optional bytes data = 3 [(nanopb).max_size = 64 ];
 }
 
 message SwitchModeMessage {

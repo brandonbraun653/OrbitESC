@@ -77,18 +77,6 @@ namespace Orbit::Serial::Message
   };
   static_assert( MSG_ID_COUNT == ARRAY_COUNT( Internal::_msg_size_array ) );
 
-  enum _SubId : uint8_t
-  {
-    /* Parameter IO */
-    SUB_MSG_PARAM_IO_GET  = SubId_SUB_MSG_PARAM_IO_GET,
-    SUB_MSG_PARAM_IO_SET  = SubId_SUB_MSG_PARAM_IO_SET,
-    SUB_MSG_PARAM_IO_SYNC = SubId_SUB_MSG_PARAM_IO_SYNC,
-    SUB_MSG_PARAM_IO_LOAD = SubId_SUB_MSG_PARAM_IO_LOAD,
-
-    /* System Control */
-    SUB_MSG_SYS_CTRL_RESET = SubId_SUB_MSG_SYS_CTRL_RESET,
-  };
-
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/

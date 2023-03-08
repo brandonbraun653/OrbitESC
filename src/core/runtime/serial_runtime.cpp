@@ -177,19 +177,19 @@ namespace Orbit::Serial
 
       switch ( msg.payload.header.subId )
       {
-        case Message::SUB_MSG_PARAM_IO_GET:
+        case SubId_SUB_MSG_PARAM_IO_GET:
           handle_get( msg );
           break;
 
-        case Message::SUB_MSG_PARAM_IO_SET:
+        case SubId_SUB_MSG_PARAM_IO_SET:
           handle_put( msg );
           break;
 
-        case Message::SUB_MSG_PARAM_IO_LOAD:
+        case SubId_SUB_MSG_PARAM_IO_LOAD:
           handle_load( msg );
           break;
 
-        case Message::SUB_MSG_PARAM_IO_SYNC:
+        case SubId_SUB_MSG_PARAM_IO_SYNC:
           handle_sync( msg );
           break;
 

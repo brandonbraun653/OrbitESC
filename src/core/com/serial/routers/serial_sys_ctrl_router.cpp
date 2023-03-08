@@ -14,6 +14,7 @@ Includes
 #include <src/core/com/serial/serial_router.hpp>
 #include <src/core/com/serial/serial_server.hpp>
 #include <src/core/system.hpp>
+#include <src/testing/system_control.hpp>
 
 namespace Orbit::Serial::Router
 {
@@ -28,10 +29,14 @@ namespace Orbit::Serial::Router
   {
     switch ( msg.payload.header.subId )
     {
-      case Message::SUB_MSG_SYS_CTRL_RESET:
+      case SubId_SUB_MSG_SYS_CTRL_RESET:
         sendAckNack( true, msg.payload.header );
         Chimera::delayMilliseconds( 50 );
         Orbit::System::setMode( Orbit::System::getMode());
+        break;
+
+      case SubId_SUB_MSG_SYS_CTRL_MOTOR:
+        sendAckNack( Testing::SystemControl::handleMessage( msg ), msg.payload.header );
         break;
 
       default:

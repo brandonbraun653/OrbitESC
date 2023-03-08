@@ -6,6 +6,7 @@ include("${COMMON_TOOL_ROOT}/cmake/utility/embedded.cmake")
 add_subdirectory(core)
 add_subdirectory(control)
 add_subdirectory(monitor)
+add_subdirectory(testing)
 
 # -----------------------------------------------------------------------------
 # Project Libraries
@@ -128,6 +129,7 @@ gen_intf_lib_variants(
     lib_orbit_monitor
     lib_orbit_runtime
     lib_orbit_tasks
+    lib_orbit_testing
   EXPORT_DIR
     ${PROJECT_BINARY_DIR}/OrbitESC
 )
@@ -160,14 +162,15 @@ target_link_libraries(OrbitESC PRIVATE
   lib_nanopb_rel_dbg
 
   # Orbit Libraries
-  lib_orbit_com_dbg
-  lib_orbit_core_dbg
+  lib_orbit_com_rel_dbg
+  lib_orbit_core_rel_dbg
   lib_orbit_ctrl_rel_dbg
-  lib_orbit_data_dbg
+  lib_orbit_data_rel_dbg
   lib_orbit_hw_rel_dbg
   lib_orbit_monitor_rel_dbg
   lib_orbit_runtime_rel_dbg
   lib_orbit_tasks_rel_dbg
+  lib_orbit_testing_dbg
 
   # Target Properties
   prj_device_target
