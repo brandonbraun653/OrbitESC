@@ -35,6 +35,7 @@ class MessageSubId(IntEnum):
 
     # System Control
     SystemControl_Reset = proto.SUB_MSG_SYS_CTRL_RESET
+    SystemControl_Motor = proto.SUB_MSG_SYS_CTRL_MOTOR
 
 
 class ParameterType(IntEnum):
@@ -314,6 +315,38 @@ class SystemResetMessage(BaseMessage):
         self._pb_msg.header.msgId = MessageId.SystemCtrl.value
         self._pb_msg.header.subId = MessageSubId.SystemControl_Reset.value
         self._pb_msg.header.uuid = self._id_gen.next_uuid
+
+
+class MotorControlMessage(BaseMessage):
+
+    def __init__(self, cmd: int = 0, data: bytes = None):
+        super().__init__()
+        self._pb_msg = proto.SystemControlMessage()
+        self._pb_msg.header.msgId = MessageId.SystemCtrl.value
+        self._pb_msg.header.subId = MessageSubId.SystemControl_Motor.value
+        self._pb_msg.header.uuid = self._id_gen.next_uuid
+        self._pb_msg.motorCmd = cmd
+        self._pb_msg.data = data if data else b''
+
+    @property
+    def command(self) -> int:
+        return self._pb_msg.motorCmd
+
+    @command.setter
+    def command(self, cmd: int):
+        """
+        Args:
+            cmd: Command to assign, from protobuf MotorCtrlCmd enum
+        """
+        self._pb_msg.motorCmd = cmd
+
+    @property
+    def payload(self) -> bytes:
+        return self._pb_msg.data
+
+    @payload.setter
+    def payload(self, data: bytes):
+        self._pb_msg.data = data
 
 
 class SetActivityLedBlinkScalerMessage(BaseMessage):

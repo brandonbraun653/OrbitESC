@@ -118,11 +118,12 @@ message BaseMessage {
   required Header header = 1;
 }
 
-// Generic ACK or NACK to a previous message
+// Generic ACK or NACK to a previous message, with optional data payload
 message AckNackMessage {
   required Header header = 1;
   required bool acknowledge = 2;
   required StatusCode status_code = 3 [(nanopb).int_size = IS_8];
+  optional bytes data = 4 [(nanopb).max_size = 64 ];
 }
 
 message PingMessage {

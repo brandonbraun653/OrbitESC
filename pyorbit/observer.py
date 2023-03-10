@@ -293,7 +293,7 @@ class Observer:
 
     def subscribe(self, msg: Any, qty: int = 0, timeout: Union[int, float, None] = None) -> uuid.UUID:
         """
-        Creates a subscription to the given CAN message type. In the background, the subscription
+        Creates a subscription to the given message type. In the background, the subscription
         will accumulate messages in a queue for later retrieval.
 
         Args:
