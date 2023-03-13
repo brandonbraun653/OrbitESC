@@ -11,11 +11,14 @@ class MotorControl:
 
     class ActiveState(Enum):
         """ Active state of the motor controller """
-        Disabled = 0
-        Enabled = 1
+        Disabled = proto.DISABLE_OUTPUT_STAGE
+        Enabled = proto.ENABLE_OUTPUT_STAGE
 
     def __init__(self, serial_client: SerialClient):
         self._serial = serial_client
+
+    def close(self):
+        self._serial.close()
 
     def set_power_stage(self, state: ActiveState) -> bool:
         """
@@ -26,9 +29,10 @@ class MotorControl:
         Returns:
             True if the command was successful, False otherwise
         """
-        pass
+        return self._command_transaction(cmd=state.value)
 
-    def _command_transaction(self, cmd: int, data: bytes = None, validator: Callable[[List[AckNackMessage]], bool] = None) -> bool:
+    def _command_transaction(self, cmd: int, data: bytes = None,
+                             validator: Callable[[List[AckNackMessage]], bool] = None) -> bool:
         """
         Send a command to the motor controller and wait for a response
 
@@ -40,7 +44,6 @@ class MotorControl:
         Returns:
             True if the command was successful, False otherwise
         """
-        # TODO BMB: Add capability for observers to listen for a specific message through a filter function
         sub_id = self._serial.com_pipe.subscribe(msg=AckNackMessage, qty=1, timeout=5.0)
         self._serial.com_pipe.put(MotorControlMessage(cmd, data).serialize())
         responses = self._serial.com_pipe.get_subscription_data(sub_id, terminate=True)  # type: List[AckNackMessage]

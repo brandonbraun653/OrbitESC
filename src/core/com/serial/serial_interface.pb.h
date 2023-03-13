@@ -29,7 +29,8 @@ typedef enum _SubId {
     SubId_SUB_MSG_PARAM_IO_LOAD = 3, /* Load all parameters from disk */
     /* System control messages */
     SubId_SUB_MSG_SYS_CTRL_RESET = 0, /* Reset the system */
-    SubId_SUB_MSG_SYS_CTRL_MOTOR = 1 /* Inject manual motor control commands */
+    SubId_SUB_MSG_SYS_CTRL_MOTOR = 1, /* Inject manual motor control commands */
+    SubId_SUB_MSG_SYS_CTRL_CAL_ADC = 2 /* Calibrate the ADC */
 } SubId;
 
 typedef enum _ParamId {
@@ -117,11 +118,14 @@ typedef struct _BaseMessage {
     Header header;
 } BaseMessage;
 
-/* Generic ACK or NACK to a previous message */
+typedef PB_BYTES_ARRAY_T(64) AckNackMessage_data_t;
+/* Generic ACK or NACK to a previous message, with optional data payload */
 typedef struct _AckNackMessage {
     Header header;
     bool acknowledge;
     StatusCode status_code;
+    bool has_data;
+    AckNackMessage_data_t data;
 } AckNackMessage;
 
 typedef struct _PingMessage {
@@ -228,7 +232,7 @@ extern "C" {
 /* Initializer values for message structs */
 #define Header_init_default                      {0, 0, 0}
 #define BaseMessage_init_default                 {Header_init_default}
-#define AckNackMessage_init_default              {Header_init_default, 0, _StatusCode_MIN}
+#define AckNackMessage_init_default              {Header_init_default, 0, _StatusCode_MIN, false, {0, {0}}}
 #define PingMessage_init_default                 {Header_init_default}
 #define SystemTick_init_default                  {Header_init_default, 0}
 #define ConsoleMessage_init_default              {Header_init_default, 0, 0, {0, {0}}}
@@ -238,7 +242,7 @@ extern "C" {
 #define SwitchModeMessage_init_default           {Header_init_default, _BootMode_MIN}
 #define Header_init_zero                         {0, 0, 0}
 #define BaseMessage_init_zero                    {Header_init_zero}
-#define AckNackMessage_init_zero                 {Header_init_zero, 0, _StatusCode_MIN}
+#define AckNackMessage_init_zero                 {Header_init_zero, 0, _StatusCode_MIN, false, {0, {0}}}
 #define PingMessage_init_zero                    {Header_init_zero}
 #define SystemTick_init_zero                     {Header_init_zero, 0}
 #define ConsoleMessage_init_zero                 {Header_init_zero, 0, 0, {0, {0}}}
@@ -255,6 +259,7 @@ extern "C" {
 #define AckNackMessage_header_tag                1
 #define AckNackMessage_acknowledge_tag           2
 #define AckNackMessage_status_code_tag           3
+#define AckNackMessage_data_tag                  4
 #define PingMessage_header_tag                   1
 #define SystemTick_header_tag                    1
 #define SystemTick_tick_tag                      2
@@ -294,7 +299,8 @@ X(a, STATIC,   REQUIRED, MESSAGE,  header,            1)
 #define AckNackMessage_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
 X(a, STATIC,   REQUIRED, BOOL,     acknowledge,       2) \
-X(a, STATIC,   REQUIRED, UENUM,    status_code,       3)
+X(a, STATIC,   REQUIRED, UENUM,    status_code,       3) \
+X(a, STATIC,   OPTIONAL, BYTES,    data,              4)
 #define AckNackMessage_CALLBACK NULL
 #define AckNackMessage_DEFAULT NULL
 #define AckNackMessage_header_MSGTYPE Header
@@ -379,7 +385,7 @@ extern const pb_msgdesc_t SwitchModeMessage_msg;
 #define SwitchModeMessage_fields &SwitchModeMessage_msg
 
 /* Maximum encoded size of messages (where known) */
-#define AckNackMessage_size                      16
+#define AckNackMessage_size                      82
 #define BaseMessage_size                         12
 #define ConsoleMessage_size                      149
 #define Header_size                              10

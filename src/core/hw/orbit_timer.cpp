@@ -31,6 +31,12 @@ namespace Orbit::TIMER
   ---------------------------------------------------------------------------*/
   void powerUp()
   {
+    configureIOControl();
+  }
+
+
+  void configureIOControl()
+  {
     using namespace Chimera::GPIO;
 
     /*-------------------------------------------------------------------------
@@ -103,5 +109,82 @@ namespace Orbit::TIMER
       RT_HARD_ASSERT( Chimera::Status::OK == pin->init( cfg[ pinIdx ] ) );
     }
   }
+
+
+  void configureIOTesting()
+  {
+    using namespace Chimera::GPIO;
+
+    /*-------------------------------------------------------------------------
+    Configuration Table
+    -------------------------------------------------------------------------*/
+    const PinInit cfg[] = {
+      { // Inverter High Side Phase A
+        .alternate = Chimera::GPIO::Alternate::NONE,
+        .drive     = Chimera::GPIO::Drive::OUTPUT_PUSH_PULL,
+        .pin       = IO::Timer::pinT1Ch1,
+        .port      = IO::Timer::portT1Ch1,
+        .pull      = Chimera::GPIO::Pull::PULL_DN,
+        .state     = Chimera::GPIO::State::LOW,
+        .threaded  = true,
+        .validity  = true },
+      { // Inverter High Side Phase B
+        .alternate = Chimera::GPIO::Alternate::NONE,
+        .drive     = Chimera::GPIO::Drive::OUTPUT_PUSH_PULL,
+        .pin       = IO::Timer::pinT1Ch2,
+        .port      = IO::Timer::portT1Ch2,
+        .pull      = Chimera::GPIO::Pull::PULL_DN,
+        .state     = Chimera::GPIO::State::LOW,
+        .threaded  = true,
+        .validity  = true },
+      { // Inverter High Side Phase C
+        .alternate = Chimera::GPIO::Alternate::NONE,
+        .drive     = Chimera::GPIO::Drive::OUTPUT_PUSH_PULL,
+        .pin       = IO::Timer::pinT1Ch3,
+        .port      = IO::Timer::portT1Ch3,
+        .pull      = Chimera::GPIO::Pull::PULL_DN,
+        .state     = Chimera::GPIO::State::LOW,
+        .threaded  = true,
+        .validity  = true },
+      { // Inverter Low Side Phase A
+        .alternate = Chimera::GPIO::Alternate::NONE,
+        .drive     = Chimera::GPIO::Drive::OUTPUT_PUSH_PULL,
+        .pin       = IO::Timer::pinT1Ch1N,
+        .port      = IO::Timer::portT1Ch1N,
+        .pull      = Chimera::GPIO::Pull::PULL_DN,
+        .state     = Chimera::GPIO::State::LOW,
+        .threaded  = true,
+        .validity  = true },
+      { // Inverter Low Side Phase B
+        .alternate = Chimera::GPIO::Alternate::NONE,
+        .drive     = Chimera::GPIO::Drive::OUTPUT_PUSH_PULL,
+        .pin       = IO::Timer::pinT1Ch2N,
+        .port      = IO::Timer::portT1Ch2N,
+        .pull      = Chimera::GPIO::Pull::PULL_DN,
+        .state     = Chimera::GPIO::State::LOW,
+        .threaded  = true,
+        .validity  = true },
+      { // Inverter Low Side Phase C
+        .alternate = Chimera::GPIO::Alternate::NONE,
+        .drive     = Chimera::GPIO::Drive::OUTPUT_PUSH_PULL,
+        .pin       = IO::Timer::pinT1Ch3N,
+        .port      = IO::Timer::portT1Ch3N,
+        .pull      = Chimera::GPIO::Pull::PULL_DN,
+        .state     = Chimera::GPIO::State::LOW,
+        .threaded  = true,
+        .validity  = true },
+    };
+
+    /*-------------------------------------------------------------------------
+    Configure the GPIO
+    -------------------------------------------------------------------------*/
+    for ( size_t pinIdx = 0; pinIdx < ARRAY_COUNT( cfg ); pinIdx++ )
+    {
+      auto pin = Chimera::GPIO::getDriver( cfg[ pinIdx ].port, cfg[ pinIdx ].pin );
+      RT_HARD_ASSERT( pin != nullptr );
+      RT_HARD_ASSERT( Chimera::Status::OK == pin->init( cfg[ pinIdx ] ) );
+    }
+  }
+
 
 }    // namespace Orbit::TIMER

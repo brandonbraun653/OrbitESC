@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto2',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x16serial_interface.proto\x1a\x0cnanopb.proto\"I\n\x06Header\x12\x14\n\x05msgId\x18\x01 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x05subId\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x13\n\x04uuid\x18\x03 \x02(\rB\x05\x92?\x02\x38\x10\"&\n\x0b\x42\x61seMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\"g\n\x0e\x41\x63kNackMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x13\n\x0b\x61\x63knowledge\x18\x02 \x02(\x08\x12\'\n\x0bstatus_code\x18\x03 \x02(\x0e\x32\x0b.StatusCodeB\x05\x92?\x02\x38\x08\"&\n\x0bPingMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\"3\n\nSystemTick\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x0c\n\x04tick\x18\x02 \x02(\r\"w\n\x0e\x43onsoleMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x19\n\nthis_frame\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x1b\n\x0ctotal_frames\x18\x03 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x04\x64\x61ta\x18\x04 \x02(\x0c\x42\x06\x92?\x03\x08\x80\x01\"\xa2\x01\n\x11SystemInfoMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x12\n\nsystemTick\x18\x02 \x02(\r\x12\x1d\n\tswVersion\x18\x03 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12\x1f\n\x0b\x64\x65scription\x18\x04 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12 \n\x0cserialNumber\x18\x05 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\"|\n\x0eParamIOMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x1b\n\x02id\x18\x02 \x01(\x0e\x32\x08.ParamIdB\x05\x92?\x02\x38\x10\x12\x1f\n\x04type\x18\x03 \x01(\x0e\x32\n.ParamTypeB\x05\x92?\x02\x38\x08\x12\x13\n\x04\x64\x61ta\x18\x04 \x01(\x0c\x42\x05\x92?\x02\x08@\"l\n\x14SystemControlMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12&\n\x08motorCmd\x18\x02 \x01(\x0e\x32\r.MotorCtrlCmdB\x05\x92?\x02\x38\x08\x12\x13\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x42\x05\x92?\x02\x08@\"L\n\x11SwitchModeMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x1e\n\x04mode\x18\x02 \x02(\x0e\x32\t.BootModeB\x05\x92?\x02\x38\x08*\x9a\x01\n\x05MsgId\x12\x10\n\x0cMSG_ACK_NACK\x10\x00\x12\x10\n\x0cMSG_PING_CMD\x10\x01\x12\x10\n\x0cMSG_TERMINAL\x10\x02\x12\x10\n\x0cMSG_SYS_TICK\x10\x03\x12\x10\n\x0cMSG_SYS_INFO\x10\x04\x12\x10\n\x0cMSG_PARAM_IO\x10\x05\x12\x10\n\x0cMSG_SYS_CTRL\x10\x06\x12\x13\n\x0fMSG_SWITCH_MODE\x10\x07*\xad\x01\n\x05SubId\x12\x18\n\x14SUB_MSG_PARAM_IO_GET\x10\x00\x12\x18\n\x14SUB_MSG_PARAM_IO_SET\x10\x01\x12\x19\n\x15SUB_MSG_PARAM_IO_SYNC\x10\x02\x12\x19\n\x15SUB_MSG_PARAM_IO_LOAD\x10\x03\x12\x1a\n\x16SUB_MSG_SYS_CTRL_RESET\x10\x00\x12\x1a\n\x16SUB_MSG_SYS_CTRL_MOTOR\x10\x01\x1a\x02\x10\x01*\xc1\x06\n\x07ParamId\x12\x1a\n\rPARAM_INVALID\x10\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x14\n\x10PARAM_BOOT_COUNT\x10\x00\x12\x14\n\x10PARAM_HW_VERSION\x10\x01\x12\x14\n\x10PARAM_SW_VERSION\x10\x02\x12\x13\n\x0fPARAM_DEVICE_ID\x10\x03\x12\x14\n\x10PARAM_BOARD_NAME\x10\x04\x12\x15\n\x11PARAM_DESCRIPTION\x10\x05\x12\x17\n\x13PARAM_SERIAL_NUMBER\x10\n\x12\x1d\n\x19PARAM_DISK_UPDATE_RATE_MS\x10\x0b\x12\x1d\n\x19PARAM_ACTIVITY_LED_SCALER\x10\x0c\x12\x13\n\x0fPARAM_BOOT_MODE\x10\r\x12\x15\n\x11PARAM_CAN_NODE_ID\x10\x0e\x12\x19\n\x15PARAM_STATOR_PWM_FREQ\x10\x14\x12\x19\n\x15PARAM_SPEED_CTRL_FREQ\x10\x15\x12\x19\n\x15PARAM_TARGET_IDLE_RPM\x10\x16\x12\x17\n\x13PARAM_SPEED_CTRL_KP\x10\x17\x12\x17\n\x13PARAM_SPEED_CTRL_KI\x10\x18\x12\x17\n\x13PARAM_SPEED_CTRL_KD\x10\x19\x12 \n\x1cPARAM_CURRENT_CTRL_Q_AXIS_KP\x10\x1a\x12 \n\x1cPARAM_CURRENT_CTRL_Q_AXIS_KI\x10\x1b\x12 \n\x1cPARAM_CURRENT_CTRL_Q_AXIS_KD\x10\x1c\x12 \n\x1cPARAM_CURRENT_CTRL_D_AXIS_KP\x10\x1d\x12 \n\x1cPARAM_CURRENT_CTRL_D_AXIS_KI\x10\x1e\x12 \n\x1cPARAM_CURRENT_CTRL_D_AXIS_KD\x10\x1f\x12\x15\n\x11PARAM_ROTOR_POLES\x10\x32\x12\x16\n\x12PARAM_STATOR_SLOTS\x10\x33\x12\x1b\n\x17PARAM_STATOR_RESISTANCE\x10\x34\x12\x1b\n\x17PARAM_STATOR_INDUCTANCE\x10\x35\x12 \n\x1cPARAM_PEAK_CURRENT_THRESHOLD\x10<\x12 \n\x1cPARAM_PEAK_VOLTAGE_THRESHOLD\x10=*s\n\tParamType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x08\n\x04\x42OOL\x10\x01\x12\t\n\x05UINT8\x10\x02\x12\n\n\x06UINT16\x10\x03\x12\n\n\x06UINT32\x10\x04\x12\t\n\x05\x46LOAT\x10\x05\x12\n\n\x06\x44OUBLE\x10\x06\x12\t\n\x05\x42YTES\x10\x07\x12\n\n\x06STRING\x10\x08*y\n\nStatusCode\x12\x0c\n\x08NO_ERROR\x10\x00\x12\x11\n\rUNKNOWN_ERROR\x10\x01\x12\x11\n\rINVALID_PARAM\x10\x02\x12\x10\n\x0cINVALID_TYPE\x10\x03\x12\x11\n\rINVALID_VALUE\x10\x04\x12\x12\n\x0eREQUEST_FAILED\x10\x05*J\n\x08\x42ootMode\x12\x14\n\x10\x42OOT_MODE_NORMAL\x10\x00\x12\x12\n\x0e\x42OOT_MODE_TEST\x10\x01\x12\x14\n\x10\x42OOT_MODE_CONFIG\x10\x02*A\n\x0cMotorCtrlCmd\x12\x17\n\x13\x45NABLE_OUTPUT_STAGE\x10\x00\x12\x18\n\x14\x44ISABLE_OUTPUT_STAGE\x10\x01'
+  serialized_pb=b'\n\x16serial_interface.proto\x1a\x0cnanopb.proto\"I\n\x06Header\x12\x14\n\x05msgId\x18\x01 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x05subId\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x13\n\x04uuid\x18\x03 \x02(\rB\x05\x92?\x02\x38\x10\"&\n\x0b\x42\x61seMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\"|\n\x0e\x41\x63kNackMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x13\n\x0b\x61\x63knowledge\x18\x02 \x02(\x08\x12\'\n\x0bstatus_code\x18\x03 \x02(\x0e\x32\x0b.StatusCodeB\x05\x92?\x02\x38\x08\x12\x13\n\x04\x64\x61ta\x18\x04 \x01(\x0c\x42\x05\x92?\x02\x08@\"&\n\x0bPingMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\"3\n\nSystemTick\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x0c\n\x04tick\x18\x02 \x02(\r\"w\n\x0e\x43onsoleMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x19\n\nthis_frame\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x1b\n\x0ctotal_frames\x18\x03 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x04\x64\x61ta\x18\x04 \x02(\x0c\x42\x06\x92?\x03\x08\x80\x01\"\xa2\x01\n\x11SystemInfoMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x12\n\nsystemTick\x18\x02 \x02(\r\x12\x1d\n\tswVersion\x18\x03 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12\x1f\n\x0b\x64\x65scription\x18\x04 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12 \n\x0cserialNumber\x18\x05 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\"|\n\x0eParamIOMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x1b\n\x02id\x18\x02 \x01(\x0e\x32\x08.ParamIdB\x05\x92?\x02\x38\x10\x12\x1f\n\x04type\x18\x03 \x01(\x0e\x32\n.ParamTypeB\x05\x92?\x02\x38\x08\x12\x13\n\x04\x64\x61ta\x18\x04 \x01(\x0c\x42\x05\x92?\x02\x08@\"l\n\x14SystemControlMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12&\n\x08motorCmd\x18\x02 \x01(\x0e\x32\r.MotorCtrlCmdB\x05\x92?\x02\x38\x08\x12\x13\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x42\x05\x92?\x02\x08@\"L\n\x11SwitchModeMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x1e\n\x04mode\x18\x02 \x02(\x0e\x32\t.BootModeB\x05\x92?\x02\x38\x08*\x9a\x01\n\x05MsgId\x12\x10\n\x0cMSG_ACK_NACK\x10\x00\x12\x10\n\x0cMSG_PING_CMD\x10\x01\x12\x10\n\x0cMSG_TERMINAL\x10\x02\x12\x10\n\x0cMSG_SYS_TICK\x10\x03\x12\x10\n\x0cMSG_SYS_INFO\x10\x04\x12\x10\n\x0cMSG_PARAM_IO\x10\x05\x12\x10\n\x0cMSG_SYS_CTRL\x10\x06\x12\x13\n\x0fMSG_SWITCH_MODE\x10\x07*\xcb\x01\n\x05SubId\x12\x18\n\x14SUB_MSG_PARAM_IO_GET\x10\x00\x12\x18\n\x14SUB_MSG_PARAM_IO_SET\x10\x01\x12\x19\n\x15SUB_MSG_PARAM_IO_SYNC\x10\x02\x12\x19\n\x15SUB_MSG_PARAM_IO_LOAD\x10\x03\x12\x1a\n\x16SUB_MSG_SYS_CTRL_RESET\x10\x00\x12\x1a\n\x16SUB_MSG_SYS_CTRL_MOTOR\x10\x01\x12\x1c\n\x18SUB_MSG_SYS_CTRL_CAL_ADC\x10\x02\x1a\x02\x10\x01*\xc1\x06\n\x07ParamId\x12\x1a\n\rPARAM_INVALID\x10\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x14\n\x10PARAM_BOOT_COUNT\x10\x00\x12\x14\n\x10PARAM_HW_VERSION\x10\x01\x12\x14\n\x10PARAM_SW_VERSION\x10\x02\x12\x13\n\x0fPARAM_DEVICE_ID\x10\x03\x12\x14\n\x10PARAM_BOARD_NAME\x10\x04\x12\x15\n\x11PARAM_DESCRIPTION\x10\x05\x12\x17\n\x13PARAM_SERIAL_NUMBER\x10\n\x12\x1d\n\x19PARAM_DISK_UPDATE_RATE_MS\x10\x0b\x12\x1d\n\x19PARAM_ACTIVITY_LED_SCALER\x10\x0c\x12\x13\n\x0fPARAM_BOOT_MODE\x10\r\x12\x15\n\x11PARAM_CAN_NODE_ID\x10\x0e\x12\x19\n\x15PARAM_STATOR_PWM_FREQ\x10\x14\x12\x19\n\x15PARAM_SPEED_CTRL_FREQ\x10\x15\x12\x19\n\x15PARAM_TARGET_IDLE_RPM\x10\x16\x12\x17\n\x13PARAM_SPEED_CTRL_KP\x10\x17\x12\x17\n\x13PARAM_SPEED_CTRL_KI\x10\x18\x12\x17\n\x13PARAM_SPEED_CTRL_KD\x10\x19\x12 \n\x1cPARAM_CURRENT_CTRL_Q_AXIS_KP\x10\x1a\x12 \n\x1cPARAM_CURRENT_CTRL_Q_AXIS_KI\x10\x1b\x12 \n\x1cPARAM_CURRENT_CTRL_Q_AXIS_KD\x10\x1c\x12 \n\x1cPARAM_CURRENT_CTRL_D_AXIS_KP\x10\x1d\x12 \n\x1cPARAM_CURRENT_CTRL_D_AXIS_KI\x10\x1e\x12 \n\x1cPARAM_CURRENT_CTRL_D_AXIS_KD\x10\x1f\x12\x15\n\x11PARAM_ROTOR_POLES\x10\x32\x12\x16\n\x12PARAM_STATOR_SLOTS\x10\x33\x12\x1b\n\x17PARAM_STATOR_RESISTANCE\x10\x34\x12\x1b\n\x17PARAM_STATOR_INDUCTANCE\x10\x35\x12 \n\x1cPARAM_PEAK_CURRENT_THRESHOLD\x10<\x12 \n\x1cPARAM_PEAK_VOLTAGE_THRESHOLD\x10=*s\n\tParamType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x08\n\x04\x42OOL\x10\x01\x12\t\n\x05UINT8\x10\x02\x12\n\n\x06UINT16\x10\x03\x12\n\n\x06UINT32\x10\x04\x12\t\n\x05\x46LOAT\x10\x05\x12\n\n\x06\x44OUBLE\x10\x06\x12\t\n\x05\x42YTES\x10\x07\x12\n\n\x06STRING\x10\x08*y\n\nStatusCode\x12\x0c\n\x08NO_ERROR\x10\x00\x12\x11\n\rUNKNOWN_ERROR\x10\x01\x12\x11\n\rINVALID_PARAM\x10\x02\x12\x10\n\x0cINVALID_TYPE\x10\x03\x12\x11\n\rINVALID_VALUE\x10\x04\x12\x12\n\x0eREQUEST_FAILED\x10\x05*J\n\x08\x42ootMode\x12\x14\n\x10\x42OOT_MODE_NORMAL\x10\x00\x12\x12\n\x0e\x42OOT_MODE_TEST\x10\x01\x12\x14\n\x10\x42OOT_MODE_CONFIG\x10\x02*A\n\x0cMotorCtrlCmd\x12\x17\n\x13\x45NABLE_OUTPUT_STAGE\x10\x00\x12\x18\n\x14\x44ISABLE_OUTPUT_STAGE\x10\x01'
   ,
   dependencies=[nanopb__pb2.DESCRIPTOR,])
 
@@ -75,8 +75,8 @@ _MSGID = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=954,
-  serialized_end=1108,
+  serialized_start=975,
+  serialized_end=1129,
 )
 _sym_db.RegisterEnumDescriptor(_MSGID)
 
@@ -118,11 +118,16 @@ _SUBID = _descriptor.EnumDescriptor(
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='SUB_MSG_SYS_CTRL_CAL_ADC', index=6, number=2,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
   ],
   containing_type=None,
   serialized_options=b'\020\001',
-  serialized_start=1111,
-  serialized_end=1284,
+  serialized_start=1132,
+  serialized_end=1335,
 )
 _sym_db.RegisterEnumDescriptor(_SUBID)
 
@@ -287,8 +292,8 @@ _PARAMID = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1287,
-  serialized_end=2120,
+  serialized_start=1338,
+  serialized_end=2171,
 )
 _sym_db.RegisterEnumDescriptor(_PARAMID)
 
@@ -348,8 +353,8 @@ _PARAMTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2122,
-  serialized_end=2237,
+  serialized_start=2173,
+  serialized_end=2288,
 )
 _sym_db.RegisterEnumDescriptor(_PARAMTYPE)
 
@@ -394,8 +399,8 @@ _STATUSCODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2239,
-  serialized_end=2360,
+  serialized_start=2290,
+  serialized_end=2411,
 )
 _sym_db.RegisterEnumDescriptor(_STATUSCODE)
 
@@ -425,8 +430,8 @@ _BOOTMODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2362,
-  serialized_end=2436,
+  serialized_start=2413,
+  serialized_end=2487,
 )
 _sym_db.RegisterEnumDescriptor(_BOOTMODE)
 
@@ -451,8 +456,8 @@ _MOTORCTRLCMD = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2438,
-  serialized_end=2503,
+  serialized_start=2489,
+  serialized_end=2554,
 )
 _sym_db.RegisterEnumDescriptor(_MOTORCTRLCMD)
 
@@ -471,6 +476,7 @@ SUB_MSG_PARAM_IO_SYNC = 2
 SUB_MSG_PARAM_IO_LOAD = 3
 SUB_MSG_SYS_CTRL_RESET = 0
 SUB_MSG_SYS_CTRL_MOTOR = 1
+SUB_MSG_SYS_CTRL_CAL_ADC = 2
 PARAM_INVALID = -1
 PARAM_BOOT_COUNT = 0
 PARAM_HW_VERSION = 1
@@ -631,6 +637,13 @@ _ACKNACKMESSAGE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=b'\222?\0028\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='data', full_name='AckNackMessage.data', index=3,
+      number=4, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"",
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222?\002\010@', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -644,7 +657,7 @@ _ACKNACKMESSAGE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=155,
-  serialized_end=258,
+  serialized_end=279,
 )
 
 
@@ -675,8 +688,8 @@ _PINGMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=260,
-  serialized_end=298,
+  serialized_start=281,
+  serialized_end=319,
 )
 
 
@@ -714,8 +727,8 @@ _SYSTEMTICK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=300,
-  serialized_end=351,
+  serialized_start=321,
+  serialized_end=372,
 )
 
 
@@ -767,8 +780,8 @@ _CONSOLEMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=353,
-  serialized_end=472,
+  serialized_start=374,
+  serialized_end=493,
 )
 
 
@@ -827,8 +840,8 @@ _SYSTEMINFOMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=475,
-  serialized_end=637,
+  serialized_start=496,
+  serialized_end=658,
 )
 
 
@@ -880,8 +893,8 @@ _PARAMIOMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=639,
-  serialized_end=763,
+  serialized_start=660,
+  serialized_end=784,
 )
 
 
@@ -926,8 +939,8 @@ _SYSTEMCONTROLMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=765,
-  serialized_end=873,
+  serialized_start=786,
+  serialized_end=894,
 )
 
 
@@ -965,8 +978,8 @@ _SWITCHMODEMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=875,
-  serialized_end=951,
+  serialized_start=896,
+  serialized_end=972,
 )
 
 _BASEMESSAGE.fields_by_name['header'].message_type = _HEADER
@@ -1078,6 +1091,7 @@ _HEADER.fields_by_name['msgId']._options = None
 _HEADER.fields_by_name['subId']._options = None
 _HEADER.fields_by_name['uuid']._options = None
 _ACKNACKMESSAGE.fields_by_name['status_code']._options = None
+_ACKNACKMESSAGE.fields_by_name['data']._options = None
 _CONSOLEMESSAGE.fields_by_name['this_frame']._options = None
 _CONSOLEMESSAGE.fields_by_name['total_frames']._options = None
 _CONSOLEMESSAGE.fields_by_name['data']._options = None

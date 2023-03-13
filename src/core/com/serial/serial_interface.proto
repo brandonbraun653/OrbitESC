@@ -22,8 +22,9 @@ enum SubId {
   SUB_MSG_PARAM_IO_LOAD = 3;  // Load all parameters from disk
 
   // System control messages
-  SUB_MSG_SYS_CTRL_RESET = 0; // Reset the system
-  SUB_MSG_SYS_CTRL_MOTOR = 1; // Inject manual motor control commands
+  SUB_MSG_SYS_CTRL_RESET   = 0; // Reset the system
+  SUB_MSG_SYS_CTRL_MOTOR   = 1; // Inject manual motor control commands
+  SUB_MSG_SYS_CTRL_CAL_ADC = 2; // Calibrate the ADC
 }
 
 enum ParamId {
