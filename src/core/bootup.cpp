@@ -20,6 +20,7 @@ Includes
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/bootup.hpp>
 #include <src/core/data/orbit_data.hpp>
+#include <src/core/data/orbit_log_io.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_can.hpp>
 #include <src/core/hw/orbit_gpio.hpp>
@@ -56,6 +57,7 @@ namespace Orbit::Boot
    */
   static void setSystemBehavior()
   {
+#if defined( EMBEDDED )
     /*-------------------------------------------------------------------------
     Connect the CM4 lockup bit to the break input of TIM1. This should place
     the 3-phase inverter into a safe state on hard-faults.
@@ -67,6 +69,7 @@ namespace Orbit::Boot
     timer and will continue indefinitely.
     -------------------------------------------------------------------------*/
     *( ( uint32_t * )DBGMCU_APB2FZR_ADDR ) &= ~DBGMCU_TIM1_STOP_EN;
+#endif
   }
 
 
@@ -78,30 +81,36 @@ namespace Orbit::Boot
     /*-------------------------------------------------------------------------
     Power up high level system controls
     -------------------------------------------------------------------------*/
-#if defined( EMBEDDED )
     setSystemBehavior();
-#endif
 
     /*-------------------------------------------------------------------------
-    Power up the hardware peripherals
+    Power up the HW peripherals supporting the file system (ORDER MATTERS!)
+    -------------------------------------------------------------------------*/
+    Orbit::USART::powerUp();           // Serial debug port logging
+    Orbit::SPI::powerUp();             // NOR bus driver
+    Orbit::I2C::powerUp();             // EEPROM bus driver
+    Orbit::Data::initialize();         // Prepare system data memory
+    Orbit::Data::bootFileSystem();     // Attach and load the file system
+    Orbit::Data::printSystemInfo();    // Print the system info to the console
+
+    /*-------------------------------------------------------------------------
+    Power up the file logging system as early as possible to catch any errors
+    -------------------------------------------------------------------------*/
+    Log::initialize();
+    Log::enable();
+
+    /*-------------------------------------------------------------------------
+    Power up the peripherals with re-configurable settings
     -------------------------------------------------------------------------*/
     Orbit::ADC::powerUp();
     Orbit::CAN::powerUp();
-    Orbit::GPIO::powerUp();
-    Orbit::I2C::powerUp();
-#if defined( ORBIT_ESC_V1 )
-    Orbit::SPI::powerUp();
-#endif
     Orbit::TIMER::powerUp();
-    Orbit::USART::powerUp();
 
     /*-------------------------------------------------------------------------
-    Power up more complex system components
+    Power up remaining system components
     -------------------------------------------------------------------------*/
-    Orbit::Data::initialize();
-#if defined( ORBIT_ESC_V1 )
+    Orbit::GPIO::powerUp();
     Orbit::LED::powerUp();
-#endif
     Orbit::Monitor::initialize();
   }
 

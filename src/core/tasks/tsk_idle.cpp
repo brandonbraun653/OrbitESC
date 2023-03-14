@@ -5,7 +5,7 @@
  *  Description:
  *    Idle task implementation
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -17,10 +17,10 @@ Includes
 #include <Chimera/gpio>
 #include <Chimera/thread>
 #include <src/config/bsp/board_map.hpp>
-#include <src/core/bootup.hpp>
-#include <src/core/hw/orbit_timer.hpp>
-#include <src/core/hw/orbit_led.hpp>
 #include <src/core/data/orbit_data.hpp>
+#include <src/core/hw/orbit_led.hpp>
+#include <src/core/hw/orbit_timer.hpp>
+#include <src/core/tasks.hpp>
 
 
 namespace Orbit::Tasks::BKD
@@ -31,10 +31,9 @@ namespace Orbit::Tasks::BKD
   void IdleThread( void *arg )
   {
     /*-------------------------------------------------------------------------
-    Power up the hardware drivers, then kick off the system tasks
+    Wait for the start signal
     -------------------------------------------------------------------------*/
-    Boot::powerUpSystemDrivers();
-    Boot::startTasks();
+    waitInit();
 
     /*-------------------------------------------------------------------------
     Get the status/heartbeat pin and flash a quick boot up sequence

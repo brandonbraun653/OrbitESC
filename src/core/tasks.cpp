@@ -158,10 +158,14 @@ namespace Orbit::Tasks
 
     /*-------------------------------------------------------------------------
     Task Initialization
+
+    The order of task creation is important. The DIO task must be created first
+    to handle RAM expensive operations like powering on the filesystem and
+    loading in the configuration file. All other tasks are order agnostic.
     -------------------------------------------------------------------------*/
+    init_hwm_dio_task();  /* This one must run first */
     init_idle_task();
     init_hwm_task();
-    init_hwm_dio_task();
     init_ctrl_sys_task();
     init_com_task();
   }

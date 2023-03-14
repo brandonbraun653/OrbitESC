@@ -16,6 +16,7 @@ Includes
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/data/orbit_data_storage.hpp>
 #include <src/core/data/orbit_log_io.hpp>
+#include <src/core/bootup.hpp>
 #include <src/core/runtime/serial_runtime.hpp>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_dio.hpp>
@@ -30,24 +31,16 @@ namespace Orbit::Tasks::DIO
     using namespace Chimera::Thread;
 
     /*-------------------------------------------------------------------------
-    Wait for the start signal
+    Power up the hardware drivers and spawn remaining tasks
     -------------------------------------------------------------------------*/
-    waitInit();
-
-    /*-------------------------------------------------------------------------
-    Initialize data controllers
-    -------------------------------------------------------------------------*/
-    Orbit::Data::bootFileSystem();
-    Orbit::Data::printSystemInfo();
-    Log::initialize();
-    Log::enable();
+    Boot::powerUpSystemDrivers();
+    Boot::startTasks();
 
     /*-------------------------------------------------------------------------
     Finalize the power up sequence
     -------------------------------------------------------------------------*/
     Data::SysInfo.bootCount++;
     Data::updateDiskCache( ParamId_PARAM_BOOT_COUNT );
-    Data::updateDiskCache( ParamId_PARAM_DEVICE_ID );
 
     /*-------------------------------------------------------------------------
     Run the delayed-io thread
