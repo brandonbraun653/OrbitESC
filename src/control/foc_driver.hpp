@@ -72,11 +72,6 @@ namespace Orbit::Control
     int initialize( const FOCConfig &cfg, const MotorParameters &motorParams );
 
     /**
-     * @brief Calibrate system measurements
-     */
-    void calibrate();
-
-    /**
      * @brief Executes the high level controller
      * @note Expects to be run periodically
      */
@@ -105,9 +100,10 @@ namespace Orbit::Control
     /**
      * @brief Gets the last data collected from the ADC
      *
-     * @param data  The data to fill with the last ADC data
+     * @param data      The data to fill with the last ADC data
+     * @return size_t   Timestamp of the last ADC data in microseconds
      */
-    void lastSensorData( ADCSensorBuffer &data );
+    size_t lastSensorData( ADCControl::ChannelBuffer &data );
 
     /**
      * @brief Gets a view of the internal state of the FOC driver

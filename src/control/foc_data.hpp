@@ -196,26 +196,64 @@ namespace Orbit::Control
     }
   };
 
-  struct ADCSensorData
+
+  class ADCControl
   {
-    float    measured;     /**< Raw ADC value */
-    float    calibrated;   /**< Calibrated ADC value, accounting for offset */
-    float    converted;    /**< Converted raw value into meaningful data */
-    float    dcOffset;     /**< The DC offset of the ADC channel at idle */
-    uint32_t sampleTimeUs; /**< The time in microseconds that the ADC sample was taken */
+  public:
+    struct ChannelData
+    {
+      float                measured;   /**< Measured ADC value, accounting for offset */
+      float                calOffset;  /**< The DC offset of the ADC channel at idle */
+      size_t               calSamples; /**< How many samples have been acquired */
+      float                calSum;     /**< Total sum of the samples */
+      Math::FIR<float, 15> lpFilter;   /**< Low pass filter for the ADC channel */
+
+      void updateFilter( const Math::FIR<float, 15> &filter )
+      {
+        lpFilter = filter;
+        lpFilter.initialize( 0.0f );
+      }
+
+      void clear()
+      {
+        measured  = 0.0f;
+        calOffset = 0.0f;
+        lpFilter.initialize( 0.0f );
+      }
+    };
+
+    using ChannelBuffer = etl::array<ChannelData, ADC_CH_NUM_OPTIONS>;
+
+
+    bool          calibrating;  /**< Flag to enable/disable calibration routines */
+    size_t        calStartTime; /**< System time when the calibration started */
+    size_t        sampleTimeUs; /**< Last time the data was sampled */
+    ChannelBuffer data;
+
+    void startCalibration()
+    {
+      if( !calibrating )
+      {
+        for( auto &ch : data )
+        {
+          ch.calSamples = 0;
+          ch.calSum     = 0.0f;
+        }
+
+        calStartTime = Chimera::millis();
+        calibrating  = true;
+      }
+    }
 
     void clear()
     {
-      measured     = 0.0f;
-      calibrated   = 0.0f;
-      converted    = 0.0f;
-      dcOffset     = 0.0f;
-      sampleTimeUs = 0;
+      calibrating = false;
+      for ( auto &ch : data )
+      {
+        ch.clear();
+      }
     }
   };
-
-  using ADCSensorBuffer = std::array<ADCSensorData, ADC_CH_NUM_OPTIONS>;
-
 
   /**
    * @brief Collection of objects that represent the entire state of the FOC system
@@ -223,7 +261,7 @@ namespace Orbit::Control
    */
   struct SuperState
   {
-    ADCSensorBuffer adcBuffer;
+    ADCControl      adc;
     EMFObserver     emfObserver;
     OmegaEstimator  speedEstimator;
     MotorParameters motorParams;
@@ -231,11 +269,7 @@ namespace Orbit::Control
 
     void clear()
     {
-      for ( auto &data : adcBuffer )
-      {
-        data.clear();
-      }
-
+      adc.clear();
       emfObserver.clear();
       speedEstimator.clear();
       motorParams.clear();

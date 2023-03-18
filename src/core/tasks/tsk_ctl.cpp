@@ -50,9 +50,14 @@ namespace Orbit::Tasks::CTL
     params.Ls = 380.0f * 1e-3f;
 
     Orbit::Control::FOCDriver.initialize( cfg, params );
-    Orbit::Control::FOCDriver.calibrate();
+    ADC::startSampling();
 
-    Chimera::delayMilliseconds( 1000 );
+
+    Chimera::delayMilliseconds( 3000 );
+
+    // TODO BMB: I wonder if I power it from a battery if I'll get tighter tolerances?
+
+
     // Orbit::Control::FOCDriver.sendSystemEvent( Orbit::Control::EventId::ARM );
     // Chimera::delayMilliseconds( 1000 );
     // Orbit::Control::FOCDriver.driveTestSignal( 1, 50.0f );

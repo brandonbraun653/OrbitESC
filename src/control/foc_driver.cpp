@@ -161,38 +161,58 @@ namespace Orbit::Control
     this->set_states( mFSMStateArray.data(), mFSMStateArray.size() );
     this->start();
 
+    /*-------------------------------------------------------------------------
+    Calibrate the ADC values
+    -------------------------------------------------------------------------*/
+    // 3kHz pass band
+    auto filter = Math::FIR<float, 15>( {
+      0.00242455316813491f,
+      -0.0101955888092545f,
+      0.0232392134289419f,
+      -0.0362508890079906f,
+      0.0344456824735822f,
+      0.00415033435064135f,
+      -0.120704132433873f,
+      0.602608590995338f,
+      0.602608590995338f,
+      -0.120704132433873f,
+      0.00415033435064135f,
+      0.0344456824735822f,
+      -0.0362508890079906f,
+      0.0232392134289419f,
+      -0.0101955888092545f,
+      0.00242455316813491f
+     } );
+
+    // 500 Hz pass band
+    // auto filter = Math::FIR<float, 15>( {
+    //   0.00167453239284774f,
+    //   0.00383760414840798f,
+    //   -0.00400032112472084f,
+    //   -0.0269286130929977f,
+    //   -0.0321454769647852f,
+    //   0.0393806301914063f,
+    //   0.191814740418412f,
+    //   0.326079079031429f,
+    //   0.326079079031429f,
+    //   0.191814740418412f,
+    //   0.0393806301914063f,
+    //   -0.0321454769647852f,
+    //   -0.0269286130929977f,
+    //   -0.00400032112472084f,
+    //   0.00383760414840798f,
+    //   0.0016745323928477f,
+    // });
+
+    for( auto &ch : mState.adc.data )
+    {
+      ch.updateFilter( filter );
+    }
+
+    mState.adc.startCalibration();
+
     mInitialized = true;
     return 0;
-  }
-
-
-  void FOC::calibrate()
-  {
-    /*-------------------------------------------------------------------------
-    Ensure the motor is off for calibration
-    -------------------------------------------------------------------------*/
-    sendSystemEvent( EventId::EMERGENCY_HALT );
-    Chimera::delayMilliseconds( 100 );
-
-    /*-------------------------------------------------------------------------
-    Measure the DC offset of the motor phase current sensors
-    -------------------------------------------------------------------------*/
-    LOG_TRACE( "Calibrating phase current sensors\r\n" );
-    for( int idx = ADC_CH_MOTOR_PHASE_A_CURRENT; idx <= ADC_CH_MOTOR_PHASE_C_CURRENT; idx++ )
-    {
-      float samples = 0.0f;
-      float pIxAvg  = 0.0f;
-
-      while ( samples < 25.0f )
-      {
-        samples++;
-        pIxAvg += mState.adcBuffer[ idx ].measured;
-        Chimera::delayMilliseconds( 5 );
-      }
-
-      mState.adcBuffer[ idx ].dcOffset = ( pIxAvg / samples );
-    }
-    LOG_TRACE( "Done\r\n" );
   }
 
 
@@ -256,9 +276,10 @@ namespace Orbit::Control
   }
 
 
-  void FOC::lastSensorData( ADCSensorBuffer &data )
+  size_t FOC::lastSensorData( ADCControl::ChannelBuffer &data )
   {
-    data = mState.adcBuffer;
+    data = mState.adc.data;
+    return mState.adc.sampleTimeUs;
   }
 
 
@@ -318,22 +339,33 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Process the raw ADC data
     -------------------------------------------------------------------------*/
-    const uint32_t timestamp_us    = Chimera::micros();
-    const float    counts_to_volts = isr.vref / isr.resolution;
+    const float counts_to_volts = isr.vref / isr.resolution;  // TODO BMB: This should be pre-calculated
 
+    mState.adc.sampleTimeUs = Chimera::micros();
     for ( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
     {
-      /*-----------------------------------------------------------------------
-      Convert the ADC data to measured values
+      const float sampledAsVoltage = static_cast<float>( isr.samples[ i ] ) * counts_to_volts;
+      const float correctedVoltage = sampledAsVoltage - mState.adc.data[ i ].calOffset;
 
-      TODO: Use different samples for each channel depending on which channel
-      has the low time width. Fig. 17-10 InstaSPIN-FOC. Should improve ADC
-      technique with 3- shunt
-      -----------------------------------------------------------------------*/
-      mState.adcBuffer[ i ].measured     = static_cast<float>( isr.samples[ i ] ) * counts_to_volts;
-      mState.adcBuffer[ i ].calibrated   = mState.adcBuffer[ i ].measured - mState.adcBuffer[ i ].dcOffset;
-      mState.adcBuffer[ i ].converted    = mConfig.txfrFuncs[ i ]( mState.adcBuffer[ i ].calibrated );
-      mState.adcBuffer[ i ].sampleTimeUs = timestamp_us;
+      mState.adc.data[ i ].measured = mState.adc.data[ i ].lpFilter.step( correctedVoltage );
+      mState.adc.data[ i ].calSamples++;
+
+      if ( mState.adc.calibrating && ( mState.adc.data[ i ].calSamples >= 100 ) )
+      {
+        mState.adc.data[ i ].calSum += mState.adc.data[ i ].measured;
+      }
+    }
+
+    /*-------------------------------------------------------------------------
+    Allow the calibration sequence to proceed if enabled
+    -------------------------------------------------------------------------*/
+    if( mState.adc.calibrating && ( ( Chimera::millis() - mState.adc.calStartTime ) > 500 ) )
+    {
+      mState.adc.calibrating = false;
+      for( size_t i = 0; i < ADC_CH_MOTOR_SUPPLY_VOLTAGE; i++ )
+      {
+        mState.adc.data[ i ].calOffset = mState.adc.data[ i ].calSum / ( mState.adc.data[ i ].calSamples - 100 );
+      }
     }
 
     /*-------------------------------------------------------------------------
@@ -387,14 +419,17 @@ namespace Orbit::Control
       return;
     }
 
+    const float phaseACurrent = mConfig.txfrFuncs[ ADC_CH_MOTOR_PHASE_A_CURRENT ]( mState.adc.data[ ADC_CH_MOTOR_PHASE_A_CURRENT ].measured );
+    const float phaseBCurrent = mConfig.txfrFuncs[ ADC_CH_MOTOR_PHASE_B_CURRENT ]( mState.adc.data[ ADC_CH_MOTOR_PHASE_B_CURRENT ].measured );
+    const float phaseCCurrent = mConfig.txfrFuncs[ ADC_CH_MOTOR_PHASE_C_CURRENT ]( mState.adc.data[ ADC_CH_MOTOR_PHASE_C_CURRENT ].measured );
+    const float busVoltage    = mConfig.txfrFuncs[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ]( mState.adc.data[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].measured );
+
     /*-----------------------------------------------------------------------
     Move the sampled phase currents through the Clarke-Park transform
 
     TODO: Use 3-phase current measurements due to slew rate improvement.s
     -----------------------------------------------------------------------*/
-    const auto clarke = Math::clarke_transform( mState.adcBuffer[ ADC_CH_MOTOR_PHASE_A_CURRENT ].converted,
-                                                mState.adcBuffer[ ADC_CH_MOTOR_PHASE_B_CURRENT ].converted );
-
+    const auto clarke = Math::clarke_transform( phaseACurrent, phaseBCurrent );
     const auto park = Math::park_transform( clarke, mState.motorCtl.posEst );
 
     /*-----------------------------------------------------------------------
@@ -403,7 +438,7 @@ namespace Orbit::Control
     /* Update the motor state data from previous calculations */
     mState.motorCtl.Iqm = park.q;
     mState.motorCtl.Idm = park.d;
-    mState.motorCtl.Vdd = mState.adcBuffer[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].converted;
+    mState.motorCtl.Vdd = busVoltage;
 
     /* Low-pass filter the measured currents */
     mState.motorCtl.Idf = mState.motorCtl.DFIR.step( mState.motorCtl.Idm );
@@ -430,45 +465,45 @@ namespace Orbit::Control
       mState.motorCtl.posEst += Math::M_2PI_F;
     }
 
-    /*-------------------------------------------------------------------------
-    Update the commanded controller output states
-    -------------------------------------------------------------------------*/
-    float                 a, b, c;
-    const Math::ParkSpace park_space{ .d = mState.motorCtl.Vdr, .q = mState.motorCtl.Vqr };
-    auto                  invPark = Math::inverse_park_transform( park_space, mState.motorCtl.posEst );
+    // /*-------------------------------------------------------------------------
+    // Update the commanded controller output states
+    // -------------------------------------------------------------------------*/
+    // float                 a, b, c;
+    // const Math::ParkSpace park_space{ .d = mState.motorCtl.Vdr, .q = mState.motorCtl.Vqr };
+    // auto                  invPark = Math::inverse_park_transform( park_space, mState.motorCtl.posEst );
 
-    Math::inverse_clarke_transform( invPark, &a, &b, &c );
+    // Math::inverse_clarke_transform( invPark, &a, &b, &c );
 
-    /*-------------------------------------------------------------------------
-    Use the position estimate to determine the next commutation state. Split
-    the unit circle into 6 sectors and select the appropriate one to commutate.
+    // /*-------------------------------------------------------------------------
+    // Use the position estimate to determine the next commutation state. Split
+    // the unit circle into 6 sectors and select the appropriate one to commutate.
 
-    https://math.stackexchange.com/a/206662/435793
-    Solve for N => Theta * 3 / pi
-    -------------------------------------------------------------------------*/
-    static constexpr float SECTOR_CONV_FACTOR = 3.0f / Math::M_PI_F;
-    uint8_t                sector = 1 + static_cast<uint8_t>( SECTOR_CONV_FACTOR * mState.motorCtl.posEst );
+    // https://math.stackexchange.com/a/206662/435793
+    // Solve for N => Theta * 3 / pi
+    // -------------------------------------------------------------------------*/
+    // static constexpr float SECTOR_CONV_FACTOR = 3.0f / Math::M_PI_F;
+    // uint8_t                sector = 1 + static_cast<uint8_t>( SECTOR_CONV_FACTOR * mState.motorCtl.posEst );
 
-    // mState.motorCtl.svpwm_a_duty = ( a + 0.5f ) * 100.0f;
-    // mState.motorCtl.svpwm_b_duty = ( b + 0.5f ) * 100.0f;
-    // mState.motorCtl.svpwm_c_duty = ( c + 0.5f ) * 100.0f;
-    // mState.motorCtl.svpwm_comm   = sector;
+    // // mState.motorCtl.svpwm_a_duty = ( a + 0.5f ) * 100.0f;
+    // // mState.motorCtl.svpwm_b_duty = ( b + 0.5f ) * 100.0f;
+    // // mState.motorCtl.svpwm_c_duty = ( c + 0.5f ) * 100.0f;
+    // // mState.motorCtl.svpwm_comm   = sector;
 
-    static uint32_t counter = 0;
-    mState.motorCtl.svpwm_a_duty = 10.0f;
-    mState.motorCtl.svpwm_b_duty = 10.0f;
-    mState.motorCtl.svpwm_c_duty = 10.0f;
+    // static uint32_t counter = 0;
+    // mState.motorCtl.svpwm_a_duty = 10.0f;
+    // mState.motorCtl.svpwm_b_duty = 10.0f;
+    // mState.motorCtl.svpwm_c_duty = 10.0f;
 
-    counter++;
-    if( counter > 10 )
-    {
-      counter = 0;
-      mState.motorCtl.svpwm_comm++;
-      if( mState.motorCtl.svpwm_comm >= 7 )
-      {
-        mState.motorCtl.svpwm_comm = 1;
-      }
-    }
+    // counter++;
+    // if( counter > 10 )
+    // {
+    //   counter = 0;
+    //   mState.motorCtl.svpwm_comm++;
+    //   if( mState.motorCtl.svpwm_comm >= 7 )
+    //   {
+    //     mState.motorCtl.svpwm_comm = 1;
+    //   }
+    // }
 
 
     // /* Step the EMF observer */
