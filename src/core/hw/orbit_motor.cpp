@@ -333,6 +333,10 @@ namespace Orbit::Motor
         float newSpeed = ( 0.5f * A2 * dtSec * dtSec ) + ( A1 * dtSec );
 
         // Convert the new speed calculation into a commutation command
+        // Can I do this by throwing the new speed value into a sine function? If each
+        // computed value is equivalent to hertz, I can get the real value by multiplying
+        // by two pi radians, then taking that output and dividing by the number of commutation
+        // cycles to get the current sector I'm in. Use wolfram to verify this.
         }
         break;
 
