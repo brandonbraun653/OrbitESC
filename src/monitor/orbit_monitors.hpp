@@ -25,13 +25,13 @@ namespace Orbit::Monitor
   /*---------------------------------------------------------------------------
   Public Data
   ---------------------------------------------------------------------------*/
-  extern VoltageMonitor VBusMonitor; /**< Power supply monitor */
-  extern CurrentMonitor IPhAMonitor; /**< Phase A current monitor */
-  extern CurrentMonitor IPhBMonitor; /**< Phase B current monitor */
-  extern CurrentMonitor IPhCMonitor; /**< Phase C current monitor */
+  // extern VoltageMonitor VBusMonitor; /**< Power supply monitor */
+  // extern CurrentMonitor IPhAMonitor; /**< Phase A current monitor */
+  // extern CurrentMonitor IPhBMonitor; /**< Phase B current monitor */
+  // extern CurrentMonitor IPhCMonitor; /**< Phase C current monitor */
 
-  extern const etl::array<IAnalogMonitor *const, Orbit::Control::ADC_CH_NUM_OPTIONS>
-      MonitorArray; /**< All available monitors */
+  // extern const etl::array<IAnalogMonitor *const, Orbit::Control::ADC_CH_NUM_OPTIONS>
+  //     MonitorArray; /**< All available monitors */
 
   /*-----------------------------------------------------------------------------
   Public Functions

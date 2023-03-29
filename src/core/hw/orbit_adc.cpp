@@ -223,6 +223,7 @@ namespace Orbit::ADC
     adc->stopSequence();
   }
 
+
   void calibrateCurrentSensors( IPhaseCalArray &cal, const size_t sampleTimeMs )
   {
     const Chimera::ADC::Channel sample_channels[] = { IO::Analog::adcPhaseA, IO::Analog::adcPhaseB, IO::Analog::adcPhaseC };
@@ -285,6 +286,7 @@ namespace Orbit::ADC
 
     LOG_TRACE( "Done\r\n" );
   }
+
 
   float sample2PhaseCurrent( const float vin )
   {

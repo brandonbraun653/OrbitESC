@@ -20,6 +20,7 @@ Includes
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_ctl.hpp>
 #include <src/monitor/orbit_monitors.hpp>
+#include <src/core/hw/orbit_motor.hpp>
 
 
 namespace Orbit::Tasks::CTL
@@ -37,32 +38,10 @@ namespace Orbit::Tasks::CTL
     /*-------------------------------------------------------------------------
     Initialize the CTL drivers
     -------------------------------------------------------------------------*/
-    Orbit::Control::FOCConfig cfg;
 
-    cfg.adcSource = Chimera::ADC::Peripheral::ADC_0;
-    cfg.txfrFuncs[ Control::ADC_CH_MOTOR_SUPPLY_VOLTAGE ]  = ADC::sample2BusVoltage;
-    cfg.txfrFuncs[ Control::ADC_CH_MOTOR_PHASE_A_CURRENT ] = ADC::sample2PhaseCurrent;
-    cfg.txfrFuncs[ Control::ADC_CH_MOTOR_PHASE_C_CURRENT ] = ADC::sample2PhaseCurrent;
-    cfg.txfrFuncs[ Control::ADC_CH_MOTOR_PHASE_B_CURRENT ] = ADC::sample2PhaseCurrent;
+    Chimera::delayMilliseconds( 1000 );
+    Motor::powerUp();
 
-    Orbit::Control::MotorParameters params;
-    params.Rs = 0.01f;
-    params.Ls = 380.0f * 1e-3f;
-
-    // Orbit::Control::FOCDriver.initialize( cfg, params );
-    ADC::startSampling();
-
-
-    Chimera::delayMilliseconds( 3000 );
-
-    // TODO BMB: I wonder if I power it from a battery if I'll get tighter tolerances?
-
-
-    // Orbit::Control::FOCDriver.sendSystemEvent( Orbit::Control::EventId::ARM );
-    // Chimera::delayMilliseconds( 1000 );
-    // Orbit::Control::FOCDriver.driveTestSignal( 1, 50.0f );
-
-    // Orbit::Control::FOCDriver.mTimerDriver.enableOutput();
 
     /*-------------------------------------------------------------------------
     Run the CTL thread
@@ -70,11 +49,6 @@ namespace Orbit::Tasks::CTL
     size_t wake_up_tick = Chimera::millis();
     while ( 1 )
     {
-      /*-----------------------------------------------------------------------
-      Run the main FOC loop
-      -----------------------------------------------------------------------*/
-      //Orbit::Control::FOCDriver.run();
-
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically
       -----------------------------------------------------------------------*/

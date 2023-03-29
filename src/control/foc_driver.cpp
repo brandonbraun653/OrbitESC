@@ -61,62 +61,62 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Validate the configuration
     -------------------------------------------------------------------------*/
-    for ( auto &txfrFunc : cfg.txfrFuncs )
-    {
-      ( void )txfrFunc;
-      RT_DBG_ASSERT( txfrFunc != nullptr );
-    }
+    // for ( auto &txfrFunc : cfg.txfrFuncs )
+    // {
+    //   ( void )txfrFunc;
+    //   RT_DBG_ASSERT( txfrFunc != nullptr );
+    // }
 
-    /*-------------------------------------------------------------------------
-    Initialize the FOC state
-    -------------------------------------------------------------------------*/
-    mState.clear();
-    mConfig.clear();
+    // /*-------------------------------------------------------------------------
+    // Initialize the FOC state
+    // -------------------------------------------------------------------------*/
+    // mState.clear();
+    // mConfig.clear();
 
-    mConfig            = cfg;
-    mState.motorParams = motorParams;
+    // mConfig            = cfg;
+    // mState.motorParams = motorParams;
 
 
-    /*-------------------------------------------------------------------------
-    Initialize eigenvalues for the current controller
-    -------------------------------------------------------------------------*/
-    mState.emfObserver.d = ( -motorParams.Rs / motorParams.Ls ) * 5.0f;
+    // /*-------------------------------------------------------------------------
+    // Initialize eigenvalues for the current controller
+    // -------------------------------------------------------------------------*/
+    // mState.emfObserver.d = ( -motorParams.Rs / motorParams.Ls ) * 5.0f;
 
-    ControllerData* ctl = &mState.motorCtl;
+    // ControllerData* ctl = &mState.motorCtl;
 
-    ctl->clear();
+    // ctl->clear();
 
-    ctl->Dpid.SetPoint    = 0.0f;
-    ctl->Dpid.OutMinLimit = 0.0f;
-    ctl->Dpid.OutMaxLimit = 1.0f;
-    ctl->DFIR = Math::FIR<float, 15>( { -0.00124568841F, 0.00147019443F, 0.0123328818F, 0.00110139197F, -0.0499843247F,
-                                        -0.0350326933F, 0.164325342F, 0.407320708F, 0.407320708F, 0.164325342F, -0.0350326933F,
-                                        -0.0499843247F, 0.00110139197F, 0.0123328818F, 0.00147019443F, -0.00124568841F } );
-    ctl->DFIR.initialize();
+    // ctl->Dpid.SetPoint    = 0.0f;
+    // ctl->Dpid.OutMinLimit = 0.0f;
+    // ctl->Dpid.OutMaxLimit = 1.0f;
+    // ctl->DFIR = Math::FIR<float, 15>( { -0.00124568841F, 0.00147019443F, 0.0123328818F, 0.00110139197F, -0.0499843247F,
+    //                                     -0.0350326933F, 0.164325342F, 0.407320708F, 0.407320708F, 0.164325342F, -0.0350326933F,
+    //                                     -0.0499843247F, 0.00110139197F, 0.0123328818F, 0.00147019443F, -0.00124568841F } );
+    // ctl->DFIR.initialize();
 
-    ctl->Qpid.SetPoint    = 0.0f;
-    ctl->Qpid.OutMinLimit = 0.0f;
-    ctl->Qpid.OutMaxLimit = 1.0f;
-    ctl->QFIR = Math::FIR<float, 15>( { -0.00124568841F, 0.00147019443F, 0.0123328818F, 0.00110139197F, -0.0499843247F,
-                                        -0.0350326933F, 0.164325342F, 0.407320708F, 0.407320708F, 0.164325342F, -0.0350326933F,
-                                        -0.0499843247F, 0.00110139197F, 0.0123328818F, 0.00147019443F, -0.00124568841F } );
-    ctl->QFIR.initialize();
-    ctl->Qpid.setTunings( 5.0f, 2.0f, 0.3f, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
+    // ctl->Qpid.SetPoint    = 0.0f;
+    // ctl->Qpid.OutMinLimit = 0.0f;
+    // ctl->Qpid.OutMaxLimit = 1.0f;
+    // ctl->QFIR = Math::FIR<float, 15>( { -0.00124568841F, 0.00147019443F, 0.0123328818F, 0.00110139197F, -0.0499843247F,
+    //                                     -0.0350326933F, 0.164325342F, 0.407320708F, 0.407320708F, 0.164325342F, -0.0350326933F,
+    //                                     -0.0499843247F, 0.00110139197F, 0.0123328818F, 0.00147019443F, -0.00124568841F } );
+    // ctl->QFIR.initialize();
+    // ctl->Qpid.setTunings( 5.0f, 2.0f, 0.3f, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
 
-    /*-------------------------------------------------------------------------
-    Initialize the finite state machine
-    -------------------------------------------------------------------------*/
-    mFSMStateArray.fill( nullptr );
-    mFSMStateArray[ ModeId::IDLE ]    = new State::Idle();
-    mFSMStateArray[ ModeId::ARMED ]   = new State::Armed();
-    mFSMStateArray[ ModeId::FAULT ]   = new State::Fault();
-    mFSMStateArray[ ModeId::ENGAGED ] = new State::Engaged();
+    // /*-------------------------------------------------------------------------
+    // Initialize the finite state machine
+    // -------------------------------------------------------------------------*/
+    // mFSMStateArray.fill( nullptr );
+    // mFSMStateArray[ ModeId::IDLE ]    = new State::Idle();
+    // mFSMStateArray[ ModeId::ARMED ]   = new State::Armed();
+    // mFSMStateArray[ ModeId::FAULT ]   = new State::Fault();
+    // mFSMStateArray[ ModeId::ENGAGED ] = new State::Engaged();
 
-    /* Initialize the FSM. First state will be ModeId::IDLE. */
-    this->set_states( mFSMStateArray.data(), mFSMStateArray.size() );
-    this->start();
+    // /* Initialize the FSM. First state will be ModeId::IDLE. */
+    // this->set_states( mFSMStateArray.data(), mFSMStateArray.size() );
+    // this->start();
 
-    mInitialized = true;
+    // mInitialized = true;
     return 0;
   }
 

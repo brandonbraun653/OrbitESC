@@ -49,11 +49,11 @@ namespace Orbit::Motor
   public:
     struct ChannelData
     {
-      float     measured;   /**< Measured ADC value, accounting for offset */
-      float     calOffset;  /**< The DC offset of the ADC channel at idle */
-      size_t    calSamples; /**< How many samples have been acquired */
-      float     calSum;     /**< Total sum of the samples */
-      LpFilter  lpFilter;   /**< Low pass filter for the ADC channel */
+      float    measured;   /**< Measured ADC value, accounting for offset */
+      float    calOffset;  /**< The DC offset of the ADC channel at idle */
+      size_t   calSamples; /**< How many samples have been acquired */
+      float    calSum;     /**< Total sum of the samples */
+      LpFilter lpFilter;   /**< Low pass filter for the ADC channel */
 
       void updateFilter( const LpFilter &filter )
       {
@@ -78,9 +78,9 @@ namespace Orbit::Motor
 
     void startCalibration()
     {
-      if( !calibrating )
+      if ( !calibrating )
       {
-        for( auto &ch : data )
+        for ( auto &ch : data )
         {
           ch.calSamples = 0;
           ch.calSum     = 0.0f;
@@ -148,7 +148,7 @@ namespace Orbit::Motor
     RT_HARD_ASSERT( Chimera::Status::OK == s_motor_ctrl_timer.init( pwm_cfg ) );
 
     s_motor_ctrl_timer.setPhaseDutyCycle( 0.0f, 0.0f, 0.0f );
-    s_motor_ctrl_timer.disableOutput();
+    s_motor_ctrl_timer.enableOutput();
 
     /*-------------------------------------------------------------------------
     Configure the Speed control outer loop update timer
@@ -169,24 +169,10 @@ namespace Orbit::Motor
     Calibrate the ADC values
     -------------------------------------------------------------------------*/
     // 3kHz pass band
-    auto filter = LpFilter( {
-      0.00242455316813491f,
-      -0.0101955888092545f,
-      0.0232392134289419f,
-      -0.0362508890079906f,
-      0.0344456824735822f,
-      0.00415033435064135f,
-      -0.120704132433873f,
-      0.602608590995338f,
-      0.602608590995338f,
-      -0.120704132433873f,
-      0.00415033435064135f,
-      0.0344456824735822f,
-      -0.0362508890079906f,
-      0.0232392134289419f,
-      -0.0101955888092545f,
-      0.00242455316813491f
-     } );
+    auto filter = LpFilter( { 0.00242455316813491f, -0.0101955888092545f, 0.0232392134289419f, -0.0362508890079906f,
+                              0.0344456824735822f, 0.00415033435064135f, -0.120704132433873f, 0.602608590995338f,
+                              0.602608590995338f, -0.120704132433873f, 0.00415033435064135f, 0.0344456824735822f,
+                              -0.0362508890079906f, 0.0232392134289419f, -0.0101955888092545f, 0.00242455316813491f } );
 
     // 500 Hz pass band
     // auto filter = LpFilter( {
@@ -208,7 +194,7 @@ namespace Orbit::Motor
     //   0.0016745323928477f,
     // });
 
-    for( auto &ch : s_adc_control.data )
+    for ( auto &ch : s_adc_control.data )
     {
       ch.updateFilter( filter );
     }
@@ -227,7 +213,7 @@ namespace Orbit::Motor
     /*-------------------------------------------------------------------------
     Process the raw ADC data
     -------------------------------------------------------------------------*/
-    const float counts_to_volts = isr.vref / isr.resolution;  // TODO BMB: This should be pre-calculated
+    const float counts_to_volts = isr.vref / isr.resolution;    // TODO BMB: This should be pre-calculated
 
     s_adc_control.sampleTimeUs = Chimera::micros();
     for ( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
@@ -247,10 +233,10 @@ namespace Orbit::Motor
     /*-------------------------------------------------------------------------
     Allow the calibration sequence to proceed if enabled
     -------------------------------------------------------------------------*/
-    if( s_adc_control.calibrating && ( ( Chimera::millis() - s_adc_control.calStartTime ) > 500 ) )
+    if ( s_adc_control.calibrating && ( ( Chimera::millis() - s_adc_control.calStartTime ) > 500 ) )
     {
       s_adc_control.calibrating = false;
-      for( size_t i = 0; i < ADC_CH_MOTOR_SUPPLY_VOLTAGE; i++ )
+      for ( size_t i = 0; i < ADC_CH_MOTOR_SUPPLY_VOLTAGE; i++ )
       {
         s_adc_control.data[ i ].calOffset = s_adc_control.data[ i ].calSum / ( s_adc_control.data[ i ].calSamples - 100 );
       }
@@ -286,10 +272,11 @@ namespace Orbit::Motor
       return;
     }
 
-    // const float phaseACurrent = mConfig.txfrFuncs[ ADC_CH_MOTOR_PHASE_A_CURRENT ]( s_adc_control.data[ ADC_CH_MOTOR_PHASE_A_CURRENT ].measured );
-    // const float phaseBCurrent = mConfig.txfrFuncs[ ADC_CH_MOTOR_PHASE_B_CURRENT ]( s_adc_control.data[ ADC_CH_MOTOR_PHASE_B_CURRENT ].measured );
-    // const float phaseCCurrent = mConfig.txfrFuncs[ ADC_CH_MOTOR_PHASE_C_CURRENT ]( s_adc_control.data[ ADC_CH_MOTOR_PHASE_C_CURRENT ].measured );
-    // const float busVoltage    = mConfig.txfrFuncs[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ]( s_adc_control.data[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].measured );
+    // const float phaseACurrent = mConfig.txfrFuncs[ ADC_CH_MOTOR_PHASE_A_CURRENT ]( s_adc_control.data[
+    // ADC_CH_MOTOR_PHASE_A_CURRENT ].measured ); const float phaseBCurrent = mConfig.txfrFuncs[ ADC_CH_MOTOR_PHASE_B_CURRENT ](
+    // s_adc_control.data[ ADC_CH_MOTOR_PHASE_B_CURRENT ].measured ); const float phaseCCurrent = mConfig.txfrFuncs[
+    // ADC_CH_MOTOR_PHASE_C_CURRENT ]( s_adc_control.data[ ADC_CH_MOTOR_PHASE_C_CURRENT ].measured ); const float busVoltage =
+    // mConfig.txfrFuncs[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ]( s_adc_control.data[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].measured );
 
     // /*-----------------------------------------------------------------------
     // Move the sampled phase currents through the Clarke-Park transform
@@ -319,8 +306,9 @@ namespace Orbit::Motor
     // mState.motorCtl.Vqr = mState.motorCtl.Qpid.Output;
 
     // /* Open loop control motor speed and position estimates */
-    // mState.motorCtl.spdEst = mState.motorCtl.IqrInt.step( mState.motorCtl.Iqr, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
-    // mState.motorCtl.posEst = mState.motorCtl.SpdInt.step( mState.motorCtl.spdEst, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
+    // mState.motorCtl.spdEst = mState.motorCtl.IqrInt.step( mState.motorCtl.Iqr, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ
+    // ) ); mState.motorCtl.posEst = mState.motorCtl.SpdInt.step( mState.motorCtl.spdEst, ( 1.0f /
+    // Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
 
     // /* Naive wrapping of position */
     // if( mState.motorCtl.posEst > Math::M_2PI_F )
@@ -391,4 +379,4 @@ namespace Orbit::Motor
   }
 
 
-}  // namespace Orbit::Motor
+}    // namespace Orbit::Motor

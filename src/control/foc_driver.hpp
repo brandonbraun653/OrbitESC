@@ -39,12 +39,11 @@ namespace Orbit::Control
   struct FOCConfig
   {
     Chimera::ADC::Peripheral                    adcSource; /**< Which ADC peripheral to use */
-    std::array<ADCTxfrFunc, ADC_CH_NUM_OPTIONS> txfrFuncs; /**< Conversion functions for each ADC channel */
+
 
     void clear()
     {
       adcSource = Chimera::ADC::Peripheral::UNKNOWN;
-      txfrFuncs.fill( nullptr );
     }
   };
 

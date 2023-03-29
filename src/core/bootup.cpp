@@ -111,7 +111,7 @@ namespace Orbit::Boot
     -------------------------------------------------------------------------*/
     Orbit::GPIO::powerUp();
     Orbit::LED::powerUp();
-    Orbit::Monitor::initialize();
+    // Orbit::Monitor::initialize();
   }
 
 
