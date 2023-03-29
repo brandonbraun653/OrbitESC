@@ -34,11 +34,34 @@ namespace Orbit::Motor
   using LpFilter = Control::Math::FIR<float, 15>;
 
   /*---------------------------------------------------------------------------
+  Constants
+  ---------------------------------------------------------------------------*/
+  static constexpr float A1 = 1.0f;
+  static constexpr float A2 = 1.0f;
+
+  /*---------------------------------------------------------------------------
+  Enumerations
+  ---------------------------------------------------------------------------*/
+  enum class ControlState : uint8_t
+  {
+    IDLE,
+    STARTUP,
+    RUNNING,
+    FAULT
+  };
+
+  /*---------------------------------------------------------------------------
   Structures
   ---------------------------------------------------------------------------*/
   struct State
   {
     bool isrControlActive; /**< Flag to enable/disable the ISR control loop */
+
+    uint8_t      commutationPhase;   /**< Commutation cycle to be applied */
+    float        driveStrength[ 3 ]; /**< PWM duty cycle for each phase */
+    ControlState controlState;       /**< Current state of the motor control loop */
+
+    float startTime;
   };
 
   /*---------------------------------------------------------------------------
@@ -107,7 +130,7 @@ namespace Orbit::Motor
   static Chimera::Timer::Inverter::Driver s_motor_ctrl_timer; /**< Motor drive timer */
   static Chimera::Timer::Trigger::Master  s_speed_ctrl_timer; /**< Trigger for the speed control loop */
   static ADCControl                       s_adc_control;      /**< ADC control data */
-  static State                            s_state;            /**< State of the motor controller */
+  static volatile State                   s_state;            /**< State of the motor controller */
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -120,6 +143,17 @@ namespace Orbit::Motor
   ---------------------------------------------------------------------------*/
   void powerUp()
   {
+    /*-------------------------------------------------------------------------
+    Reset module memory
+    -------------------------------------------------------------------------*/
+    s_state.isrControlActive   = false;
+    s_state.commutationPhase   = 0;
+    s_state.driveStrength[ 0 ] = 10.0f;
+    s_state.driveStrength[ 1 ] = 10.0f;
+    s_state.driveStrength[ 2 ] = 10.0f;
+    s_state.controlState       = ControlState::IDLE;
+    s_state.startTime          = 0.0f;
+
     /*-------------------------------------------------------------------------
     Link the ADC's DMA end-of-transfer interrupt to this class's ISR handler
     -------------------------------------------------------------------------*/
@@ -148,7 +182,7 @@ namespace Orbit::Motor
     RT_HARD_ASSERT( Chimera::Status::OK == s_motor_ctrl_timer.init( pwm_cfg ) );
 
     s_motor_ctrl_timer.setPhaseDutyCycle( 0.0f, 0.0f, 0.0f );
-    s_motor_ctrl_timer.enableOutput();
+    s_motor_ctrl_timer.disableOutput();
 
     /*-------------------------------------------------------------------------
     Configure the Speed control outer loop update timer
@@ -236,6 +270,8 @@ namespace Orbit::Motor
     if ( s_adc_control.calibrating && ( ( Chimera::millis() - s_adc_control.calStartTime ) > 500 ) )
     {
       s_adc_control.calibrating = false;
+      s_state.isrControlActive  = true;
+
       for ( size_t i = 0; i < ADC_CH_MOTOR_SUPPLY_VOLTAGE; i++ )
       {
         s_adc_control.data[ i ].calOffset = s_adc_control.data[ i ].calSum / ( s_adc_control.data[ i ].calSamples - 100 );
@@ -250,6 +286,16 @@ namespace Orbit::Motor
       return;
     }
 
+    /*-------------------------------------------------------------------------
+    Apply the current motor control commands. At its most basic form, the
+    commutation state (and it's rate of change) controls the rotation of the
+    magnetic field vector that actually drives the motor. The phase duty cycle
+    controls the magnitude of the current flowing through the motor coils, which
+    in turn controls the torque and how well the rotor is able to track the
+    magnetic vector.
+    -------------------------------------------------------------------------*/
+    s_motor_ctrl_timer.setForwardCommState( s_state.commutationPhase );
+    s_motor_ctrl_timer.setPhaseDutyCycle( s_state.driveStrength[ 0 ], s_state.driveStrength[ 1 ], s_state.driveStrength[ 2 ] );
 
 #if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
     SEGGER_SYSVIEW_RecordExitISR();
@@ -272,106 +318,34 @@ namespace Orbit::Motor
       return;
     }
 
-    // const float phaseACurrent = mConfig.txfrFuncs[ ADC_CH_MOTOR_PHASE_A_CURRENT ]( s_adc_control.data[
-    // ADC_CH_MOTOR_PHASE_A_CURRENT ].measured ); const float phaseBCurrent = mConfig.txfrFuncs[ ADC_CH_MOTOR_PHASE_B_CURRENT ](
-    // s_adc_control.data[ ADC_CH_MOTOR_PHASE_B_CURRENT ].measured ); const float phaseCCurrent = mConfig.txfrFuncs[
-    // ADC_CH_MOTOR_PHASE_C_CURRENT ]( s_adc_control.data[ ADC_CH_MOTOR_PHASE_C_CURRENT ].measured ); const float busVoltage =
-    // mConfig.txfrFuncs[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ]( s_adc_control.data[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].measured );
+    /*-------------------------------------------------------------------------
+    Ramp the motor controller
+    -------------------------------------------------------------------------*/
+    switch ( s_state.controlState )
+    {
+      case ControlState::IDLE:
+        s_state.controlState = ControlState::STARTUP;
+        s_state.startTime = static_cast<float>( Chimera::micros() );
+        break;
 
-    // /*-----------------------------------------------------------------------
-    // Move the sampled phase currents through the Clarke-Park transform
+      case ControlState::STARTUP: {
+        float dtSec = ( static_cast<float>( Chimera::micros() ) - s_state.startTime ) / 1000000.0f;
+        float newSpeed = ( 0.5f * A2 * dtSec * dtSec ) + ( A1 * dtSec );
 
-    // TODO: Use 3-phase current measurements due to slew rate improvement.s
-    // -----------------------------------------------------------------------*/
-    // const auto clarke = Math::clarke_transform( phaseACurrent, phaseBCurrent );
-    // const auto park = Math::park_transform( clarke, mState.motorCtl.posEst );
+        // Convert the new speed calculation into a commutation command
+        }
+        break;
 
-    // /*-----------------------------------------------------------------------
-    // Run the control loop
-    // -----------------------------------------------------------------------*/
-    // /* Update the motor state data from previous calculations */
-    // mState.motorCtl.Iqm = park.q;
-    // mState.motorCtl.Idm = park.d;
-    // mState.motorCtl.Vdd = busVoltage;
+      case ControlState::RUNNING:
 
-    // /* Low-pass filter the measured currents */
-    // mState.motorCtl.Idf = mState.motorCtl.DFIR.step( mState.motorCtl.Idm );
-    // mState.motorCtl.Iqf = mState.motorCtl.QFIR.step( mState.motorCtl.Iqm );
+        break;
 
-    // /* Step the PID controllers */
-    // mState.motorCtl.Dpid.run( mState.motorCtl.Idr - mState.motorCtl.Idf );
-    // mState.motorCtl.Vdr = mState.motorCtl.Dpid.Output;
-
-    // mState.motorCtl.Qpid.run( mState.motorCtl.Iqr - mState.motorCtl.Iqf );
-    // mState.motorCtl.Vqr = mState.motorCtl.Qpid.Output;
-
-    // /* Open loop control motor speed and position estimates */
-    // mState.motorCtl.spdEst = mState.motorCtl.IqrInt.step( mState.motorCtl.Iqr, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ
-    // ) ); mState.motorCtl.posEst = mState.motorCtl.SpdInt.step( mState.motorCtl.spdEst, ( 1.0f /
-    // Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
-
-    // /* Naive wrapping of position */
-    // if( mState.motorCtl.posEst > Math::M_2PI_F )
-    // {
-    //   mState.motorCtl.posEst -= Math::M_2PI_F;
-    // }
-    // else if( mState.motorCtl.posEst < 0.0f )
-    // {
-    //   mState.motorCtl.posEst += Math::M_2PI_F;
-    // }
-
-    // /*-------------------------------------------------------------------------
-    // Update the commanded controller output states
-    // -------------------------------------------------------------------------*/
-    // float                 a, b, c;
-    // const Math::ParkSpace park_space{ .d = mState.motorCtl.Vdr, .q = mState.motorCtl.Vqr };
-    // auto                  invPark = Math::inverse_park_transform( park_space, mState.motorCtl.posEst );
-
-    // Math::inverse_clarke_transform( invPark, &a, &b, &c );
-
-    // /*-------------------------------------------------------------------------
-    // Use the position estimate to determine the next commutation state. Split
-    // the unit circle into 6 sectors and select the appropriate one to commutate.
-
-    // https://math.stackexchange.com/a/206662/435793
-    // Solve for N => Theta * 3 / pi
-    // -------------------------------------------------------------------------*/
-    // static constexpr float SECTOR_CONV_FACTOR = 3.0f / Math::M_PI_F;
-    // uint8_t                sector = 1 + static_cast<uint8_t>( SECTOR_CONV_FACTOR * mState.motorCtl.posEst );
-
-    // // mState.motorCtl.svpwm_a_duty = ( a + 0.5f ) * 100.0f;
-    // // mState.motorCtl.svpwm_b_duty = ( b + 0.5f ) * 100.0f;
-    // // mState.motorCtl.svpwm_c_duty = ( c + 0.5f ) * 100.0f;
-    // // mState.motorCtl.svpwm_comm   = sector;
-
-    // static uint32_t counter = 0;
-    // mState.motorCtl.svpwm_a_duty = 10.0f;
-    // mState.motorCtl.svpwm_b_duty = 10.0f;
-    // mState.motorCtl.svpwm_c_duty = 10.0f;
-
-    // counter++;
-    // if( counter > 10 )
-    // {
-    //   counter = 0;
-    //   mState.motorCtl.svpwm_comm++;
-    //   if( mState.motorCtl.svpwm_comm >= 7 )
-    //   {
-    //     mState.motorCtl.svpwm_comm = 1;
-    //   }
-    // }
-
-
-    // /* Step the EMF observer */
-    // const float dt = US_TO_SEC( timestamp_us - mState.emfObserver.last_update_us );
-    // stepEMFObserver( dt );
-    // mState.emfObserver.last_update_us = timestamp_us;
-
-    // /* Calculate the estimated rotor position (Eq. 18) */
-    // mState.motorController.posEstRad = Math::fast_atan2_with_norm( -mState.emfObserver.Ed_est, mState.emfObserver.Eq_est );
-    // if ( mState.motorController.velEstRad < 0.0f )
-    // {
-    //   mState.motorController.posEstRad += Math::M_PI_F;
-    // }
+      case ControlState::FAULT:
+      default:
+        s_motor_ctrl_timer.setForwardCommState( 0 );
+        s_motor_ctrl_timer.setPhaseDutyCycle( 0.0f, 0.0f, 0.0f );
+        break;
+    }
 
 #if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
     SEGGER_SYSVIEW_RecordExitISR();
