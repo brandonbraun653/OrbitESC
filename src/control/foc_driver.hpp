@@ -31,7 +31,7 @@ namespace Orbit::Control
   /*---------------------------------------------------------------------------
   Public Data
   ---------------------------------------------------------------------------*/
-  extern FOC FOCDriver;
+  //extern FOC FOCDriver;
 
   /*---------------------------------------------------------------------------
   Structures
@@ -98,14 +98,6 @@ namespace Orbit::Control
     int setSpeedRef( const float ref );
 
     /**
-     * @brief Gets the last data collected from the ADC
-     *
-     * @param data      The data to fill with the last ADC data
-     * @return size_t   Timestamp of the last ADC data in microseconds
-     */
-    size_t lastSensorData( ADCControl::ChannelBuffer &data );
-
-    /**
      * @brief Gets a view of the internal state of the FOC driver
      *
      * @return const SuperState&
@@ -142,9 +134,6 @@ namespace Orbit::Control
     -------------------------------------------------------------------------*/
     SuperState                       mState;            /**< Entire FOC subsystem state */
     FOCConfig                        mConfig;           /**< Configuration data for the FOC library */
-    Chimera::ADC::Driver_rPtr        mADCDriver;        /**< ADC Hardware Driver */
-    Chimera::Timer::Inverter::Driver mTimerDriver;      /**< Motor drive timer */
-    Chimera::Timer::Trigger::Master  mSpeedCtrlTrigger; /**< Trigger for the speed control loop */
 
   protected:
     /**

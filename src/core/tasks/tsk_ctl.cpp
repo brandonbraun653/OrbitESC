@@ -49,7 +49,7 @@ namespace Orbit::Tasks::CTL
     params.Rs = 0.01f;
     params.Ls = 380.0f * 1e-3f;
 
-    Orbit::Control::FOCDriver.initialize( cfg, params );
+    // Orbit::Control::FOCDriver.initialize( cfg, params );
     ADC::startSampling();
 
 
@@ -73,7 +73,7 @@ namespace Orbit::Tasks::CTL
       /*-----------------------------------------------------------------------
       Run the main FOC loop
       -----------------------------------------------------------------------*/
-      Orbit::Control::FOCDriver.run();
+      //Orbit::Control::FOCDriver.run();
 
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically

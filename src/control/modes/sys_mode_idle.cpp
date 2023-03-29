@@ -34,34 +34,34 @@ namespace Orbit::Control::State
 
   etl::fsm_state_id_t Idle::on_enter_state()
   {
-    /*-------------------------------------------------------------------------
-    Disable the drive signals going to the motor
-    -------------------------------------------------------------------------*/
-    Orbit::Control::FOC& driver = get_fsm_context();
+    // /*-------------------------------------------------------------------------
+    // Disable the drive signals going to the motor
+    // -------------------------------------------------------------------------*/
+    // Orbit::Control::FOC& driver = get_fsm_context();
 
-    driver.mTimerDriver.disableOutput();
+    // driver.mTimerDriver.disableOutput();
 
-    /*-------------------------------------------------------------------------
-    Enable the system monitors
-    -------------------------------------------------------------------------*/
-    for( auto mon : Orbit::Monitor::MonitorArray )
-    {
-      mon->setEngageState( Orbit::Monitor::EngageState::ACTIVE );
-    }
+    // /*-------------------------------------------------------------------------
+    // Enable the system monitors
+    // -------------------------------------------------------------------------*/
+    // for( auto mon : Orbit::Monitor::MonitorArray )
+    // {
+    //   mon->setEngageState( Orbit::Monitor::EngageState::ACTIVE );
+    // }
 
-    /*-------------------------------------------------------------------------
-    Clear any previous fault indicators
-    -------------------------------------------------------------------------*/
-    LED::clrChannel( LED::Channel::FAULT );
+    // /*-------------------------------------------------------------------------
+    // Clear any previous fault indicators
+    // -------------------------------------------------------------------------*/
+    // LED::clrChannel( LED::Channel::FAULT );
 
-    LOG_TRACE_IF( DEBUG_MODULE && !Chimera::System::inISR(), "Entered Idle state\r\n" );
+    // LOG_TRACE_IF( DEBUG_MODULE && !Chimera::System::inISR(), "Entered Idle state\r\n" );
     return ModeId::IDLE;
   }
 
 
   etl::fsm_state_id_t Idle::on_event( const MsgEmergencyHalt &msg )
   {
-    get_fsm_context().mTimerDriver.emergencyBreak();
+    // get_fsm_context().mTimerDriver.emergencyBreak();
     return ModeId::IDLE;
   }
 

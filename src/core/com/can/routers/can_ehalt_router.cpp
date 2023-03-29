@@ -30,13 +30,13 @@ namespace Orbit::CAN::Router
 
   void EmergencyHaltRouter::on_receive( const Message::EmergencyHalt &msg )
   {
-    using namespace Orbit::Control;
+    // using namespace Orbit::Control;
 
-    if ( ( msg.payload.dst.nodeId == EnumValue( thisNode() ) ) || ( msg.payload.dst.nodeId == EnumValue( NodeId::NODE_ALL ) ) )
-    {
-      LOG_WARN( "**** Emergency Halt Received ****\r\n" );
-      FOCDriver.sendSystemEvent( EventId::EMERGENCY_HALT );
-    }
+    // if ( ( msg.payload.dst.nodeId == EnumValue( thisNode() ) ) || ( msg.payload.dst.nodeId == EnumValue( NodeId::NODE_ALL ) ) )
+    // {
+    //   LOG_WARN( "**** Emergency Halt Received ****\r\n" );
+    //   FOCDriver.sendSystemEvent( EventId::EMERGENCY_HALT );
+    // }
   }
 
 

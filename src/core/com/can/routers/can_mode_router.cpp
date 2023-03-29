@@ -30,35 +30,35 @@ namespace Orbit::CAN::Router
 
   void SetSystemModeRouter::on_receive( const Message::SetSystemMode &msg )
   {
-    using namespace Orbit::Control;
+    // using namespace Orbit::Control;
 
-    int result = -1;
-    auto desired_mode = static_cast<ModeId_t>( msg.payload.mode );
+    // int result = -1;
+    // auto desired_mode = static_cast<ModeId_t>( msg.payload.mode );
 
-    switch ( desired_mode )
-    {
-      case ModeId::IDLE:
-        result = FOCDriver.sendSystemEvent( EventId::DISARM );
-        break;
+    // switch ( desired_mode )
+    // {
+    //   case ModeId::IDLE:
+    //     result = FOCDriver.sendSystemEvent( EventId::DISARM );
+    //     break;
 
-      case ModeId::ARMED:
-        result = FOCDriver.sendSystemEvent( EventId::ARM );
-        break;
+    //   case ModeId::ARMED:
+    //     result = FOCDriver.sendSystemEvent( EventId::ARM );
+    //     break;
 
-      case ModeId::ENGAGED:
-        result = FOCDriver.sendSystemEvent( EventId::ENGAGE );
-        break;
+    //   case ModeId::ENGAGED:
+    //     result = FOCDriver.sendSystemEvent( EventId::ENGAGE );
+    //     break;
 
-      case ModeId::FAULT:
-        result = FOCDriver.sendSystemEvent( EventId::FAULT );
-        break;
+    //   case ModeId::FAULT:
+    //     result = FOCDriver.sendSystemEvent( EventId::FAULT );
+    //     break;
 
-      default:
-        // Do nothing
-        break;
-    };
+    //   default:
+    //     // Do nothing
+    //     break;
+    // };
 
-    LOG_INFO( "Switch to mode %s %s\r\n", getModeString( desired_mode ).data(), result == 0 ? "success" : "failure" );
+    // LOG_INFO( "Switch to mode %s %s\r\n", getModeString( desired_mode ).data(), result == 0 ? "success" : "failure" );
   }
 
 

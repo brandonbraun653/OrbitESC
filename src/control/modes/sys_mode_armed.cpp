@@ -31,14 +31,14 @@ namespace Orbit::Control::State
 
   etl::fsm_state_id_t Armed::on_enter_state()
   {
-    Orbit::Control::FOC& driver = get_fsm_context();
+    // Orbit::Control::FOC& driver = get_fsm_context();
 
-    driver.mTimerDriver.disableOutput();
-    driver.mTimerDriver.setForwardCommState( 0 );
-    driver.mTimerDriver.setPhaseDutyCycle( 0.0f, 0.0f, 0.0f );
-    driver.mTimerDriver.enableOutput();
+    // driver.mTimerDriver.disableOutput();
+    // driver.mTimerDriver.setForwardCommState( 0 );
+    // driver.mTimerDriver.setPhaseDutyCycle( 0.0f, 0.0f, 0.0f );
+    // driver.mTimerDriver.enableOutput();
 
-    LOG_TRACE_IF( DEBUG_MODULE && !Chimera::System::inISR(), "Entered ARMED state\r\n" );
+    // LOG_TRACE_IF( DEBUG_MODULE && !Chimera::System::inISR(), "Entered ARMED state\r\n" );
     return ModeId::ARMED;
   }
 

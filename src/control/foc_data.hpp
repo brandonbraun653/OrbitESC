@@ -53,16 +53,6 @@ namespace Orbit::Control
   /*---------------------------------------------------------------------------
   Enumerations
   ---------------------------------------------------------------------------*/
-  enum ADCChannel
-  {
-    ADC_CH_MOTOR_PHASE_A_CURRENT,
-    ADC_CH_MOTOR_PHASE_B_CURRENT,
-    ADC_CH_MOTOR_PHASE_C_CURRENT,
-    ADC_CH_MOTOR_SUPPLY_VOLTAGE,
-
-    ADC_CH_NUM_OPTIONS,
-    ADC_CH_INVALID
-  };
 
   enum AlgoHistIdx
   {
@@ -197,63 +187,7 @@ namespace Orbit::Control
   };
 
 
-  class ADCControl
-  {
-  public:
-    struct ChannelData
-    {
-      float                measured;   /**< Measured ADC value, accounting for offset */
-      float                calOffset;  /**< The DC offset of the ADC channel at idle */
-      size_t               calSamples; /**< How many samples have been acquired */
-      float                calSum;     /**< Total sum of the samples */
-      Math::FIR<float, 15> lpFilter;   /**< Low pass filter for the ADC channel */
 
-      void updateFilter( const Math::FIR<float, 15> &filter )
-      {
-        lpFilter = filter;
-        lpFilter.initialize( 0.0f );
-      }
-
-      void clear()
-      {
-        measured  = 0.0f;
-        calOffset = 0.0f;
-        lpFilter.initialize( 0.0f );
-      }
-    };
-
-    using ChannelBuffer = etl::array<ChannelData, ADC_CH_NUM_OPTIONS>;
-
-
-    bool          calibrating;  /**< Flag to enable/disable calibration routines */
-    size_t        calStartTime; /**< System time when the calibration started */
-    size_t        sampleTimeUs; /**< Last time the data was sampled */
-    ChannelBuffer data;
-
-    void startCalibration()
-    {
-      if( !calibrating )
-      {
-        for( auto &ch : data )
-        {
-          ch.calSamples = 0;
-          ch.calSum     = 0.0f;
-        }
-
-        calStartTime = Chimera::millis();
-        calibrating  = true;
-      }
-    }
-
-    void clear()
-    {
-      calibrating = false;
-      for ( auto &ch : data )
-      {
-        ch.clear();
-      }
-    }
-  };
 
   /**
    * @brief Collection of objects that represent the entire state of the FOC system
@@ -261,7 +195,6 @@ namespace Orbit::Control
    */
   struct SuperState
   {
-    ADCControl      adc;
     EMFObserver     emfObserver;
     OmegaEstimator  speedEstimator;
     MotorParameters motorParams;
@@ -269,7 +202,6 @@ namespace Orbit::Control
 
     void clear()
     {
-      adc.clear();
       emfObserver.clear();
       speedEstimator.clear();
       motorParams.clear();

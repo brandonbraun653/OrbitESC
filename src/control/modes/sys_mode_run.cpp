@@ -21,12 +21,12 @@ namespace Orbit::Control::State
   ---------------------------------------------------------------------------*/
   void Engaged::on_exit_state()
   {
-    LOG_INFO_IF( !Chimera::System::inISR(), "Exiting Run state\r\n" );
+    //LOG_INFO_IF( !Chimera::System::inISR(), "Exiting Run state\r\n" );
   }
 
   etl::fsm_state_id_t Engaged::on_enter_state()
   {
-    LOG_INFO_IF( !Chimera::System::inISR(), "Entering Run state\r\n" );
+    //LOG_INFO_IF( !Chimera::System::inISR(), "Entering Run state\r\n" );
     return ModeId::ENGAGED;
   }
 

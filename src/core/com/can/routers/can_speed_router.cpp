@@ -30,7 +30,7 @@ namespace Orbit::CAN::Router
 
   void SetMotorSpeedRouter::on_receive( const Message::SetMotorSpeed &msg )
   {
-    Orbit::Control::FOCDriver.setSpeedRef( RPM_TO_RAD( msg.payload.speed ) );
+    //Orbit::Control::FOCDriver.setSpeedRef( RPM_TO_RAD( msg.payload.speed ) );
   }
 
 

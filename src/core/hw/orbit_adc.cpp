@@ -59,12 +59,12 @@ namespace Orbit::ADC
   ---------------------------------------------------------------------------*/
   static void adc_watchdog_monitor_isr( const Chimera::ADC::InterruptDetail &isrData )
   {
-    using namespace Orbit::Control;
-    const auto mode = FOCDriver.currentMode();
-    if ( ( mode != ModeId::IDLE ) && ( mode != ModeId::FAULT ) )
-    {
-      FOCDriver.sendSystemEvent( EventId::EMERGENCY_HALT );
-    }
+    // using namespace Orbit::Control;
+    // const auto mode = FOCDriver.currentMode();
+    // if ( ( mode != ModeId::IDLE ) && ( mode != ModeId::FAULT ) )
+    // {
+    //   FOCDriver.sendSystemEvent( EventId::EMERGENCY_HALT );
+    // }
   }
 
 

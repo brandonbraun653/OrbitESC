@@ -27,7 +27,7 @@ namespace Orbit::GPIO
   static void eStopISR( void * )
   {
     using namespace Orbit::Control;
-    FOCDriver.sendSystemEvent( EventId::EMERGENCY_HALT );
+    // FOCDriver.sendSystemEvent( EventId::EMERGENCY_HALT );
   }
 
   /*---------------------------------------------------------------------------
