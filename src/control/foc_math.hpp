@@ -120,6 +120,15 @@ namespace Orbit::Control::Math
   void fast_sin_cos( float angle, float *const sin, float *const cos );
 
   /**
+   * @brief Computes the sine of an input angle
+   * @note Sine only version of fast_sin_cos()
+   *
+   * @param angle   Angle to compute the sine of
+   * @param sin     Output pointer to store the sine of the angle
+   */
+  void fast_sin( float angle, float *const sin );
+
+  /**
    * @brief Computes atan2 quickly, accurately, and with output normalization
    * @see http://dspguru.com/dsp/tricks/fixed-point-atan2-with-self-normalization/
    *

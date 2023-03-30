@@ -70,6 +70,37 @@ namespace Orbit::Control::Math
   }
 
 
+  void fast_sin( float angle, float *const sin )
+  {
+    RT_DBG_ASSERT( ( sin != nullptr ) && ( cos != nullptr ) );
+
+    /*-------------------------------------------------------------------------
+    Wrap the angle from -PI to PI
+    -------------------------------------------------------------------------*/
+    while ( angle < -M_PI_F )
+    {
+      angle += 2.0f * M_PI_F;
+    }
+
+    while ( angle > M_PI_F )
+    {
+      angle -= 2.0f * M_PI_F;
+    }
+
+    /*-------------------------------------------------------------------------
+    Compute Sine
+    -------------------------------------------------------------------------*/
+    if ( angle < 0.0f )
+    {
+      *sin = 1.27323954f * angle + 0.405284735f * angle * angle;
+    }
+    else
+    {
+      *sin = 1.27323954f * angle - 0.405284735f * angle * angle;
+    }
+  }
+
+
   float fast_atan2_with_norm( const float y, const float x )
   {
     const float abs_y = fabsf( y ) + 1e-20f;    // kludge to prevent 0/0 condition

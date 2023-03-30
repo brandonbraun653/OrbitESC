@@ -14,9 +14,10 @@ Includes
 #include <Chimera/adc>
 #include <Chimera/timer>
 #include <src/config/bsp/board_map.hpp>
+#include <src/control/filter.hpp>
+#include <src/control/foc_math.hpp>
 #include <src/core/data/orbit_data_defaults.hpp>
 #include <src/core/hw/orbit_motor.hpp>
-#include <src/control/filter.hpp>
 
 #if defined( EMBEDDED )
 #include <Thor/lld/interface/inc/timer>
@@ -36,8 +37,8 @@ namespace Orbit::Motor
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr float A1 = 1.0f;
-  static constexpr float A2 = 1.0f;
+  static constexpr float A1 = 33.0f;
+  static constexpr float A2 = 1222.0f;
 
   /*---------------------------------------------------------------------------
   Enumerations
@@ -329,14 +330,30 @@ namespace Orbit::Motor
         break;
 
       case ControlState::STARTUP: {
-        float dtSec = ( static_cast<float>( Chimera::micros() ) - s_state.startTime ) / 1000000.0f;
-        float newSpeed = ( 0.5f * A2 * dtSec * dtSec ) + ( A1 * dtSec );
+        /*---------------------------------------------------------------------
+        Ramp calculate the new target position
+        ---------------------------------------------------------------------*/
+        float t = ( static_cast<float>( Chimera::micros() ) - s_state.startTime ) / 1000000.0f;
+        float newFreqRef = ( 0.5f * A2 * t * t ) + ( A1 * t );
+        float inputAngle = Control::Math::M_2PI_F * newFreqRef * t;
+        float position = 0.0f;
 
-        // Convert the new speed calculation into a commutation command
-        // Can I do this by throwing the new speed value into a sine function? If each
-        // computed value is equivalent to hertz, I can get the real value by multiplying
-        // by two pi radians, then taking that output and dividing by the number of commutation
-        // cycles to get the current sector I'm in. Use wolfram to verify this.
+        Control::Math::fast_sin( inputAngle, &position );
+        float scaledPosition = 360.0f * ( ( position * 0.5f ) + 0.5f ); /* Scale to 0.0f-360.0f*/
+
+        scaledPosition = Control::Math::clamp( scaledPosition, 0.0f, 360.0f );
+
+        /*---------------------------------------------------------------------
+        Update the commutation based on the new position
+        ---------------------------------------------------------------------*/
+
+
+        /*---------------------------------------------------------------------
+        If we've reached our time limit, move to the next state
+        ---------------------------------------------------------------------*/
+        if ( t > 1.0f )
+        {
+          s_state.controlState = ControlState::RUNNING;
         }
         break;
 
