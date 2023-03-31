@@ -163,7 +163,7 @@ target_link_libraries(OrbitESC PRIVATE
 
   # Orbit Libraries
   lib_orbit_com_rel_dbg
-  lib_orbit_core_rel_dbg
+  lib_orbit_core_dbg
   lib_orbit_ctrl_rel_dbg
   lib_orbit_data_rel_dbg
   lib_orbit_hw_rel_dbg

@@ -37,8 +37,8 @@ namespace Orbit::Motor
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr float A1 = 33.0f;
-  static constexpr float A2 = 1222.0f;
+  static constexpr float A1 = 0.1f;
+  static constexpr float A2 = 33.0f;
 
   /*---------------------------------------------------------------------------
   Enumerations
@@ -46,6 +46,7 @@ namespace Orbit::Motor
   enum class ControlState : uint8_t
   {
     IDLE,
+    ALIGN,
     STARTUP,
     RUNNING,
     FAULT
@@ -62,7 +63,7 @@ namespace Orbit::Motor
     float        driveStrength[ 3 ]; /**< PWM duty cycle for each phase */
     ControlState controlState;       /**< Current state of the motor control loop */
 
-    float startTime;
+    float startTimeSec;
   };
 
   /*---------------------------------------------------------------------------
@@ -133,6 +134,10 @@ namespace Orbit::Motor
   static ADCControl                       s_adc_control;      /**< ADC control data */
   static volatile State                   s_state;            /**< State of the motor controller */
 
+
+  static volatile uint8_t lastCommutation = 0;
+  static volatile uint32_t counter = 0;
+
   /*---------------------------------------------------------------------------
   Static Functions
   ---------------------------------------------------------------------------*/
@@ -153,7 +158,7 @@ namespace Orbit::Motor
     s_state.driveStrength[ 1 ] = 10.0f;
     s_state.driveStrength[ 2 ] = 10.0f;
     s_state.controlState       = ControlState::IDLE;
-    s_state.startTime          = 0.0f;
+    s_state.startTimeSec       = 0.0f;
 
     /*-------------------------------------------------------------------------
     Link the ADC's DMA end-of-transfer interrupt to this class's ISR handler
@@ -183,7 +188,7 @@ namespace Orbit::Motor
     RT_HARD_ASSERT( Chimera::Status::OK == s_motor_ctrl_timer.init( pwm_cfg ) );
 
     s_motor_ctrl_timer.setPhaseDutyCycle( 0.0f, 0.0f, 0.0f );
-    s_motor_ctrl_timer.disableOutput();
+    s_motor_ctrl_timer.enableOutput();
 
     /*-------------------------------------------------------------------------
     Configure the Speed control outer loop update timer
@@ -287,6 +292,75 @@ namespace Orbit::Motor
       return;
     }
 
+
+    /*-------------------------------------------------------------------------
+    Ramp the motor controller
+    -------------------------------------------------------------------------*/
+
+    float t = ( static_cast<float>( Chimera::millis() ) - s_state.startTimeSec ) / 1000.0f;
+
+    switch ( s_state.controlState )
+    {
+      case ControlState::IDLE:
+        s_state.controlState = ControlState::ALIGN;
+        s_state.startTimeSec = static_cast<float>( Chimera::millis() ) / 1000.0f;
+        break;
+
+      case ControlState::ALIGN:
+        if( t > 2.0f ) {
+          s_state.controlState = ControlState::STARTUP;
+        }
+
+        s_state.commutationPhase = 1;
+        lastCommutation = 1;
+        s_state.driveStrength[ 0 ] = 15.0f;
+        s_state.driveStrength[ 1 ] = 15.0f;
+        s_state.driveStrength[ 2 ] = 15.0f;
+        break;
+
+      case ControlState::STARTUP: {
+        /*---------------------------------------------------------------------
+        Ramp calculate the new target position
+        ---------------------------------------------------------------------*/
+        uint32_t newFreqRef = static_cast<uint32_t>( ( 0.5f * A2 * t * t ) + ( A1 * t ) );
+
+        counter += newFreqRef;
+
+        uint32_t integerPosition = counter % 360;
+
+        /*---------------------------------------------------------------------
+        Update the commutation based on the new position
+        ---------------------------------------------------------------------*/
+        s_state.commutationPhase = static_cast<uint8_t>( ( integerPosition / 60 ) + 1 );
+
+        if( s_state.commutationPhase != lastCommutation )
+        {
+          lastCommutation = s_state.commutationPhase;
+        }
+
+        /*---------------------------------------------------------------------
+        If we've reached our time limit, move to the next state
+        ---------------------------------------------------------------------*/
+        if ( t > 8.0f )
+        {
+          s_state.controlState = ControlState::RUNNING;
+        }
+      }
+      break;
+
+      case ControlState::RUNNING:
+        if( t > 10.0f )
+        {
+          s_state.controlState = ControlState::FAULT;
+        }
+        break;
+
+      case ControlState::FAULT:
+      default:
+        s_motor_ctrl_timer.emergencyBreak();
+        break;
+    }
+
     /*-------------------------------------------------------------------------
     Apply the current motor control commands. At its most basic form, the
     commutation state (and it's rate of change) controls the rotation of the
@@ -319,54 +393,6 @@ namespace Orbit::Motor
       return;
     }
 
-    /*-------------------------------------------------------------------------
-    Ramp the motor controller
-    -------------------------------------------------------------------------*/
-    switch ( s_state.controlState )
-    {
-      case ControlState::IDLE:
-        s_state.controlState = ControlState::STARTUP;
-        s_state.startTime = static_cast<float>( Chimera::micros() );
-        break;
-
-      case ControlState::STARTUP: {
-        /*---------------------------------------------------------------------
-        Ramp calculate the new target position
-        ---------------------------------------------------------------------*/
-        float t = ( static_cast<float>( Chimera::micros() ) - s_state.startTime ) / 1000000.0f;
-        float newFreqRef = ( 0.5f * A2 * t * t ) + ( A1 * t );
-        float inputAngle = Control::Math::M_2PI_F * newFreqRef * t;
-        float position = 0.0f;
-
-        Control::Math::fast_sin( inputAngle, &position );
-        float scaledPosition = 360.0f * ( ( position * 0.5f ) + 0.5f ); /* Scale to 0.0f-360.0f*/
-
-        scaledPosition = Control::Math::clamp( scaledPosition, 0.0f, 360.0f );
-
-        /*---------------------------------------------------------------------
-        Update the commutation based on the new position
-        ---------------------------------------------------------------------*/
-
-
-        /*---------------------------------------------------------------------
-        If we've reached our time limit, move to the next state
-        ---------------------------------------------------------------------*/
-        if ( t > 1.0f )
-        {
-          s_state.controlState = ControlState::RUNNING;
-        }
-        break;
-
-      case ControlState::RUNNING:
-
-        break;
-
-      case ControlState::FAULT:
-      default:
-        s_motor_ctrl_timer.setForwardCommState( 0 );
-        s_motor_ctrl_timer.setPhaseDutyCycle( 0.0f, 0.0f, 0.0f );
-        break;
-    }
 
 #if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
     SEGGER_SYSVIEW_RecordExitISR();
