@@ -27,6 +27,14 @@ Includes
 #endif /* SEGGER_SYS_VIEW */
 #endif /* EMBEDDED */
 
+
+// ! TESTING
+#define RPM_TO_COMMUTATION_PERIOD( rpm ) \
+  ( 120.0f / ( static_cast<float>( rpm ) * static_cast<float>( Orbit::Data::DFLT_ROTOR_NUM_POLES ) ) )
+
+#define BASE_RPM 1000.0f
+// ! TESTING
+
 namespace Orbit::Motor
 {
   /*---------------------------------------------------------------------------
@@ -37,8 +45,8 @@ namespace Orbit::Motor
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr float A1 = 0.1f;
-  static constexpr float A2 = 33.0f;
+  static constexpr float A2 = 55.0f;
+  static constexpr float A1 = 100.0f;
 
   /*---------------------------------------------------------------------------
   Enumerations
@@ -63,7 +71,9 @@ namespace Orbit::Motor
     float        driveStrength[ 3 ]; /**< PWM duty cycle for each phase */
     ControlState controlState;       /**< Current state of the motor control loop */
 
-    float startTimeSec;
+    float currentTime;
+    float referenceTime;
+    float targetRPM;
   };
 
   /*---------------------------------------------------------------------------
@@ -137,6 +147,7 @@ namespace Orbit::Motor
 
   static volatile uint8_t lastCommutation = 0;
   static volatile uint32_t counter = 0;
+  static float adcDt = 0.0f;
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -158,7 +169,14 @@ namespace Orbit::Motor
     s_state.driveStrength[ 1 ] = 10.0f;
     s_state.driveStrength[ 2 ] = 10.0f;
     s_state.controlState       = ControlState::IDLE;
-    s_state.startTimeSec       = 0.0f;
+
+
+    // ! Testing
+    s_state.currentTime   = 0.0f;
+    s_state.referenceTime = 0.0f;
+    s_state.targetRPM     = 0.0f;
+    adcDt                 = 1.0f / Data::DFLT_STATOR_PWM_FREQ_HZ;
+    // ! Testing
 
     /*-------------------------------------------------------------------------
     Link the ADC's DMA end-of-transfer interrupt to this class's ISR handler
@@ -296,63 +314,62 @@ namespace Orbit::Motor
     /*-------------------------------------------------------------------------
     Ramp the motor controller
     -------------------------------------------------------------------------*/
-
-    float t = ( static_cast<float>( Chimera::millis() ) - s_state.startTimeSec ) / 1000.0f;
+    s_state.currentTime += adcDt;
 
     switch ( s_state.controlState )
     {
       case ControlState::IDLE:
         s_state.controlState = ControlState::ALIGN;
-        s_state.startTimeSec = static_cast<float>( Chimera::millis() ) / 1000.0f;
+        s_state.currentTime = 0.0f;
         break;
 
       case ControlState::ALIGN:
-        if( t > 2.0f ) {
-          s_state.controlState = ControlState::STARTUP;
-        }
+        s_state.commutationPhase = 4;
+        lastCommutation = 4;
+        s_state.driveStrength[ 0 ] = 10.0f;
+        s_state.driveStrength[ 1 ] = 10.0f;
+        s_state.driveStrength[ 2 ] = 10.0f;
 
-        s_state.commutationPhase = 1;
-        lastCommutation = 1;
-        s_state.driveStrength[ 0 ] = 15.0f;
-        s_state.driveStrength[ 1 ] = 15.0f;
-        s_state.driveStrength[ 2 ] = 15.0f;
+        if( s_state.currentTime > 0.5f ) {
+          s_state.controlState  = ControlState::STARTUP;
+          s_state.targetRPM     = BASE_RPM;
+          s_state.currentTime   = 0.0f;
+          s_state.referenceTime = s_state.currentTime + RPM_TO_COMMUTATION_PERIOD( s_state.targetRPM );
+
+          s_state.driveStrength[ 0 ] = 25.0f;
+          s_state.driveStrength[ 1 ] = 25.0f;
+          s_state.driveStrength[ 2 ] = 25.0f;
+        }
         break;
 
       case ControlState::STARTUP: {
-        /*---------------------------------------------------------------------
-        Ramp calculate the new target position
-        ---------------------------------------------------------------------*/
-        uint32_t newFreqRef = static_cast<uint32_t>( ( 0.5f * A2 * t * t ) + ( A1 * t ) );
-
-        counter += newFreqRef;
-
-        uint32_t integerPosition = counter % 360;
+        s_state.targetRPM = ( A2 * s_state.currentTime * s_state.currentTime ) + ( A1 * s_state.currentTime ) + BASE_RPM;
+        if( s_state.targetRPM > 20000.0f )
+        {
+          s_state.targetRPM = 20000.0f;
+        }
 
         /*---------------------------------------------------------------------
         Update the commutation based on the new position
         ---------------------------------------------------------------------*/
-        s_state.commutationPhase = static_cast<uint8_t>( ( integerPosition / 60 ) + 1 );
-
-        if( s_state.commutationPhase != lastCommutation )
+        if( s_state.currentTime > s_state.referenceTime )
         {
-          lastCommutation = s_state.commutationPhase;
+          s_state.commutationPhase = ( s_state.commutationPhase + 1 ) % 7;
+          s_state.referenceTime    = s_state.currentTime + RPM_TO_COMMUTATION_PERIOD( s_state.targetRPM );
         }
 
         /*---------------------------------------------------------------------
         If we've reached our time limit, move to the next state
         ---------------------------------------------------------------------*/
-        if ( t > 8.0f )
+        if ( s_state.currentTime > 20.0f )
         {
-          s_state.controlState = ControlState::RUNNING;
+          s_state.controlState = ControlState::FAULT;
+          s_state.currentTime  = 0.0f;
         }
       }
       break;
 
       case ControlState::RUNNING:
-        if( t > 10.0f )
-        {
-          s_state.controlState = ControlState::FAULT;
-        }
         break;
 
       case ControlState::FAULT:
