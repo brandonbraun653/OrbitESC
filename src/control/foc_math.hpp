@@ -142,21 +142,26 @@ namespace Orbit::Control::Math
    * @brief Computes the Clarke transform, disregarding the homopolar component
    * @see https://www.ti.com/lit/an/bpra048/bpra048.pdf
    *
-   * @param a   Phase A motor current
-   * @param b   Phase B motor current
-   * @return ClarkeSpace
+   * @param a       Phase A motor current
+   * @param b       Phase B motor current
+   * @param alpha   Output reference to store the alpha component
+   * @param beta    Output reference to store the beta component
+   * @return void
    */
-  ClarkeSpace clarke_transform( const float a, const float b );
+  void clarke_transform( const float a, const float b, float &alpha, float &beta );
 
   /**
    * @brief Computes the Park transform of the Clarke space input
    * @see https://www.ti.com/lit/an/bpra048/bpra048.pdf
    *
-   * @param clarke  Clarke space data to transform
-   * @param angle   Estimated angle of the motor
-   * @return ParkSpace
+   * @param alpha   Alpha component of the Clarke space data
+   * @param beta    Beta component of the Clarke space data
+   * @param theta   Estimated angle of the motor
+   * @param q       Output reference to store the q component
+   * @param d       Output reference to store the d component
+   * @return void
    */
-  ParkSpace park_transform( const ClarkeSpace &clarke, const float angle_est );
+  void park_transform( const float alpha, const float beta, const float theta, float &q, float &d );
 
   /**
    * @brief Computes the inverse Park transform of the Park space input

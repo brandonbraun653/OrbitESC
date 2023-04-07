@@ -63,6 +63,39 @@ namespace Orbit::Motor
   /*---------------------------------------------------------------------------
   Structures
   ---------------------------------------------------------------------------*/
+  /**
+   * @brief Stores state for the inner loop current controller
+   *
+   * Follows the Microchip AN1078 example from Figure 6
+   */
+  struct CurrentLoopData
+  {
+    float iq;    /**< Current output measurement for the q-axis */
+    float id;    /**< Current output measurement for the d-axis */
+    float vq;    /**< Voltage command for the q-axis */
+    float vd;    /**< Voltage command for the d-axis */
+    float va;    /**< Voltage (alpha) after inverse-park transform */
+    float vb;    /**< Voltage (beta) after inverse-park transform */
+    float ia;    /**< Current (alpha) after clarke transform */
+    float ib;    /**< Current (beta) after clarke transform */
+    float theta; /**< Current estimated rotor angle in radians */
+    float omega; /**< Current estimated rotor speed in radians/sec */
+
+    void clear() volatile
+    {
+      iq    = 0.0f;
+      id    = 0.0f;
+      vq    = 0.0f;
+      vd    = 0.0f;
+      va    = 0.0f;
+      vb    = 0.0f;
+      ia    = 0.0f;
+      ib    = 0.0f;
+      theta = 0.0f;
+      omega = 0.0f;
+    }
+  };
+
   struct State
   {
     bool isrControlActive; /**< Flag to enable/disable the ISR control loop */
@@ -74,6 +107,8 @@ namespace Orbit::Motor
     float currentTime;
     float referenceTime;
     float targetRPM;
+
+    CurrentLoopData iLoop; /**< State information for the inner loop controller */
   };
 
   /*---------------------------------------------------------------------------
@@ -142,12 +177,12 @@ namespace Orbit::Motor
   static Chimera::Timer::Inverter::Driver s_motor_ctrl_timer; /**< Motor drive timer */
   static Chimera::Timer::Trigger::Master  s_speed_ctrl_timer; /**< Trigger for the speed control loop */
   static ADCControl                       s_adc_control;      /**< ADC control data */
-  static volatile State                   s_state;            /**< State of the motor controller */
+  static State                   s_state;            /**< State of the motor controller */
 
 
-  static volatile uint8_t lastCommutation = 0;
-  static volatile uint32_t counter = 0;
-  static float adcDt = 0.0f;
+  static volatile uint8_t  lastCommutation = 0;
+  static volatile uint32_t counter         = 0;
+  static float             adcDt           = 0.0f;
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -176,6 +211,8 @@ namespace Orbit::Motor
     s_state.referenceTime = 0.0f;
     s_state.targetRPM     = 0.0f;
     adcDt                 = 1.0f / Data::DFLT_STATOR_PWM_FREQ_HZ;
+
+    s_state.iLoop.clear();
     // ! Testing
 
     /*-------------------------------------------------------------------------
@@ -310,73 +347,43 @@ namespace Orbit::Motor
       return;
     }
 
+    using namespace Orbit::Control::Math;
 
     /*-------------------------------------------------------------------------
-    Ramp the motor controller
+    Use Clarke Transform to convert phase currents from 3-axis to 2-axis
     -------------------------------------------------------------------------*/
-    s_state.currentTime += adcDt;
+    clarke_transform( s_adc_control.data[ ADC_CH_MOTOR_PHASE_A_CURRENT ].measured,
+                      s_adc_control.data[ ADC_CH_MOTOR_PHASE_B_CURRENT ].measured, s_state.iLoop.ia, s_state.iLoop.ib );
 
-    switch ( s_state.controlState )
-    {
-      case ControlState::IDLE:
-        s_state.controlState = ControlState::ALIGN;
-        s_state.currentTime = 0.0f;
-        break;
+    /*-------------------------------------------------------------------------
+    Use Park Transform to convert phase currents from 2-axis to d-q axis
+    -------------------------------------------------------------------------*/
+    park_transform( s_state.iLoop.ia, s_state.iLoop.ib, s_state.iLoop.theta, s_state.iLoop.iq, s_state.iLoop.id );
 
-      case ControlState::ALIGN:
-        s_state.commutationPhase = 4;
-        lastCommutation = 4;
-        s_state.driveStrength[ 0 ] = 10.0f;
-        s_state.driveStrength[ 1 ] = 10.0f;
-        s_state.driveStrength[ 2 ] = 10.0f;
+    /*-------------------------------------------------------------------------
+    Use sliding mode controller to estimate rotor speed and position
+    -------------------------------------------------------------------------*/
+    // TODO: Placeholder for a function call. Will need to select between manual ramp or closed loop
 
-        if( s_state.currentTime > 0.5f ) {
-          s_state.controlState  = ControlState::STARTUP;
-          s_state.targetRPM     = BASE_RPM;
-          s_state.currentTime   = 0.0f;
-          s_state.referenceTime = s_state.currentTime + RPM_TO_COMMUTATION_PERIOD( s_state.targetRPM );
+    /*-------------------------------------------------------------------------
+    Run PI controllers for motor currents to generate voltage commands
+    -------------------------------------------------------------------------*/
 
-          s_state.driveStrength[ 0 ] = 25.0f;
-          s_state.driveStrength[ 1 ] = 25.0f;
-          s_state.driveStrength[ 2 ] = 25.0f;
-        }
-        break;
 
-      case ControlState::STARTUP: {
-        s_state.targetRPM = ( A2 * s_state.currentTime * s_state.currentTime ) + ( A1 * s_state.currentTime ) + BASE_RPM;
-        if( s_state.targetRPM > 20000.0f )
-        {
-          s_state.targetRPM = 20000.0f;
-        }
+    /*-------------------------------------------------------------------------
+    Use Inverse Park Transform to convert d-q currents to 2-axis phase voltages
+    -------------------------------------------------------------------------*/
 
-        /*---------------------------------------------------------------------
-        Update the commutation based on the new position
-        ---------------------------------------------------------------------*/
-        if( s_state.currentTime > s_state.referenceTime )
-        {
-          s_state.commutationPhase = ( s_state.commutationPhase + 1 ) % 7;
-          s_state.referenceTime    = s_state.currentTime + RPM_TO_COMMUTATION_PERIOD( s_state.targetRPM );
-        }
 
-        /*---------------------------------------------------------------------
-        If we've reached our time limit, move to the next state
-        ---------------------------------------------------------------------*/
-        if ( s_state.currentTime > 20.0f )
-        {
-          s_state.controlState = ControlState::FAULT;
-          s_state.currentTime  = 0.0f;
-        }
-      }
-      break;
+    /*-------------------------------------------------------------------------
+    Use Inverse Clarke Transform to convert 2-axis phase voltages to 3-axis
+    -------------------------------------------------------------------------*/
 
-      case ControlState::RUNNING:
-        break;
 
-      case ControlState::FAULT:
-      default:
-        s_motor_ctrl_timer.emergencyBreak();
-        break;
-    }
+    /*-------------------------------------------------------------------------
+    Use SVM to convert 3-axis phase voltages to PWM duty cycles
+    -------------------------------------------------------------------------*/
+
 
     /*-------------------------------------------------------------------------
     Apply the current motor control commands. At its most basic form, the
