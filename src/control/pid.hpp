@@ -23,7 +23,6 @@ namespace Orbit::Control::Math
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  //template<typename T>
   class PID
   {
   public:
@@ -71,14 +70,14 @@ namespace Orbit::Control::Math
      * @param input   New input to inject
      * @param dt      Last sample delta
      */
-    void run( const float input )
+    float run( const float input )
     {
-      float error = SetPoint - input;
+      const float error = SetPoint - input;
 
       /*-----------------------------------------------------------------------
       Proportional Term
       -----------------------------------------------------------------------*/
-      float pTerm = Kp * error;
+      const float pTerm = Kp * error;
 
       /*-----------------------------------------------------------------------
       Integral Term w/Anti-Windup
@@ -97,6 +96,8 @@ namespace Orbit::Control::Math
       Output    = pTerm + iTerm + dTerm;
       Output    = std::max( OutMinLimit, std::min( Output, OutMaxLimit ) );
       lastInput = input;
+
+      return Output;
     }
 
   private:

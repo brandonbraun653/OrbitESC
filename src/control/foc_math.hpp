@@ -25,6 +25,7 @@ Macros
 #define US_TO_SEC( x ) ( static_cast<float>( x ) / 1e6f )
 #define RAD_TO_RPM( rad ) ( static_cast<float>( rad ) * static_cast<float>( 60.0 / ( 2.0 * M_PI ) ) )
 #define RPM_TO_RAD( rpm ) ( ( static_cast<float>( rpm ) / 60.0f ) * static_cast<float>( 2.0 * M_PI ) )
+#define RAD_TO_DEG( rad ) ( static_cast<float>( rad ) * static_cast<float>( 180.0 / M_PI ) )
 
 namespace Orbit::Control::Math
 {
@@ -36,27 +37,6 @@ namespace Orbit::Control::Math
   static constexpr float SQRT3_OVER_2   = 0.86602540378443864676f;
   static constexpr float M_PI_F         = static_cast<float>( M_PI );
   static constexpr float M_2PI_F        = 2.0f * M_PI_F;
-
-  /*---------------------------------------------------------------------------
-  Structures
-  ---------------------------------------------------------------------------*/
-  /**
-   * @brief Container for numbers resulting from a Clarke transform
-   */
-  struct ClarkeSpace
-  {
-    float alpha;
-    float beta;
-  };
-
-  /**
-   * @brief Container for numbers resulting from a Park transform
-   */
-  struct ParkSpace
-  {
-    float d;
-    float q;
-  };
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -167,23 +147,27 @@ namespace Orbit::Control::Math
    * @brief Computes the inverse Park transform of the Park space input
    * @see https://www.ti.com/lit/an/bpra048/bpra048.pdf
    *
-   * @param park        Park space data to transform
-   * @param angle_est   Estimated angle of the motor
-   * @return ClarkeSpace
+   * @param q       Q component
+   * @param d       D component
+   * @param theta   Estimated angle of the motor
+   * @param a       Output reference to store the alpha component
+   * @param b       Output reference to store the beta component
+   * @return void
    */
-  ClarkeSpace inverse_park_transform( const ParkSpace &park, const float angle_est );
+  void inverse_park_transform( const float q, const float d, const float theta, float &a, float &b );
 
   /**
    * @brief Computes the inverse Clarke transform of the Clarke space input
    * @see https://www.ti.com/lit/an/bpra048/bpra048.pdf
    *
-   * @param clarke  Clarke space data to transform
-   * @param a       Output pointer to store the phase A data
-   * @param b      Output pointer to store the phase B data
-   * @param c       Output pointer to store the phase C data
+   * @param a       Alpha component
+   * @param b       Beta component
+   * @param v1      Output reference to store the phase A voltage component
+   * @param v2      Output reference to store the phase B voltage component
+   * @param v3      Output reference to store the phase C voltage component
    * @return void
    */
-  void inverse_clarke_transform( const ClarkeSpace &clark, float *const a, float *const b, float *const c );
+  void inverse_clarke_transform( const float a, const float b, float &v1, float &v2, float &v3 );
 
   /**
    * @brief Clips an input value to be bounded between min/max

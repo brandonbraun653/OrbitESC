@@ -16,7 +16,9 @@ Includes
 #include <src/config/bsp/board_map.hpp>
 #include <src/control/filter.hpp>
 #include <src/control/foc_math.hpp>
+#include <src/control/pid.hpp>
 #include <src/core/data/orbit_data_defaults.hpp>
+#include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 
 #if defined( EMBEDDED )
@@ -70,6 +72,10 @@ namespace Orbit::Motor
    */
   struct CurrentLoopData
   {
+    float ima;   /**< Current measured at phase A terminal */
+    float imb;   /**< Current measured at phase B terminal */
+    float imc;   /**< Current measured at phase C terminal */
+    float vm;    /**< Voltage measured at the motor supply terminal */
     float iq;    /**< Current output measurement for the q-axis */
     float id;    /**< Current output measurement for the d-axis */
     float vq;    /**< Voltage command for the q-axis */
@@ -80,9 +86,20 @@ namespace Orbit::Motor
     float ib;    /**< Current (beta) after clarke transform */
     float theta; /**< Current estimated rotor angle in radians */
     float omega; /**< Current estimated rotor speed in radians/sec */
+    float iqRef; /**< Current reference for the q-axis */
+    float idRef; /**< Current reference for the d-axis */
+    float pa;    /**< Phase A PWM duty cycle */
+    float pb;    /**< Phase B PWM duty cycle */
+    float pc;    /**< Phase C PWM duty cycle */
 
-    void clear() volatile
+    Control::Math::PID iqPID; /**< Current controller for the q-axis */
+    Control::Math::PID idPID; /**< Current controller for the d-axis */
+
+    void clear()
     {
+      ima   = 0.0f;
+      imb   = 0.0f;
+      imc   = 0.0f;
       iq    = 0.0f;
       id    = 0.0f;
       vq    = 0.0f;
@@ -93,6 +110,13 @@ namespace Orbit::Motor
       ib    = 0.0f;
       theta = 0.0f;
       omega = 0.0f;
+      iqRef = 0.0f;
+      idRef = 0.0f;
+      pa    = 0.0f;
+      pb    = 0.0f;
+      pc    = 0.0f;
+      iqPID.init();
+      idPID.init();
     }
   };
 
@@ -101,7 +125,6 @@ namespace Orbit::Motor
     bool isrControlActive; /**< Flag to enable/disable the ISR control loop */
 
     uint8_t      commutationPhase;   /**< Commutation cycle to be applied */
-    float        driveStrength[ 3 ]; /**< PWM duty cycle for each phase */
     ControlState controlState;       /**< Current state of the motor control loop */
 
     float currentTime;
@@ -177,7 +200,7 @@ namespace Orbit::Motor
   static Chimera::Timer::Inverter::Driver s_motor_ctrl_timer; /**< Motor drive timer */
   static Chimera::Timer::Trigger::Master  s_speed_ctrl_timer; /**< Trigger for the speed control loop */
   static ADCControl                       s_adc_control;      /**< ADC control data */
-  static State                   s_state;            /**< State of the motor controller */
+  static State                            s_state;            /**< State of the motor controller */
 
 
   static volatile uint8_t  lastCommutation = 0;
@@ -200,9 +223,6 @@ namespace Orbit::Motor
     -------------------------------------------------------------------------*/
     s_state.isrControlActive   = false;
     s_state.commutationPhase   = 0;
-    s_state.driveStrength[ 0 ] = 10.0f;
-    s_state.driveStrength[ 1 ] = 10.0f;
-    s_state.driveStrength[ 2 ] = 10.0f;
     s_state.controlState       = ControlState::IDLE;
 
 
@@ -213,6 +233,14 @@ namespace Orbit::Motor
     adcDt                 = 1.0f / Data::DFLT_STATOR_PWM_FREQ_HZ;
 
     s_state.iLoop.clear();
+
+    s_state.iLoop.iqPID.OutMinLimit = 0.0f;
+    s_state.iLoop.iqPID.OutMaxLimit = 1.0f;
+    s_state.iLoop.iqPID.setTunings( 0.1f, 0.0f, 0.0f, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
+
+    s_state.iLoop.idPID.OutMinLimit = 0.0f;
+    s_state.iLoop.idPID.OutMaxLimit = 1.0f;
+    s_state.iLoop.idPID.setTunings( 0.1f, 0.0f, 0.0f, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
     // ! Testing
 
     /*-------------------------------------------------------------------------
@@ -264,30 +292,30 @@ namespace Orbit::Motor
     Calibrate the ADC values
     -------------------------------------------------------------------------*/
     // 3kHz pass band
-    auto filter = LpFilter( { 0.00242455316813491f, -0.0101955888092545f, 0.0232392134289419f, -0.0362508890079906f,
-                              0.0344456824735822f, 0.00415033435064135f, -0.120704132433873f, 0.602608590995338f,
-                              0.602608590995338f, -0.120704132433873f, 0.00415033435064135f, 0.0344456824735822f,
-                              -0.0362508890079906f, 0.0232392134289419f, -0.0101955888092545f, 0.00242455316813491f } );
+    // auto filter = LpFilter( { 0.00242455316813491f, -0.0101955888092545f, 0.0232392134289419f, -0.0362508890079906f,
+    //                           0.0344456824735822f, 0.00415033435064135f, -0.120704132433873f, 0.602608590995338f,
+    //                           0.602608590995338f, -0.120704132433873f, 0.00415033435064135f, 0.0344456824735822f,
+    //                           -0.0362508890079906f, 0.0232392134289419f, -0.0101955888092545f, 0.00242455316813491f } );
 
     // 500 Hz pass band
-    // auto filter = LpFilter( {
-    //   0.00167453239284774f,
-    //   0.00383760414840798f,
-    //   -0.00400032112472084f,
-    //   -0.0269286130929977f,
-    //   -0.0321454769647852f,
-    //   0.0393806301914063f,
-    //   0.191814740418412f,
-    //   0.326079079031429f,
-    //   0.326079079031429f,
-    //   0.191814740418412f,
-    //   0.0393806301914063f,
-    //   -0.0321454769647852f,
-    //   -0.0269286130929977f,
-    //   -0.00400032112472084f,
-    //   0.00383760414840798f,
-    //   0.0016745323928477f,
-    // });
+    auto filter = LpFilter( {
+        0.00167453239284774f,
+        0.00383760414840798f,
+        -0.00400032112472084f,
+        -0.0269286130929977f,
+        -0.0321454769647852f,
+        0.0393806301914063f,
+        0.191814740418412f,
+        0.326079079031429f,
+        0.326079079031429f,
+        0.191814740418412f,
+        0.0393806301914063f,
+        -0.0321454769647852f,
+        -0.0269286130929977f,
+        -0.00400032112472084f,
+        0.00383760414840798f,
+        0.0016745323928477f,
+    } );
 
     for ( auto &ch : s_adc_control.data )
     {
@@ -301,6 +329,9 @@ namespace Orbit::Motor
 
   static void adcISRTxfrComplete( const Chimera::ADC::InterruptDetail &isr )
   {
+    using namespace Orbit::Control::Math;
+    using namespace Chimera::Timer::Inverter;
+
 #if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
     SEGGER_SYSVIEW_RecordEnterISR();
 #endif
@@ -308,7 +339,7 @@ namespace Orbit::Motor
     /*-------------------------------------------------------------------------
     Process the raw ADC data
     -------------------------------------------------------------------------*/
-    const float counts_to_volts = isr.vref / isr.resolution;    // TODO BMB: This should be pre-calculated
+    const float counts_to_volts = isr.vref / isr.resolution;
 
     s_adc_control.sampleTimeUs = Chimera::micros();
     for ( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
@@ -347,13 +378,18 @@ namespace Orbit::Motor
       return;
     }
 
-    using namespace Orbit::Control::Math;
+    /*-------------------------------------------------------------------------
+    Translate the raw ADC measurements into meaningful values
+    -------------------------------------------------------------------------*/
+    s_state.iLoop.ima = Orbit::ADC::sample2PhaseCurrent( s_adc_control.data[ ADC_CH_MOTOR_PHASE_A_CURRENT ].measured );
+    s_state.iLoop.imb = Orbit::ADC::sample2PhaseCurrent( s_adc_control.data[ ADC_CH_MOTOR_PHASE_B_CURRENT ].measured );
+    s_state.iLoop.imc = Orbit::ADC::sample2PhaseCurrent( s_adc_control.data[ ADC_CH_MOTOR_PHASE_C_CURRENT ].measured );
+    s_state.iLoop.vm  = Orbit::ADC::sample2BusVoltage( s_adc_control.data[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].measured );
 
     /*-------------------------------------------------------------------------
     Use Clarke Transform to convert phase currents from 3-axis to 2-axis
     -------------------------------------------------------------------------*/
-    clarke_transform( s_adc_control.data[ ADC_CH_MOTOR_PHASE_A_CURRENT ].measured,
-                      s_adc_control.data[ ADC_CH_MOTOR_PHASE_B_CURRENT ].measured, s_state.iLoop.ia, s_state.iLoop.ib );
+    clarke_transform( s_state.iLoop.ima, s_state.iLoop.imb, s_state.iLoop.ia, s_state.iLoop.ib );
 
     /*-------------------------------------------------------------------------
     Use Park Transform to convert phase currents from 2-axis to d-q axis
@@ -364,25 +400,51 @@ namespace Orbit::Motor
     Use sliding mode controller to estimate rotor speed and position
     -------------------------------------------------------------------------*/
     // TODO: Placeholder for a function call. Will need to select between manual ramp or closed loop
+    // s_state.iLoop.omega = 0.0f;
+    // s_state.iLoop.theta = 0.0f;
 
     /*-------------------------------------------------------------------------
     Run PI controllers for motor currents to generate voltage commands
     -------------------------------------------------------------------------*/
+    s_state.iLoop.iqRef = 0.1f;
+    s_state.iLoop.idRef = 0.0f;
 
+    const float iqError = s_state.iLoop.iqRef - s_state.iLoop.iq;
+    s_state.iLoop.vq    = s_state.iLoop.iqPID.run( iqError );
+
+    const float idError = s_state.iLoop.idRef - s_state.iLoop.id;
+    s_state.iLoop.vd    = s_state.iLoop.idPID.run( idError );
 
     /*-------------------------------------------------------------------------
-    Use Inverse Park Transform to convert d-q currents to 2-axis phase voltages
+    Use Inverse Park Transform to convert d-q voltages to 2-axis phase voltages
     -------------------------------------------------------------------------*/
-
+    inverse_park_transform( s_state.iLoop.vq, s_state.iLoop.vd, s_state.iLoop.theta, s_state.iLoop.va, s_state.iLoop.vb );
 
     /*-------------------------------------------------------------------------
     Use Inverse Clarke Transform to convert 2-axis phase voltages to 3-axis
     -------------------------------------------------------------------------*/
-
+    inverse_clarke_transform( s_state.iLoop.va, s_state.iLoop.vb, s_state.iLoop.pa, s_state.iLoop.pb, s_state.iLoop.pc );
 
     /*-------------------------------------------------------------------------
     Use SVM to convert 3-axis phase voltages to PWM duty cycles
     -------------------------------------------------------------------------*/
+    // TODO: Eventually use svm. Currently try out only simple pwm.
+    if( Chimera::millis() > 10000 )
+    {
+      s_state.iLoop.pa = Control::Math::clamp( ( 0.5f * s_state.iLoop.pa + 0.5f ) * 100.0f, 0.0f, 100.0f );
+      s_state.iLoop.pb = Control::Math::clamp( ( 0.5f * s_state.iLoop.pb + 0.5f ) * 100.0f, 0.0f, 100.0f );
+      s_state.iLoop.pc = Control::Math::clamp( ( 0.5f * s_state.iLoop.pc + 0.5f ) * 100.0f, 0.0f, 100.0f );
+    }
+    else
+    {
+      s_state.iLoop.pa = 0.0f;
+      s_state.iLoop.pb = 0.0f;
+      s_state.iLoop.pc = 0.0f;
+    }
+
+    const uint32_t         angle  = static_cast<uint32_t>( RAD_TO_DEG( s_state.iLoop.theta ) );
+    const uint32_t         sector = angle / 60;
+    const CommutationState comm   = static_cast<CommutationState>( sector );
 
 
     /*-------------------------------------------------------------------------
@@ -393,8 +455,8 @@ namespace Orbit::Motor
     in turn controls the torque and how well the rotor is able to track the
     magnetic vector.
     -------------------------------------------------------------------------*/
-    s_motor_ctrl_timer.setForwardCommState( s_state.commutationPhase );
-    s_motor_ctrl_timer.setPhaseDutyCycle( s_state.driveStrength[ 0 ], s_state.driveStrength[ 1 ], s_state.driveStrength[ 2 ] );
+    s_motor_ctrl_timer.setForwardCommState( comm );
+    s_motor_ctrl_timer.setPhaseDutyCycle( s_state.iLoop.pa, s_state.iLoop.pb, s_state.iLoop.pc );
 
 #if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
     SEGGER_SYSVIEW_RecordExitISR();
@@ -416,6 +478,14 @@ namespace Orbit::Motor
     {
       return;
     }
+
+    s_state.iLoop.theta = 65.0f * 0.0174533f;
+
+    // s_state.iLoop.theta += 0.0174533f;    // 1 degree in radians
+    // if( s_state.iLoop.theta > 6.283185f )
+    // {
+    //   s_state.iLoop.theta -= 6.283185f;
+    // }
 
 
 #if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )

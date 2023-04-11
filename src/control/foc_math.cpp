@@ -132,53 +132,50 @@ namespace Orbit::Control::Math
   }
 
 
-  ClarkeSpace clarke_transform( const float a, const float b )
+  void clarke_transform( const float a, const float b, float &alpha, float &beta )
   {
-    return { .alpha = a, .beta = ( a * ONE_OVER_SQRT3 ) + ( b * TWO_OVER_SQRT3 ) };
+    alpha = a;
+    beta  = ( a * ONE_OVER_SQRT3 ) + ( b * TWO_OVER_SQRT3 );
   }
 
 
-  ParkSpace park_transform( const ClarkeSpace &clarke, const float angle_est )
+  void park_transform( const float alpha, const float beta, const float theta, float &q, float &d )
   {
     /*-------------------------------------------------------------------------
     Cache the sine/cosine of the angle estimate
     -------------------------------------------------------------------------*/
     float sin, cos;
-    fast_sin_cos( angle_est, &sin, &cos );
+    fast_sin_cos( theta, &sin, &cos );
 
     /*-------------------------------------------------------------------------
     Park transform
     -------------------------------------------------------------------------*/
-    /* clang-format off */
-    return { .d = (  clarke.alpha * cos ) + ( clarke.beta * sin ),
-             .q = ( -clarke.alpha * sin ) + ( clarke.beta * cos ) };
-    /* clang-format on */
+    d = ( alpha * cos ) + ( beta * sin );
+    q = ( -alpha * sin ) + ( beta * cos );
   }
 
 
-  ClarkeSpace inverse_park_transform( const ParkSpace &park, const float angle_est )
+  void inverse_park_transform( const float q, const float d, const float theta, float &a, float &b )
   {
     /*-------------------------------------------------------------------------
     Cache the sine/cosine of the angle estimate
     -------------------------------------------------------------------------*/
     float sin, cos;
-    fast_sin_cos( angle_est, &sin, &cos );
+    fast_sin_cos( theta, &sin, &cos );
 
     /*-------------------------------------------------------------------------
     Inverse Park transform
     -------------------------------------------------------------------------*/
-    /* clang-format off */
-    return { .alpha = ( park.d * cos ) - ( park.q * sin ),
-             .beta  = ( park.d * sin ) + ( park.q * cos ) };
-    /* clang-format on */
+    a = ( d * cos ) - ( q * sin );
+    b = ( d * sin ) + ( q * cos );
   }
 
 
-  void inverse_clarke_transform( const ClarkeSpace &clark, float *const a, float *const b, float *const c )
+  void inverse_clarke_transform( const float a, const float b, float &v1, float &v2, float &v3 )
   {
-    *a = clark.alpha;
-    *b = -0.5f * clark.alpha + clark.beta * SQRT3_OVER_2;
-    *c = -0.5f * clark.alpha - clark.beta * SQRT3_OVER_2;
+    v1 = a;
+    v2 = -0.5f * a + b * SQRT3_OVER_2;
+    v3 = -0.5f * a - b * SQRT3_OVER_2;
   }
 
 
