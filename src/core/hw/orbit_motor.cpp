@@ -47,8 +47,9 @@ namespace Orbit::Motor
   /*---------------------------------------------------------------------------
   Aliases
   ---------------------------------------------------------------------------*/
-  using LpFilter                = Control::Math::FIR<float, 15>;
-  using PhaseCurrentSampleQueue = etl::queue_spsc_atomic<SystemDataMessage_ADCPhaseCurrents, 16, etl::memory_model::MEMORY_MODEL_SMALL>;
+  using LpFilter = Control::Math::FIR<float, 15>;
+  using PhaseCurrentSampleQueue =
+      etl::queue_spsc_atomic<SystemDataMessage_ADCPhaseCurrents, 16, etl::memory_model::MEMORY_MODEL_SMALL>;
 
   /*---------------------------------------------------------------------------
   Constants
@@ -498,7 +499,7 @@ namespace Orbit::Motor
     /*-------------------------------------------------------------------------
     Push the latest phase currents into the data queue, assuming its enabled
     -------------------------------------------------------------------------*/
-    if( Data::SysConfig.streamPhaseCurrents )
+    if ( Data::SysConfig.streamPhaseCurrents )
     {
       SystemDataMessage_ADCPhaseCurrents msg;
       msg.timestamp = Chimera::micros();
@@ -518,9 +519,9 @@ namespace Orbit::Motor
   void flushDataQueue()
   {
     Serial::Message::SysData sysDataMsg;
-    Chimera::Status_t sendResult = Chimera::Status::OK;
+    Chimera::Status_t        sendResult = Chimera::Status::OK;
 
-    while( !s_phase_current_samples.empty() )
+    while ( !s_phase_current_samples.empty() )
     {
       auto sample = s_phase_current_samples.front();
 
@@ -535,9 +536,13 @@ namespace Orbit::Motor
 
       sysDataMsg.encode();
       sendResult = sysDataMsg.send( Orbit::USART::SerialDriver );
-      if( sendResult != Chimera::Status::OK )
+      if ( sendResult != Chimera::Status::OK )
       {
         break;
+      }
+      else
+      {
+        s_phase_current_samples.pop();
       }
     }
   }

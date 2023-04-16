@@ -23,15 +23,16 @@ typedef enum _MsgId {
 } MsgId;
 
 typedef enum _SubId {
+    SubId_SUB_MSG_NONE = 0, /* Invalid sub-message ID */
     /* Parameter IO messages */
-    SubId_SUB_MSG_PARAM_IO_GET = 0, /* Retrieve the current value of a parameter */
-    SubId_SUB_MSG_PARAM_IO_SET = 1, /* Commit a new value of a parameter */
-    SubId_SUB_MSG_PARAM_IO_SYNC = 2, /* Synchronize all parameters to disk */
-    SubId_SUB_MSG_PARAM_IO_LOAD = 3, /* Load all parameters from disk */
+    SubId_SUB_MSG_PARAM_IO_GET = 1, /* Retrieve the current value of a parameter */
+    SubId_SUB_MSG_PARAM_IO_SET = 2, /* Commit a new value of a parameter */
+    SubId_SUB_MSG_PARAM_IO_SYNC = 3, /* Synchronize all parameters to disk */
+    SubId_SUB_MSG_PARAM_IO_LOAD = 4, /* Load all parameters from disk */
     /* System control messages */
-    SubId_SUB_MSG_SYS_CTRL_RESET = 0, /* Reset the system */
-    SubId_SUB_MSG_SYS_CTRL_MOTOR = 1, /* Inject manual motor control commands */
-    SubId_SUB_MSG_SYS_CTRL_CAL_ADC = 2 /* Calibrate the ADC */
+    SubId_SUB_MSG_SYS_CTRL_RESET = 1, /* Reset the system */
+    SubId_SUB_MSG_SYS_CTRL_MOTOR = 2, /* Inject manual motor control commands */
+    SubId_SUB_MSG_SYS_CTRL_CAL_ADC = 3 /* Calibrate the ADC */
 } SubId;
 
 typedef enum _ParamId {
@@ -210,7 +211,7 @@ typedef struct _SystemDataMessage_ADCPhaseCurrents {
 #define _MsgId_MAX MsgId_MSG_SYS_DATA
 #define _MsgId_ARRAYSIZE ((MsgId)(MsgId_MSG_SYS_DATA+1))
 
-#define _SubId_MIN SubId_SUB_MSG_PARAM_IO_GET
+#define _SubId_MIN SubId_SUB_MSG_NONE
 #define _SubId_MAX SubId_SUB_MSG_PARAM_IO_LOAD
 #define _SubId_ARRAYSIZE ((SubId)(SubId_SUB_MSG_PARAM_IO_LOAD+1))
 

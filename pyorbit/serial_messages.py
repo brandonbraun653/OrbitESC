@@ -8,7 +8,10 @@
 #   01/21/2023 | Brandon Braun | brandonbraun653@gmail.com
 # **********************************************************************************************************************
 
+import ctypes
 import struct
+from typing import Union
+
 import pyorbit.nanopb.serial_interface_pb2 as proto
 from google.protobuf.message import Message
 from enum import IntEnum
@@ -24,9 +27,12 @@ class MessageId(IntEnum):
     ParamIO = proto.MSG_PARAM_IO
     SystemCtrl = proto.MSG_SYS_CTRL
     SwitchMode = proto.MSG_SWITCH_MODE
+    SystemData = proto.MSG_SYS_DATA
 
 
 class MessageSubId(IntEnum):
+    Empty = proto.SUB_MSG_NONE
+
     # Parameter IO
     ParamIO_Set = proto.SUB_MSG_PARAM_IO_SET
     ParamIO_Get = proto.SUB_MSG_PARAM_IO_GET
@@ -93,6 +99,9 @@ class ParameterId(IntEnum):
     PeakCurrentThreshold = proto.PARAM_PEAK_CURRENT_THRESHOLD
     PeakVoltageThreshold = proto.PARAM_PEAK_VOLTAGE_THRESHOLD
 
+    # System Behavior
+    StreamPhaseCurrents = proto.PARAM_STREAM_PHASE_CURRENTS
+
 
 # Maps parameter IDs to their associated types
 ParameterTypeMap = {
@@ -122,6 +131,9 @@ ParameterTypeMap = {
     # Monitor Thresholds
     ParameterId.PeakCurrentThreshold: ParameterType.FLOAT,
     ParameterId.PeakVoltageThreshold: ParameterType.FLOAT,
+
+    # System Behavior
+    ParameterId.StreamPhaseCurrents: ParameterType.BOOL,
 }
 
 
@@ -138,6 +150,11 @@ class Mode(IntEnum):
     Normal = proto.BOOT_MODE_NORMAL
     Test = proto.BOOT_MODE_TEST
     Config = proto.BOOT_MODE_CONFIG
+
+
+class SystemDataId(IntEnum):
+    SYS_DATA_INVALID = proto.SYS_DATA_INVALID
+    ADC_PHASE_CURRENTS = proto.ADC_PHASE_CURRENTS
 
 
 class UUIDGenerator(metaclass=Singleton):
@@ -373,12 +390,62 @@ class SwitchModeMessage(BaseMessage):
         self._pb_msg.mode = mode.value
 
 
+class SystemDataMessage(BaseMessage):
+
+    class ADCPhaseCurrents(ctypes.Structure):
+        _fields_ = [
+            ('timestamp', ctypes.c_uint32),
+            ('phase_a', ctypes.c_float),
+            ('phase_b', ctypes.c_float),
+            ('phase_c', ctypes.c_float),
+        ]
+
+    _id_to_type = {
+        SystemDataId.ADC_PHASE_CURRENTS: ADCPhaseCurrents
+    }
+
+    def __init__(self):
+        super().__init__()
+        self._pb_msg = proto.SystemDataMessage()
+        self._pb_msg.header.msgId = MessageId.SystemData.value
+        self._pb_msg.header.subId = 0
+        self._pb_msg.header.uuid = self._id_gen.next_uuid
+
+    @property
+    def data_id(self) -> SystemDataId:
+        return SystemDataId(self._pb_msg.id)
+
+    @data_id.setter
+    def data_id(self, data_id: SystemDataId):
+        self._pb_msg.id = data_id.value
+
+    @property
+    def data(self) -> bytes:
+        return self._pb_msg.data
+
+    @data.setter
+    def data(self, data: bytes):
+        self._pb_msg.data = data
+
+    def convert_to_message_type(self) -> Union[None, ADCPhaseCurrents]:
+        """
+        Converts the data field to the appropriate message type based on the data_id field.
+        Returns:
+            The converted message type, or None if the data_id is not recognized.
+        """
+        msg_type = self._id_to_type.get(self.data_id, None)
+        if msg_type is None:
+            return None
+        return msg_type.from_buffer_copy(self.data)
+
+
 # Maps message IDs to message class types
 MessageTypeMap = {
     MessageId.AckNack: AckNackMessage,
     MessageId.PingCmd: PingMessage,
     MessageId.SystemTick: SystemTick,
     MessageId.Terminal: ConsoleMessage,
-    MessageId.ParamIO: ParamIOMessage
+    MessageId.ParamIO: ParamIOMessage,
+    MessageId.SystemData: SystemDataMessage,
 }
 

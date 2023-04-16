@@ -2,7 +2,6 @@ import time
 import sys
 from pyorbit.can_pipe import CANPipe
 from pyorbit.can_messages import NodeID, MotorSpeed, PowerSupplyVoltage
-from pyorbit.plotter import LivePlotter
 from pyorbit.can_client import CANClient
 import matplotlib.pyplot as plt
 from loguru import logger
@@ -12,12 +11,12 @@ if __name__ == "__main__":
     logger.add(sys.stderr, level="TRACE")
 
     # plotter = LivePlotter(message=MotorSpeed(), attr_key="speed", time_key="tick")
-    plotter = LivePlotter(message=PowerSupplyVoltage(), attr_key="vdd")
-    plt.show(block=False)
-
-    esc = CANClient(dst_node=NodeID.NODE_1)
-    esc.com_pipe.subscribe_observer(plotter.observer_handle)
-    time.sleep(500)
+    # plotter = LivePlotter(message=PowerSupplyVoltage(), attr_key="vdd")
+    # plt.show(block=False)
+    #
+    # esc = CANClient(dst_node=NodeID.NODE_1)
+    # esc.com_pipe.subscribe_observer(plotter.observer_handle)
+    # time.sleep(500)
 
     # esc.system_reset()
     #

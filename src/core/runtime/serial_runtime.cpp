@@ -18,6 +18,7 @@ Includes
 #include <src/core/com/serial/serial_router.hpp>
 #include <src/core/com/serial/serial_server.hpp>
 #include <src/core/data/orbit_data_storage.hpp>
+#include <src/core/hw/orbit_motor.hpp>
 #include <src/core/hw/orbit_usart.hpp>
 #include <src/core/runtime/serial_runtime.hpp>
 
@@ -164,7 +165,15 @@ namespace Orbit::Serial
 
   void processSerial()
   {
+    /*-------------------------------------------------------------------------
+    Run the message processing loop
+    -------------------------------------------------------------------------*/
     s_server.process();
+
+    /*-------------------------------------------------------------------------
+    Flush any data messages that need to be sent
+    -------------------------------------------------------------------------*/
+    Motor::flushDataQueue();
   }
 
 
