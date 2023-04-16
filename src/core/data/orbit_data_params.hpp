@@ -26,7 +26,7 @@ namespace Orbit::Data
   /*---------------------------------------------------------------------------
   Aliases
   ---------------------------------------------------------------------------*/
-  using ParameterList = std::array<ParameterNode, 29>;
+  using ParameterList = std::array<ParameterNode, 30>;
 
   /*---------------------------------------------------------------------------
   Constants
@@ -266,6 +266,16 @@ namespace Orbit::Data
                       .key      = "peak_voltage_threshold",
                       .address  = &SysConfig.peakVoltageThreshold,
                       .maxSize  = sizeof( SysConfig.peakVoltageThreshold ),
+                      .validator = nullptr },
+
+      /*-----------------------------------------------------------------------
+      System Configuration Parameters
+      -----------------------------------------------------------------------*/
+      ParameterNode { .id       = ParamId_PARAM_STREAM_PHASE_CURRENTS,
+                      .type     = ParamType_BOOL,
+                      .key      = "stream_phase_currents",
+                      .address  = &SysConfig.streamPhaseCurrents,
+                      .maxSize  = sizeof( SysConfig.streamPhaseCurrents ),
                       .validator = nullptr },
 
       /***** Add new entries above here *****/

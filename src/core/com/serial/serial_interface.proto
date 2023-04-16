@@ -10,6 +10,7 @@ enum MsgId {
   MSG_PARAM_IO    = 5; // Do operations on configurable parameters
   MSG_SYS_CTRL    = 6; // Perform system control operations
   MSG_SWITCH_MODE = 7; // Switch the boot mode of the device
+  MSG_SYS_DATA    = 8; // System data stream
 }
 
 enum SubId {
@@ -71,6 +72,9 @@ enum ParamId {
   // Monitor Thresholds
   PARAM_PEAK_CURRENT_THRESHOLD = 60; // Peak current threshold in Amps
   PARAM_PEAK_VOLTAGE_THRESHOLD = 61; // Peak voltage threshold in Volts
+
+  // System Behavior
+  PARAM_STREAM_PHASE_CURRENTS = 70; // Stream phase currents over serial debug port
 }
 
 enum ParamType {
@@ -104,6 +108,11 @@ enum MotorCtrlCmd {
   ENABLE_OUTPUT_STAGE  = 0;  // Allow the power stage to drive the motor
   DISABLE_OUTPUT_STAGE = 1;  // Disable the power stage
 
+}
+
+enum SystemDataId {
+  SYS_DATA_INVALID = 0; // Invalid data ID
+  ADC_PHASE_CURRENTS = 1; // ADC readings of the phase currents
 }
 
 // Instrumentation message header common to all types. Each functional message type **must**
@@ -168,4 +177,20 @@ message SystemControlMessage {
 message SwitchModeMessage {
   required Header header = 1;
   required BootMode mode = 2 [(nanopb).int_size = IS_8];
+}
+
+// Message type for streaming out raw data from the system in real time
+message SystemDataMessage {
+
+  // Message type for ADC phase currents
+  message ADCPhaseCurrents {
+    required uint32 timestamp = 1;  // System time of measurement in microseconds
+    required float ia = 2;          // Phase A current in Amps
+    required float ib = 3;          // Phase B current in Amps
+    required float ic = 4;          // Phase C current in Amps
+  }
+
+  required Header header = 1;
+  required SystemDataId id = 2 [(nanopb).int_size = IS_8];
+  optional bytes data = 3 [(nanopb).max_size = 24 ];
 }

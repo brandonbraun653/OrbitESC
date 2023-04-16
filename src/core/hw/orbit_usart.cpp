@@ -30,7 +30,7 @@ namespace Orbit::USART
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static etl::bip_buffer_spsc_atomic<uint8_t, 256> sTxBuffer;
+  static etl::bip_buffer_spsc_atomic<uint8_t, 1024> sTxBuffer;
   static etl::bip_buffer_spsc_atomic<uint8_t, 256> sRxBuffer;
 
   // Logger Sink Handles

@@ -36,6 +36,13 @@ PB_BIND(SystemControlMessage, SystemControlMessage, AUTO)
 PB_BIND(SwitchModeMessage, SwitchModeMessage, AUTO)
 
 
+PB_BIND(SystemDataMessage, SystemDataMessage, AUTO)
+
+
+PB_BIND(SystemDataMessage_ADCPhaseCurrents, SystemDataMessage_ADCPhaseCurrents, AUTO)
+
+
+
 
 
 

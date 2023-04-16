@@ -7,6 +7,10 @@
 	"settings": {
 		"files.associations": {
 			"*.JLinkScript": "plaintext",
+			"physical": "cpp",
+			"*.hpp": "cpp",
+			"session": "cpp",
+			"transport": "cpp",
 			"algorithm": "cpp",
 			"strstream": "cpp",
 			"*.tcc": "cpp",
@@ -26,13 +30,10 @@
 			"random": "cpp",
 			"cfg": "cpp",
 			"watchdog": "cpp",
-			"physical": "cpp",
 			"DataLink": "cpp",
 			"shared": "cpp",
-			"session": "cpp",
 			"function": "cpp",
 			"*.ipp": "cpp",
-			"transport": "cpp",
 			"network": "cpp",
 			"allocator": "cpp",
 			"mutex": "cpp",
@@ -138,7 +139,8 @@
 			"semaphore": "cpp",
 			"numbers": "cpp",
 			"common.hpp": "c",
-			"*.def": "cpp"
+			"*.def": "cpp",
+			"*.inc": "cpp"
 		},
 		"peacock.color": "#f9e64f",
 		"workbench.colorCustomizations": {

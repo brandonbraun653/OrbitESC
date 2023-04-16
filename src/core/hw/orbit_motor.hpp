@@ -42,6 +42,14 @@ namespace Orbit::Motor
    */
   void powerUp();
 
+  /**
+   * @brief Flushes any queued data from the motor driver subsystem
+   *
+   * This will transmit messages on the debug port to the host PC for the purpose
+   * of visualizing the motor driver data.
+   */
+  void flushDataQueue();
+
 }  // namespace Orbit::Motor
 
 #endif  /* !ORBIT_MOTOR_HPP */

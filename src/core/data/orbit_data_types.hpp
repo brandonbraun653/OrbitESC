@@ -113,6 +113,11 @@ namespace Orbit::Data
     float peakCurrentThreshold; /**< PARAM_PEAK_CURRENT_THRESHOLD */
     float peakVoltageThreshold; /**< PARAM_PEAK_VOLTAGE_THRESHOLD */
 
+    /*-------------------------------------------------------------------------
+    System Behavior
+    -------------------------------------------------------------------------*/
+    bool streamPhaseCurrents; /**< PARAM_STREAM_PHASE_CURRENTS */
+
     void clear();
     void setDefaults();
   };

@@ -47,6 +47,7 @@ namespace Orbit::Serial::Message
       ParamIOMessage_size,
       SystemControlMessage_size,
       SwitchModeMessage_size,
+      SystemDataMessage_size,
       /* clang-format on */
     };
   }
@@ -72,6 +73,7 @@ namespace Orbit::Serial::Message
     MSG_PARAM_IO    = MsgId_MSG_PARAM_IO,
     MSG_SYS_CTRL    = MsgId_MSG_SYS_CTRL,
     MSG_SWITCH_MODE = MsgId_MSG_SWITCH_MODE,
+    MSG_SYS_DATA    = MsgId_MSG_SYS_DATA,
 
     MSG_ID_COUNT
   };
@@ -293,6 +295,10 @@ namespace Orbit::Serial::Message
   };
 
   class SwitchMode : public MessageExt<MSG_SWITCH_MODE, SwitchModeMessage, SwitchModeMessage_size, SwitchModeMessage_fields>
+  {
+  };
+
+  class SysData : public MessageExt<MSG_SYS_DATA, SystemDataMessage, SystemDataMessage_size, SystemDataMessage_fields>
   {
   };
 

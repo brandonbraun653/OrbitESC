@@ -134,6 +134,9 @@ namespace Orbit::Data
     /* Monitor Thresholds */
     peakCurrentThreshold = 0.0f;
     peakVoltageThreshold = 0.0f;
+
+    /* System Behavior */
+    streamPhaseCurrents = false;
   }
 
   void Configuration::setDefaults()
@@ -152,5 +155,8 @@ namespace Orbit::Data
     /* Monitor Thresholds */
     peakCurrentThreshold = DFLT_PEAK_PHASE_CURRENT;
     peakVoltageThreshold = DFLT_PEAK_VOLTAGE;
+
+    /* System Behavior */
+    streamPhaseCurrents = true;
   }
 }    // namespace Orbit::Data

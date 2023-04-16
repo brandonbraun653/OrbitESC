@@ -13,13 +13,18 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/adc>
 #include <Chimera/timer>
+#include <etl/queue_spsc_atomic.h>
 #include <src/config/bsp/board_map.hpp>
 #include <src/control/filter.hpp>
 #include <src/control/foc_math.hpp>
 #include <src/control/pid.hpp>
+#include <src/core/com/serial/serial_async_message.hpp>
+#include <src/core/com/serial/serial_interface.pb.h>
+#include <src/core/data/orbit_data.hpp>
 #include <src/core/data/orbit_data_defaults.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_motor.hpp>
+#include <src/core/hw/orbit_usart.hpp>
 
 #if defined( EMBEDDED )
 #include <Thor/lld/interface/inc/timer>
@@ -42,7 +47,8 @@ namespace Orbit::Motor
   /*---------------------------------------------------------------------------
   Aliases
   ---------------------------------------------------------------------------*/
-  using LpFilter = Control::Math::FIR<float, 15>;
+  using LpFilter                = Control::Math::FIR<float, 15>;
+  using PhaseCurrentSampleQueue = etl::queue_spsc_atomic<SystemDataMessage_ADCPhaseCurrents, 16, etl::memory_model::MEMORY_MODEL_SMALL>;
 
   /*---------------------------------------------------------------------------
   Constants
@@ -124,8 +130,8 @@ namespace Orbit::Motor
   {
     bool isrControlActive; /**< Flag to enable/disable the ISR control loop */
 
-    uint8_t      commutationPhase;   /**< Commutation cycle to be applied */
-    ControlState controlState;       /**< Current state of the motor control loop */
+    uint8_t      commutationPhase; /**< Commutation cycle to be applied */
+    ControlState controlState;     /**< Current state of the motor control loop */
 
     float currentTime;
     float referenceTime;
@@ -197,10 +203,11 @@ namespace Orbit::Motor
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static Chimera::Timer::Inverter::Driver s_motor_ctrl_timer; /**< Motor drive timer */
-  static Chimera::Timer::Trigger::Master  s_speed_ctrl_timer; /**< Trigger for the speed control loop */
-  static ADCControl                       s_adc_control;      /**< ADC control data */
-  static State                            s_state;            /**< State of the motor controller */
+  static Chimera::Timer::Inverter::Driver s_motor_ctrl_timer;      /**< Motor drive timer */
+  static Chimera::Timer::Trigger::Master  s_speed_ctrl_timer;      /**< Trigger for the speed control loop */
+  static ADCControl                       s_adc_control;           /**< ADC control data */
+  static State                            s_state;                 /**< State of the motor controller */
+  static PhaseCurrentSampleQueue          s_phase_current_samples; /**< Queue for storing phase current samples */
 
 
   static volatile uint8_t  lastCommutation = 0;
@@ -221,9 +228,10 @@ namespace Orbit::Motor
     /*-------------------------------------------------------------------------
     Reset module memory
     -------------------------------------------------------------------------*/
-    s_state.isrControlActive   = false;
-    s_state.commutationPhase   = 0;
-    s_state.controlState       = ControlState::IDLE;
+    s_state.isrControlActive = false;
+    s_state.commutationPhase = 0;
+    s_state.controlState     = ControlState::IDLE;
+    s_phase_current_samples.clear();
 
 
     // ! Testing
@@ -429,7 +437,7 @@ namespace Orbit::Motor
     Use SVM to convert 3-axis phase voltages to PWM duty cycles
     -------------------------------------------------------------------------*/
     // TODO: Eventually use svm. Currently try out only simple pwm.
-    if( Chimera::millis() > 10000 )
+    if ( Chimera::millis() > 10000 )
     {
       s_state.iLoop.pa = Control::Math::clamp( ( 0.5f * s_state.iLoop.pa + 0.5f ) * 100.0f, 0.0f, 100.0f );
       s_state.iLoop.pb = Control::Math::clamp( ( 0.5f * s_state.iLoop.pb + 0.5f ) * 100.0f, 0.0f, 100.0f );
@@ -487,11 +495,51 @@ namespace Orbit::Motor
     //   s_state.iLoop.theta -= 6.283185f;
     // }
 
+    /*-------------------------------------------------------------------------
+    Push the latest phase currents into the data queue, assuming its enabled
+    -------------------------------------------------------------------------*/
+    if( Data::SysConfig.streamPhaseCurrents )
+    {
+      SystemDataMessage_ADCPhaseCurrents msg;
+      msg.timestamp = Chimera::micros();
+      msg.ia        = s_state.iLoop.ima;
+      msg.ib        = s_state.iLoop.imb;
+      msg.ic        = s_state.iLoop.imc;
+
+      s_phase_current_samples.push( msg );
+    }
 
 #if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
     SEGGER_SYSVIEW_RecordExitISR();
 #endif
   }
 
+
+  void flushDataQueue()
+  {
+    Serial::Message::SysData sysDataMsg;
+    Chimera::Status_t sendResult = Chimera::Status::OK;
+
+    while( !s_phase_current_samples.empty() )
+    {
+      auto sample = s_phase_current_samples.front();
+
+      sysDataMsg.reset();
+      sysDataMsg.payload.header.msgId = MsgId_MSG_SYS_DATA;
+      sysDataMsg.payload.header.subId = 0;
+      sysDataMsg.payload.header.uuid  = Serial::Message::getNextUUID();
+      sysDataMsg.payload.id           = SystemDataId_ADC_PHASE_CURRENTS;
+      sysDataMsg.payload.has_data     = true;
+      sysDataMsg.payload.data.size    = sizeof( SystemDataMessage_ADCPhaseCurrents );
+      memcpy( &sysDataMsg.payload.data.bytes, &sample, sizeof( SystemDataMessage_ADCPhaseCurrents ) );
+
+      sysDataMsg.encode();
+      sendResult = sysDataMsg.send( Orbit::USART::SerialDriver );
+      if( sendResult != Chimera::Status::OK )
+      {
+        break;
+      }
+    }
+  }
 
 }    // namespace Orbit::Motor

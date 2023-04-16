@@ -18,7 +18,8 @@ typedef enum _MsgId {
     MsgId_MSG_SYS_INFO = 4, /* System information */
     MsgId_MSG_PARAM_IO = 5, /* Do operations on configurable parameters */
     MsgId_MSG_SYS_CTRL = 6, /* Perform system control operations */
-    MsgId_MSG_SWITCH_MODE = 7 /* Switch the boot mode of the device */
+    MsgId_MSG_SWITCH_MODE = 7, /* Switch the boot mode of the device */
+    MsgId_MSG_SYS_DATA = 8 /* System data stream */
 } MsgId;
 
 typedef enum _SubId {
@@ -69,7 +70,9 @@ typedef enum _ParamId {
     ParamId_PARAM_STATOR_INDUCTANCE = 53, /* Stator inductance in Henrys */
     /* Monitor Thresholds */
     ParamId_PARAM_PEAK_CURRENT_THRESHOLD = 60, /* Peak current threshold in Amps */
-    ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD = 61 /* Peak voltage threshold in Volts */
+    ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD = 61, /* Peak voltage threshold in Volts */
+    /* System Behavior */
+    ParamId_PARAM_STREAM_PHASE_CURRENTS = 70 /* Stream phase currents over serial debug port */
 } ParamId;
 
 typedef enum _ParamType {
@@ -103,6 +106,11 @@ typedef enum _MotorCtrlCmd {
     MotorCtrlCmd_ENABLE_OUTPUT_STAGE = 0, /* Allow the power stage to drive the motor */
     MotorCtrlCmd_DISABLE_OUTPUT_STAGE = 1 /* Disable the power stage */
 } MotorCtrlCmd;
+
+typedef enum _SystemDataId {
+    SystemDataId_SYS_DATA_INVALID = 0, /* Invalid data ID */
+    SystemDataId_ADC_PHASE_CURRENTS = 1 /* ADC readings of the phase currents */
+} SystemDataId;
 
 /* Struct definitions */
 /* Instrumentation message header common to all types. Each functional message type **must**
@@ -179,19 +187,36 @@ typedef struct _SwitchModeMessage {
     BootMode mode;
 } SwitchModeMessage;
 
+typedef PB_BYTES_ARRAY_T(24) SystemDataMessage_data_t;
+/* Message type for streaming out raw data from the system in real time */
+typedef struct _SystemDataMessage {
+    Header header;
+    SystemDataId id;
+    bool has_data;
+    SystemDataMessage_data_t data;
+} SystemDataMessage;
+
+/* Message type for ADC phase currents */
+typedef struct _SystemDataMessage_ADCPhaseCurrents {
+    uint32_t timestamp; /* System time of measurement in microseconds */
+    float ia; /* Phase A current in Amps */
+    float ib; /* Phase B current in Amps */
+    float ic; /* Phase C current in Amps */
+} SystemDataMessage_ADCPhaseCurrents;
+
 
 /* Helper constants for enums */
 #define _MsgId_MIN MsgId_MSG_ACK_NACK
-#define _MsgId_MAX MsgId_MSG_SWITCH_MODE
-#define _MsgId_ARRAYSIZE ((MsgId)(MsgId_MSG_SWITCH_MODE+1))
+#define _MsgId_MAX MsgId_MSG_SYS_DATA
+#define _MsgId_ARRAYSIZE ((MsgId)(MsgId_MSG_SYS_DATA+1))
 
 #define _SubId_MIN SubId_SUB_MSG_PARAM_IO_GET
 #define _SubId_MAX SubId_SUB_MSG_PARAM_IO_LOAD
 #define _SubId_ARRAYSIZE ((SubId)(SubId_SUB_MSG_PARAM_IO_LOAD+1))
 
 #define _ParamId_MIN ParamId_PARAM_INVALID
-#define _ParamId_MAX ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD
-#define _ParamId_ARRAYSIZE ((ParamId)(ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD+1))
+#define _ParamId_MAX ParamId_PARAM_STREAM_PHASE_CURRENTS
+#define _ParamId_ARRAYSIZE ((ParamId)(ParamId_PARAM_STREAM_PHASE_CURRENTS+1))
 
 #define _ParamType_MIN ParamType_UNKNOWN
 #define _ParamType_MAX ParamType_STRING
@@ -209,6 +234,10 @@ typedef struct _SwitchModeMessage {
 #define _MotorCtrlCmd_MAX MotorCtrlCmd_DISABLE_OUTPUT_STAGE
 #define _MotorCtrlCmd_ARRAYSIZE ((MotorCtrlCmd)(MotorCtrlCmd_DISABLE_OUTPUT_STAGE+1))
 
+#define _SystemDataId_MIN SystemDataId_SYS_DATA_INVALID
+#define _SystemDataId_MAX SystemDataId_ADC_PHASE_CURRENTS
+#define _SystemDataId_ARRAYSIZE ((SystemDataId)(SystemDataId_ADC_PHASE_CURRENTS+1))
+
 
 
 #define AckNackMessage_status_code_ENUMTYPE StatusCode
@@ -223,6 +252,9 @@ typedef struct _SwitchModeMessage {
 #define SystemControlMessage_motorCmd_ENUMTYPE MotorCtrlCmd
 
 #define SwitchModeMessage_mode_ENUMTYPE BootMode
+
+#define SystemDataMessage_id_ENUMTYPE SystemDataId
+
 
 
 #ifdef __cplusplus
@@ -240,6 +272,8 @@ extern "C" {
 #define ParamIOMessage_init_default              {Header_init_default, false, _ParamId_MIN, false, _ParamType_MIN, false, {0, {0}}}
 #define SystemControlMessage_init_default        {Header_init_default, false, _MotorCtrlCmd_MIN, false, {0, {0}}}
 #define SwitchModeMessage_init_default           {Header_init_default, _BootMode_MIN}
+#define SystemDataMessage_init_default           {Header_init_default, _SystemDataId_MIN, false, {0, {0}}}
+#define SystemDataMessage_ADCPhaseCurrents_init_default {0, 0, 0, 0}
 #define Header_init_zero                         {0, 0, 0}
 #define BaseMessage_init_zero                    {Header_init_zero}
 #define AckNackMessage_init_zero                 {Header_init_zero, 0, _StatusCode_MIN, false, {0, {0}}}
@@ -250,6 +284,8 @@ extern "C" {
 #define ParamIOMessage_init_zero                 {Header_init_zero, false, _ParamId_MIN, false, _ParamType_MIN, false, {0, {0}}}
 #define SystemControlMessage_init_zero           {Header_init_zero, false, _MotorCtrlCmd_MIN, false, {0, {0}}}
 #define SwitchModeMessage_init_zero              {Header_init_zero, _BootMode_MIN}
+#define SystemDataMessage_init_zero              {Header_init_zero, _SystemDataId_MIN, false, {0, {0}}}
+#define SystemDataMessage_ADCPhaseCurrents_init_zero {0, 0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define Header_msgId_tag                         1
@@ -281,6 +317,13 @@ extern "C" {
 #define SystemControlMessage_data_tag            3
 #define SwitchModeMessage_header_tag             1
 #define SwitchModeMessage_mode_tag               2
+#define SystemDataMessage_header_tag             1
+#define SystemDataMessage_id_tag                 2
+#define SystemDataMessage_data_tag               3
+#define SystemDataMessage_ADCPhaseCurrents_timestamp_tag 1
+#define SystemDataMessage_ADCPhaseCurrents_ia_tag 2
+#define SystemDataMessage_ADCPhaseCurrents_ib_tag 3
+#define SystemDataMessage_ADCPhaseCurrents_ic_tag 4
 
 /* Struct field encoding specification for nanopb */
 #define Header_FIELDLIST(X, a) \
@@ -361,6 +404,22 @@ X(a, STATIC,   REQUIRED, UENUM,    mode,              2)
 #define SwitchModeMessage_DEFAULT NULL
 #define SwitchModeMessage_header_MSGTYPE Header
 
+#define SystemDataMessage_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
+X(a, STATIC,   REQUIRED, UENUM,    id,                2) \
+X(a, STATIC,   OPTIONAL, BYTES,    data,              3)
+#define SystemDataMessage_CALLBACK NULL
+#define SystemDataMessage_DEFAULT NULL
+#define SystemDataMessage_header_MSGTYPE Header
+
+#define SystemDataMessage_ADCPhaseCurrents_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, UINT32,   timestamp,         1) \
+X(a, STATIC,   REQUIRED, FLOAT,    ia,                2) \
+X(a, STATIC,   REQUIRED, FLOAT,    ib,                3) \
+X(a, STATIC,   REQUIRED, FLOAT,    ic,                4)
+#define SystemDataMessage_ADCPhaseCurrents_CALLBACK NULL
+#define SystemDataMessage_ADCPhaseCurrents_DEFAULT NULL
+
 extern const pb_msgdesc_t Header_msg;
 extern const pb_msgdesc_t BaseMessage_msg;
 extern const pb_msgdesc_t AckNackMessage_msg;
@@ -371,6 +430,8 @@ extern const pb_msgdesc_t SystemInfoMessage_msg;
 extern const pb_msgdesc_t ParamIOMessage_msg;
 extern const pb_msgdesc_t SystemControlMessage_msg;
 extern const pb_msgdesc_t SwitchModeMessage_msg;
+extern const pb_msgdesc_t SystemDataMessage_msg;
+extern const pb_msgdesc_t SystemDataMessage_ADCPhaseCurrents_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define Header_fields &Header_msg
@@ -383,6 +444,8 @@ extern const pb_msgdesc_t SwitchModeMessage_msg;
 #define ParamIOMessage_fields &ParamIOMessage_msg
 #define SystemControlMessage_fields &SystemControlMessage_msg
 #define SwitchModeMessage_fields &SwitchModeMessage_msg
+#define SystemDataMessage_fields &SystemDataMessage_msg
+#define SystemDataMessage_ADCPhaseCurrents_fields &SystemDataMessage_ADCPhaseCurrents_msg
 
 /* Maximum encoded size of messages (where known) */
 #define AckNackMessage_size                      82
@@ -393,6 +456,8 @@ extern const pb_msgdesc_t SwitchModeMessage_msg;
 #define PingMessage_size                         12
 #define SwitchModeMessage_size                   14
 #define SystemControlMessage_size                80
+#define SystemDataMessage_ADCPhaseCurrents_size  21
+#define SystemDataMessage_size                   40
 #define SystemInfoMessage_size                   69
 #define SystemTick_size                          18
 
