@@ -9,3 +9,7 @@ artifacts/**
 .idea/**
 .conda
 *__pycache__
+
+# KiCAD Project Files
+hw/sim/CurrentSense/CurrentSense-backups/
+hw/sim/HalfBridgeDriver/HalfBridgeDriver-backups/
