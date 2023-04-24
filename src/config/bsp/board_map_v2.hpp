@@ -213,6 +213,8 @@ namespace Orbit::IO
   {
     /*-------------------------------------------------------------------------
     Timer 1 Channel 1
+    V2 Mapping: Phase C
+    V3 Mapping: ???
     -------------------------------------------------------------------------*/
     static constexpr Chimera::GPIO::Pin  pinT1Ch1   = 8;
     static constexpr Chimera::GPIO::Port portT1Ch1  = Chimera::GPIO::Port::PORTA;
@@ -221,6 +223,8 @@ namespace Orbit::IO
 
     /*-------------------------------------------------------------------------
     Timer 1 Channel 2
+    V2 Mapping: Phase B
+    V3 Mapping: ???
     -------------------------------------------------------------------------*/
     static constexpr Chimera::GPIO::Pin  pinT1Ch2   = 9;
     static constexpr Chimera::GPIO::Port portT1Ch2  = Chimera::GPIO::Port::PORTA;
@@ -229,6 +233,8 @@ namespace Orbit::IO
 
     /*-------------------------------------------------------------------------
     Timer 1 Channel 3
+    V2 Mapping: Phase A
+    V3 Mapping: ???
     -------------------------------------------------------------------------*/
     static constexpr Chimera::GPIO::Pin  pinT1Ch3   = 10;
     static constexpr Chimera::GPIO::Port portT1Ch3  = Chimera::GPIO::Port::PORTA;

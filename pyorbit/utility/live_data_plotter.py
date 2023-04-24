@@ -8,7 +8,6 @@
 #   04/16/2023 | Brandon Braun | brandonbraun653@gmail.com
 # **********************************************************************************************************************
 from collections import deque
-
 import pyqtgraph as pg
 import numpy as np
 from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
@@ -31,8 +30,9 @@ class MotorCurrentPlotter(MessageObserver):
         self._com_pipe = pipe
         self._com_pipe.subscribe_observer(self)
 
-        self.y_axis = deque(np.zeros(50), maxlen=50)
-        self.x_axis = deque(np.zeros(50), maxlen=50)
+        length = 1000
+        self.y_axis = deque(np.zeros(length), maxlen=length)
+        self.x_axis = deque(np.zeros(length), maxlen=length)
 
     def _observer_func(self, msg: SystemDataMessage) -> None:
         """

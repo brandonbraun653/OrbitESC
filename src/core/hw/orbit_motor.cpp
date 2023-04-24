@@ -415,7 +415,7 @@ namespace Orbit::Motor
     /*-------------------------------------------------------------------------
     Run PI controllers for motor currents to generate voltage commands
     -------------------------------------------------------------------------*/
-    s_state.iLoop.iqRef = 0.1f;
+    s_state.iLoop.iqRef = 0.0f;
     s_state.iLoop.idRef = 0.0f;
 
     const float iqError = s_state.iLoop.iqRef - s_state.iLoop.iq;
@@ -438,18 +438,18 @@ namespace Orbit::Motor
     Use SVM to convert 3-axis phase voltages to PWM duty cycles
     -------------------------------------------------------------------------*/
     // TODO: Eventually use svm. Currently try out only simple pwm.
-    if ( Chimera::millis() > 10000 )
-    {
+    // if ( Chimera::millis() > 10000 )
+    // {
       s_state.iLoop.pa = Control::Math::clamp( ( 0.5f * s_state.iLoop.pa + 0.5f ) * 100.0f, 0.0f, 100.0f );
       s_state.iLoop.pb = Control::Math::clamp( ( 0.5f * s_state.iLoop.pb + 0.5f ) * 100.0f, 0.0f, 100.0f );
       s_state.iLoop.pc = Control::Math::clamp( ( 0.5f * s_state.iLoop.pc + 0.5f ) * 100.0f, 0.0f, 100.0f );
-    }
-    else
-    {
-      s_state.iLoop.pa = 0.0f;
-      s_state.iLoop.pb = 0.0f;
-      s_state.iLoop.pc = 0.0f;
-    }
+    // }
+    // else
+    // {
+    //   s_state.iLoop.pa = 0.0f;
+    //   s_state.iLoop.pb = 0.0f;
+    //   s_state.iLoop.pc = 0.0f;
+    // }
 
     const uint32_t         angle  = static_cast<uint32_t>( RAD_TO_DEG( s_state.iLoop.theta ) );
     const uint32_t         sector = angle / 60;
@@ -465,7 +465,12 @@ namespace Orbit::Motor
     magnetic vector.
     -------------------------------------------------------------------------*/
     s_motor_ctrl_timer.setForwardCommState( comm );
-    s_motor_ctrl_timer.setPhaseDutyCycle( s_state.iLoop.pa, s_state.iLoop.pb, s_state.iLoop.pc );
+
+    /* Current board mapping is:
+        Ch1: Phase C
+        Ch2: Phase B
+        Ch3: Phase A */
+    s_motor_ctrl_timer.setPhaseDutyCycle( s_state.iLoop.pc, s_state.iLoop.pb, s_state.iLoop.pa );
 
 #if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
     SEGGER_SYSVIEW_RecordExitISR();
@@ -488,13 +493,13 @@ namespace Orbit::Motor
       return;
     }
 
-    s_state.iLoop.theta = 65.0f * 0.0174533f;
+    // s_state.iLoop.theta = 65.0f * 0.0174533f;
 
-    // s_state.iLoop.theta += 0.0174533f;    // 1 degree in radians
-    // if( s_state.iLoop.theta > 6.283185f )
-    // {
-    //   s_state.iLoop.theta -= 6.283185f;
-    // }
+    s_state.iLoop.theta += 0.0174533f;    // 1 degree in radians
+    if( s_state.iLoop.theta > 6.283185f )
+    {
+      s_state.iLoop.theta -= 6.283185f;
+    }
 
     /*-------------------------------------------------------------------------
     Push the latest phase currents into the data queue, assuming its enabled

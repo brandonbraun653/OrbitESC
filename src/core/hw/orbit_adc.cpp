@@ -290,7 +290,13 @@ namespace Orbit::ADC
 
   float sample2PhaseCurrent( const float vin )
   {
-    float raw = vin / ( ISHUNT_AMP_GAIN * RSHUNT_OHM );
+    /*-------------------------------------------------------------------------
+    Calculate backwards from the ADC reading to what the real current is. The
+    op-amp is configured as an inverting amplifier, so a positive current will
+    result in a negative voltage delta. The current is then calculated by
+    dividing the voltage by the shunt resistor and the op-amp gain.
+    -------------------------------------------------------------------------*/
+    float raw = -1.0f * ( vin / ( ISHUNT_AMP_GAIN * RSHUNT_OHM ) );
     return raw;
   }
 
@@ -298,12 +304,6 @@ namespace Orbit::ADC
   float sample2BusVoltage( const float vin )
   {
     return vin * ADC_TO_VDC_CONV_CONST;
-  }
-
-
-  float pIxVRef()
-  {
-    return ISENSE_VREF;
   }
 
 }    // namespace Orbit::ADC
