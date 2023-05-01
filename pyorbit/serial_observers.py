@@ -14,7 +14,7 @@ import time
 import struct
 from functools import cmp_to_key
 from loguru import logger
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Callable
 from pyorbit.serial_pipe import SerialPipe
 from pyorbit.serial_messages import *
 from pyorbit.observer import MessageObserver
@@ -30,17 +30,17 @@ class ConsoleObserver(MessageObserver):
             self.total_frames = 0
             self.frames = []  # type: List[ConsoleMessage]
 
-        def print_message(self) -> None:
+        def message(self) -> str:
             self.frames = sorted(self.frames, key=cmp_to_key(lambda x1, x2: x1.frame_number - x2.frame_number))
             final_msg = ""
             for frame in self.frames:
                 final_msg = final_msg + frame.data.decode("utf-8")
+            return final_msg
 
-            logger.info(final_msg.strip('\n'))
-
-    def __init__(self):
+    def __init__(self, on_msg_rx: Callable[[str], None]):
         super().__init__(func=self._frame_accumulator, msg_type=ConsoleMessage)
         self._frame_lock = Lock()
+        self._on_msg_rx = on_msg_rx
         self._in_progress_frames = {}  # type: Dict[int, ConsoleObserver.FrameBuffer]
         self._processing_thread = Thread(target=self._frame_processor, name="FrameProcessor", daemon=True)
         self._processing_thread.start()
@@ -86,7 +86,8 @@ class ConsoleObserver(MessageObserver):
 
                     # Publish messages that are complete
                     if len(tracker.frames) == tracker.total_frames:
-                        tracker.print_message()
+                        if self._on_msg_rx:
+                            self._on_msg_rx(tracker.message())
                         uuid_delete_list.append(uuid)
 
                 # Handle deleting any stale frames

@@ -60,9 +60,6 @@ class SerialClient:
         Args:
             port: Serial port endpoint to connect with
             baudrate: Desired communication baudrate
-
-        Returns:
-            None
         """
         self._transport = SerialPipe()
         self._transport.open(port=port, baudrate=baudrate)
@@ -79,7 +76,7 @@ class SerialClient:
         # Register known observers
         self._param_observer = ParameterObserver(pipe=self.com_pipe)
         self.com_pipe.subscribe_observer(MessageObserver(func=self._observer_esc_tick, msg_type=SystemTick))
-        self.com_pipe.subscribe_observer(ConsoleObserver())
+        self.com_pipe.subscribe_observer(ConsoleObserver(on_msg_rx=lambda x: logger.info(x.strip('\n'))))
         self.com_pipe.subscribe_observer(self._param_observer)
 
         atexit.register(self._teardown)
