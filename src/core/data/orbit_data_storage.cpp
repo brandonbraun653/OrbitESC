@@ -126,6 +126,13 @@ namespace Orbit::Data
           break;
         }
 
+        case ParamType_BOOL: {
+          bool *val = static_cast<bool *>( node->address );
+          uint8_t x = s_json_cache[ node->key ].as<uint8_t>();
+          *val        = ( x == 1 );
+          break;
+        }
+
         default: {
           LOG_WARN( "Unsupported format specifier for key: %s", node->key );
           break;
@@ -421,8 +428,9 @@ namespace Orbit::Data
     {
       case ParamType_BOOL: {
         RT_DBG_ASSERT( node->maxSize == sizeof( bool ) );
-        auto val = reinterpret_cast<bool *>( node->address );
-        npf_snprintf( s_fmt_buffer.data(), s_fmt_buffer.size(), FMT_BOOL, *( val ) );
+        auto val    = reinterpret_cast<bool *>( node->address );
+        int  result = *val ? 1 : 0;
+        npf_snprintf( s_fmt_buffer.data(), s_fmt_buffer.size(), FMT_BOOL, result );
         break;
       }
 

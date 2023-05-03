@@ -109,4 +109,3 @@ class SerialConsoleVisualizer(QtWidgets.QScrollArea):
         new_msg = message.strip("\n").strip("\r") + "\r\n"
         self._text_widget.insertPlainText(new_msg)
         self._text_widget.verticalScrollBar().setValue(self._text_widget.verticalScrollBar().maximum())
-

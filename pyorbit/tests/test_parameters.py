@@ -178,3 +178,13 @@ class TestMonitorThresholds:
         for setting in test_values:
             assert serial_client.parameter.set(ParameterId.PeakVoltageThreshold, setting)
             assert math.isclose(serial_client.parameter.get(ParameterId.PeakVoltageThreshold), setting, abs_tol=0.0001)
+
+
+@pytest.mark.usefixtures("serial_client")
+class TestSystemControl:
+
+    def test_stream_phase_currents(self, serial_client: SerialClient):
+        assert serial_client.parameter.set(ParameterId.StreamPhaseCurrents, False)
+        assert serial_client.parameter.get(ParameterId.StreamPhaseCurrents) is False
+        assert serial_client.parameter.set(ParameterId.StreamPhaseCurrents, True)
+        assert serial_client.parameter.get(ParameterId.StreamPhaseCurrents) is True

@@ -6,7 +6,6 @@ from loguru import logger
 
 
 class PyOrbitGUI(QMainWindow, Ui_MainWindow):
-
     appTearDownSignal = QtCore.pyqtSignal()
 
     def __init__(self):
@@ -24,10 +23,15 @@ class PyOrbitGUI(QMainWindow, Ui_MainWindow):
 
         # Connect the console output visualizer
         self._serial_connection.onOpenSignal.connect(self.consoleOutput.attach_serial_client)
-        self._serial_connection.onOpenSignal.connect(self.graphWidget.attach_serial_client)
+        self._serial_connection.onOpenSignal.connect(self.liveDataPlotterWidget.attach_serial_client)
 
         self._serial_connection.onCloseSignal.connect(self.consoleOutput.detach_serial_client)
-        self._serial_connection.onCloseSignal.connect(self.graphWidget.detach_serial_client)
+        self._serial_connection.onCloseSignal.connect(self.liveDataPlotterWidget.detach_serial_client)
+
+        # Connect the graph widget
+        self.plotPauseResumeButton.clicked.connect(self.liveDataPlotterWidget.pause_resume_clicked)
+
+        self.liveDataPlotterWidget.init_selection_layout(self.PlotSelectionGridLayout)
 
     def run(self) -> int:
         return self._app.exec()
@@ -45,5 +49,6 @@ class PyOrbitGUI(QMainWindow, Ui_MainWindow):
 
 if __name__ == '__main__':
     import sys
+
     gui = PyOrbitGUI()
     sys.exit(gui.run())

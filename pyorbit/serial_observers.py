@@ -154,6 +154,8 @@ class ParameterObserver(MessageObserver):
                 elif rsp.param_type == ParameterType.UINT8 or rsp.param_type == ParameterType.UINT16 or \
                         rsp.param_type == ParameterType.UINT32:
                     return int(msg)
+                elif rsp.param_type == ParameterType.BOOL:
+                    return True if msg == '1' else False
                 else:
                     logger.warning(f"Don't know how to decode parameter type {rsp.param_type}")
                     return rsp.data
@@ -187,7 +189,7 @@ class ParameterObserver(MessageObserver):
             msg.data = struct.pack('<f', float(value))
         elif msg.param_type == ParameterType.DOUBLE:
             msg.data = struct.pack('<d', float(value))
-        elif msg.param_type == ParameterType.UINT8:
+        elif msg.param_type == ParameterType.UINT8 or msg.param_type == ParameterType.BOOL:
             msg.data = struct.pack('<B', int(value))
         elif msg.param_type == ParameterType.UINT16:
             msg.data = struct.pack('<H', int(value))
