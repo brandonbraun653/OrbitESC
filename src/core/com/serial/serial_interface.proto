@@ -76,6 +76,7 @@ enum ParamId {
 
   // System Behavior
   PARAM_STREAM_PHASE_CURRENTS = 70; // Stream phase currents over serial debug port
+  PARAM_STREAM_PWM_COMMANDS = 71; // Stream PWM commands over serial debug port
 }
 
 enum ParamType {
@@ -189,6 +190,14 @@ message SystemDataMessage {
     required float ia = 2;          // Phase A current in Amps
     required float ib = 3;          // Phase B current in Amps
     required float ic = 4;          // Phase C current in Amps
+  }
+
+  // Message type for the PWM commands sent to the power stage
+  message PWMCommands {
+    required uint32 timestamp = 1;  // System time of measurement in microseconds
+    required float va = 2;          // Phase A voltage command in Volts
+    required float vb = 3;          // Phase B voltage command in Volts
+    required float vc = 4;          // Phase C voltage command in Volts
   }
 
   required Header header = 1;

@@ -48,24 +48,24 @@ class LiveDataPlotter(MessageObserver, PlotWidget):
             return [cls.PhaseACurrent, cls.PhaseBCurrent, cls.PhaseCCurrent]
 
     class PlotColors(Enum):
-        LightBlue = 0x93B7BE
-        MintCream = 0xF1FFFA
-        TimberWolf = 0xD5C7BC
-        RoseTaupe = 0x785964
-        DarkJungleGreen = 0x1C2321
-        Asparagus = 0x90A959
-        EarthYellow = 0xE9B872
-        Redwood = 0xA63D40
-        AirForceBlue = 0x6494AA
-        MyrtleGreen = 0x508484
-        Mint = 0x79C99E
-        CoolGray = 0x7D84B2
-        VistaBlue = 0x8FA6CB
-        Straw = 0xC7D66D
-        MountbattenPink = 0xAD7A99
-        GoldenBrown = 0x9C6615
-        Eggplant = 0x6D435A
-        BrightPink = 0xFF6978
+        ORANGE = 0xFFA500
+        MAROON = 0x800000
+        GREEN = 0x008000
+        OLIVE = 0x808000
+        NAVY = 0x000080
+        PURPLE = 0x800080
+        TEAL = 0x008080
+        SILVER = 0xc0c0c0
+        GRAY = 0x808080
+        RED = 0xff0000
+        LIME = 0x00ff00
+        YELLOW = 0xffff00
+        BLUE = 0x0000ff
+        FUCHSIA = 0xff00ff
+        AQUA = 0x00ffff
+        WHITE = 0xffffff
+        LIGHTGRAY = 0xd3d3d3
+        DARKGRAY = 0xa9a9a9
 
         @classmethod
         def as_int_list(cls) -> List[int]:
@@ -114,7 +114,6 @@ class LiveDataPlotter(MessageObserver, PlotWidget):
         """
         # Set the default y-axis range
         self.getPlotItem().setRange(yRange=[-1, 1])
-        self.enableAutoRange('xy', True)
 
         # Initialize the plot control objects
         for idx in range(layout.count()):
@@ -232,6 +231,8 @@ class LiveDataPlotter(MessageObserver, PlotWidget):
                 x = np.array(attr.time)
                 y = np.array(attr.data)
                 attr.plot.setData(x, y)
+
+        self.enableAutoRange('xy', True)
 
     def _process_phase_current_stream_status(self) -> None:
         """
