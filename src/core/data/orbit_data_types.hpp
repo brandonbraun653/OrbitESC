@@ -117,6 +117,7 @@ namespace Orbit::Data
     System Behavior
     -------------------------------------------------------------------------*/
     bool streamPhaseCurrents; /**< PARAM_STREAM_PHASE_CURRENTS */
+    bool streamPwmCommands;   /**< PARAM_STREAM_PWM_COMMANDS */
 
     void clear();
     void setDefaults();

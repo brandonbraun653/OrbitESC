@@ -12,6 +12,8 @@
 #ifndef ORBIT_SERIAL_RUNTIME_HPP
 #define ORBIT_SERIAL_RUNTIME_HPP
 
+#include <src/core/com/serial/serial_async_message.hpp>
+
 namespace Orbit::Serial
 {
   /*---------------------------------------------------------------------------
@@ -31,6 +33,14 @@ namespace Orbit::Serial
    * @brief High level handler for parameter IO requests
    */
   void handleParamIOEvent();
+
+  /**
+   * @brief Enqueues a data message to be sent out over the serial bus
+   * @note This is a non-blocking call that's safe to call from an ISR
+   *
+   * @param msg The data message to send
+   */
+  void publishDataMessage( const Message::SysData &msg );
 
 }  // namespace Orbit::Serial
 

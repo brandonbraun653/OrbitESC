@@ -47,6 +47,10 @@ class LiveDataPlotter(MessageObserver, PlotWidget):
         def phase_currents(cls) -> List[LiveDataPlotter.DataFields]:
             return [cls.PhaseACurrent, cls.PhaseBCurrent, cls.PhaseCCurrent]
 
+        @classmethod
+        def pwm_commands(cls) -> List[LiveDataPlotter.DataFields]:
+            return [cls.PhaseACommand, cls.PhaseBCommand, cls.PhaseCCommand]
+
     class PlotColors(Enum):
         ORANGE = 0xFFA500
         MAROON = 0x800000
@@ -98,6 +102,7 @@ class LiveDataPlotter(MessageObserver, PlotWidget):
         self._plot_refresh_timer = QtCore.QTimer()
         self._plot_refresh_timer.timeout.connect(self._update_plot)
         self._need_phase_currents = False
+        self._need_pwm_commands = False
 
         for idx in range(len(self._plot_attributes)):
             self._plot_attributes[idx].color = LiveDataPlotter.PlotColors.as_rgb_list()[idx]
@@ -198,6 +203,7 @@ class LiveDataPlotter(MessageObserver, PlotWidget):
 
         # Perform debug pipe bandwidth optimization measures
         self._process_phase_current_stream_status()
+        self._process_pwm_command_stream_status()
 
     @QtCore.pyqtSlot(int)
     def _combo_box_selected(self, index: int) -> None:
@@ -208,6 +214,8 @@ class LiveDataPlotter(MessageObserver, PlotWidget):
         data = msg.convert_to_message_type()
         if data is None:
             return
+
+        # Motor Measured Current per Phase
         elif isinstance(data, SystemDataMessage.ADCPhaseCurrents):
             time_in_sec = data.timestamp / 1e6
             for f in self.DataFields.phase_currents():
@@ -223,6 +231,24 @@ class LiveDataPlotter(MessageObserver, PlotWidget):
                 elif f == self.DataFields.PhaseBCurrent:
                     attributes.data.append(data.phase_b)
                 elif f == self.DataFields.PhaseCCurrent:
+                    attributes.data.append(data.phase_c)
+
+        # Motor PWM Commands
+        elif isinstance(data, SystemDataMessage.PWMCommands):
+            time_in_sec = data.timestamp / 1e6
+            for f in self.DataFields.pwm_commands():
+                # Make sure we have a valid field
+                attributes = self._get_field_attributes(f)
+                if attributes is None:
+                    continue
+
+                # Update the data fields
+                attributes.time.append(time_in_sec)
+                if f == self.DataFields.PhaseACommand:
+                    attributes.data.append(data.phase_a)
+                elif f == self.DataFields.PhaseBCommand:
+                    attributes.data.append(data.phase_b)
+                elif f == self.DataFields.PhaseCCommand:
                     attributes.data.append(data.phase_c)
 
     def _update_plot(self) -> None:
@@ -260,6 +286,33 @@ class LiveDataPlotter(MessageObserver, PlotWidget):
                 self._need_phase_currents = True
             else:
                 logger.error("Failed to enable phase current stream")
+
+    def _process_pwm_command_stream_status(self) -> None:
+        """
+        Checks the status of all pwm command plots and enables/disables the embedded software
+        data stream on-demand. This helps to save bandwidth if the data isn't actually being used.
+
+        Returns:
+            None
+        """
+        # Check if any pwm command plots are enabled
+        pwm_command_fields = [self.DataFields.PhaseACommand, self.DataFields.PhaseBCommand,
+                              self.DataFields.PhaseCCommand]
+        any_pwm_commands_enabled = any([self._plot_field_is_enabled(f.value) for f in pwm_command_fields])
+
+        # Enable/disable the pwm command stream based on the current status
+        if self._need_pwm_commands and not any_pwm_commands_enabled:
+            logger.trace("Disabling pwm command stream")
+            if self._serial_client.parameter.set(ParameterId.StreamPWMCommands, False):
+                self._need_pwm_commands = False
+            else:
+                logger.error("Failed to disable pwm command stream")
+        elif not self._need_pwm_commands and any_pwm_commands_enabled:
+            logger.trace("Enabling pwm command stream")
+            if self._serial_client.parameter.set(ParameterId.StreamPWMCommands, True):
+                self._need_pwm_commands = True
+            else:
+                logger.error("Failed to enable pwm command stream")
 
     def _plot_field_is_enabled(self, data_field: str):
         """

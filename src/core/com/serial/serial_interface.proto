@@ -115,6 +115,7 @@ enum MotorCtrlCmd {
 enum SystemDataId {
   SYS_DATA_INVALID = 0; // Invalid data ID
   ADC_PHASE_CURRENTS = 1; // ADC readings of the phase currents
+  PWM_COMMANDS = 2; // PWM commands being sent to the motor
 }
 
 // Instrumentation message header common to all types. Each functional message type **must**

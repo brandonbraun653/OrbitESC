@@ -26,7 +26,7 @@ namespace Orbit::Data
   /*---------------------------------------------------------------------------
   Aliases
   ---------------------------------------------------------------------------*/
-  using ParameterList = std::array<ParameterNode, 30>;
+  using ParameterList = std::array<ParameterNode, 31>;
 
   /*---------------------------------------------------------------------------
   Constants
@@ -276,6 +276,13 @@ namespace Orbit::Data
                       .key      = "stream_phase_currents",
                       .address  = &SysConfig.streamPhaseCurrents,
                       .maxSize  = sizeof( SysConfig.streamPhaseCurrents ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_STREAM_PWM_COMMANDS,
+                      .type     = ParamType_BOOL,
+                      .key      = "stream_pwm_commands",
+                      .address  = &SysConfig.streamPwmCommands,
+                      .maxSize  = sizeof( SysConfig.streamPwmCommands ),
                       .validator = nullptr },
 
       /***** Add new entries above here *****/

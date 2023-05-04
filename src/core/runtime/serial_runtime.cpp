@@ -13,6 +13,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/logging>
 #include <Chimera/assert>
+#include <etl/queue_spsc_atomic.h>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/com/serial/serial_async_message.hpp>
 #include <src/core/com/serial/serial_router.hpp>
@@ -26,10 +27,17 @@ Includes
 namespace Orbit::Serial
 {
   /*---------------------------------------------------------------------------
+  Aliases
+  ---------------------------------------------------------------------------*/
+  using SystemDataQueue =
+      etl::queue_spsc_atomic<Message::SysData, 64, etl::memory_model::MEMORY_MODEL_SMALL>;
+
+  /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
   static etl::circular_buffer<uint8_t, 1024> s_msg_buffer;
   static Orbit::Serial::DispatchServer       s_server;
+  static SystemDataQueue                     s_sys_data_queue;
 
   /*---------------------------------------------------------------------------
   Router Declarations
@@ -173,7 +181,20 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Flush any data messages that need to be sent
     -------------------------------------------------------------------------*/
-    Motor::flushDataQueue();
+    while( !s_sys_data_queue.empty() )
+    {
+      auto msg = s_sys_data_queue.front();
+      msg.encode();
+
+      if ( Chimera::Status::OK == msg.send( Orbit::USART::SerialDriver ) )
+      {
+        s_sys_data_queue.pop();
+      }
+      else
+      {
+        break;
+      }
+    }
   }
 
 
@@ -207,5 +228,11 @@ namespace Orbit::Serial
           break;
       }
     }
+  }
+
+
+  void publishDataMessage( const Message::SysData &msg )
+  {
+    s_sys_data_queue.push( msg );
   }
 }    // namespace Orbit::Serial

@@ -25,6 +25,7 @@ Includes
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 #include <src/core/hw/orbit_usart.hpp>
+#include <src/core/runtime/serial_runtime.hpp>
 
 #if defined( EMBEDDED )
 #include <Thor/lld/interface/inc/timer>
@@ -48,8 +49,6 @@ namespace Orbit::Motor
   Aliases
   ---------------------------------------------------------------------------*/
   using LpFilter = Control::Math::FIR<float, 15>;
-  using PhaseCurrentSampleQueue =
-      etl::queue_spsc_atomic<SystemDataMessage_ADCPhaseCurrents, 16, etl::memory_model::MEMORY_MODEL_SMALL>;
 
   /*---------------------------------------------------------------------------
   Constants
@@ -208,7 +207,6 @@ namespace Orbit::Motor
   static Chimera::Timer::Trigger::Master  s_speed_ctrl_timer;      /**< Trigger for the speed control loop */
   static ADCControl                       s_adc_control;           /**< ADC control data */
   static State                            s_state;                 /**< State of the motor controller */
-  static PhaseCurrentSampleQueue          s_phase_current_samples; /**< Queue for storing phase current samples */
 
 
   static volatile uint8_t  lastCommutation = 0;
@@ -218,8 +216,282 @@ namespace Orbit::Motor
   /*---------------------------------------------------------------------------
   Static Functions
   ---------------------------------------------------------------------------*/
-  static void adcISRTxfrComplete( const Chimera::ADC::InterruptDetail &isr );
-  static void timer_isr_speed_controller();
+  /**
+   * @brief Captures the latest phase current sample and enqueues it for transmission
+   *
+   * @param time_us System time in microseconds
+   */
+  static void publishPhaseCurrents( const uint32_t time_us )
+  {
+    /*-------------------------------------------------------------------------
+    Local Constants
+    -------------------------------------------------------------------------*/
+    static constexpr uint32_t publish_delta_us = 4 * 1000; /* 250Hz */
+
+    /*-------------------------------------------------------------------------
+    Local Variables
+    -------------------------------------------------------------------------*/
+    static uint32_t last_publish = 0;
+
+    /*-------------------------------------------------------------------------
+    Wait until it's time to publish the next message
+    -------------------------------------------------------------------------*/
+    if ( !Data::SysConfig.streamPhaseCurrents || ( ( time_us - last_publish ) < publish_delta_us ) )
+    {
+      return;
+    }
+
+    last_publish = time_us;
+
+    /*-------------------------------------------------------------------------
+    Populate the message
+    -------------------------------------------------------------------------*/
+    SystemDataMessage_ADCPhaseCurrents msg;
+    msg.timestamp = time_us;
+    msg.ia        = s_state.iLoop.ima;
+    msg.ib        = s_state.iLoop.imb;
+    msg.ic        = s_state.iLoop.imc;
+
+    /*-------------------------------------------------------------------------
+    Pack the message data and publish it
+    -------------------------------------------------------------------------*/
+    Serial::Message::SysData sysDataMsg;
+    sysDataMsg.reset();
+    sysDataMsg.payload.header.msgId = MsgId_MSG_SYS_DATA;
+    sysDataMsg.payload.header.subId = 0;
+    sysDataMsg.payload.header.uuid  = Serial::Message::getNextUUID();
+    sysDataMsg.payload.id           = SystemDataId_ADC_PHASE_CURRENTS;
+    sysDataMsg.payload.has_data     = true;
+    sysDataMsg.payload.data.size    = sizeof( SystemDataMessage_ADCPhaseCurrents );
+    memcpy( &sysDataMsg.payload.data.bytes, &msg, sizeof( SystemDataMessage_ADCPhaseCurrents ) );
+
+    Serial::publishDataMessage( sysDataMsg );
+  }
+
+  /**
+   * @brief Captures the latest phase pwm commands and enqueues it for transmission
+   *
+   * @param time_us System time in microseconds
+   */
+  static void publishPhaseCommands( const uint32_t time_us )
+  {
+    /*-------------------------------------------------------------------------
+    Local Constants
+    -------------------------------------------------------------------------*/
+    static constexpr uint32_t publish_delta_us = 25 * 1000;  /* 40Hz */
+
+    /*-------------------------------------------------------------------------
+    Local Variables
+    -------------------------------------------------------------------------*/
+    static uint32_t last_publish = 0;
+
+    /*-------------------------------------------------------------------------
+    Wait until it's time to publish the next message
+    -------------------------------------------------------------------------*/
+    if ( !Data::SysConfig.streamPwmCommands || ( ( time_us - last_publish ) < publish_delta_us ) )
+    {
+      return;
+    }
+
+    last_publish = time_us;
+
+    /*-------------------------------------------------------------------------
+    Populate the message
+    -------------------------------------------------------------------------*/
+    SystemDataMessage_PWMCommands msg;
+    msg.timestamp = time_us;
+    msg.va        = s_state.iLoop.pa;
+    msg.vb        = s_state.iLoop.pb;
+    msg.vc        = s_state.iLoop.pc;
+
+    /*-------------------------------------------------------------------------
+    Pack the message data and publish it
+    -------------------------------------------------------------------------*/
+    Serial::Message::SysData sysDataMsg;
+    sysDataMsg.reset();
+    sysDataMsg.payload.header.msgId = MsgId_MSG_SYS_DATA;
+    sysDataMsg.payload.header.subId = 0;
+    sysDataMsg.payload.header.uuid  = Serial::Message::getNextUUID();
+    sysDataMsg.payload.id           = SystemDataId_PWM_COMMANDS;
+    sysDataMsg.payload.has_data     = true;
+    sysDataMsg.payload.data.size    = sizeof( msg );
+    memcpy( &sysDataMsg.payload.data.bytes, &msg, sizeof( msg ) );
+
+    Serial::publishDataMessage( sysDataMsg );
+  }
+
+
+  static void adcISRTxfrComplete( const Chimera::ADC::InterruptDetail &isr )
+  {
+    using namespace Orbit::Control::Math;
+    using namespace Chimera::Timer::Inverter;
+
+#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
+    SEGGER_SYSVIEW_RecordEnterISR();
+#endif
+
+    /*-------------------------------------------------------------------------
+    Process the raw ADC data
+    -------------------------------------------------------------------------*/
+    const float counts_to_volts = isr.vref / isr.resolution;
+
+    s_adc_control.sampleTimeUs = Chimera::micros();
+    for ( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
+    {
+      const float sampledAsVoltage = static_cast<float>( isr.samples[ i ] ) * counts_to_volts;
+      const float correctedVoltage = sampledAsVoltage - s_adc_control.data[ i ].calOffset;
+
+      s_adc_control.data[ i ].measured = correctedVoltage; // s_adc_control.data[ i ].lpFilter.step( correctedVoltage );
+      s_adc_control.data[ i ].calSamples++;
+
+      if ( s_adc_control.calibrating && ( s_adc_control.data[ i ].calSamples >= 100 ) )
+      {
+        s_adc_control.data[ i ].calSum += s_adc_control.data[ i ].measured;
+      }
+    }
+
+    /*-------------------------------------------------------------------------
+    Allow the calibration sequence to proceed if enabled
+    -------------------------------------------------------------------------*/
+    if ( s_adc_control.calibrating && ( ( Chimera::millis() - s_adc_control.calStartTime ) > 500 ) )
+    {
+      s_adc_control.calibrating = false;
+      s_state.isrControlActive  = true;
+
+      for ( size_t i = 0; i < ADC_CH_MOTOR_SUPPLY_VOLTAGE; i++ )
+      {
+        s_adc_control.data[ i ].calOffset = s_adc_control.data[ i ].calSum / ( s_adc_control.data[ i ].calSamples - 100 );
+      }
+    }
+
+    /*-------------------------------------------------------------------------
+    Gate the behavior of this ISR without stopping the Timer/ADC/DMA hardware
+    -------------------------------------------------------------------------*/
+    if ( !s_state.isrControlActive || s_adc_control.calibrating )
+    {
+      return;
+    }
+
+    /*-------------------------------------------------------------------------
+    Translate the raw ADC measurements into meaningful values
+    -------------------------------------------------------------------------*/
+    s_state.iLoop.ima = Orbit::ADC::sample2PhaseCurrent( s_adc_control.data[ ADC_CH_MOTOR_PHASE_A_CURRENT ].measured );
+    s_state.iLoop.imb = Orbit::ADC::sample2PhaseCurrent( s_adc_control.data[ ADC_CH_MOTOR_PHASE_B_CURRENT ].measured );
+    s_state.iLoop.imc = Orbit::ADC::sample2PhaseCurrent( s_adc_control.data[ ADC_CH_MOTOR_PHASE_C_CURRENT ].measured );
+    s_state.iLoop.vm  = Orbit::ADC::sample2BusVoltage( s_adc_control.data[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].measured );
+
+    /*-------------------------------------------------------------------------
+    Use Clarke Transform to convert phase currents from 3-axis to 2-axis
+    -------------------------------------------------------------------------*/
+    clarke_transform( s_state.iLoop.ima, s_state.iLoop.imb, s_state.iLoop.ia, s_state.iLoop.ib );
+
+    /*-------------------------------------------------------------------------
+    Use Park Transform to convert phase currents from 2-axis to d-q axis
+    -------------------------------------------------------------------------*/
+    park_transform( s_state.iLoop.ia, s_state.iLoop.ib, s_state.iLoop.theta, s_state.iLoop.iq, s_state.iLoop.id );
+
+    /*-------------------------------------------------------------------------
+    Use sliding mode controller to estimate rotor speed and position
+    -------------------------------------------------------------------------*/
+    // TODO: Placeholder for a function call. Will need to select between manual ramp or closed loop
+    // s_state.iLoop.omega = 0.0f;
+    // s_state.iLoop.theta = 0.0f;
+
+    /*-------------------------------------------------------------------------
+    Run PI controllers for motor currents to generate voltage commands
+    -------------------------------------------------------------------------*/
+    s_state.iLoop.iqRef = 0.0002f; // Simulink model was using this in startup?
+    s_state.iLoop.idRef = 0.0f;
+
+    const float iqError = s_state.iLoop.iqRef - s_state.iLoop.iq;
+    s_state.iLoop.vq    = s_state.iLoop.iqPID.run( iqError );
+
+    const float idError = s_state.iLoop.idRef - s_state.iLoop.id;
+    s_state.iLoop.vd    = s_state.iLoop.idPID.run( idError );
+
+    /*-------------------------------------------------------------------------
+    Use Inverse Park Transform to convert d-q voltages to 2-axis phase voltages
+    -------------------------------------------------------------------------*/
+    inverse_park_transform( s_state.iLoop.vq, s_state.iLoop.vd, s_state.iLoop.theta, s_state.iLoop.va, s_state.iLoop.vb );
+
+    /*-------------------------------------------------------------------------
+    Use Inverse Clarke Transform to convert 2-axis phase voltages to 3-axis
+    -------------------------------------------------------------------------*/
+    float pa = 0.0f;
+    float pb = 0.0f;
+    float pc = 0.0f;
+    inverse_clarke_transform( s_state.iLoop.va, s_state.iLoop.vb, pa, pb, pc );
+
+    /*-------------------------------------------------------------------------
+    Use SVM to convert 3-axis phase voltages to PWM duty cycles
+    -------------------------------------------------------------------------*/
+    // TODO: Eventually use svm. Currently try out only simple pwm.
+    s_state.iLoop.pa = Control::Math::clamp( ( 0.5f * pa ) + 0.5f, 0.0f, 1.0f );
+    s_state.iLoop.pb = Control::Math::clamp( ( 0.5f * pb ) + 0.5f, 0.0f, 1.0f );
+    s_state.iLoop.pc = Control::Math::clamp( ( 0.5f * pc ) + 0.5f, 0.0f, 1.0f );
+
+    const uint32_t         angle  = static_cast<uint32_t>( RAD_TO_DEG( s_state.iLoop.theta ) );
+    const uint32_t         sector = angle / 60;
+    const CommutationState comm   = static_cast<CommutationState>( sector );
+    // Depending on the rotation direction, some one-way hysteresis may be needed
+
+    /*-------------------------------------------------------------------------
+    Apply the current motor control commands. At its most basic form, the
+    commutation state (and it's rate of change) controls the rotation of the
+    magnetic field vector that actually drives the motor. The phase duty cycle
+    controls the magnitude of the current flowing through the motor coils, which
+    in turn controls the torque and how well the rotor is able to track the
+    magnetic vector.
+    -------------------------------------------------------------------------*/
+    s_motor_ctrl_timer.setForwardCommState( comm );
+
+    /* Current board mapping is:
+        Ch1: Phase C
+        Ch2: Phase B
+        Ch3: Phase A */
+    s_motor_ctrl_timer.setPhaseDutyCycle( s_state.iLoop.pc, s_state.iLoop.pb, s_state.iLoop.pa );
+
+#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
+    SEGGER_SYSVIEW_RecordExitISR();
+#endif
+  }
+
+
+  static void timer_isr_speed_controller()
+  {
+#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
+    SEGGER_SYSVIEW_RecordEnterISR();
+#endif
+
+    /*-------------------------------------------------------------------------
+    Gate the behavior of this ISR without stopping the Timer/ADC/DMA hardware
+    -------------------------------------------------------------------------*/
+    s_speed_ctrl_timer.ackISR();
+    if ( !s_state.isrControlActive )
+    {
+      return;
+    }
+
+    // s_state.iLoop.theta = 65.0f * 0.0174533f;
+
+    s_state.iLoop.theta += 0.0174533f;    // 1 degree in radians
+    if( s_state.iLoop.theta > 6.283185f )
+    {
+      s_state.iLoop.theta -= 6.283185f;
+    }
+
+    /*-------------------------------------------------------------------------
+    Push the latest streaming parameters into the transmission buffer
+    -------------------------------------------------------------------------*/
+    const uint32_t timestamp = Chimera::micros();
+    publishPhaseCurrents( timestamp );
+    publishPhaseCommands( timestamp );
+
+#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
+    SEGGER_SYSVIEW_RecordExitISR();
+#endif
+  }
+
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -232,8 +504,6 @@ namespace Orbit::Motor
     s_state.isrControlActive = false;
     s_state.commutationPhase = 0;
     s_state.controlState     = ControlState::IDLE;
-    s_phase_current_samples.clear();
-
 
     // ! Testing
     s_state.currentTime   = 0.0f;
@@ -243,13 +513,17 @@ namespace Orbit::Motor
 
     s_state.iLoop.clear();
 
-    s_state.iLoop.iqPID.OutMinLimit = 0.0f;
+    /*
+    PID tunings were taken from:
+    https://www.mathworks.com/help/mcb/gs/sensorless-foc-pmsm-smo-fo.html
+    */
+    s_state.iLoop.iqPID.OutMinLimit = -1.0f;
     s_state.iLoop.iqPID.OutMaxLimit = 1.0f;
-    s_state.iLoop.iqPID.setTunings( 0.1f, 0.0f, 0.0f, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
+    s_state.iLoop.iqPID.setTunings( 1.7011f, 0.15494f, 0.0f, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
 
-    s_state.iLoop.idPID.OutMinLimit = 0.0f;
+    s_state.iLoop.idPID.OutMinLimit = -1.0f;
     s_state.iLoop.idPID.OutMaxLimit = 1.0f;
-    s_state.iLoop.idPID.setTunings( 0.1f, 0.0f, 0.0f, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
+    s_state.iLoop.idPID.setTunings( 1.7011f, 0.15494f, 0.0f, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
     // ! Testing
 
     /*-------------------------------------------------------------------------
@@ -333,223 +607,6 @@ namespace Orbit::Motor
 
     s_adc_control.startCalibration();
     adc->startSequence();
-  }
-
-
-  static void adcISRTxfrComplete( const Chimera::ADC::InterruptDetail &isr )
-  {
-    using namespace Orbit::Control::Math;
-    using namespace Chimera::Timer::Inverter;
-
-#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
-    SEGGER_SYSVIEW_RecordEnterISR();
-#endif
-
-    /*-------------------------------------------------------------------------
-    Process the raw ADC data
-    -------------------------------------------------------------------------*/
-    const float counts_to_volts = isr.vref / isr.resolution;
-
-    s_adc_control.sampleTimeUs = Chimera::micros();
-    for ( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
-    {
-      const float sampledAsVoltage = static_cast<float>( isr.samples[ i ] ) * counts_to_volts;
-      const float correctedVoltage = sampledAsVoltage - s_adc_control.data[ i ].calOffset;
-
-      s_adc_control.data[ i ].measured = s_adc_control.data[ i ].lpFilter.step( correctedVoltage );
-      s_adc_control.data[ i ].calSamples++;
-
-      if ( s_adc_control.calibrating && ( s_adc_control.data[ i ].calSamples >= 100 ) )
-      {
-        s_adc_control.data[ i ].calSum += s_adc_control.data[ i ].measured;
-      }
-    }
-
-    /*-------------------------------------------------------------------------
-    Allow the calibration sequence to proceed if enabled
-    -------------------------------------------------------------------------*/
-    if ( s_adc_control.calibrating && ( ( Chimera::millis() - s_adc_control.calStartTime ) > 500 ) )
-    {
-      s_adc_control.calibrating = false;
-      s_state.isrControlActive  = true;
-
-      for ( size_t i = 0; i < ADC_CH_MOTOR_SUPPLY_VOLTAGE; i++ )
-      {
-        s_adc_control.data[ i ].calOffset = s_adc_control.data[ i ].calSum / ( s_adc_control.data[ i ].calSamples - 100 );
-      }
-    }
-
-    /*-------------------------------------------------------------------------
-    Gate the behavior of this ISR without stopping the Timer/ADC/DMA hardware
-    -------------------------------------------------------------------------*/
-    if ( !s_state.isrControlActive || s_adc_control.calibrating )
-    {
-      return;
-    }
-
-    /*-------------------------------------------------------------------------
-    Translate the raw ADC measurements into meaningful values
-    -------------------------------------------------------------------------*/
-    s_state.iLoop.ima = Orbit::ADC::sample2PhaseCurrent( s_adc_control.data[ ADC_CH_MOTOR_PHASE_A_CURRENT ].measured );
-    s_state.iLoop.imb = Orbit::ADC::sample2PhaseCurrent( s_adc_control.data[ ADC_CH_MOTOR_PHASE_B_CURRENT ].measured );
-    s_state.iLoop.imc = Orbit::ADC::sample2PhaseCurrent( s_adc_control.data[ ADC_CH_MOTOR_PHASE_C_CURRENT ].measured );
-    s_state.iLoop.vm  = Orbit::ADC::sample2BusVoltage( s_adc_control.data[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].measured );
-
-    /*-------------------------------------------------------------------------
-    Use Clarke Transform to convert phase currents from 3-axis to 2-axis
-    -------------------------------------------------------------------------*/
-    clarke_transform( s_state.iLoop.ima, s_state.iLoop.imb, s_state.iLoop.ia, s_state.iLoop.ib );
-
-    /*-------------------------------------------------------------------------
-    Use Park Transform to convert phase currents from 2-axis to d-q axis
-    -------------------------------------------------------------------------*/
-    park_transform( s_state.iLoop.ia, s_state.iLoop.ib, s_state.iLoop.theta, s_state.iLoop.iq, s_state.iLoop.id );
-
-    /*-------------------------------------------------------------------------
-    Use sliding mode controller to estimate rotor speed and position
-    -------------------------------------------------------------------------*/
-    // TODO: Placeholder for a function call. Will need to select between manual ramp or closed loop
-    // s_state.iLoop.omega = 0.0f;
-    // s_state.iLoop.theta = 0.0f;
-
-    /*-------------------------------------------------------------------------
-    Run PI controllers for motor currents to generate voltage commands
-    -------------------------------------------------------------------------*/
-    s_state.iLoop.iqRef = 0.0f;
-    s_state.iLoop.idRef = 0.0f;
-
-    const float iqError = s_state.iLoop.iqRef - s_state.iLoop.iq;
-    s_state.iLoop.vq    = s_state.iLoop.iqPID.run( iqError );
-
-    const float idError = s_state.iLoop.idRef - s_state.iLoop.id;
-    s_state.iLoop.vd    = s_state.iLoop.idPID.run( idError );
-
-    /*-------------------------------------------------------------------------
-    Use Inverse Park Transform to convert d-q voltages to 2-axis phase voltages
-    -------------------------------------------------------------------------*/
-    inverse_park_transform( s_state.iLoop.vq, s_state.iLoop.vd, s_state.iLoop.theta, s_state.iLoop.va, s_state.iLoop.vb );
-
-    /*-------------------------------------------------------------------------
-    Use Inverse Clarke Transform to convert 2-axis phase voltages to 3-axis
-    -------------------------------------------------------------------------*/
-    inverse_clarke_transform( s_state.iLoop.va, s_state.iLoop.vb, s_state.iLoop.pa, s_state.iLoop.pb, s_state.iLoop.pc );
-
-    /*-------------------------------------------------------------------------
-    Use SVM to convert 3-axis phase voltages to PWM duty cycles
-    -------------------------------------------------------------------------*/
-    // TODO: Eventually use svm. Currently try out only simple pwm.
-    // if ( Chimera::millis() > 10000 )
-    // {
-      s_state.iLoop.pa = Control::Math::clamp( ( 0.5f * s_state.iLoop.pa + 0.5f ) * 100.0f, 0.0f, 100.0f );
-      s_state.iLoop.pb = Control::Math::clamp( ( 0.5f * s_state.iLoop.pb + 0.5f ) * 100.0f, 0.0f, 100.0f );
-      s_state.iLoop.pc = Control::Math::clamp( ( 0.5f * s_state.iLoop.pc + 0.5f ) * 100.0f, 0.0f, 100.0f );
-    // }
-    // else
-    // {
-    //   s_state.iLoop.pa = 0.0f;
-    //   s_state.iLoop.pb = 0.0f;
-    //   s_state.iLoop.pc = 0.0f;
-    // }
-
-    const uint32_t         angle  = static_cast<uint32_t>( RAD_TO_DEG( s_state.iLoop.theta ) );
-    const uint32_t         sector = angle / 60;
-    const CommutationState comm   = static_cast<CommutationState>( sector );
-
-
-    /*-------------------------------------------------------------------------
-    Apply the current motor control commands. At its most basic form, the
-    commutation state (and it's rate of change) controls the rotation of the
-    magnetic field vector that actually drives the motor. The phase duty cycle
-    controls the magnitude of the current flowing through the motor coils, which
-    in turn controls the torque and how well the rotor is able to track the
-    magnetic vector.
-    -------------------------------------------------------------------------*/
-    s_motor_ctrl_timer.setForwardCommState( comm );
-
-    /* Current board mapping is:
-        Ch1: Phase C
-        Ch2: Phase B
-        Ch3: Phase A */
-    s_motor_ctrl_timer.setPhaseDutyCycle( s_state.iLoop.pc, s_state.iLoop.pb, s_state.iLoop.pa );
-
-#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
-    SEGGER_SYSVIEW_RecordExitISR();
-#endif
-  }
-
-
-  static void timer_isr_speed_controller()
-  {
-#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
-    SEGGER_SYSVIEW_RecordEnterISR();
-#endif
-
-    /*-------------------------------------------------------------------------
-    Gate the behavior of this ISR without stopping the Timer/ADC/DMA hardware
-    -------------------------------------------------------------------------*/
-    s_speed_ctrl_timer.ackISR();
-    if ( !s_state.isrControlActive )
-    {
-      return;
-    }
-
-    // s_state.iLoop.theta = 65.0f * 0.0174533f;
-
-    s_state.iLoop.theta += 0.0174533f;    // 1 degree in radians
-    if( s_state.iLoop.theta > 6.283185f )
-    {
-      s_state.iLoop.theta -= 6.283185f;
-    }
-
-    /*-------------------------------------------------------------------------
-    Push the latest phase currents into the data queue, assuming its enabled
-    -------------------------------------------------------------------------*/
-    if ( Data::SysConfig.streamPhaseCurrents )
-    {
-      SystemDataMessage_ADCPhaseCurrents msg;
-      msg.timestamp = Chimera::micros();
-      msg.ia        = s_state.iLoop.ima;
-      msg.ib        = s_state.iLoop.imb;
-      msg.ic        = s_state.iLoop.imc;
-
-      s_phase_current_samples.push( msg );
-    }
-
-#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
-    SEGGER_SYSVIEW_RecordExitISR();
-#endif
-  }
-
-
-  void flushDataQueue()
-  {
-    Serial::Message::SysData sysDataMsg;
-    Chimera::Status_t        sendResult = Chimera::Status::OK;
-
-    while ( !s_phase_current_samples.empty() )
-    {
-      auto sample = s_phase_current_samples.front();
-
-      sysDataMsg.reset();
-      sysDataMsg.payload.header.msgId = MsgId_MSG_SYS_DATA;
-      sysDataMsg.payload.header.subId = 0;
-      sysDataMsg.payload.header.uuid  = Serial::Message::getNextUUID();
-      sysDataMsg.payload.id           = SystemDataId_ADC_PHASE_CURRENTS;
-      sysDataMsg.payload.has_data     = true;
-      sysDataMsg.payload.data.size    = sizeof( SystemDataMessage_ADCPhaseCurrents );
-      memcpy( &sysDataMsg.payload.data.bytes, &sample, sizeof( SystemDataMessage_ADCPhaseCurrents ) );
-
-      sysDataMsg.encode();
-      sendResult = sysDataMsg.send( Orbit::USART::SerialDriver );
-      if ( sendResult != Chimera::Status::OK )
-      {
-        break;
-      }
-      else
-      {
-        s_phase_current_samples.pop();
-      }
-    }
   }
 
 }    // namespace Orbit::Motor

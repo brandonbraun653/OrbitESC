@@ -137,6 +137,7 @@ namespace Orbit::Data
 
     /* System Behavior */
     streamPhaseCurrents = false;
+    streamPwmCommands   = false;
   }
 
   void Configuration::setDefaults()
@@ -157,6 +158,7 @@ namespace Orbit::Data
     peakVoltageThreshold = DFLT_PEAK_VOLTAGE;
 
     /* System Behavior */
-    streamPhaseCurrents = true;
+    streamPhaseCurrents = false;
+    streamPwmCommands   = false;
   }
 }    // namespace Orbit::Data

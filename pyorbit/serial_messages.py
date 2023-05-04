@@ -101,6 +101,7 @@ class ParameterId(IntEnum):
 
     # System Behavior
     StreamPhaseCurrents = proto.PARAM_STREAM_PHASE_CURRENTS
+    StreamPWMCommands = proto.PARAM_STREAM_PWM_COMMANDS
 
 
 # Maps parameter IDs to their associated types
@@ -134,6 +135,7 @@ ParameterTypeMap = {
 
     # System Behavior
     ParameterId.StreamPhaseCurrents: ParameterType.BOOL,
+    ParameterId.StreamPWMCommands: ParameterType.BOOL,
 }
 
 
@@ -155,6 +157,7 @@ class Mode(IntEnum):
 class SystemDataId(IntEnum):
     SYS_DATA_INVALID = proto.SYS_DATA_INVALID
     ADC_PHASE_CURRENTS = proto.ADC_PHASE_CURRENTS
+    PWM_COMMANDS = proto.PWM_COMMANDS
 
 
 class UUIDGenerator(metaclass=Singleton):
@@ -400,8 +403,17 @@ class SystemDataMessage(BaseMessage):
             ('phase_c', ctypes.c_float),
         ]
 
+    class PWMCommands(ctypes.Structure):
+        _fields_ = [
+            ('timestamp', ctypes.c_uint32),
+            ('phase_a', ctypes.c_float),
+            ('phase_b', ctypes.c_float),
+            ('phase_c', ctypes.c_float),
+        ]
+
     _id_to_type = {
-        SystemDataId.ADC_PHASE_CURRENTS: ADCPhaseCurrents
+        SystemDataId.ADC_PHASE_CURRENTS: ADCPhaseCurrents,
+        SystemDataId.PWM_COMMANDS: PWMCommands,
     }
 
     def __init__(self):
