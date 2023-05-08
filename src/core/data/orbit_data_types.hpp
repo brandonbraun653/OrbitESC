@@ -73,6 +73,9 @@ namespace Orbit::Data
     float currentCtrl_D_Kd;                               /**< PARAM_CURRENT_CTRL_D_AXIS_KD */
     float currentCtrl_Q_FIR[ FIRFilter::CoefData::SIZE ]; /**< PARAM_CURRENT_CTRL_Q_AXIS_FIR */
     float currentCtrl_D_FIR[ FIRFilter::CoefData::SIZE ]; /**< PARAM_CURRENT_CTRL_D_AXIS_FIR */
+    float rampCtrlFirstOrderTerm;                         /**< PARAM_RAMP_CTRL_FIRST_ORDER_TERM */
+    float rampCtrlSecondOrderTerm;                        /**< PARAM_RAMP_CTRL_SECOND_ORDER_TERM */
+    float rampCtrlRampTimeSec;                            /**< PARAM_RAMP_CTRL_RAMP_TIME_SEC */
 
     void clear();
     void setDefaults();

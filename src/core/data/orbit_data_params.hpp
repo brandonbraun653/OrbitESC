@@ -26,7 +26,7 @@ namespace Orbit::Data
   /*---------------------------------------------------------------------------
   Aliases
   ---------------------------------------------------------------------------*/
-  using ParameterList = std::array<ParameterNode, 31>;
+  using ParameterList = std::array<ParameterNode, 34>;
 
   /*---------------------------------------------------------------------------
   Constants
@@ -221,6 +221,27 @@ namespace Orbit::Data
                       .key      = "id_ctrl_kd",
                       .address  = &SysControl.currentCtrl_D_Kd,
                       .maxSize  = sizeof( SysControl.currentCtrl_D_Kd ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_RAMP_CTRL_FIRST_ORDER_TERM,
+                      .type     = ParamType_FLOAT,
+                      .key      = "ramp_1st_term",
+                      .address  = &SysControl.rampCtrlFirstOrderTerm,
+                      .maxSize  = sizeof( SysControl.rampCtrlFirstOrderTerm ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_RAMP_CTRL_SECOND_ORDER_TERM,
+                      .type     = ParamType_FLOAT,
+                      .key      = "ramp_2nd_term",
+                      .address  = &SysControl.rampCtrlSecondOrderTerm,
+                      .maxSize  = sizeof( SysControl.rampCtrlSecondOrderTerm ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_RAMP_CTRL_RAMP_TIME_SEC,
+                      .type     = ParamType_FLOAT,
+                      .key      = "ramp_time_sec",
+                      .address  = &SysControl.rampCtrlRampTimeSec,
+                      .maxSize  = sizeof( SysControl.rampCtrlRampTimeSec ),
                       .validator = nullptr },
 
       /*-----------------------------------------------------------------------

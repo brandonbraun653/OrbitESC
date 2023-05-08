@@ -106,6 +106,13 @@ namespace Orbit::Data
   static constexpr float DFLT_ICTRL_D_PID_KD = 0.3f;
 
   /**
+   * @brief Ramp controller acceleration curve constants
+   */
+  static constexpr float DFLT_RAMP_CTRL_FIRST_ORDER_TERM  = 0.1f;
+  static constexpr float DFLT_RAMP_CTRL_SECOND_ORDER_TERM = 0.1f;
+  static constexpr float DFLT_RAMP_CTRL_RAMP_TIME_SEC     = 1.0f;
+
+  /**
    * @brief PID tunings for the speed controller
    */
   static constexpr float DFLT_SPEED_PID_KP = 0.1f;
@@ -115,10 +122,10 @@ namespace Orbit::Data
   /*---------------------------------------------------------------------------
   Motor Description
   ---------------------------------------------------------------------------*/
-  static constexpr float   DFLT_STATOR_INDUCTANCE  = 380.0f * 1e-3f;
-  static constexpr float   DFLT_STATOR_RESISTANCE  = 0.01f;
-  static constexpr float   DFLT_PEAK_PHASE_CURRENT = 10.0f;
-  static constexpr float   DFLT_PEAK_VOLTAGE       = 16.0f;
+  static constexpr float DFLT_STATOR_INDUCTANCE  = 380.0f * 1e-3f;
+  static constexpr float DFLT_STATOR_RESISTANCE  = 0.01f;
+  static constexpr float DFLT_PEAK_PHASE_CURRENT = 10.0f;
+  static constexpr float DFLT_PEAK_VOLTAGE       = 16.0f;
 
 }    // namespace Orbit::Data
 

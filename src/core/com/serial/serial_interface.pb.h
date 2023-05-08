@@ -64,6 +64,11 @@ typedef enum _ParamId {
     ParamId_PARAM_CURRENT_CTRL_D_AXIS_KP = 29, /* Current controller D-axis proportional gain */
     ParamId_PARAM_CURRENT_CTRL_D_AXIS_KI = 30, /* Current controller D-axis integral gain */
     ParamId_PARAM_CURRENT_CTRL_D_AXIS_KD = 31, /* Current controller D-axis derivative gain */
+    /* PARAM_CURRENT_CTRL_Q_FIR_COEFFS = 32; // Current controller Q-axis FIR filter coefficients
+ PARAM_CURRENT_CTRL_D_FIR_COEFFS = 33; // Current controller D-axis FIR filter coefficients */
+    ParamId_PARAM_RAMP_CTRL_FIRST_ORDER_TERM = 34, /* First order term of the ramp controller */
+    ParamId_PARAM_RAMP_CTRL_SECOND_ORDER_TERM = 35, /* Second order term of the ramp controller */
+    ParamId_PARAM_RAMP_CTRL_RAMP_TIME_SEC = 36, /* Ramp time of the ramp controller in seconds */
     /* Motor Description */
     ParamId_PARAM_ROTOR_POLES = 50, /* Number of poles in the motor */
     ParamId_PARAM_STATOR_SLOTS = 51, /* Number of slots in the motor */
