@@ -464,18 +464,32 @@ namespace Orbit::Motor
     SEGGER_SYSVIEW_RecordEnterISR();
 #endif
 
+    static const float deg2rad = 0.0174533f;
+    static const float firstOrderTerm = 0.5f;
+    static const float secondOrderTerm = 20.0f;
+    static volatile float start_time = 0.0f;
+    static volatile float dt = 0.0f;
+
     /*-------------------------------------------------------------------------
     Gate the behavior of this ISR without stopping the Timer/ADC/DMA hardware
     -------------------------------------------------------------------------*/
     s_speed_ctrl_timer.ackISR();
     if ( !s_state.isrControlActive )
     {
+      start_time = Chimera::micros() / 1e6f;
+      dt = 0.0f;
       return;
     }
 
-    // s_state.iLoop.theta = 65.0f * 0.0174533f;
+    float ramp_time = ( Chimera::micros() / 1e6f ) - start_time;
+    if ( ramp_time < 1.0f )
+    {
+      dt = ramp_time;
+    }
 
-    s_state.iLoop.theta += 0.0174533f;    // 1 degree in radians
+    s_state.iLoop.theta += ( secondOrderTerm * deg2rad * dt * dt ) +
+                           ( firstOrderTerm * deg2rad * dt );
+
     if( s_state.iLoop.theta > 6.283185f )
     {
       s_state.iLoop.theta -= 6.283185f;

@@ -113,6 +113,9 @@ class PyOrbitGUI(QMainWindow, Ui_MainWindow):
         # Notify widgets of an auto-scale request
         self.autoScaleCheckBox.stateChanged.connect(self.phaseCurrentPlotter.toggle_auto_scale)
 
+        # Notify widgets of a request to clear the current plot
+        self.clearPlotButton.clicked.connect(self.phaseCurrentPlotter.clear_plot)
+
     def _loguru_log_message(self, message: str) -> None:
         """
         Custom sink that receives a loguru log message and emits it to the appLogMessageSignal.

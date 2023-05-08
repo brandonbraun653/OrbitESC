@@ -116,7 +116,7 @@ class LiveDataPlotter(PlotWidget):
 
         # Update the state of the auto-scale checkbox
         if AppSettings.contains(Settings.PLOT_AUTO_SCALE):
-            pyorbit().autoScaleCheckBox.setCheckState(AppSettings.get(Settings.PLOT_AUTO_SCALE))
+            pyorbit().autoScaleCheckBox.setCheckState(QtCore.Qt.CheckState(AppSettings.value(Settings.PLOT_AUTO_SCALE)))
 
     @QtCore.pyqtSlot()
     def serial_disconnect(self) -> None:
@@ -167,6 +167,19 @@ class LiveDataPlotter(PlotWidget):
     @QtCore.pyqtSlot(int)
     def toggle_auto_scale(self, state: int) -> None:
         AppSettings.setValue(Settings.PLOT_AUTO_SCALE, state)
+
+    @QtCore.pyqtSlot()
+    def clear_plot(self) -> None:
+        """
+        Clears the plot of all data.
+        Returns:
+            None
+        """
+        for attr in self._data_plot.attributes():
+            attr.time.clear()
+            attr.data.clear()
+
+        self._update_plot()
 
     def _update_plot(self) -> None:
         """

@@ -3,8 +3,6 @@ import serial.tools.list_ports
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QTextCharFormat, QColor
 from loguru import logger
-from pyorbit.serial.client import SerialClient
-from pyorbit.serial.observers import ConsoleObserver
 from pyorbit.app.main import pyorbit, Settings, AppSettings
 
 
