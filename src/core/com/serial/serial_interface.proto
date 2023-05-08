@@ -109,7 +109,7 @@ enum BootMode {
 enum MotorCtrlCmd {
   ENABLE_OUTPUT_STAGE  = 0;  // Allow the power stage to drive the motor
   DISABLE_OUTPUT_STAGE = 1;  // Disable the power stage
-
+  EMERGENCY_STOP       = 2;  // Immediately stop driving the power stage and halt
 }
 
 enum SystemDataId {

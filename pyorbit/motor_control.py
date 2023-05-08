@@ -1,9 +1,9 @@
 import pyorbit.nanopb.serial_interface_pb2 as proto
 from enum import Enum
 from loguru import logger
-from typing import Callable, Any, List
-from pyorbit.serial_client import SerialClient
-from pyorbit.serial_messages import MessageId, MessageSubId, UUIDGenerator, AckNackMessage, MotorControlMessage
+from typing import Callable, List
+from pyorbit.serial.client import SerialClient
+from pyorbit.serial.messages import AckNackMessage, MotorControlMessage
 
 
 class MotorControl:
@@ -31,7 +31,15 @@ class MotorControl:
         """
         return self._command_transaction(cmd=state.value)
 
-    def _command_transaction(self, cmd: int, data: bytes = None,
+    def emergency_stop(self) -> bool:
+        """
+        Emergency stop the motor controller
+        Returns:
+            True if the command was successful, False otherwise
+        """
+        return self._command_transaction(cmd=MotorControlMessage.Command.EmergencyStop)
+
+    def _command_transaction(self, cmd: MotorControlMessage.Command, data: bytes = None,
                              validator: Callable[[List[AckNackMessage]], bool] = None) -> bool:
         """
         Send a command to the motor controller and wait for a response
@@ -50,6 +58,7 @@ class MotorControl:
 
         if not responses:
             logger.warning("No response for motor control command")
+            return False
 
         if validator:
             return validator(responses)

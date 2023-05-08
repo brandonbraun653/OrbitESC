@@ -31,6 +31,15 @@ class MessageObserver:
         self.msg_type = msg_type
         self.timeout = timeout
         self.start_time = time.time()
+        self._uuid = uuid.UUID(int=0)
+
+    @property
+    def unique_id(self) -> uuid.UUID:
+        return self._uuid
+
+    @unique_id.setter
+    def unique_id(self, val: uuid.UUID) -> None:
+        self._uuid = val
 
 
 class MessageQueue:
@@ -218,6 +227,7 @@ class ObserverManager:
 
             # Allocate the new observer entry
             new_id = uuid.uuid4()
+            observer.unique_id = new_id
             self._registry[new_id] = observer
             self._dispatch_map[raw_type].append(observer)
 

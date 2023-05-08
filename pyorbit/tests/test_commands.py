@@ -2,8 +2,9 @@ import math
 import time
 import numpy as np
 from pyorbit.tests.fixtures import *
-from pyorbit.serial_client import SerialClient
-from pyorbit.serial_messages import ParameterId, Mode
+from pyorbit.serial.client import SerialClient
+from pyorbit.serial.messages import Mode
+from pyorbit.serial.parameters import ParameterId
 
 
 @pytest.mark.usefixtures("serial_client")

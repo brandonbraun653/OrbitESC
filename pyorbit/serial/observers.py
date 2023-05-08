@@ -1,6 +1,6 @@
 # **********************************************************************************************************************
 #   FileName:
-#       serial_observers.py
+#       observers.py
 #
 #   Description:
 #       Various observers for the serial client
@@ -11,12 +11,13 @@
 from __future__ import annotations
 
 import time
-import struct
 from functools import cmp_to_key
 from loguru import logger
 from typing import Any, Dict, List, Callable
-from pyorbit.serial_pipe import SerialPipe
-from pyorbit.serial_messages import *
+
+from pyorbit.serial.parameters import ParameterTypeMap
+from pyorbit.serial.pipe import SerialPipe
+from pyorbit.serial.messages import *
 from pyorbit.observer import MessageObserver
 from threading import Thread, Lock
 

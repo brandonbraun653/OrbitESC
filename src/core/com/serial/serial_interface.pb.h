@@ -106,7 +106,8 @@ typedef enum _BootMode {
 
 typedef enum _MotorCtrlCmd {
     MotorCtrlCmd_ENABLE_OUTPUT_STAGE = 0, /* Allow the power stage to drive the motor */
-    MotorCtrlCmd_DISABLE_OUTPUT_STAGE = 1 /* Disable the power stage */
+    MotorCtrlCmd_DISABLE_OUTPUT_STAGE = 1, /* Disable the power stage */
+    MotorCtrlCmd_EMERGENCY_STOP = 2 /* Immediately stop driving the power stage and halt */
 } MotorCtrlCmd;
 
 typedef enum _SystemDataId {
@@ -242,8 +243,8 @@ typedef struct _SystemDataMessage_PWMCommands {
 #define _BootMode_ARRAYSIZE ((BootMode)(BootMode_BOOT_MODE_CONFIG+1))
 
 #define _MotorCtrlCmd_MIN MotorCtrlCmd_ENABLE_OUTPUT_STAGE
-#define _MotorCtrlCmd_MAX MotorCtrlCmd_DISABLE_OUTPUT_STAGE
-#define _MotorCtrlCmd_ARRAYSIZE ((MotorCtrlCmd)(MotorCtrlCmd_DISABLE_OUTPUT_STAGE+1))
+#define _MotorCtrlCmd_MAX MotorCtrlCmd_EMERGENCY_STOP
+#define _MotorCtrlCmd_ARRAYSIZE ((MotorCtrlCmd)(MotorCtrlCmd_EMERGENCY_STOP+1))
 
 #define _SystemDataId_MIN SystemDataId_SYS_DATA_INVALID
 #define _SystemDataId_MAX SystemDataId_PWM_COMMANDS

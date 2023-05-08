@@ -42,6 +42,14 @@ namespace Orbit::Motor
    */
   void powerUp();
 
+  /**
+   * @brief Immediately stops the power stage and disables the motor driver
+   * @note  This is a hard stop and will not attempt to decelerate the motor
+   *
+   * Sends a break input to the timer generating the PWM signal.
+   */
+  void emergencyStop();
+
 }  // namespace Orbit::Motor
 
 #endif  /* !ORBIT_MOTOR_HPP */

@@ -1,6 +1,6 @@
 # **********************************************************************************************************************
 #   FileName:
-#       serial_pipe.py
+#       pipe.py
 #
 #   Description:
 #       Serial pipe framing formatter to communicate with an OrbitESC device
@@ -18,7 +18,7 @@ from serial import Serial
 from threading import Thread, Event
 from queue import Queue
 from pyorbit.observer import Observer
-from pyorbit.serial_messages import MessageTypeMap
+from pyorbit.serial.messages import MessageTypeMap
 
 
 class SerialPipe(Observer):

@@ -1,7 +1,7 @@
 import math
 from pyorbit.tests.fixtures import *
-from pyorbit.serial_client import SerialClient
-from pyorbit.serial_messages import ParameterId
+from pyorbit.serial.client import SerialClient
+from pyorbit.serial.parameters import ParameterId
 from pyorbit.can_messages import NodeID
 
 

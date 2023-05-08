@@ -1,5 +1,5 @@
 import pytest
-from pyorbit.serial_client import SerialClient
+from pyorbit.serial.client import SerialClient
 from pyorbit.motor_control import MotorControl
 
 

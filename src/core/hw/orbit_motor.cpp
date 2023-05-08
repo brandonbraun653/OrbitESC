@@ -32,6 +32,7 @@ Includes
 
 #if defined( SEGGER_SYS_VIEW )
 #include "SEGGER_SYSVIEW.h"
+#include "orbit_motor.hpp"
 #endif /* SEGGER_SYS_VIEW */
 #endif /* EMBEDDED */
 
@@ -609,4 +610,9 @@ namespace Orbit::Motor
     adc->startSequence();
   }
 
+
+  void emergencyStop()
+  {
+    s_motor_ctrl_timer.emergencyBreak();
+  }
 }    // namespace Orbit::Motor

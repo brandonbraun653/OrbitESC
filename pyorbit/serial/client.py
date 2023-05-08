@@ -1,6 +1,6 @@
 # **********************************************************************************************************************
 #   FileName:
-#       serial_client.py
+#       client.py
 #
 #   Description:
 #       Client to connect with an OrbitESC device over serial
@@ -15,11 +15,11 @@ import time
 from functools import wraps
 from loguru import logger
 from typing import Any, Callable
-from pyorbit.serial_pipe import SerialPipe
+from pyorbit.serial.pipe import SerialPipe
 from pyorbit.exceptions import NotOnlineException
-from pyorbit.serial_messages import *
+from pyorbit.serial.messages import *
 from pyorbit.observer import MessageObserver
-from pyorbit.serial_observers import ConsoleObserver, ParameterObserver
+from pyorbit.serial.observers import ConsoleObserver, ParameterObserver
 from threading import Event, Thread
 
 
@@ -75,7 +75,7 @@ class SerialClient:
 
         # Register known observers
         self._param_observer = ParameterObserver(pipe=self.com_pipe)
-        self.com_pipe.subscribe_observer(MessageObserver(func=self._observer_esc_tick, msg_type=SystemTick))
+        self.com_pipe.subscribe_observer(MessageObserver(func=self._observer_esc_tick, msg_type=SystemTickMessage))
         self.com_pipe.subscribe_observer(ConsoleObserver(on_msg_rx=lambda x: logger.info(x.strip('\n'))))
         self.com_pipe.subscribe_observer(self._param_observer)
 
@@ -202,7 +202,7 @@ class SerialClient:
                 logger.warning("Serial link is offline")
                 self._online = False
 
-    def _observer_esc_tick(self, msg: SystemTick) -> None:
+    def _observer_esc_tick(self, msg: SystemTickMessage) -> None:
         """
         Looks for the SystemTick of the registered node to determine online/offline status
         Args:

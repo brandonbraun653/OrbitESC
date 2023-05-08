@@ -1,24 +1,53 @@
 from __future__ import annotations
+
+import abc
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Union, Optional, List
-
+from typing import Optional, List
 import pyqtgraph
+from PyQt5.QtGui import QPen
 from loguru import logger
-import re
 import numpy as np
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore
 from pyqtgraph import PlotWidget, PlotDataItem
-from pyorbit.serial_client import SerialClient
-from pyorbit.serial_messages import SystemDataMessage, ParameterId
+
+from pyorbit.app.main import AppSettings, Settings, pyorbit
+from pyorbit.serial.messages import SystemDataMessage
+from pyorbit.serial.parameters import ParameterId
 from pyorbit.observer import MessageObserver
 
 
-class LiveDataPlotter(MessageObserver, PlotWidget):
-    PLOT_REFRESH_RATE_MS = 50
-    PLOT_SAMPLE_HISTORY = 1000
+@dataclass
+class PlotAttributes:
+    enabled: bool = field(default=False)
+    data_field: str = field(default="")
+    plot: PlotDataItem = field(default=None)
+    pen: QPen = field(default=None)
+    data: deque = field(default_factory=lambda: deque([], maxlen=1000))
+    time: deque = field(default_factory=lambda: deque([], maxlen=1000))
 
+
+class AbstractDataPlot(metaclass=abc.ABCMeta):
+
+    @abc.abstractmethod
+    def name(self) -> str:
+        pass
+
+    @abc.abstractmethod
+    def data_observer(self) -> MessageObserver:
+        pass
+
+    @abc.abstractmethod
+    def attributes(self) -> List[PlotAttributes]:
+        pass
+
+    @abc.abstractmethod
+    def stream_parameter(self) -> ParameterId:
+        pass
+
+
+class MotorCurrentPlot(AbstractDataPlot):
     class MessageProxy(QtCore.QObject):
         messageSignal = QtCore.pyqtSignal(str)
 
@@ -28,321 +57,135 @@ class LiveDataPlotter(MessageObserver, PlotWidget):
         def emit_message(self, message: str) -> None:
             self.messageSignal.emit(message)
 
-    class DataFields(Enum):
-        PhaseACurrent = "PhaseACurrent"
-        PhaseBCurrent = "PhaseBCurrent"
-        PhaseCCurrent = "PhaseCCurrent"
-        PhaseAVoltage = "PhaseAVoltage"
-        PhaseBVoltage = "PhaseBVoltage"
-        PhaseCVoltage = "PhaseCVoltage"
-        PhaseACommand = "PhaseACommand"
-        PhaseBCommand = "PhaseBCommand"
-        PhaseCCommand = "PhaseCCommand"
+    def __init__(self):
+        self._observer = MessageObserver(self._system_data_observer, SystemDataMessage)
+        self._phase_a_attr = PlotAttributes(enabled=True, data_field="PhaseACurrent",
+                                            pen=pyqtgraph.mkPen(color=(255, 0, 0), width=2, style=QtCore.Qt.SolidLine))
+        self._phase_b_attr = PlotAttributes(enabled=True, data_field="PhaseBCurrent",
+                                            pen=pyqtgraph.mkPen(color=(0, 255, 0), width=2, style=QtCore.Qt.SolidLine))
+        self._phase_c_attr = PlotAttributes(enabled=True, data_field="PhaseCCurrent",
+                                            pen=pyqtgraph.mkPen(color=(0, 0, 255), width=2, style=QtCore.Qt.SolidLine))
+        self._attributes = [self._phase_a_attr, self._phase_b_attr, self._phase_c_attr]
 
-        @classmethod
-        def as_list(cls) -> List[str]:
-            return [f.value for f in cls]
+    def name(self) -> str:
+        return "Motor Currents"
 
-        @classmethod
-        def phase_currents(cls) -> List[LiveDataPlotter.DataFields]:
-            return [cls.PhaseACurrent, cls.PhaseBCurrent, cls.PhaseCCurrent]
+    def data_observer(self) -> MessageObserver:
+        return self._observer
 
-        @classmethod
-        def pwm_commands(cls) -> List[LiveDataPlotter.DataFields]:
-            return [cls.PhaseACommand, cls.PhaseBCommand, cls.PhaseCCommand]
+    def attributes(self) -> List[PlotAttributes]:
+        return self._attributes
 
-    class PlotColors(Enum):
-        ORANGE = 0xFFA500
-        MAROON = 0x800000
-        GREEN = 0x008000
-        OLIVE = 0x808000
-        NAVY = 0x000080
-        PURPLE = 0x800080
-        TEAL = 0x008080
-        SILVER = 0xc0c0c0
-        GRAY = 0x808080
-        RED = 0xff0000
-        LIME = 0x00ff00
-        YELLOW = 0xffff00
-        BLUE = 0x0000ff
-        FUCHSIA = 0xff00ff
-        AQUA = 0x00ffff
-        WHITE = 0xffffff
-        LIGHTGRAY = 0xd3d3d3
-        DARKGRAY = 0xa9a9a9
+    def stream_parameter(self) -> ParameterId:
+        return ParameterId.StreamPhaseCurrents
 
-        @classmethod
-        def as_int_list(cls) -> List[int]:
-            return [f.value for f in cls]
+    def _system_data_observer(self, msg: SystemDataMessage):
+        data = msg.convert_to_message_type()
+        if isinstance(data, SystemDataMessage.ADCPhaseCurrents):
+            time_in_sec = data.timestamp / 1e6
+            self._phase_a_attr.time.append(time_in_sec)
+            self._phase_a_attr.data.append(data.phase_a)
+            self._phase_b_attr.time.append(time_in_sec)
+            self._phase_b_attr.data.append(data.phase_b)
+            self._phase_c_attr.time.append(time_in_sec)
+            self._phase_c_attr.data.append(data.phase_c)
 
-        @classmethod
-        def as_rgb_list(cls) -> List[(int, int, int)]:
-            return [cls._int_to_rgb(f.value) for f in cls]
 
-        @classmethod
-        def _int_to_rgb(cls, value: int) -> (int, int, int):
-            return (value >> 16) & 0xFF, (value >> 8) & 0xFF, value & 0xFF
-
-    @dataclass
-    class PlotAttributes:
-        enabled: bool = field(default=False)
-        data_field: str = field(default="")
-        plot: PlotDataItem = field(default=None)
-        color: tuple = field(default=(0, 0, 0))
-        data: deque = field(default_factory=lambda: LiveDataPlotter._default_data_queue())
-        time: deque = field(default_factory=lambda: LiveDataPlotter._default_data_queue())
+class LiveDataPlotter(PlotWidget):
+    PLOT_REFRESH_RATE_MS = 50
 
     def __init__(self, parent: QtCore.QObject = None):
-        MessageObserver.__init__(self, func=self._system_data_observer, msg_type=SystemDataMessage)
         PlotWidget.__init__(self, parent)
 
-        self._serial_client = None  # type: Union[SerialClient, None]
-        self._live_plotting = False
-        self._plot_attributes = [LiveDataPlotter.PlotAttributes() for _ in range(len(LiveDataPlotter.DataFields))]
+        self._data_plot = None  # type: Optional[AbstractDataPlot]
+        if parent.objectName() == "tabMotorCurrent":
+            self._data_plot = MotorCurrentPlot()
+
         self._plot_refresh_timer = QtCore.QTimer()
         self._plot_refresh_timer.timeout.connect(self._update_plot)
-        self._need_phase_currents = False
-        self._need_pwm_commands = False
+        self._plot_refresh_timer.start(LiveDataPlotter.PLOT_REFRESH_RATE_MS)
 
-        for idx in range(len(self._plot_attributes)):
-            self._plot_attributes[idx].color = LiveDataPlotter.PlotColors.as_rgb_list()[idx]
+    def init_data_plotter(self) -> None:
+        # Set the default y-axis range
+        self.getPlotItem().setRange(yRange=[-1, 1])
 
-    def init_selection_layout(self, layout: QtWidgets.QGridLayout) -> None:
+    @QtCore.pyqtSlot()
+    def serial_connect(self) -> None:
+        # Register the plot's data observer with the serial client
+        pyorbit().serial_client.com_pipe.subscribe_observer(self._data_plot.data_observer())
+
+        # Update the state of the auto-scale checkbox
+        if AppSettings.contains(Settings.PLOT_AUTO_SCALE):
+            pyorbit().autoScaleCheckBox.setCheckState(AppSettings.get(Settings.PLOT_AUTO_SCALE))
+
+    @QtCore.pyqtSlot()
+    def serial_disconnect(self) -> None:
+        # Unregister the plot's data observer with the serial client
+        pyorbit().serial_client.com_pipe.unsubscribe(self._data_plot.data_observer().unique_id)
+
+    @QtCore.pyqtSlot(int)
+    def toggle_live_data_stream(self, state: int) -> None:
         """
-        Initializes the plot selection objects contained within the layout. These are a collection of
-        checkboxes and combo boxes that allow the user to select which plots to display.
+        Slot for when the live data checkbox is toggled.
         Args:
-            layout: Layout that contains the plot selection objects
+            state: The state of the checkbox
 
         Returns:
             None
         """
-        # Set the default y-axis range
-        self.getPlotItem().setRange(yRange=[-1, 1])
+        serial_client = pyorbit().serial_client
 
-        # Initialize the plot control objects
-        for idx in range(layout.count()):
-            item = layout.itemAt(idx)
-            widget = item.widget()
+        if state == QtCore.Qt.CheckState.Checked:
+            # First check to see if the serial target is online. If not available and we are trying to go live, then
+            # we need to disable the live state.
+            if not serial_client or not serial_client.is_online:
+                logger.error("Serial client is not available")
+                self.sender().setCheckState(QtCore.Qt.CheckState.Unchecked)
+                return
 
-            if widget is None:
-                continue
-
-            if isinstance(widget, QtWidgets.QCheckBox):
-                widget.checked = False
-                widget.stateChanged.connect(self._checkbox_state_changed)
-            elif isinstance(widget, QtWidgets.QComboBox):
-                widget.addItems(LiveDataPlotter.DataFields.as_list())
-                widget.setCurrentIndex(-1)
-                widget.currentIndexChanged.connect(self._combo_box_selected)
+            # Try to request a live stream of the data
+            logger.trace(f"Enabling live stream of {self._data_plot.name()}")
+            if pyorbit().serial_client.parameter.set(self._data_plot.stream_parameter(), True):
+                self._plot_refresh_timer.start(LiveDataPlotter.PLOT_REFRESH_RATE_MS)
+                AppSettings.setValue(Settings.PLOT_LIVE_DATA, True)
             else:
-                raise ValueError(f"Unhandled widget type: {type(widget)}")
+                logger.error(f"Failed to live stream {self._data_plot.name()}")
+                self.sender().setCheckState(QtCore.Qt.CheckState.Unchecked)
 
-    @staticmethod
-    def _object_index(object_name: str) -> int:
-        """
-        Extracts the index from the object name. The object name is expected to be in the format
-        of "<object_name>_<index>", where index is an integer. The naming convention was set in
-        the Qt Designer manually.
-
-        Args:
-            object_name: String containing the object name
-
-        Returns:
-            Integer index
-        """
-        match = re.match(r".*_(\d+)", object_name)
-        if match is None:
-            raise ValueError(f"Object name does not contain an index: {object_name}")
-        return int(match.group(1))
-
-    @QtCore.pyqtSlot(SerialClient)
-    def attach_serial_client(self, client: SerialClient) -> None:
-        # Cache the client and subscribe to the data packet this class is interested in
-        self._serial_client = client
-        self._serial_client.com_pipe.subscribe_observer(self)
-
-        # Enable the plotter by default
-        self._live_plotting = True
-        self._plot_refresh_timer.start(LiveDataPlotter.PLOT_REFRESH_RATE_MS)
-
-    @QtCore.pyqtSlot()
-    def detach_serial_client(self) -> None:
-        self._serial_client = None
-        self._plot_refresh_timer.stop()
-
-    @QtCore.pyqtSlot()
-    def pause_resume_clicked(self) -> None:
-        if self._live_plotting:
-            self._plot_refresh_timer.stop()
-            self._live_plotting = False
-            self.sender().setText("Enable")
         else:
-            self._plot_refresh_timer.start(LiveDataPlotter.PLOT_REFRESH_RATE_MS)
-            self._live_plotting = True
-            self.sender().setText("Disable")
+            if not serial_client or not serial_client.is_online:
+                return
+
+            logger.trace(f"Disabling live stream of {self._data_plot.name()}")
+            if pyorbit().serial_client.parameter.set(self._data_plot.stream_parameter(), False):
+                self._plot_refresh_timer.stop()
+                AppSettings.setValue(Settings.PLOT_LIVE_DATA, False)
+            else:
+                logger.error(f"Failed to disable live stream {self._data_plot.name()}")
+                self.sender().setCheckState(QtCore.Qt.CheckState.Checked)
 
     @QtCore.pyqtSlot(int)
-    def _checkbox_state_changed(self, state: int) -> None:
-        # Update the enabled/disabled field
-        obj_idx = self._object_index(self.sender().objectName())
-        attr = self._plot_attributes[obj_idx]
-
-        if state == QtCore.Qt.Checked:
-            attr.data = self._default_data_queue()
-            attr.time = self._default_data_queue()
-            if attr.plot is None:
-                attr.plot = self.plot(np.vstack((np.array(attr.time), np.array(attr.data))).transpose(),
-                                      pen=pyqtgraph.mkPen(color=attr.color, width=2, style=QtCore.Qt.SolidLine))
-            else:
-                attr.plot.clear()
-            attr.enabled = True
-        else:
-            attr.enabled = False
-            attr.plot.clear()
-
-        # Perform debug pipe bandwidth optimization measures
-        self._process_phase_current_stream_status()
-        self._process_pwm_command_stream_status()
-
-    @QtCore.pyqtSlot(int)
-    def _combo_box_selected(self, index: int) -> None:
-        obj_idx = self._object_index(self.sender().objectName())
-        self._plot_attributes[obj_idx].data_field = self.DataFields.as_list()[index]
-
-    def _system_data_observer(self, msg: SystemDataMessage):
-        data = msg.convert_to_message_type()
-        if data is None:
-            return
-
-        # Motor Measured Current per Phase
-        elif isinstance(data, SystemDataMessage.ADCPhaseCurrents):
-            time_in_sec = data.timestamp / 1e6
-            for f in self.DataFields.phase_currents():
-                # Make sure we have a valid field
-                attributes = self._get_field_attributes(f)
-                if attributes is None:
-                    continue
-
-                # Update the data fields
-                attributes.time.append(time_in_sec)
-                if f == self.DataFields.PhaseACurrent:
-                    attributes.data.append(data.phase_a)
-                elif f == self.DataFields.PhaseBCurrent:
-                    attributes.data.append(data.phase_b)
-                elif f == self.DataFields.PhaseCCurrent:
-                    attributes.data.append(data.phase_c)
-
-        # Motor PWM Commands
-        elif isinstance(data, SystemDataMessage.PWMCommands):
-            time_in_sec = data.timestamp / 1e6
-            for f in self.DataFields.pwm_commands():
-                # Make sure we have a valid field
-                attributes = self._get_field_attributes(f)
-                if attributes is None:
-                    continue
-
-                # Update the data fields
-                attributes.time.append(time_in_sec)
-                if f == self.DataFields.PhaseACommand:
-                    attributes.data.append(data.phase_a)
-                elif f == self.DataFields.PhaseBCommand:
-                    attributes.data.append(data.phase_b)
-                elif f == self.DataFields.PhaseCCommand:
-                    attributes.data.append(data.phase_c)
+    def toggle_auto_scale(self, state: int) -> None:
+        AppSettings.setValue(Settings.PLOT_AUTO_SCALE, state)
 
     def _update_plot(self) -> None:
-        for attr in self._plot_attributes:
+        """
+        Updates the plot with the latest data from each data field.
+        Returns:
+            None
+        """
+        for attr in self._data_plot.attributes():
+            # Create the new plot if it doesn't exist yet
+            if attr.plot is None:
+                attr.plot = self.plot(np.vstack((np.array(attr.time), np.array(attr.data))).transpose(), pen=attr.pen)
+
+            # Update the plot with the latest data
             if attr.enabled:
                 x = np.array(attr.time)
                 y = np.array(attr.data)
                 attr.plot.setData(x, y)
 
-        self.enableAutoRange('xy', True)
-
-    def _process_phase_current_stream_status(self) -> None:
-        """
-        Checks the status of all phase current plots and enables/disables the embedded software
-        data stream on-demand. This helps to save bandwidth if the data isn't actually being used.
-
-        Returns:
-            None
-        """
-        # Check if any phase current plots are enabled
-        phase_current_fields = [self.DataFields.PhaseACurrent, self.DataFields.PhaseBCurrent,
-                                self.DataFields.PhaseCCurrent]
-        any_phase_currents_enabled = any([self._plot_field_is_enabled(f.value) for f in phase_current_fields])
-
-        # Enable/disable the phase current stream based on the current status
-        if self._need_phase_currents and not any_phase_currents_enabled:
-            logger.trace("Disabling phase current stream")
-            if self._serial_client.parameter.set(ParameterId.StreamPhaseCurrents, False):
-                self._need_phase_currents = False
-            else:
-                logger.error("Failed to disable phase current stream")
-        elif not self._need_phase_currents and any_phase_currents_enabled:
-            logger.trace("Enabling phase current stream")
-            if self._serial_client.parameter.set(ParameterId.StreamPhaseCurrents, True):
-                self._need_phase_currents = True
-            else:
-                logger.error("Failed to enable phase current stream")
-
-    def _process_pwm_command_stream_status(self) -> None:
-        """
-        Checks the status of all pwm command plots and enables/disables the embedded software
-        data stream on-demand. This helps to save bandwidth if the data isn't actually being used.
-
-        Returns:
-            None
-        """
-        # Check if any pwm command plots are enabled
-        pwm_command_fields = [self.DataFields.PhaseACommand, self.DataFields.PhaseBCommand,
-                              self.DataFields.PhaseCCommand]
-        any_pwm_commands_enabled = any([self._plot_field_is_enabled(f.value) for f in pwm_command_fields])
-
-        # Enable/disable the pwm command stream based on the current status
-        if self._need_pwm_commands and not any_pwm_commands_enabled:
-            logger.trace("Disabling pwm command stream")
-            if self._serial_client.parameter.set(ParameterId.StreamPWMCommands, False):
-                self._need_pwm_commands = False
-            else:
-                logger.error("Failed to disable pwm command stream")
-        elif not self._need_pwm_commands and any_pwm_commands_enabled:
-            logger.trace("Enabling pwm command stream")
-            if self._serial_client.parameter.set(ParameterId.StreamPWMCommands, True):
-                self._need_pwm_commands = True
-            else:
-                logger.error("Failed to enable pwm command stream")
-
-    def _plot_field_is_enabled(self, data_field: str):
-        """
-        Checks if the checkbox is enabled for the given data field.
-        Args:
-            data_field: One of the supported data fields that can be plotted
-
-        Returns:
-            True if the plot option is enabled, False otherwise
-        """
-        for attr in self._plot_attributes:
-            if attr.data_field == data_field:
-                return attr.enabled
-        return False
-
-    def _get_field_attributes(self, data_field: LiveDataPlotter.DataFields) -> Optional[LiveDataPlotter.PlotAttributes]:
-        """
-        Returns the PlotAttribute object for the given data field, if it exists.
-
-        Args:
-            data_field: One of the supported data fields that can be plotted
-
-        Returns:
-            PlotAttribute object if it exists, None otherwise
-        """
-        for attr in self._plot_attributes:
-            if attr.data_field == data_field.value:
-                return attr
-        return None
-
-    @classmethod
-    def _default_data_queue(cls) -> deque:
-        return deque(np.zeros(LiveDataPlotter.PLOT_SAMPLE_HISTORY), maxlen=LiveDataPlotter.PLOT_SAMPLE_HISTORY)
+        if AppSettings.value(Settings.PLOT_AUTO_SCALE) == QtCore.Qt.CheckState.Checked:
+            self.enableAutoRange('xy', True)
+        else:
+            self.enableAutoRange('xy', False)
