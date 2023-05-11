@@ -108,9 +108,9 @@ namespace Orbit::Data
   /**
    * @brief Ramp controller acceleration curve constants
    */
-  static constexpr float DFLT_RAMP_CTRL_FIRST_ORDER_TERM  = 0.1f;
-  static constexpr float DFLT_RAMP_CTRL_SECOND_ORDER_TERM = 0.1f;
-  static constexpr float DFLT_RAMP_CTRL_RAMP_TIME_SEC     = 1.0f;
+  static constexpr float DFLT_RAMP_CTRL_FIRST_ORDER_TERM  = 1.5f;
+  static constexpr float DFLT_RAMP_CTRL_SECOND_ORDER_TERM = 20.0f;
+  static constexpr float DFLT_RAMP_CTRL_RAMP_TIME_SEC     = 1.35f;
 
   /**
    * @brief PID tunings for the speed controller

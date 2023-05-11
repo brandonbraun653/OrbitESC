@@ -1,17 +1,5 @@
-import abc
 from PyQt5 import QtWidgets, QtCore
-from pyorbit.serial.parameters import ParameterId
-
-
-class AbstractParameter(metaclass=abc.ABCMeta):
-
-    @abc.abstractmethod
-    def is_dirty(self) -> bool:
-        pass
-
-    @abc.abstractmethod
-    def parameter_id(self) -> ParameterId:
-        pass
+from pyorbit.app.parameters.util import update_parameter
 
 
 class ParameterSpinBox(QtWidgets.QSpinBox):
@@ -31,7 +19,7 @@ class ParameterSpinBox(QtWidgets.QSpinBox):
         Returns:
             None
         """
-        self.parent().value = value
+        update_parameter(self.sender(), value)
 
 
 class ParameterDoubleSpinBox(QtWidgets.QDoubleSpinBox):
@@ -51,7 +39,7 @@ class ParameterDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         Returns:
             None
         """
-        self.parent().value = value
+        update_parameter(self.sender(), value)
 
 
 class ParameterLineEdit(QtWidgets.QLineEdit):
@@ -71,4 +59,4 @@ class ParameterLineEdit(QtWidgets.QLineEdit):
         Returns:
             None
         """
-        self.parent().value = value
+        update_parameter(self.sender(), value)

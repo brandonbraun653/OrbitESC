@@ -47,6 +47,9 @@ class ParameterId(IntEnum):
     CurrentControlDKp = proto.PARAM_CURRENT_CTRL_D_AXIS_KP
     CurrentControlDKi = proto.PARAM_CURRENT_CTRL_D_AXIS_KI
     CurrentControlDKd = proto.PARAM_CURRENT_CTRL_D_AXIS_KD
+    RampControlFirstOrderTerm = proto.PARAM_RAMP_CTRL_FIRST_ORDER_TERM
+    RampControlSecondOrderTerm = proto.PARAM_RAMP_CTRL_SECOND_ORDER_TERM
+    RampControlRampTime = proto.PARAM_RAMP_CTRL_RAMP_TIME_SEC
 
     # Motor Description Parameters
     RotorPoles = proto.PARAM_ROTOR_POLES
@@ -80,6 +83,9 @@ ParameterTypeMap = {
     ParameterId.CurrentControlDKp: ParameterType.FLOAT,
     ParameterId.CurrentControlDKi: ParameterType.FLOAT,
     ParameterId.CurrentControlDKd: ParameterType.FLOAT,
+    ParameterId.RampControlFirstOrderTerm: ParameterType.FLOAT,
+    ParameterId.RampControlSecondOrderTerm: ParameterType.FLOAT,
+    ParameterId.RampControlRampTime: ParameterType.FLOAT,
 
     # Motor Description Parameters
     ParameterId.RotorPoles: ParameterType.UINT8,

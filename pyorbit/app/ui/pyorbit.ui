@@ -63,8 +63,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>1606</width>
-           <height>634</height>
+           <width>1590</width>
+           <height>622</height>
           </rect>
          </property>
         </widget>
@@ -1293,7 +1293,7 @@
      <x>0</x>
      <y>0</y>
      <width>1920</width>
-     <height>20</height>
+     <height>25</height>
     </rect>
    </property>
    <property name="maximumSize">

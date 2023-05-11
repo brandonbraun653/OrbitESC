@@ -2,13 +2,17 @@ from __future__ import annotations
 
 from enum import Enum
 
+from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5 import QtCore, QtGui
+
+from pyorbit.app.parameters.updater import ParameterUpdater
 from pyorbit.app.ui.pyorbit import Ui_MainWindow
-from pyorbit.app.connections import SerialConnectionManager
+from pyorbit.app.connections.serial import SerialConnectionManager
 from loguru import logger
 
 from pyorbit.serial.client import SerialClient
+from pyorbit.serial.parameters import ParameterId
 
 # Load our settings storage
 AppSettings = QtCore.QSettings("OrbitESC", "PyOrbit")
@@ -41,17 +45,40 @@ class PyOrbitGUI(QMainWindow, Ui_MainWindow):
         self._serial_conn_mgr = SerialConnectionManager()
         self._serial_conn_mgr.start()
 
+        # Start the background parameter updater
+        self._param_updater = ParameterUpdater()
+        self._updater_thread = QtCore.QThread()
+        self._updater_thread.start()
+        self._param_updater.moveToThread(self._updater_thread)
+
     @property
     def settings(self) -> QtCore.QSettings:
+        """
+        Returns:
+            Returns the application settings object.
+        """
         return self._settings
 
     @property
     def serial_client(self) -> SerialClient:
+        """
+        Returns:
+            Returns the serial client object from the serial connection manager.
+        """
         return self._serial_conn_mgr.serial_client
 
     def run(self) -> int:
+        """
+        Custom run method for the PyOrbitGUI application
+        Returns:
+            The exit code of the application
+        """
+        # Perform the initial setup of the GUI that doesn't require a running event loop.
         self._init_widgets()
         self._attach_signals()
+
+        # Schedule the post-init function to run after the event loop has started.
+        QTimer.singleShot(500, self._post_initialization)
         return self._app.exec()
 
     def showEvent(self, a0: QtGui.QShowEvent) -> None:
@@ -77,11 +104,16 @@ class PyOrbitGUI(QMainWindow, Ui_MainWindow):
         Returns:
             None
         """
+        from pyorbit.app.parameters.util import discover_parameters
+
         # Initialize the console window
         self.consoleWindow.init_console_window()
 
         # Initialize the data plotters
         self.phaseCurrentPlotter.init_data_plotter()
+
+        # Now with the widgets initialized, we can discover parameters
+        discover_parameters()
 
     def _attach_signals(self) -> None:
         """
@@ -100,9 +132,11 @@ class PyOrbitGUI(QMainWindow, Ui_MainWindow):
 
         # Notify widgets when a serial connection is opened
         self._serial_conn_mgr.onOpenSignal.connect(self.phaseCurrentPlotter.serial_connect)
+        self._serial_conn_mgr.onOpenSignal.connect(self._param_updater.on_serial_connect)
 
         # Notify widgets when a serial connection is closed
         self._serial_conn_mgr.onCloseSignal.connect(self.phaseCurrentPlotter.serial_disconnect)
+        self._serial_conn_mgr.onCloseSignal.connect(self._param_updater.on_serial_disconnect)
 
         # Notify widgets of a log message
         self.appLogMessageSignal.connect(self.consoleWindow.add_app_console_message)
@@ -115,6 +149,27 @@ class PyOrbitGUI(QMainWindow, Ui_MainWindow):
 
         # Notify widgets of a request to clear the current plot
         self.clearPlotButton.clicked.connect(self.phaseCurrentPlotter.clear_plot)
+
+        # Notify widgets of a request to Apply the current parameter settings
+        self.applyParameterChangesButton.clicked.connect(self.parameterTabs.parameter_apply_clicked)
+
+        # Notify widgets of a request to Refresh parameter settings
+        self.refreshParameterButton.clicked.connect(self.parameterTabs.parameter_refresh_clicked)
+
+        # Notify widgets of a request to Save parameter settings to a file
+        self.saveParameterToFileButton.clicked.connect(self.parameterTabs.parameter_save_clicked)
+
+        # Notify widgets of a request to Load parameter settings from a file
+        self.loadParameterFromFileButton.clicked.connect(self.parameterTabs.parameter_load_clicked)
+
+    def _post_initialization(self) -> None:
+        """
+        Performs any post-initialization tasks that require the application to be fully initialized.
+        Returns:
+            None
+        """
+        # Enqueue all parameters to be read from the ESC
+        pass
 
     def _loguru_log_message(self, message: str) -> None:
         """

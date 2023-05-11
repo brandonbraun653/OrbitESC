@@ -401,7 +401,7 @@ namespace Orbit::Motor
     /*-------------------------------------------------------------------------
     Run PI controllers for motor currents to generate voltage commands
     -------------------------------------------------------------------------*/
-    s_state.iLoop.iqRef = 0.0002f; // Simulink model was using this in startup?
+    s_state.iLoop.iqRef = 0.00002f; // Simulink model was using this in startup?
     s_state.iLoop.idRef = 0.0f;
 
     const float iqError = s_state.iLoop.iqRef - s_state.iLoop.iq;
@@ -465,8 +465,6 @@ namespace Orbit::Motor
 #endif
 
     static const float deg2rad = 0.0174533f;
-    static const float firstOrderTerm = 0.5f;
-    static const float secondOrderTerm = 20.0f;
     static volatile float start_time = 0.0f;
     static volatile float dt = 0.0f;
 
@@ -481,14 +479,14 @@ namespace Orbit::Motor
       return;
     }
 
-    float ramp_time = ( Chimera::micros() / 1e6f ) - start_time;
-    if ( ramp_time < 1.0f )
+    const float ramp_time = ( Chimera::micros() / 1e6f ) - start_time;
+    if ( ramp_time < Data::SysControl.rampCtrlRampTimeSec )
     {
       dt = ramp_time;
     }
 
-    s_state.iLoop.theta += ( secondOrderTerm * deg2rad * dt * dt ) +
-                           ( firstOrderTerm * deg2rad * dt );
+    s_state.iLoop.theta += ( Data::SysControl.rampCtrlSecondOrderTerm * deg2rad * dt * dt ) +
+                           ( Data::SysControl.rampCtrlFirstOrderTerm * deg2rad * dt );
 
     if( s_state.iLoop.theta > 6.283185f )
     {
