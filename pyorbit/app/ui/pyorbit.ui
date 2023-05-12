@@ -107,7 +107,7 @@
              <enum>QTabWidget::West</enum>
             </property>
             <property name="currentIndex">
-             <number>2</number>
+             <number>1</number>
             </property>
             <widget class="QWidget" name="infoParamTab">
              <attribute name="title">
@@ -399,7 +399,11 @@
                <widget class="ParameterDoubleSpinBox" name="systemTab_HeartbeatLEDRateBox"/>
               </item>
               <item row="1" column="3">
-               <widget class="ParameterDoubleSpinBox" name="systemTab_DiskSyncRateBox"/>
+               <widget class="ParameterDoubleSpinBox" name="systemTab_DiskSyncRateBox">
+                <property name="maximum">
+                 <double>60000.000000000000000</double>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -419,7 +423,11 @@
                </widget>
               </item>
               <item row="6" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SpeedCtrlKpBox"/>
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SpeedCtrlKpBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
               </item>
               <item row="8" column="0">
                <widget class="QLabel" name="label_16">
@@ -497,7 +505,11 @@
                </widget>
               </item>
               <item row="2" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_QAxisKiBox"/>
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_QAxisKiBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
               </item>
               <item row="12" column="0">
                <widget class="QLabel" name="label_47">
@@ -510,10 +522,18 @@
                </widget>
               </item>
               <item row="3" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_DAxisKpBox"/>
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_DAxisKpBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
               </item>
               <item row="4" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_DAxisKiBox"/>
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_DAxisKiBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
               </item>
               <item row="1" column="3">
                <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_TargetIdleRPMBox">
@@ -530,10 +550,18 @@
                </widget>
               </item>
               <item row="7" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SpeedCtrlKiBox"/>
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SpeedCtrlKiBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
               </item>
               <item row="8" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SpeedCtrlKdBox"/>
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SpeedCtrlKdBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
               </item>
               <item row="0" column="2">
                <widget class="QLabel" name="label_17">
@@ -662,7 +690,11 @@
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_QAxisKpBox"/>
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_QAxisKpBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
               </item>
               <item row="4" column="5">
                <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SupplyVoltageLimitBox"/>
@@ -701,20 +733,32 @@
                </widget>
               </item>
               <item row="2" column="5">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SpeedCtrlFreq">
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SpeedCtrlFreqBox">
                 <property name="maximum">
                  <double>20000.000000000000000</double>
                 </property>
                </widget>
               </item>
               <item row="10" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_StartupFirstOrderTermBox"/>
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_StartupFirstOrderTermBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
               </item>
               <item row="11" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_StartupSecondOrderTermBox"/>
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_StartupSecondOrderTermBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
               </item>
               <item row="12" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrl_StartupRampTimeBox"/>
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_StartupRampTimeBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>

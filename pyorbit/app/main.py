@@ -18,16 +18,6 @@ from pyorbit.serial.parameters import ParameterId
 AppSettings = QtCore.QSettings("OrbitESC", "PyOrbit")
 
 
-def pyorbit() -> PyOrbitGUI:
-    """
-    Returns the root PyOrbitGUI object, which contains all other widgets. This is just a convenience function
-    to make the code a little more readable.
-
-    :return: PyOrbitGUI object
-    """
-    return QApplication.activeWindow()
-
-
 class PyOrbitGUI(QMainWindow, Ui_MainWindow):
     appTearDownSignal = QtCore.pyqtSignal()
     appLogMessageSignal = QtCore.pyqtSignal(str)
@@ -66,6 +56,14 @@ class PyOrbitGUI(QMainWindow, Ui_MainWindow):
             Returns the serial client object from the serial connection manager.
         """
         return self._serial_conn_mgr.serial_client
+
+    @property
+    def parameter_updater(self) -> ParameterUpdater:
+        """
+        Returns:
+            Returns the parameter updater object.
+        """
+        return self._param_updater
 
     def run(self) -> int:
         """

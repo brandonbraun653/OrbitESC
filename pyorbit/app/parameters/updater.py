@@ -1,8 +1,7 @@
 from typing import List, Optional
-from threading import Event
 from PyQt5 import QtCore
+from PyQt5.QtWidgets import QApplication
 from loguru import logger
-
 from pyorbit.serial.client import SerialClient
 from pyorbit.serial.parameters import ParameterId
 
@@ -18,7 +17,6 @@ class ParameterUpdater(QtCore.QObject):
     def __init__(self):
         super().__init__()
         self._client = None  # type: Optional[SerialClient]
-
         self.refreshRequest.connect(self.refresh)
         self.applyRequest.connect(self.apply)
 
@@ -29,10 +27,10 @@ class ParameterUpdater(QtCore.QObject):
         Returns:
             None
         """
-        from pyorbit.app.main import pyorbit
-        self._client = pyorbit().serial_client
+        window = QApplication.activeWindow()
+        self._client = window.serial_client
 
-        self.refreshRequest.emit(list(ParameterId.__members__.values()))
+        self.refreshRequest.emit(ParameterId.values())
 
     @QtCore.pyqtSlot()
     def on_serial_disconnect(self) -> None:
@@ -42,17 +40,6 @@ class ParameterUpdater(QtCore.QObject):
             None
         """
         self._client = None
-
-    @QtCore.pyqtSlot()
-    def tear_down(self) -> None:
-        """
-        Slot method to cleanly tear down the serial connection thread.
-        Returns:
-            None
-        """
-        logger.debug("Tearing down ParameterUpdater thread.")
-        self.quit()
-        self._kill_event.set()
 
     @QtCore.pyqtSlot(list)
     def refresh(self, parameter_ids: List[ParameterId]) -> None:

@@ -7,12 +7,13 @@ from enum import Enum
 from typing import Optional, List
 import pyqtgraph
 from PyQt5.QtGui import QPen
+from PyQt5.QtWidgets import QApplication
 from loguru import logger
 import numpy as np
 from PyQt5 import QtCore
 from pyqtgraph import PlotWidget, PlotDataItem
 
-from pyorbit.app.main import AppSettings, Settings, pyorbit
+from pyorbit.app.main import AppSettings, Settings
 from pyorbit.serial.messages import SystemDataMessage
 from pyorbit.serial.parameters import ParameterId
 from pyorbit.observer import MessageObserver
@@ -111,17 +112,19 @@ class LiveDataPlotter(PlotWidget):
 
     @QtCore.pyqtSlot()
     def serial_connect(self) -> None:
+        window = QApplication.activeWindow()
         # Register the plot's data observer with the serial client
-        pyorbit().serial_client.com_pipe.subscribe_observer(self._data_plot.data_observer())
+        window.serial_client.com_pipe.subscribe_observer(self._data_plot.data_observer())
 
         # Update the state of the auto-scale checkbox
         if AppSettings.contains(Settings.PLOT_AUTO_SCALE):
-            pyorbit().autoScaleCheckBox.setCheckState(QtCore.Qt.CheckState(AppSettings.value(Settings.PLOT_AUTO_SCALE)))
+            window.autoScaleCheckBox.setCheckState(QtCore.Qt.CheckState(AppSettings.value(Settings.PLOT_AUTO_SCALE)))
 
     @QtCore.pyqtSlot()
     def serial_disconnect(self) -> None:
         # Unregister the plot's data observer with the serial client
-        pyorbit().serial_client.com_pipe.unsubscribe(self._data_plot.data_observer().unique_id)
+        window = QApplication.activeWindow()
+        window.serial_client.com_pipe.unsubscribe(self._data_plot.data_observer().unique_id)
 
     @QtCore.pyqtSlot(int)
     def toggle_live_data_stream(self, state: int) -> None:
@@ -133,7 +136,8 @@ class LiveDataPlotter(PlotWidget):
         Returns:
             None
         """
-        serial_client = pyorbit().serial_client
+        window = QApplication.activeWindow()
+        serial_client = window.serial_client
 
         if state == QtCore.Qt.CheckState.Checked:
             # First check to see if the serial target is online. If not available and we are trying to go live, then
@@ -145,7 +149,7 @@ class LiveDataPlotter(PlotWidget):
 
             # Try to request a live stream of the data
             logger.trace(f"Enabling live stream of {self._data_plot.name()}")
-            if pyorbit().serial_client.parameter.set(self._data_plot.stream_parameter(), True):
+            if window.serial_client.parameter.set(self._data_plot.stream_parameter(), True):
                 self._plot_refresh_timer.start(LiveDataPlotter.PLOT_REFRESH_RATE_MS)
                 AppSettings.setValue(Settings.PLOT_LIVE_DATA, True)
             else:
@@ -157,7 +161,7 @@ class LiveDataPlotter(PlotWidget):
                 return
 
             logger.trace(f"Disabling live stream of {self._data_plot.name()}")
-            if pyorbit().serial_client.parameter.set(self._data_plot.stream_parameter(), False):
+            if window.serial_client.parameter.set(self._data_plot.stream_parameter(), False):
                 self._plot_refresh_timer.stop()
                 AppSettings.setValue(Settings.PLOT_LIVE_DATA, False)
             else:

@@ -1,6 +1,6 @@
 from typing import Optional
-
 from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtWidgets import QApplication
 from loguru import logger
 from pyorbit.serial.client import SerialClient
 from threading import Event
@@ -66,11 +66,11 @@ class SerialConnectionManager(QtCore.QThread):
         Returns:
             None
         """
-        from pyorbit.app.main import pyorbit
         from pyorbit.app.ui.serial import SerialTargetSelect
 
         if not self._client:
-            selector = pyorbit().findChild(QtWidgets.QComboBox, "serialTargetComboBox")  # type: SerialTargetSelect
+            window = QApplication.activeWindow()
+            selector = window.findChild(QtWidgets.QComboBox, "serialTargetComboBox")  # type: SerialTargetSelect
 
             logger.info(f"Opening serial connection to {selector.active_target}")
             self._client = SerialClient(selector.active_target, baudrate=self.CONNECTION_BAUD_RATE)

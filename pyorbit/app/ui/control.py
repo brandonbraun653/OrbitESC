@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtWidgets import QApplication
 from loguru import logger
 from pyorbit.motor_control import MotorControl
 from pyorbit.serial.utility import has_serial_client
@@ -19,8 +20,8 @@ class EmergencyStopButton(QtWidgets.QPushButton):
         Returns:
             None
         """
-        from pyorbit.app.main import pyorbit
-        if MotorControl(pyorbit().serial_client).emergency_stop():
+        window = QApplication.activeWindow()
+        if MotorControl(window.serial_client).emergency_stop():
             logger.info("Emergency stop OK")
         else:
             logger.error("Failed to send emergency stop command")
@@ -41,8 +42,8 @@ class SystemResetButton(QtWidgets.QPushButton):
         Returns:
             None
         """
-        from pyorbit.app.main import pyorbit
-        if pyorbit().serial_client.system_reset():
+        window = QApplication.activeWindow()
+        if window.serial_client.system_reset():
             logger.info("System reset OK")
         else:
             logger.error("Failed to send system reset command")

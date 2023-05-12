@@ -1,4 +1,6 @@
 from functools import wraps
+
+from PyQt5.QtWidgets import QApplication
 from loguru import logger
 
 
@@ -9,9 +11,8 @@ def has_serial_client(method):
     """
     @wraps(method)
     def _impl(*method_args, **method_kwargs):
-        from pyorbit.app.main import pyorbit
-
-        client = pyorbit().serial_client
+        window = QApplication.activeWindow()
+        client = window.serial_client
         if client:
             return method(*method_args, **method_kwargs)
         else:

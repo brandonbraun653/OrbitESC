@@ -1,5 +1,6 @@
+from __future__ import annotations
 from enum import IntEnum
-
+from typing import List
 from pyorbit.nanopb import serial_interface_pb2 as proto
 
 
@@ -16,6 +17,13 @@ class ParameterType(IntEnum):
 
 
 class ParameterId(IntEnum):
+
+    @classmethod
+    def values(cls) -> List[ParameterId]:
+        all_values = list(cls.__members__.values())
+        all_values.remove(ParameterId.Invalid)
+        return all_values
+
     # Housekeeping parameters
     Invalid = proto.PARAM_INVALID
 

@@ -2,8 +2,9 @@ from typing import Union
 import serial.tools.list_ports
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QTextCharFormat, QColor
+from PyQt5.QtWidgets import QApplication
 from loguru import logger
-from pyorbit.app.main import pyorbit, Settings, AppSettings
+from pyorbit.app.main import Settings, AppSettings
 
 
 class SerialTargetSelect(QtWidgets.QComboBox):
@@ -117,7 +118,8 @@ class SerialClearConsoleButton(QtWidgets.QPushButton):
         Returns:
             None
         """
-        console = pyorbit().findChild(QtWidgets.QScrollArea, "consoleWindow")  # type: SerialConsoleVisualizer
+        window = QApplication.activeWindow()
+        console = window.findChild(QtWidgets.QScrollArea, "consoleWindow")  # type: SerialConsoleVisualizer
         console.clear()
 
 

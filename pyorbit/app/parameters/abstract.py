@@ -1,11 +1,9 @@
+import math
 from abc import ABCMeta, abstractmethod
 from typing import Union
-
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication
 from loguru import logger
-
-from pyorbit.app.main import pyorbit
 from pyorbit.serial.client import SerialClient
 from pyorbit.serial.parameters import ParameterId
 
@@ -37,21 +35,41 @@ class AbstractParameter(metaclass=ABCMeta):
 
     @property
     def value(self) -> Union[float, int, str, bool]:
-        """ The current value of the parameter """
+        """
+        Returns:
+            The current value of the parameter.
+        """
         return self._new_value
 
     @value.setter
     def value(self, value: Union[float, int, str, bool]) -> None:
-        """ Sets the value of the parameter """
+        """
+        Sets the current value of the parameter.
+        Args:
+            value: The new value of the parameter.
+
+        Returns:
+            None
+        """
         self._new_value = value
 
     @property
     def dirty(self) -> bool:
-        """ Returns True if the parameter value has changed since the last time it was applied to the target node """
+        """
+        Returns:
+            True if the parameter value has changed since the last refresh, False otherwise.
+        """
         return self._new_value != self._esc_value
 
     def apply(self, serial: SerialClient) -> None:
-        """ Applies the parameter value to the target node """
+        """
+        Applies the parameter value to the target node.
+        Args:
+            serial: The SerialClient instance to use for communicating with the target node.
+
+        Returns:
+            None
+        """
         if not self.dirty:
             logger.trace(f"Parameter {self.parameter_id} is not dirty, skipping apply")
             return
@@ -60,7 +78,14 @@ class AbstractParameter(metaclass=ABCMeta):
         logger.info(f"Applying parameter {self.parameter_id} with value {self.value}")
         if serial.parameter.set(self.parameter_id, self.value):
             programmed_value = serial.parameter.get(self.parameter_id)
-            if programmed_value == self.value:
+
+            # Compare the programmed value to the value we tried to program
+            if type(programmed_value) == float:
+                is_equal = math.isclose(programmed_value, self.value, rel_tol=1e-5)
+            else:
+                is_equal = programmed_value == self.value
+
+            if is_equal:
                 self._esc_value = self.value
                 logger.debug(f"Successfully applied parameter {self.parameter_id} with value {self.value}")
 
@@ -69,7 +94,14 @@ class AbstractParameter(metaclass=ABCMeta):
             logger.warning(f"Failed to apply parameter {self.parameter_id} with value {self.value}")
 
     def refresh(self, serial: SerialClient) -> None:
-        """ Refreshes the parameter value from the target node """
+        """
+        Refreshes the parameter value from the target node.
+        Args:
+            serial: The SerialClient instance to use for communicating with the target node.
+
+        Returns:
+            None
+        """
         logger.trace(f"Refreshing parameter {self.parameter_id}")
         programmed_value = serial.parameter.get(self.parameter_id)
         if programmed_value is not None:
