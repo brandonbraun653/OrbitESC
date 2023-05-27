@@ -73,6 +73,8 @@ namespace Orbit::Data
     float currentCtrl_D_Kd;                               /**< PARAM_CURRENT_CTRL_D_AXIS_KD */
     float currentCtrl_Q_FIR[ FIRFilter::CoefData::SIZE ]; /**< PARAM_CURRENT_CTRL_Q_AXIS_FIR */
     float currentCtrl_D_FIR[ FIRFilter::CoefData::SIZE ]; /**< PARAM_CURRENT_CTRL_D_AXIS_FIR */
+    float currentObserver_KSlide;                         /**< PARAM_CURRENT_OBSERVER_KSLIDE */
+    float currentObserver_MaxError;                       /**< PARAM_CURRENT_OBSERVER_MAX_ERROR */
     float rampCtrlFirstOrderTerm;                         /**< PARAM_RAMP_CTRL_FIRST_ORDER_TERM */
     float rampCtrlSecondOrderTerm;                        /**< PARAM_RAMP_CTRL_SECOND_ORDER_TERM */
     float rampCtrlRampTimeSec;                            /**< PARAM_RAMP_CTRL_RAMP_TIME_SEC */
@@ -119,8 +121,9 @@ namespace Orbit::Data
     /*-------------------------------------------------------------------------
     System Behavior
     -------------------------------------------------------------------------*/
-    bool streamPhaseCurrents; /**< PARAM_STREAM_PHASE_CURRENTS */
-    bool streamPwmCommands;   /**< PARAM_STREAM_PWM_COMMANDS */
+    bool streamPhaseCurrents;  /**< PARAM_STREAM_PHASE_CURRENTS */
+    bool streamPwmCommands;    /**< PARAM_STREAM_PWM_COMMANDS */
+    bool streamStateEstimates; /**< PARAM_STREAM_STATE_ESTIMATES */
 
     void clear();
     void setDefaults();

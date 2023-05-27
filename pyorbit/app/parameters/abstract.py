@@ -59,7 +59,18 @@ class AbstractParameter(metaclass=ABCMeta):
         Returns:
             True if the parameter value has changed since the last refresh, False otherwise.
         """
-        return self._new_value != self._esc_value
+        if type(self._new_value) == float:
+            return not math.isclose(self._new_value, self._esc_value, rel_tol=1e-5)
+        else:
+            return self._new_value != self._esc_value
+
+    @property
+    def read_only(self) -> bool:
+        """
+        Returns:
+            True if the parameter is read-only, False otherwise.
+        """
+        return False
 
     def apply(self, serial: SerialClient) -> None:
         """
@@ -72,6 +83,9 @@ class AbstractParameter(metaclass=ABCMeta):
         """
         if not self.dirty:
             logger.trace(f"Parameter {self.parameter_id} is not dirty, skipping apply")
+            return
+
+        if self.read_only:
             return
 
         # Apply the parameter, then read it back to verify that it was applied correctly

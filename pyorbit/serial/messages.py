@@ -65,6 +65,7 @@ class SystemDataId(IntEnum):
     SYS_DATA_INVALID = proto.SYS_DATA_INVALID
     ADC_PHASE_CURRENTS = proto.ADC_PHASE_CURRENTS
     PWM_COMMANDS = proto.PWM_COMMANDS
+    STATE_ESTIMATES = proto.STATE_ESTIMATES
 
 
 class UUIDGenerator(metaclass=Singleton):
@@ -325,9 +326,17 @@ class SystemDataMessage(BaseMessage):
             ('phase_c', ctypes.c_float),
         ]
 
+    class StateEstimates(ctypes.Structure):
+        _fields_ = [
+            ('timestamp', ctypes.c_uint32),
+            ('position', ctypes.c_float),
+            ('speed', ctypes.c_float),
+        ]
+
     _id_to_type = {
         SystemDataId.ADC_PHASE_CURRENTS: ADCPhaseCurrents,
         SystemDataId.PWM_COMMANDS: PWMCommands,
+        SystemDataId.STATE_ESTIMATES: StateEstimates,
     }
 
     def __init__(self):

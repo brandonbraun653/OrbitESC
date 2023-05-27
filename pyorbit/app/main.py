@@ -1,18 +1,14 @@
 from __future__ import annotations
 
 from enum import Enum
-
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5 import QtCore, QtGui
-
+from loguru import logger
 from pyorbit.app.parameters.updater import ParameterUpdater
 from pyorbit.app.ui.pyorbit import Ui_MainWindow
 from pyorbit.app.connections.serial import SerialConnectionManager
-from loguru import logger
-
 from pyorbit.serial.client import SerialClient
-from pyorbit.serial.parameters import ParameterId
 
 # Load our settings storage
 AppSettings = QtCore.QSettings("OrbitESC", "PyOrbit")
@@ -107,9 +103,6 @@ class PyOrbitGUI(QMainWindow, Ui_MainWindow):
         # Initialize the console window
         self.consoleWindow.init_console_window()
 
-        # Initialize the data plotters
-        self.phaseCurrentPlotter.init_data_plotter()
-
         # Now with the widgets initialized, we can discover parameters
         discover_parameters()
 
@@ -130,10 +123,12 @@ class PyOrbitGUI(QMainWindow, Ui_MainWindow):
 
         # Notify widgets when a serial connection is opened
         self._serial_conn_mgr.onOpenSignal.connect(self.phaseCurrentPlotter.serial_connect)
+        self._serial_conn_mgr.onOpenSignal.connect(self.speedPositionPlotter.serial_connect)
         self._serial_conn_mgr.onOpenSignal.connect(self._param_updater.on_serial_connect)
 
         # Notify widgets when a serial connection is closed
         self._serial_conn_mgr.onCloseSignal.connect(self.phaseCurrentPlotter.serial_disconnect)
+        self._serial_conn_mgr.onCloseSignal.connect(self.speedPositionPlotter.serial_disconnect)
         self._serial_conn_mgr.onCloseSignal.connect(self._param_updater.on_serial_disconnect)
 
         # Notify widgets of a log message
@@ -141,12 +136,15 @@ class PyOrbitGUI(QMainWindow, Ui_MainWindow):
 
         # Notify widgets of a live data stream request
         self.liveDataCheckBox.stateChanged.connect(self.phaseCurrentPlotter.toggle_live_data_stream)
+        self.liveDataCheckBox.stateChanged.connect(self.speedPositionPlotter.toggle_live_data_stream)
 
         # Notify widgets of an auto-scale request
         self.autoScaleCheckBox.stateChanged.connect(self.phaseCurrentPlotter.toggle_auto_scale)
+        self.autoScaleCheckBox.stateChanged.connect(self.speedPositionPlotter.toggle_auto_scale)
 
         # Notify widgets of a request to clear the current plot
         self.clearPlotButton.clicked.connect(self.phaseCurrentPlotter.clear_plot)
+        self.clearPlotButton.clicked.connect(self.speedPositionPlotter.clear_plot)
 
         # Notify widgets of a request to Apply the current parameter settings
         self.applyParameterChangesButton.clicked.connect(self.parameterTabs.parameter_apply_clicked)

@@ -107,7 +107,7 @@
              <enum>QTabWidget::West</enum>
             </property>
             <property name="currentIndex">
-             <number>1</number>
+             <number>3</number>
             </property>
             <widget class="QWidget" name="infoParamTab">
              <attribute name="title">
@@ -310,23 +310,62 @@
               <string>System Behavior</string>
              </attribute>
              <layout class="QGridLayout" name="gridLayout_5">
+              <item row="0" column="4">
+               <widget class="QLabel" name="label_50">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>IO Behavior</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <spacer name="verticalSpacer_4">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
               <item row="2" column="1">
                <widget class="ParameterDoubleSpinBox" name="systemTab_IOLEDRateBox"/>
               </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_34">
+              <item row="1" column="2">
+               <widget class="QLabel" name="label_37">
                 <property name="text">
-                 <string>Heartbeat LED Rate</string>
+                 <string>Disk Sync Rate</string>
                 </property>
                 <property name="indent">
                  <number>20</number>
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_35">
+              <item row="0" column="2">
+               <widget class="QLabel" name="label_36">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
                 <property name="text">
-                 <string>I/O Active LED Rate</string>
+                 <string>Software Behavior</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_34">
+                <property name="text">
+                 <string>Heartbeat LED Rate</string>
                 </property>
                 <property name="indent">
                  <number>20</number>
@@ -347,6 +386,27 @@
                </widget>
               </item>
               <item row="1" column="4">
+               <widget class="QCheckBox" name="systemTab_PhaseCurrentStreamingCheckBox">
+                <property name="text">
+                 <string>Phase Current Streaming</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="4">
+               <widget class="QCheckBox" name="systemTab_PhaseVoltageStreamingCheckBox">
+                <property name="text">
+                 <string>Phase Voltage Streaming</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <widget class="ParameterDoubleSpinBox" name="systemTab_DiskSyncRateBox">
+                <property name="maximum">
+                 <double>60000.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="5">
                <spacer name="horizontalSpacer_5">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -359,36 +419,10 @@
                 </property>
                </spacer>
               </item>
-              <item row="3" column="0">
-               <spacer name="verticalSpacer_4">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="0" column="2">
-               <widget class="QLabel" name="label_36">
-                <property name="font">
-                 <font>
-                  <weight>75</weight>
-                  <bold>true</bold>
-                 </font>
-                </property>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_35">
                 <property name="text">
-                 <string>Software Behavior</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="2">
-               <widget class="QLabel" name="label_37">
-                <property name="text">
-                 <string>Disk Sync Rate</string>
+                 <string>I/O Active LED Rate</string>
                 </property>
                 <property name="indent">
                  <number>20</number>
@@ -398,10 +432,10 @@
               <item row="1" column="1">
                <widget class="ParameterDoubleSpinBox" name="systemTab_HeartbeatLEDRateBox"/>
               </item>
-              <item row="1" column="3">
-               <widget class="ParameterDoubleSpinBox" name="systemTab_DiskSyncRateBox">
-                <property name="maximum">
-                 <double>60000.000000000000000</double>
+              <item row="3" column="4">
+               <widget class="QCheckBox" name="systemTab_StateEstimateStreamingCheckBox">
+                <property name="text">
+                 <string>State Estimate Streaming</string>
                 </property>
                </widget>
               </item>
@@ -412,20 +446,224 @@
               <string>Motor Control</string>
              </attribute>
              <layout class="QGridLayout" name="gridLayout">
-              <item row="1" column="4">
-               <widget class="QLabel" name="label_19">
+              <item row="2" column="4">
+               <widget class="QLabel" name="label_21">
                 <property name="text">
-                 <string>Current Control Frequency</string>
+                 <string>Speed Control Frequency</string>
                 </property>
                 <property name="indent">
                  <number>20</number>
                 </property>
                </widget>
               </item>
-              <item row="6" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SpeedCtrlKpBox">
+              <item row="6" column="0">
+               <widget class="QLabel" name="label_14">
+                <property name="text">
+                 <string>Kp</string>
+                </property>
+                <property name="indent">
+                 <number>20</number>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="5">
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_PeakCurrentLimitBox"/>
+              </item>
+              <item row="4" column="1">
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_DAxisKiBox">
                 <property name="decimals">
                  <number>5</number>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="4">
+               <widget class="QLabel" name="label_22">
+                <property name="text">
+                 <string>Peak Current Limit (A)</string>
+                </property>
+                <property name="indent">
+                 <number>20</number>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_11">
+                <property name="text">
+                 <string>D-Axis Kp</string>
+                </property>
+                <property name="indent">
+                 <number>20</number>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="5">
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SupplyVoltageLimitBox"/>
+              </item>
+              <item row="7" column="0">
+               <widget class="QLabel" name="label_15">
+                <property name="text">
+                 <string>Ki</string>
+                </property>
+                <property name="indent">
+                 <number>20</number>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="1">
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SpeedCtrlKdBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
+              </item>
+              <item row="12" column="0">
+               <widget class="QLabel" name="label_47">
+                <property name="text">
+                 <string>Ramp Time</string>
+                </property>
+                <property name="indent">
+                 <number>20</number>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_QAxisKpBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLabel" name="label_18">
+                <property name="text">
+                 <string>Target Idle RPM</string>
+                </property>
+                <property name="indent">
+                 <number>20</number>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_TargetIdleRPMBox">
+                <property name="maximum">
+                 <double>4000.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="10" column="1">
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_StartupFirstOrderTermBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
+              </item>
+              <item row="13" column="0">
+               <widget class="QLabel" name="label_49">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Current Observer</string>
+                </property>
+               </widget>
+              </item>
+              <item row="10" column="0">
+               <widget class="QLabel" name="label_45">
+                <property name="text">
+                 <string>First Order Term</string>
+                </property>
+                <property name="indent">
+                 <number>20</number>
+                </property>
+               </widget>
+              </item>
+              <item row="14" column="0">
+               <widget class="QLabel" name="label_51">
+                <property name="text">
+                 <string>Sliding Mode Control Gain</string>
+                </property>
+                <property name="indent">
+                 <number>20</number>
+                </property>
+               </widget>
+              </item>
+              <item row="11" column="1">
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_StartupSecondOrderTermBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_12">
+                <property name="text">
+                 <string>D-Axis Ki</string>
+                </property>
+                <property name="indent">
+                 <number>20</number>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_9">
+                <property name="text">
+                 <string>Q-Axis Ki</string>
+                </property>
+                <property name="indent">
+                 <number>20</number>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_8">
+                <property name="text">
+                 <string>Q-Axis Kp</string>
+                </property>
+                <property name="indent">
+                 <number>20</number>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_QAxisKiBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_10">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Inner Loop Current Control</string>
+                </property>
+               </widget>
+              </item>
+              <item row="9" column="0">
+               <widget class="QLabel" name="label_44">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Startup Control</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="5">
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_CurrentCtrlFreqBox">
+                <property name="maximum">
+                 <double>20000.000000000000000</double>
                 </property>
                </widget>
               </item>
@@ -433,16 +671,6 @@
                <widget class="QLabel" name="label_16">
                 <property name="text">
                  <string>Kd</string>
-                </property>
-                <property name="indent">
-                 <number>20</number>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="4">
-               <widget class="QLabel" name="label_21">
-                <property name="text">
-                 <string>Speed Control Frequency</string>
                 </property>
                 <property name="indent">
                  <number>20</number>
@@ -471,95 +699,56 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_10">
-                <property name="font">
-                 <font>
-                  <weight>75</weight>
-                  <bold>true</bold>
-                 </font>
+              <item row="4" column="6">
+               <spacer name="horizontalSpacer_3">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
                 </property>
-                <property name="text">
-                 <string>Inner Loop Current Control</string>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
                 </property>
-               </widget>
+               </spacer>
               </item>
-              <item row="7" column="0">
-               <widget class="QLabel" name="label_15">
-                <property name="text">
-                 <string>Ki</string>
+              <item row="16" column="0">
+               <spacer name="verticalSpacer_2">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
                 </property>
-                <property name="indent">
-                 <number>20</number>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
                 </property>
-               </widget>
+               </spacer>
               </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="label_12">
-                <property name="text">
-                 <string>D-Axis Ki</string>
-                </property>
-                <property name="indent">
-                 <number>20</number>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_QAxisKiBox">
-                <property name="decimals">
-                 <number>5</number>
-                </property>
-               </widget>
-              </item>
-              <item row="12" column="0">
-               <widget class="QLabel" name="label_47">
-                <property name="text">
-                 <string>Ramp Time</string>
-                </property>
-                <property name="indent">
-                 <number>20</number>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_DAxisKpBox">
-                <property name="decimals">
-                 <number>5</number>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_DAxisKiBox">
-                <property name="decimals">
-                 <number>5</number>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="3">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_TargetIdleRPMBox">
-                <property name="maximum">
-                 <double>4000.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="5">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_CurrentCtrlFreqBox">
+              <item row="2" column="5">
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SpeedCtrlFreqBox">
                 <property name="maximum">
                  <double>20000.000000000000000</double>
                 </property>
                </widget>
               </item>
-              <item row="7" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SpeedCtrlKiBox">
-                <property name="decimals">
-                 <number>5</number>
+              <item row="1" column="4">
+               <widget class="QLabel" name="label_19">
+                <property name="text">
+                 <string>Current Control Frequency</string>
+                </property>
+                <property name="indent">
+                 <number>20</number>
                 </property>
                </widget>
               </item>
-              <item row="8" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SpeedCtrlKdBox">
-                <property name="decimals">
-                 <number>5</number>
+              <item row="4" column="4">
+               <widget class="QLabel" name="label_23">
+                <property name="text">
+                 <string>Supply Voltage Limit (V)</string>
+                </property>
+                <property name="indent">
+                 <number>20</number>
                 </property>
                </widget>
               </item>
@@ -577,148 +766,6 @@
                 </property>
                </widget>
               </item>
-              <item row="3" column="4">
-               <widget class="QLabel" name="label_22">
-                <property name="text">
-                 <string>Peak Current Limit (A)</string>
-                </property>
-                <property name="indent">
-                 <number>20</number>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_11">
-                <property name="text">
-                 <string>D-Axis Kp</string>
-                </property>
-                <property name="indent">
-                 <number>20</number>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="0">
-               <widget class="QLabel" name="label_14">
-                <property name="text">
-                 <string>Kp</string>
-                </property>
-                <property name="indent">
-                 <number>20</number>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="2">
-               <widget class="QLabel" name="label_18">
-                <property name="text">
-                 <string>Target Idle RPM</string>
-                </property>
-                <property name="indent">
-                 <number>20</number>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="6">
-               <spacer name="horizontalSpacer_3">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="9" column="0">
-               <widget class="QLabel" name="label_44">
-                <property name="font">
-                 <font>
-                  <weight>75</weight>
-                  <bold>true</bold>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Startup Control</string>
-                </property>
-               </widget>
-              </item>
-              <item row="11" column="0">
-               <widget class="QLabel" name="label_46">
-                <property name="text">
-                 <string>Second Order Term</string>
-                </property>
-                <property name="indent">
-                 <number>20</number>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="4">
-               <widget class="QLabel" name="label_23">
-                <property name="text">
-                 <string>Supply Voltage Limit (V)</string>
-                </property>
-                <property name="indent">
-                 <number>20</number>
-                </property>
-               </widget>
-              </item>
-              <item row="13" column="0">
-               <spacer name="verticalSpacer_2">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="3" column="5">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_PeakCurrentLimitBox"/>
-              </item>
-              <item row="10" column="0">
-               <widget class="QLabel" name="label_45">
-                <property name="text">
-                 <string>First Order Term</string>
-                </property>
-                <property name="indent">
-                 <number>20</number>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_QAxisKpBox">
-                <property name="decimals">
-                 <number>5</number>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="5">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SupplyVoltageLimitBox"/>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_8">
-                <property name="text">
-                 <string>Q-Axis Kp</string>
-                </property>
-                <property name="indent">
-                 <number>20</number>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_9">
-                <property name="text">
-                 <string>Q-Axis Ki</string>
-                </property>
-                <property name="indent">
-                 <number>20</number>
-                </property>
-               </widget>
-              </item>
               <item row="0" column="4">
                <widget class="QLabel" name="label_20">
                 <property name="font">
@@ -732,24 +779,27 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="5">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SpeedCtrlFreqBox">
-                <property name="maximum">
-                 <double>20000.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item row="10" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_StartupFirstOrderTermBox">
+              <item row="3" column="1">
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_DAxisKpBox">
                 <property name="decimals">
                  <number>5</number>
                 </property>
                </widget>
               </item>
-              <item row="11" column="1">
-               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_StartupSecondOrderTermBox">
+              <item row="6" column="1">
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SpeedCtrlKpBox">
                 <property name="decimals">
                  <number>5</number>
+                </property>
+               </widget>
+              </item>
+              <item row="11" column="0">
+               <widget class="QLabel" name="label_46">
+                <property name="text">
+                 <string>Second Order Term</string>
+                </property>
+                <property name="indent">
+                 <number>20</number>
                 </property>
                </widget>
               </item>
@@ -757,6 +807,43 @@
                <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_StartupRampTimeBox">
                 <property name="decimals">
                  <number>5</number>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="1">
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SpeedCtrlKiBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
+              </item>
+              <item row="15" column="0">
+               <widget class="QLabel" name="label_52">
+                <property name="text">
+                 <string>Maximum Error</string>
+                </property>
+                <property name="indent">
+                 <number>20</number>
+                </property>
+               </widget>
+              </item>
+              <item row="14" column="1">
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SlidingModeControlGainBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+                <property name="minimum">
+                 <double>-99.989999999999995</double>
+                </property>
+               </widget>
+              </item>
+              <item row="15" column="1">
+               <widget class="ParameterDoubleSpinBox" name="motorCtrlTab_SlidingModeControlMaximumErrorBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+                <property name="minimum">
+                 <double>-99.989999999999995</double>
                 </property>
                </widget>
               </item>
@@ -866,10 +953,18 @@
                <widget class="ParameterSpinBox" name="motorAttrTab_RotorPolesBox"/>
               </item>
               <item row="2" column="3">
-               <widget class="ParameterDoubleSpinBox" name="motorAttrTab_PhaseInductanceBox"/>
+               <widget class="ParameterDoubleSpinBox" name="motorAttrTab_PhaseInductanceBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
               </item>
               <item row="1" column="3">
-               <widget class="ParameterDoubleSpinBox" name="motorAttrTab_PhaseResistanceBox"/>
+               <widget class="ParameterDoubleSpinBox" name="motorAttrTab_PhaseResistanceBox">
+                <property name="decimals">
+                 <number>5</number>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -954,7 +1049,7 @@
              <enum>QTabWidget::Rounded</enum>
             </property>
             <property name="currentIndex">
-             <number>1</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="tabMotorCurrent">
              <attribute name="title">
@@ -970,6 +1065,16 @@
              <attribute name="title">
               <string>Motor Voltage</string>
              </attribute>
+            </widget>
+            <widget class="QWidget" name="tabSpeedPosition">
+             <attribute name="title">
+              <string>Motor Speed</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_6">
+              <item>
+               <widget class="LiveDataPlotter" name="speedPositionPlotter" native="true"/>
+              </item>
+             </layout>
             </widget>
            </widget>
           </item>
@@ -1181,49 +1286,6 @@
        </item>
        <item>
         <layout class="QGridLayout" name="gridLayout_2">
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_4">
-           <property name="text">
-            <string>Input Voltage</string>
-           </property>
-           <property name="indent">
-            <number>20</number>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="ParameterLineEdit" name="globalInputVoltageBox">
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-           <property name="placeholderText">
-            <string>N/A</string>
-           </property>
-           <property name="clearButtonEnabled">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="ParameterLineEdit" name="globalSystemModeBox">
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-           <property name="placeholderText">
-            <string>N/A</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>Temperature</string>
-           </property>
-           <property name="indent">
-            <number>20</number>
-           </property>
-          </widget>
-         </item>
          <item row="3" column="0">
           <widget class="QLabel" name="label_5">
            <property name="text">
@@ -1234,20 +1296,20 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_2">
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_6">
            <property name="text">
-            <string>System Mode</string>
+            <string>Estimated RPM</string>
            </property>
            <property name="indent">
             <number>20</number>
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_6">
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_3">
            <property name="text">
-            <string>Estimated RPM</string>
+            <string>Temperature</string>
            </property>
            <property name="indent">
             <number>20</number>
@@ -1284,6 +1346,49 @@
            </property>
           </widget>
          </item>
+         <item row="0" column="1">
+          <widget class="ParameterLineEdit" name="globalSystemModeBox">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+           <property name="placeholderText">
+            <string>N/A</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="ParameterLineEdit" name="globalInputVoltageBox">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+           <property name="placeholderText">
+            <string>N/A</string>
+           </property>
+           <property name="clearButtonEnabled">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="ParameterLineEdit" name="globalAverageCurrentBox">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+           <property name="placeholderText">
+            <string>N/A</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>Input Voltage</string>
+           </property>
+           <property name="indent">
+            <number>20</number>
+           </property>
+          </widget>
+         </item>
          <item row="4" column="1">
           <widget class="ParameterLineEdit" name="globalEstimatedRPMBox">
            <property name="readOnly">
@@ -1294,8 +1399,28 @@
            </property>
           </widget>
          </item>
-         <item row="5" column="1">
-          <widget class="ParameterLineEdit" name="globalAverageCurrentBox">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>System Mode</string>
+           </property>
+           <property name="indent">
+            <number>20</number>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="label_48">
+           <property name="text">
+            <string>Boot Count</string>
+           </property>
+           <property name="indent">
+            <number>20</number>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QLineEdit" name="globalBootCountBox">
            <property name="readOnly">
             <bool>true</bool>
            </property>

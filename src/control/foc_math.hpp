@@ -26,6 +26,10 @@ Macros
 #define RAD_TO_RPM( rad ) ( static_cast<float>( rad ) * static_cast<float>( 60.0 / ( 2.0 * M_PI ) ) )
 #define RPM_TO_RAD( rpm ) ( ( static_cast<float>( rpm ) / 60.0f ) * static_cast<float>( 2.0 * M_PI ) )
 #define RAD_TO_DEG( rad ) ( static_cast<float>( rad ) * static_cast<float>( 180.0 / M_PI ) )
+#define DEG_TO_RAD( deg ) ( static_cast<float>( deg ) * static_cast<float>( M_PI / 180.0 ) )
+
+#define SQ( x ) ( ( x ) * ( x ) )
+#define NORM2_f( x, y ) ( sqrtf( SQ( x ) + SQ( y ) ) )
 
 namespace Orbit::Control::Math
 {
@@ -88,6 +92,56 @@ namespace Orbit::Control::Math
       x = 0.0f;
     }
   }
+
+  /**
+   * @brief Truncates a floating point value to a maximum value
+   *
+   * @param x   Value to truncate
+   * @param max Maximum value to truncate to
+   */
+  static inline void truncate_fabs( float &x, const float max )
+  {
+    if( x > max )
+    {
+      x = max;
+    }
+    else if( x < -max )
+    {
+      x = -max;
+    }
+  }
+
+  /**
+   * @brief Limits the magnitude of the vector to a maximum value
+   *
+   * @param x       X component of the vector
+   * @param y       Y component of the vector
+   * @param max     Maximum magnitude of the vector
+   * @return true   Vector was saturated
+   * @return false  Vector was not saturated
+   */
+  static inline bool saturate_vector_2d( float &x, float &y, float max )
+  {
+    bool  retval = false;
+    float mag    = NORM2_f( x, y );
+    max          = fabsf( max );
+
+    if ( mag < 1e-10 )
+    {
+      mag = 1e-10;
+    }
+
+    if ( mag > max )
+    {
+      const float f = max / mag;
+      x *= f;
+      y *= f;
+      retval = true;
+    }
+
+    return retval;
+  }
+
 
   /**
    * @brief Computes the sine and cosine of an input angle
@@ -178,6 +232,21 @@ namespace Orbit::Control::Math
    * @return float
    */
   float clamp( const float v, const float min, const float max );
+
+  /**
+   * @brief Performs Space Vector Modulation on the input alpha/beta vector
+   * @see https://github.com/vedderb/bldc
+   *
+   * @param alpha               Alpha component of the vector
+   * @param beta                Beta component of the vector
+   * @param timer_pwm_arr       Timer PWM ARR value, corresponding to full duty cycle
+   * @param timer_pwm_ccr1      Output reference to store the timer PWM CCR1 value
+   * @param timer_pwm_ccr2      Output reference to store the timer PWM CCR2 value
+   * @param timer_pwm_ccr3      Output reference to store the timer PWM CCR3 value
+   * @param commutation_sector  Output reference to store the new commutation sector
+   */
+  void space_vector_modulation( const float alpha, const float beta, const uint32_t timer_pwm_arr, uint32_t &timer_pwm_ccr1,
+                                uint32_t &timer_pwm_ccr2, uint32_t &timer_pwm_ccr3, uint32_t &commutation_sector );
 
   /*---------------------------------------------------------------------------
   Classes

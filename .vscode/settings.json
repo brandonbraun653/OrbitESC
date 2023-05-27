@@ -237,7 +237,7 @@
     "bash": {
       "path": "bash",
       "icon": "terminal-bash",
-      "args": ["-l"]
+      "args": ["--login"]
     }
   },
   "git.detectSubmodulesLimit": 45

@@ -306,6 +306,10 @@ class BoardName(AbstractParameter):
     def widget_type(self) -> type:
         return QtWidgets.QLineEdit
 
+    @property
+    def read_only(self) -> bool:
+        return True
+
 
 class Description(AbstractParameter):
     """ Class for representing the description parameter """
@@ -324,6 +328,10 @@ class Description(AbstractParameter):
     @property
     def widget_type(self) -> type:
         return QtWidgets.QLineEdit
+
+    @property
+    def read_only(self) -> bool:
+        return True
 
 
 class HWVersion(AbstractParameter):
@@ -344,6 +352,10 @@ class HWVersion(AbstractParameter):
     def widget_type(self) -> type:
         return QtWidgets.QLineEdit
 
+    @property
+    def read_only(self) -> bool:
+        return True
+
 
 class SWVersion(AbstractParameter):
     """ Class for representing the software version parameter """
@@ -363,6 +375,10 @@ class SWVersion(AbstractParameter):
     def widget_type(self) -> type:
         return QtWidgets.QLineEdit
 
+    @property
+    def read_only(self) -> bool:
+        return True
+
 
 class DeviceID(AbstractParameter):
     """ Class for representing the device ID parameter """
@@ -381,6 +397,10 @@ class DeviceID(AbstractParameter):
     @property
     def widget_type(self) -> type:
         return QtWidgets.QLineEdit
+
+    @property
+    def read_only(self) -> bool:
+        return True
 
 
 class SerialNumber(AbstractParameter):
@@ -438,6 +458,25 @@ class DiskSyncRate(AbstractParameter):
     @property
     def widget_type(self) -> type:
         return QtWidgets.QDoubleSpinBox
+
+
+class PhaseCurrentStreaming(AbstractParameter):
+    """ Class for representing the phase current streaming parameter """
+
+    def __init__(self):
+        super().__init__()
+
+    @property
+    def parameter_id(self) -> ParameterId:
+        return ParameterId.StreamPhaseCurrents
+
+    @property
+    def object_name(self) -> str:
+        return "systemTab_PhaseCurrentStreamingCheckBox"
+
+    @property
+    def widget_type(self) -> type:
+        return QtWidgets.QCheckBox
 
 
 class RotorPoles(AbstractParameter):
@@ -514,3 +553,65 @@ class PhaseInductance(AbstractParameter):
     @property
     def widget_type(self) -> type:
         return QtWidgets.QDoubleSpinBox
+
+
+class BootCount(AbstractParameter):
+    """ Class for representing the boot count parameter """
+
+    def __init__(self):
+        super().__init__()
+
+    @property
+    def parameter_id(self) -> ParameterId:
+        return ParameterId.BootCount
+
+    @property
+    def object_name(self) -> str:
+        return "globalBootCountBox"
+
+    @property
+    def widget_type(self) -> type:
+        return QtWidgets.QLineEdit
+
+    @property
+    def read_only(self) -> bool:
+        return True
+
+
+class SlidingModeControlGain(AbstractParameter):
+    """ Class for representing the sliding mode control gain parameter """
+
+    def __init__(self):
+        super().__init__()
+
+    @property
+    def parameter_id(self) -> ParameterId:
+        return ParameterId.SlidingModeControlGain
+
+    @property
+    def object_name(self) -> str:
+        return "motorCtrlTab_SlidingModeControlGainBox"
+
+    @property
+    def widget_type(self) -> type:
+        return QtWidgets.QDoubleSpinBox
+
+
+class SlidingModeControlMaximumError(AbstractParameter):
+    """ Class for representing the sliding mode control maximum error parameter """
+
+    def __init__(self):
+        super().__init__()
+
+    @property
+    def parameter_id(self) -> ParameterId:
+        return ParameterId.SlidingModeControlMaxError
+
+    @property
+    def object_name(self) -> str:
+        return "motorCtrlTab_SlidingModeControlMaximumErrorBox"
+
+    @property
+    def widget_type(self) -> type:
+        return QtWidgets.QDoubleSpinBox
+

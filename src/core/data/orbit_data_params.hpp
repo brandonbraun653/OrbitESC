@@ -26,7 +26,7 @@ namespace Orbit::Data
   /*---------------------------------------------------------------------------
   Aliases
   ---------------------------------------------------------------------------*/
-  using ParameterList = std::array<ParameterNode, 34>;
+  using ParameterList = std::array<ParameterNode, 37>;
 
   /*---------------------------------------------------------------------------
   Constants
@@ -244,6 +244,20 @@ namespace Orbit::Data
                       .maxSize  = sizeof( SysControl.rampCtrlRampTimeSec ),
                       .validator = nullptr },
 
+      ParameterNode { .id       = ParamId_PARAM_CURRENT_OBSERVER_KSLIDE,
+                      .type     = ParamType_FLOAT,
+                      .key      = "smc_kslide",
+                      .address  = &SysControl.currentObserver_KSlide,
+                      .maxSize  = sizeof( SysControl.currentObserver_KSlide ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_CURRENT_OBSERVER_MAX_ERROR,
+                      .type     = ParamType_FLOAT,
+                      .key      = "smc_max_error",
+                      .address  = &SysControl.currentObserver_MaxError,
+                      .maxSize  = sizeof( SysControl.currentObserver_MaxError ),
+                      .validator = nullptr },
+
       /*-----------------------------------------------------------------------
       Motor Description Parameters
       -----------------------------------------------------------------------*/
@@ -304,6 +318,13 @@ namespace Orbit::Data
                       .key      = "stream_pwm_commands",
                       .address  = &SysConfig.streamPwmCommands,
                       .maxSize  = sizeof( SysConfig.streamPwmCommands ),
+                      .validator = nullptr },
+
+      ParameterNode { .id       = ParamId_PARAM_STREAM_STATE_ESTIMATES,
+                      .type     = ParamType_BOOL,
+                      .key      = "stream_state_estimates",
+                      .address  = &SysConfig.streamStateEstimates,
+                      .maxSize  = sizeof( SysConfig.streamStateEstimates ),
                       .validator = nullptr },
 
       /***** Add new entries above here *****/

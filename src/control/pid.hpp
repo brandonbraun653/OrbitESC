@@ -100,6 +100,13 @@ namespace Orbit::Control::Math
       return Output;
     }
 
+    void resetState()
+    {
+      Output = 0.0f;
+      lastInput = 0.0f;
+      iTerm = 0.0f;
+    }
+
   private:
     float Kp;
     float Ki;

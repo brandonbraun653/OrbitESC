@@ -20,7 +20,13 @@ class ParameterTabWidget(QtWidgets.QTabWidget):
         Returns:
             None
         """
-        self.parent().value = index
+        pass
+        # Ensure the ESC behaves as expected for the plotters
+        # window = QApplication.activeWindow()
+        # if window.autoScaleCheckBox.checkState() == QtCore.Qt.CheckState.Checked:
+        #     self._enable_esc_live_stream_for_view()
+        # else:
+        #     self._disable_esc_live_stream_for_view()
 
     @QtCore.pyqtSlot()
     @has_serial_client
@@ -50,4 +56,10 @@ class ParameterTabWidget(QtWidgets.QTabWidget):
 
     @QtCore.pyqtSlot()
     def parameter_load_clicked(self) -> None:
+        pass
+
+    def _enable_esc_live_stream_for_view(self) -> None:
+        pass
+
+    def _disable_esc_live_stream_for_view(self) -> None:
         pass

@@ -58,6 +58,8 @@ class ParameterId(IntEnum):
     RampControlFirstOrderTerm = proto.PARAM_RAMP_CTRL_FIRST_ORDER_TERM
     RampControlSecondOrderTerm = proto.PARAM_RAMP_CTRL_SECOND_ORDER_TERM
     RampControlRampTime = proto.PARAM_RAMP_CTRL_RAMP_TIME_SEC
+    SlidingModeControlGain = proto.PARAM_CURRENT_OBSERVER_KSLIDE
+    SlidingModeControlMaxError = proto.PARAM_CURRENT_OBSERVER_MAX_ERROR
 
     # Motor Description Parameters
     RotorPoles = proto.PARAM_ROTOR_POLES
@@ -72,6 +74,7 @@ class ParameterId(IntEnum):
     # System Behavior
     StreamPhaseCurrents = proto.PARAM_STREAM_PHASE_CURRENTS
     StreamPWMCommands = proto.PARAM_STREAM_PWM_COMMANDS
+    StreamStateEstimates = proto.PARAM_STREAM_STATE_ESTIMATES
 
 
 ParameterTypeMap = {
@@ -94,6 +97,8 @@ ParameterTypeMap = {
     ParameterId.RampControlFirstOrderTerm: ParameterType.FLOAT,
     ParameterId.RampControlSecondOrderTerm: ParameterType.FLOAT,
     ParameterId.RampControlRampTime: ParameterType.FLOAT,
+    ParameterId.SlidingModeControlGain: ParameterType.FLOAT,
+    ParameterId.SlidingModeControlMaxError: ParameterType.FLOAT,
 
     # Motor Description Parameters
     ParameterId.RotorPoles: ParameterType.UINT8,
@@ -108,4 +113,5 @@ ParameterTypeMap = {
     # System Behavior
     ParameterId.StreamPhaseCurrents: ParameterType.BOOL,
     ParameterId.StreamPWMCommands: ParameterType.BOOL,
+    ParameterId.StreamStateEstimates: ParameterType.BOOL,
 }

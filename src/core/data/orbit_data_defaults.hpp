@@ -97,13 +97,20 @@ namespace Orbit::Data
 
   /**
    * @brief PID tunings for the Q/D axis in the inner loop current controller
+   * https://www.mathworks.com/help/mcb/gs/sensorless-foc-pmsm-smo-fo.html
    */
-  static constexpr float DFLT_ICTRL_Q_PID_KP = 5.0f;
-  static constexpr float DFLT_ICTRL_Q_PID_KI = 2.0f;
-  static constexpr float DFLT_ICTRL_Q_PID_KD = 0.3f;
-  static constexpr float DFLT_ICTRL_D_PID_KP = 5.0f;
-  static constexpr float DFLT_ICTRL_D_PID_KI = 2.0f;
-  static constexpr float DFLT_ICTRL_D_PID_KD = 0.3f;
+  static constexpr float DFLT_ICTRL_Q_PID_KP = 1.7011f;
+  static constexpr float DFLT_ICTRL_Q_PID_KI = 0.15494f;
+  static constexpr float DFLT_ICTRL_Q_PID_KD = 0.0f;
+  static constexpr float DFLT_ICTRL_D_PID_KP = 1.7011f;
+  static constexpr float DFLT_ICTRL_D_PID_KI = 0.15494f;
+  static constexpr float DFLT_ICTRL_D_PID_KD = 0.0f;
+
+  /**
+   * @brief Current observer tuning parameters
+   */
+  static constexpr float DFLT_CURRENT_OBSERVER_KSLIDE    = 3.5f;
+  static constexpr float DFLT_CURRENT_OBSERVER_MAX_ERROR = 0.1f;
 
   /**
    * @brief Ramp controller acceleration curve constants

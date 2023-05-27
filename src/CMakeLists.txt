@@ -163,14 +163,14 @@ target_link_libraries(OrbitESC PRIVATE
 
   # Orbit Libraries
   lib_orbit_com_rel_dbg
-  lib_orbit_core_dbg
+  lib_orbit_core_rel_dbg
   lib_orbit_ctrl_rel_dbg
   lib_orbit_data_rel_dbg
   lib_orbit_hw_rel_dbg
   lib_orbit_monitor_rel_dbg
   lib_orbit_runtime_rel_dbg
   lib_orbit_tasks_rel_dbg
-  lib_orbit_testing_dbg
+  lib_orbit_testing_rel_dbg
 
   # Target Properties
   prj_device_target
@@ -210,9 +210,9 @@ if(Toolchain::HAS_GCC_ARM_NONE_EABI)
     freertos_cm4f_port_rel_dbg
 
     # Segger System View
-    # segger_sys_view_rel_dbg
-    # segger_sys_view_intf
-    # segger_sys_view_cortex_m4_freertos_rel_dbg
+    #segger_sys_view_rel_dbg
+    #segger_sys_view_intf
+    #segger_sys_view_cortex_m4_freertos_rel_dbg
   )
 endif()
 

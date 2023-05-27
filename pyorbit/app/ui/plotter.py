@@ -7,7 +7,7 @@ from enum import Enum
 from typing import Optional, List
 import pyqtgraph
 from PyQt5.QtGui import QPen
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QCheckBox, QWidget, QTabWidget
 from loguru import logger
 import numpy as np
 from PyQt5 import QtCore
@@ -47,16 +47,20 @@ class AbstractDataPlot(metaclass=abc.ABCMeta):
     def stream_parameter(self) -> ParameterId:
         pass
 
+    @abc.abstractmethod
+    def is_visible(self) -> bool:
+        pass
+
 
 class MotorCurrentPlot(AbstractDataPlot):
-    class MessageProxy(QtCore.QObject):
-        messageSignal = QtCore.pyqtSignal(str)
-
-        def __init__(self, parent: QtCore.QObject):
-            super().__init__(parent)
-
-        def emit_message(self, message: str) -> None:
-            self.messageSignal.emit(message)
+    # class MessageProxy(QtCore.QObject):
+    #     messageSignal = QtCore.pyqtSignal(str)
+    #
+    #     def __init__(self, parent: QtCore.QObject):
+    #         super().__init__(parent)
+    #
+    #     def emit_message(self, message: str) -> None:
+    #         self.messageSignal.emit(message)
 
     def __init__(self):
         self._observer = MessageObserver(self._system_data_observer, SystemDataMessage)
@@ -80,6 +84,12 @@ class MotorCurrentPlot(AbstractDataPlot):
     def stream_parameter(self) -> ParameterId:
         return ParameterId.StreamPhaseCurrents
 
+    def is_visible(self) -> bool:
+        window = QApplication.activeWindow()
+        tab = window.findChild(QTabWidget, "tabDataSelection")
+        index = tab.currentIndex()
+        return index == 0
+
     def _system_data_observer(self, msg: SystemDataMessage):
         data = msg.convert_to_message_type()
         if isinstance(data, SystemDataMessage.ADCPhaseCurrents):
@@ -92,6 +102,44 @@ class MotorCurrentPlot(AbstractDataPlot):
             self._phase_c_attr.data.append(data.phase_c)
 
 
+class MotorSpeedPositionPlot(AbstractDataPlot):
+
+    def __init__(self):
+        self._observer = MessageObserver(self._system_data_observer, SystemDataMessage)
+        self._speed_attr = PlotAttributes(enabled=True, data_field="MotorSpeed",
+                                          pen=pyqtgraph.mkPen(color=(0, 0, 255), width=2, style=QtCore.Qt.SolidLine))
+        self._pos_attr = PlotAttributes(enabled=True, data_field="MotorPosition",
+                                        pen=pyqtgraph.mkPen(color=(0, 255, 0), width=2, style=QtCore.Qt.SolidLine))
+        self._attributes = [self._speed_attr, self._pos_attr]
+
+    def name(self) -> str:
+        return "Motor Speed and Position"
+
+    def data_observer(self) -> MessageObserver:
+        return self._observer
+
+    def attributes(self) -> List[PlotAttributes]:
+        return self._attributes
+
+    def stream_parameter(self) -> ParameterId:
+        return ParameterId.StreamStateEstimates
+
+    def is_visible(self) -> bool:
+        window = QApplication.activeWindow()
+        tab = window.findChild(QTabWidget, "tabDataSelection")
+        index = tab.currentIndex()
+        return index == 2
+
+    def _system_data_observer(self, msg: SystemDataMessage):
+        data = msg.convert_to_message_type()
+        if isinstance(data, SystemDataMessage.StateEstimates):
+            time_in_sec = data.timestamp / 1e6
+            self._speed_attr.time.append(time_in_sec)
+            self._speed_attr.data.append(data.speed * (180 / np.pi))
+            # self._pos_attr.time.append(time_in_sec)
+            # self._pos_attr.data.append(data.position * (180 / np.pi))
+
+
 class LiveDataPlotter(PlotWidget):
     PLOT_REFRESH_RATE_MS = 50
 
@@ -101,20 +149,22 @@ class LiveDataPlotter(PlotWidget):
         self._data_plot = None  # type: Optional[AbstractDataPlot]
         if parent.objectName() == "tabMotorCurrent":
             self._data_plot = MotorCurrentPlot()
+        elif parent.objectName() == "tabSpeedPosition":
+            self._data_plot = MotorSpeedPositionPlot()
+        else:
+            raise RuntimeError("Unknown plotter widget parent")
 
         self._plot_refresh_timer = QtCore.QTimer()
         self._plot_refresh_timer.timeout.connect(self._update_plot)
         self._plot_refresh_timer.start(LiveDataPlotter.PLOT_REFRESH_RATE_MS)
-
-    def init_data_plotter(self) -> None:
-        # Set the default y-axis range
         self.getPlotItem().setRange(yRange=[-1, 1])
 
     @QtCore.pyqtSlot()
     def serial_connect(self) -> None:
-        window = QApplication.activeWindow()
         # Register the plot's data observer with the serial client
-        window.serial_client.com_pipe.subscribe_observer(self._data_plot.data_observer())
+        window = QApplication.activeWindow()
+        if window:
+            window.serial_client.com_pipe.subscribe_observer(self._data_plot.data_observer())
 
         # Update the state of the auto-scale checkbox
         if AppSettings.contains(Settings.PLOT_AUTO_SCALE):
@@ -124,7 +174,8 @@ class LiveDataPlotter(PlotWidget):
     def serial_disconnect(self) -> None:
         # Unregister the plot's data observer with the serial client
         window = QApplication.activeWindow()
-        window.serial_client.com_pipe.unsubscribe(self._data_plot.data_observer().unique_id)
+        if window:
+            window.serial_client.com_pipe.unsubscribe(self._data_plot.data_observer().unique_id)
 
     @QtCore.pyqtSlot(int)
     def toggle_live_data_stream(self, state: int) -> None:
@@ -138,35 +189,39 @@ class LiveDataPlotter(PlotWidget):
         """
         window = QApplication.activeWindow()
         serial_client = window.serial_client
+        check_box = self.sender()  # type: QCheckBox
+
+        if not self._data_plot.is_visible():
+            return
 
         if state == QtCore.Qt.CheckState.Checked:
             # First check to see if the serial target is online. If not available and we are trying to go live, then
             # we need to disable the live state.
             if not serial_client or not serial_client.is_online:
                 logger.error("Serial client is not available")
-                self.sender().setCheckState(QtCore.Qt.CheckState.Unchecked)
+                check_box.setCheckState(QtCore.Qt.CheckState.Unchecked)
                 return
 
             # Try to request a live stream of the data
-            logger.trace(f"Enabling live stream of {self._data_plot.name()}")
+            logger.info(f"Enabling live stream of {self._data_plot.name()}")
             if window.serial_client.parameter.set(self._data_plot.stream_parameter(), True):
                 self._plot_refresh_timer.start(LiveDataPlotter.PLOT_REFRESH_RATE_MS)
                 AppSettings.setValue(Settings.PLOT_LIVE_DATA, True)
             else:
                 logger.error(f"Failed to live stream {self._data_plot.name()}")
-                self.sender().setCheckState(QtCore.Qt.CheckState.Unchecked)
+                check_box.setCheckState(QtCore.Qt.CheckState.Unchecked)
 
         else:
             if not serial_client or not serial_client.is_online:
                 return
 
-            logger.trace(f"Disabling live stream of {self._data_plot.name()}")
+            logger.info(f"Disabling live stream of {self._data_plot.name()}")
             if window.serial_client.parameter.set(self._data_plot.stream_parameter(), False):
                 self._plot_refresh_timer.stop()
                 AppSettings.setValue(Settings.PLOT_LIVE_DATA, False)
             else:
                 logger.error(f"Failed to disable live stream {self._data_plot.name()}")
-                self.sender().setCheckState(QtCore.Qt.CheckState.Checked)
+                check_box.setCheckState(QtCore.Qt.CheckState.Checked)
 
     @QtCore.pyqtSlot(int)
     def toggle_auto_scale(self, state: int) -> None:

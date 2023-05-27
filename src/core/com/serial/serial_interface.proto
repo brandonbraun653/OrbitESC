@@ -66,6 +66,8 @@ enum ParamId {
   PARAM_RAMP_CTRL_FIRST_ORDER_TERM = 34; // First order term of the ramp controller
   PARAM_RAMP_CTRL_SECOND_ORDER_TERM = 35; // Second order term of the ramp controller
   PARAM_RAMP_CTRL_RAMP_TIME_SEC = 36; // Ramp time of the ramp controller in seconds
+  PARAM_CURRENT_OBSERVER_KSLIDE = 37; // Current observer sliding mode controller K gain value
+  PARAM_CURRENT_OBSERVER_MAX_ERROR = 38; // Current observer maximum error value
 
   // Motor Description
   PARAM_ROTOR_POLES = 50; // Number of poles in the motor
@@ -80,6 +82,7 @@ enum ParamId {
   // System Behavior
   PARAM_STREAM_PHASE_CURRENTS = 70; // Stream phase currents over serial debug port
   PARAM_STREAM_PWM_COMMANDS = 71; // Stream PWM commands over serial debug port
+  PARAM_STREAM_STATE_ESTIMATES = 72; // Stream state estimates over serial debug port
 }
 
 enum ParamType {
@@ -119,6 +122,7 @@ enum SystemDataId {
   SYS_DATA_INVALID = 0; // Invalid data ID
   ADC_PHASE_CURRENTS = 1; // ADC readings of the phase currents
   PWM_COMMANDS = 2; // PWM commands being sent to the motor
+  STATE_ESTIMATES = 3; // State estimates of the motor
 }
 
 // Instrumentation message header common to all types. Each functional message type **must**
@@ -202,6 +206,13 @@ message SystemDataMessage {
     required float va = 2;          // Phase A voltage command in Volts
     required float vb = 3;          // Phase B voltage command in Volts
     required float vc = 4;          // Phase C voltage command in Volts
+  }
+
+  // Message type for the state estimates of the motor
+  message StateEstimates {
+    required uint32 timestamp = 1;  // System time of measurement in microseconds
+    required float theta_est = 2;  // Physical angle of the rotor in radians
+    required float omega_est = 3;  // Physical angular velocity of the rotor in radians per second
   }
 
   required Header header = 1;

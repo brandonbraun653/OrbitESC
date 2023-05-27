@@ -69,6 +69,8 @@ typedef enum _ParamId {
     ParamId_PARAM_RAMP_CTRL_FIRST_ORDER_TERM = 34, /* First order term of the ramp controller */
     ParamId_PARAM_RAMP_CTRL_SECOND_ORDER_TERM = 35, /* Second order term of the ramp controller */
     ParamId_PARAM_RAMP_CTRL_RAMP_TIME_SEC = 36, /* Ramp time of the ramp controller in seconds */
+    ParamId_PARAM_CURRENT_OBSERVER_KSLIDE = 37, /* Current observer sliding mode controller K gain value */
+    ParamId_PARAM_CURRENT_OBSERVER_MAX_ERROR = 38, /* Current observer maximum error value */
     /* Motor Description */
     ParamId_PARAM_ROTOR_POLES = 50, /* Number of poles in the motor */
     ParamId_PARAM_STATOR_SLOTS = 51, /* Number of slots in the motor */
@@ -79,7 +81,8 @@ typedef enum _ParamId {
     ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD = 61, /* Peak voltage threshold in Volts */
     /* System Behavior */
     ParamId_PARAM_STREAM_PHASE_CURRENTS = 70, /* Stream phase currents over serial debug port */
-    ParamId_PARAM_STREAM_PWM_COMMANDS = 71 /* Stream PWM commands over serial debug port */
+    ParamId_PARAM_STREAM_PWM_COMMANDS = 71, /* Stream PWM commands over serial debug port */
+    ParamId_PARAM_STREAM_STATE_ESTIMATES = 72 /* Stream state estimates over serial debug port */
 } ParamId;
 
 typedef enum _ParamType {
@@ -118,7 +121,8 @@ typedef enum _MotorCtrlCmd {
 typedef enum _SystemDataId {
     SystemDataId_SYS_DATA_INVALID = 0, /* Invalid data ID */
     SystemDataId_ADC_PHASE_CURRENTS = 1, /* ADC readings of the phase currents */
-    SystemDataId_PWM_COMMANDS = 2 /* PWM commands being sent to the motor */
+    SystemDataId_PWM_COMMANDS = 2, /* PWM commands being sent to the motor */
+    SystemDataId_STATE_ESTIMATES = 3 /* State estimates of the motor */
 } SystemDataId;
 
 /* Struct definitions */
@@ -221,6 +225,13 @@ typedef struct _SystemDataMessage_PWMCommands {
     float vc; /* Phase C voltage command in Volts */
 } SystemDataMessage_PWMCommands;
 
+/* Message type for the state estimates of the motor */
+typedef struct _SystemDataMessage_StateEstimates {
+    uint32_t timestamp; /* System time of measurement in microseconds */
+    float theta_est; /* Physical angle of the rotor in radians */
+    float omega_est; /* Physical angular velocity of the rotor in radians per second */
+} SystemDataMessage_StateEstimates;
+
 
 /* Helper constants for enums */
 #define _MsgId_MIN MsgId_MSG_ACK_NACK
@@ -232,8 +243,8 @@ typedef struct _SystemDataMessage_PWMCommands {
 #define _SubId_ARRAYSIZE ((SubId)(SubId_SUB_MSG_PARAM_IO_LOAD+1))
 
 #define _ParamId_MIN ParamId_PARAM_INVALID
-#define _ParamId_MAX ParamId_PARAM_STREAM_PWM_COMMANDS
-#define _ParamId_ARRAYSIZE ((ParamId)(ParamId_PARAM_STREAM_PWM_COMMANDS+1))
+#define _ParamId_MAX ParamId_PARAM_STREAM_STATE_ESTIMATES
+#define _ParamId_ARRAYSIZE ((ParamId)(ParamId_PARAM_STREAM_STATE_ESTIMATES+1))
 
 #define _ParamType_MIN ParamType_UNKNOWN
 #define _ParamType_MAX ParamType_STRING
@@ -252,8 +263,8 @@ typedef struct _SystemDataMessage_PWMCommands {
 #define _MotorCtrlCmd_ARRAYSIZE ((MotorCtrlCmd)(MotorCtrlCmd_EMERGENCY_STOP+1))
 
 #define _SystemDataId_MIN SystemDataId_SYS_DATA_INVALID
-#define _SystemDataId_MAX SystemDataId_PWM_COMMANDS
-#define _SystemDataId_ARRAYSIZE ((SystemDataId)(SystemDataId_PWM_COMMANDS+1))
+#define _SystemDataId_MAX SystemDataId_STATE_ESTIMATES
+#define _SystemDataId_ARRAYSIZE ((SystemDataId)(SystemDataId_STATE_ESTIMATES+1))
 
 
 
@@ -271,6 +282,7 @@ typedef struct _SystemDataMessage_PWMCommands {
 #define SwitchModeMessage_mode_ENUMTYPE BootMode
 
 #define SystemDataMessage_id_ENUMTYPE SystemDataId
+
 
 
 
@@ -293,6 +305,7 @@ extern "C" {
 #define SystemDataMessage_init_default           {Header_init_default, _SystemDataId_MIN, false, {0, {0}}}
 #define SystemDataMessage_ADCPhaseCurrents_init_default {0, 0, 0, 0}
 #define SystemDataMessage_PWMCommands_init_default {0, 0, 0, 0}
+#define SystemDataMessage_StateEstimates_init_default {0, 0, 0}
 #define Header_init_zero                         {0, 0, 0}
 #define BaseMessage_init_zero                    {Header_init_zero}
 #define AckNackMessage_init_zero                 {Header_init_zero, 0, _StatusCode_MIN, false, {0, {0}}}
@@ -306,6 +319,7 @@ extern "C" {
 #define SystemDataMessage_init_zero              {Header_init_zero, _SystemDataId_MIN, false, {0, {0}}}
 #define SystemDataMessage_ADCPhaseCurrents_init_zero {0, 0, 0, 0}
 #define SystemDataMessage_PWMCommands_init_zero  {0, 0, 0, 0}
+#define SystemDataMessage_StateEstimates_init_zero {0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define Header_msgId_tag                         1
@@ -348,6 +362,9 @@ extern "C" {
 #define SystemDataMessage_PWMCommands_va_tag     2
 #define SystemDataMessage_PWMCommands_vb_tag     3
 #define SystemDataMessage_PWMCommands_vc_tag     4
+#define SystemDataMessage_StateEstimates_timestamp_tag 1
+#define SystemDataMessage_StateEstimates_theta_est_tag 2
+#define SystemDataMessage_StateEstimates_omega_est_tag 3
 
 /* Struct field encoding specification for nanopb */
 #define Header_FIELDLIST(X, a) \
@@ -452,6 +469,13 @@ X(a, STATIC,   REQUIRED, FLOAT,    vc,                4)
 #define SystemDataMessage_PWMCommands_CALLBACK NULL
 #define SystemDataMessage_PWMCommands_DEFAULT NULL
 
+#define SystemDataMessage_StateEstimates_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, UINT32,   timestamp,         1) \
+X(a, STATIC,   REQUIRED, FLOAT,    theta_est,         2) \
+X(a, STATIC,   REQUIRED, FLOAT,    omega_est,         3)
+#define SystemDataMessage_StateEstimates_CALLBACK NULL
+#define SystemDataMessage_StateEstimates_DEFAULT NULL
+
 extern const pb_msgdesc_t Header_msg;
 extern const pb_msgdesc_t BaseMessage_msg;
 extern const pb_msgdesc_t AckNackMessage_msg;
@@ -465,6 +489,7 @@ extern const pb_msgdesc_t SwitchModeMessage_msg;
 extern const pb_msgdesc_t SystemDataMessage_msg;
 extern const pb_msgdesc_t SystemDataMessage_ADCPhaseCurrents_msg;
 extern const pb_msgdesc_t SystemDataMessage_PWMCommands_msg;
+extern const pb_msgdesc_t SystemDataMessage_StateEstimates_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define Header_fields &Header_msg
@@ -480,6 +505,7 @@ extern const pb_msgdesc_t SystemDataMessage_PWMCommands_msg;
 #define SystemDataMessage_fields &SystemDataMessage_msg
 #define SystemDataMessage_ADCPhaseCurrents_fields &SystemDataMessage_ADCPhaseCurrents_msg
 #define SystemDataMessage_PWMCommands_fields &SystemDataMessage_PWMCommands_msg
+#define SystemDataMessage_StateEstimates_fields &SystemDataMessage_StateEstimates_msg
 
 /* Maximum encoded size of messages (where known) */
 #define AckNackMessage_size                      82
@@ -492,6 +518,7 @@ extern const pb_msgdesc_t SystemDataMessage_PWMCommands_msg;
 #define SystemControlMessage_size                80
 #define SystemDataMessage_ADCPhaseCurrents_size  21
 #define SystemDataMessage_PWMCommands_size       21
+#define SystemDataMessage_StateEstimates_size    16
 #define SystemDataMessage_size                   40
 #define SystemInfoMessage_size                   69
 #define SystemTick_size                          18
