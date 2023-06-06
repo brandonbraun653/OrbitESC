@@ -562,14 +562,6 @@
     [
       "e5c7e094-5305-4041-9a38-3256d4457e28",
       "Power Supply"
-    ],
-    [
-      "588c44ed-10d8-4cfd-a9dd-a18ee9f3e745",
-      "Status LEDs"
-    ],
-    [
-      "6349e373-ae96-42f5-b0a0-1a23031b19cc",
-      "USB2Serial"
     ]
   ],
   "text_variables": {}

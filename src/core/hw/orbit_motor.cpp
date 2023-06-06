@@ -441,9 +441,9 @@ namespace Orbit::Motor
     -------------------------------------------------------------------------*/
     SystemDataMessage_StateEstimates msg;
     msg.timestamp = time_us;
-    msg.omega_est = static_cast<float>( s_state.iLoop.activeSector );
-    // msg.omega_est = s_state.iLoop.ia;
-    // msg.omega_est = s_state.motor.m_phase_now_observer;
+    //msg.omega_est = static_cast<float>( s_state.iLoop.activeSector );
+    msg.omega_est = s_state.iLoop.ia;
+    //msg.omega_est = s_state.motor.m_phase_now_observer;
     // msg.theta_est = s_state.sObserve.theta_comp;
 
     /*-------------------------------------------------------------------------

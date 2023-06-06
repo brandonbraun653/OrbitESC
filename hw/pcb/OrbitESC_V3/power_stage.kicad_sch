@@ -1404,9 +1404,6 @@
     (pin "2" (uuid 441eac75-eff7-4e6d-9137-d6ca1b25133f))
     (instances
       (project "OrbitESC"
-        (path "/a13534e1-2c37-4692-a99c-4eada4007967/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/588c44ed-10d8-4cfd-a9dd-a18ee9f3e745"
-          (reference "C32") (unit 1)
-        )
         (path "/a13534e1-2c37-4692-a99c-4eada4007967/968088fb-1c16-45c3-b31d-62fbdb9fdbdd"
           (reference "C22") (unit 1)
         )
@@ -2072,9 +2069,6 @@
     (pin "2" (uuid 14646e0d-05fa-4c6f-a467-f631ce70f14a))
     (instances
       (project "OrbitESC"
-        (path "/a13534e1-2c37-4692-a99c-4eada4007967/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/588c44ed-10d8-4cfd-a9dd-a18ee9f3e745"
-          (reference "C32") (unit 1)
-        )
         (path "/a13534e1-2c37-4692-a99c-4eada4007967/968088fb-1c16-45c3-b31d-62fbdb9fdbdd"
           (reference "C13") (unit 1)
         )
@@ -2863,9 +2857,6 @@
     (pin "2" (uuid d5184ca1-9b81-4af7-94f4-57a82a6e752f))
     (instances
       (project "OrbitESC"
-        (path "/a13534e1-2c37-4692-a99c-4eada4007967/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/588c44ed-10d8-4cfd-a9dd-a18ee9f3e745"
-          (reference "C32") (unit 1)
-        )
         (path "/a13534e1-2c37-4692-a99c-4eada4007967/968088fb-1c16-45c3-b31d-62fbdb9fdbdd"
           (reference "C9") (unit 1)
         )
@@ -3016,9 +3007,6 @@
     (pin "2" (uuid caa21615-fabd-402e-a472-9f6963c3ecc1))
     (instances
       (project "OrbitESC"
-        (path "/a13534e1-2c37-4692-a99c-4eada4007967/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/588c44ed-10d8-4cfd-a9dd-a18ee9f3e745"
-          (reference "C32") (unit 1)
-        )
         (path "/a13534e1-2c37-4692-a99c-4eada4007967/968088fb-1c16-45c3-b31d-62fbdb9fdbdd"
           (reference "C23") (unit 1)
         )
@@ -3397,9 +3385,6 @@
     (pin "2" (uuid d385b987-573f-473b-8b1d-b50dcecc3284))
     (instances
       (project "OrbitESC"
-        (path "/a13534e1-2c37-4692-a99c-4eada4007967/ed067bb8-caa7-448e-917b-cc2d33c8b4b7/588c44ed-10d8-4cfd-a9dd-a18ee9f3e745"
-          (reference "C32") (unit 1)
-        )
         (path "/a13534e1-2c37-4692-a99c-4eada4007967/968088fb-1c16-45c3-b31d-62fbdb9fdbdd"
           (reference "C8") (unit 1)
         )

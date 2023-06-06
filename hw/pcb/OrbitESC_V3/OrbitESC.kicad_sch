@@ -358,6 +358,10 @@
       (effects (font (size 1.27 1.27)) (justify right))
       (uuid 2dc9b0a3-6a71-446f-b9fb-71b599d7b3db)
     )
+    (pin "MOTOR_IC" input (at 158.115 95.25 0)
+      (effects (font (size 1.27 1.27)) (justify right))
+      (uuid da3e336a-abdc-40bb-a9fb-f928e05056b6)
+    )
     (instances
       (project "OrbitESC"
         (path "/a13534e1-2c37-4692-a99c-4eada4007967" (page "2"))
