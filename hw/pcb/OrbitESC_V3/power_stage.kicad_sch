@@ -3297,8 +3297,8 @@
     (property "LCSC" "C25744" (at 67.31 126.365 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (pin "1" (uuid ef9d4372-e8d8-43ad-9bff-afe2895956dd))
-    (pin "2" (uuid b04fc1c8-0735-494c-9747-aeabd5cf3c17))
+    (pin "1" (uuid 7dc65378-f347-49fa-93d8-3b88cfdb0077))
+    (pin "2" (uuid c56295cd-8d73-40a4-a82c-7d9c41dd3811))
     (instances
       (project "OrbitESC"
         (path "/a13534e1-2c37-4692-a99c-4eada4007967/968088fb-1c16-45c3-b31d-62fbdb9fdbdd"
