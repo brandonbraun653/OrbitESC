@@ -1760,7 +1760,7 @@
     (property "Datasheet" "~" (at 176.53 38.1 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (property "DigiKey" "RMCF0402FT57K6CT-ND" (at 176.53 38.1 0)
+    (property "DigiKey" "" (at 176.53 38.1 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "LCSC" "C25796" (at 176.53 38.1 0)

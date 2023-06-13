@@ -240,5 +240,6 @@
       "args": ["--login"]
     }
   },
-  "git.detectSubmodulesLimit": 45
+  "git.detectSubmodulesLimit": 45,
+  "cmake.configureOnOpen": false
 }
