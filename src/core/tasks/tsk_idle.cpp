@@ -5,7 +5,7 @@
  *  Description:
  *    Idle task implementation
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -17,11 +17,13 @@ Includes
 #include <Chimera/gpio>
 #include <Chimera/thread>
 #include <src/config/bsp/board_map.hpp>
-#include <src/core/bootup.hpp>
+#include <src/core/data/orbit_data.hpp>
+#include <src/core/hw/orbit_led.hpp>
 #include <src/core/hw/orbit_timer.hpp>
+#include <src/core/tasks.hpp>
 
 
-namespace Orbit::Tasks::Idle
+namespace Orbit::Tasks::BKD
 {
   /*---------------------------------------------------------------------------
   Public Functions
@@ -29,19 +31,17 @@ namespace Orbit::Tasks::Idle
   void IdleThread( void *arg )
   {
     /*-------------------------------------------------------------------------
-    Power up the hardware drivers, then kick off the system tasks
+    Wait for the start signal
     -------------------------------------------------------------------------*/
-    Boot::powerUpSystemDrivers();
-    Boot::startTasks();
+    waitInit();
 
     /*-------------------------------------------------------------------------
     Get the status/heartbeat pin and flash a quick boot up sequence
     -------------------------------------------------------------------------*/
-    LOG_INFO( "Powering up OrbitESC\r\n" );
-    auto pin = Chimera::GPIO::getDriver( IO::GPIO::portHeartbeat, IO::GPIO::pinHeartbeat );
     for ( auto x = 0; x < 8; x++ )
     {
-      pin->toggle();
+      LED::toggleChannel( LED::Channel::HEARTBEAT );
+      LED::sendUpdate();
       Chimera::delayMilliseconds( 35 );
     }
     Chimera::delayMilliseconds( 500 );
@@ -52,25 +52,31 @@ namespace Orbit::Tasks::Idle
     while ( 1 )
     {
       /*-----------------------------------------------------------------------
+      Compute the flash and hold times
+      -----------------------------------------------------------------------*/
+      const uint32_t flash_delay = static_cast<uint32_t>( 100.0f * Data::SysConfig.activityLedScaler );
+      const uint32_t hold_delay  = static_cast<uint32_t>( 450.0f * Data::SysConfig.activityLedScaler );
+
+      /*-----------------------------------------------------------------------
       High Pulse #1
       -----------------------------------------------------------------------*/
-      pin->setState( Chimera::GPIO::State::HIGH );
-      Chimera::delayMilliseconds( 100 );
-      pin->setState( Chimera::GPIO::State::LOW );
-      Chimera::delayMilliseconds( 100 );
+      LED::setChannel( LED::Channel::HEARTBEAT );
+      Chimera::delayMilliseconds( flash_delay );
+      LED::clrChannel( LED::Channel::HEARTBEAT );
+      Chimera::delayMilliseconds( flash_delay );
 
       /*-----------------------------------------------------------------------
       High Pulse #2
       -----------------------------------------------------------------------*/
-      pin->setState( Chimera::GPIO::State::HIGH );
-      Chimera::delayMilliseconds( 100 );
-      pin->setState( Chimera::GPIO::State::LOW );
-      Chimera::delayMilliseconds( 100 );
+      LED::setChannel( LED::Channel::HEARTBEAT );
+      Chimera::delayMilliseconds( flash_delay );
+      LED::clrChannel( LED::Channel::HEARTBEAT );
+      Chimera::delayMilliseconds( flash_delay );
 
       /*-----------------------------------------------------------------------
       Hold longer in the off state
       -----------------------------------------------------------------------*/
-      Chimera::delayMilliseconds( 450 );
+      Chimera::delayMilliseconds( hold_delay );
     }
   }
-}    // namespace Orbit::Tasks::Idle
+}    // namespace Orbit::Tasks::BKD

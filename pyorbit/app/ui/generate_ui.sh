@@ -1,0 +1,1 @@
+pyuic5 --from-imports pyorbit.ui > pyorbit.py

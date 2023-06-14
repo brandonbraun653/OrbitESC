@@ -16,14 +16,16 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/can>
-#include <src/core/com/can_message.hpp>
+#include <src/core/hw/orbit_can.hpp>
+#include <src/core/com/can/can_server.hpp>
 
 namespace Orbit::CAN
 {
   /*---------------------------------------------------------------------------
-  Types
+  Public Data
   ---------------------------------------------------------------------------*/
-  using MessageHandler = void ( * )( const Chimera::CAN::BasicFrame & );
+  extern Server MessageServer;  /**< Driver for the board's CAN message server */
+
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -32,17 +34,6 @@ namespace Orbit::CAN
    * @brief Initialize the CAN bus runtime driver for the project
    */
   void initRuntime();
-
-  /**
-   * @brief Assigns the handler used for a particular message type
-   *
-   * @param msg_enum  What message enumeration to register against
-   * @param handler   Function pointer
-   *
-   * @return true     Registered successfully
-   * @return false    Not registered
-   */
-  bool setHandler( uint8_t msg_enum, MessageHandler handler );
 
   /**
    * @brief Gets the node identifier for this CAN device
@@ -55,12 +46,6 @@ namespace Orbit::CAN
    * @brief Handles runtime IO of CAN bus messages. Must be called periodically.
    */
   void processCANBus();
-
-  /**
-   * @brief Transmits the system tick to the network for this node
-   *
-   */
-  void periodicTXSystemTick();
 
 }  // namespace Orbit::CAN
 

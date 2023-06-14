@@ -10,13 +10,11 @@ gen_static_lib_variants(
     modes/sys_mode_base.cpp
     modes/sys_mode_fault.cpp
     modes/sys_mode_idle.cpp
-    modes/sys_mode_park.cpp
-    modes/sys_mode_ramp.cpp
     modes/sys_mode_run.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc
-    project_inc
+    project_intf_inc
   EXPORT_DIR
     "${PROJECT_BINARY_DIR}/OrbitESC"
 )

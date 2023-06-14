@@ -1,0 +1,221 @@
+syntax = "proto2";
+import "nanopb.proto";
+
+enum MsgId {
+  MSG_ACK_NACK    = 0; // Generic ack/nack type message
+  MSG_PING_CMD    = 1; // Simple PING to see if the node is alive
+  MSG_TERMINAL    = 2; // Terminal command for printing text/debug data
+  MSG_SYS_TICK    = 3; // System time tick
+  MSG_SYS_INFO    = 4; // System information
+  MSG_PARAM_IO    = 5; // Do operations on configurable parameters
+  MSG_SYS_CTRL    = 6; // Perform system control operations
+  MSG_SWITCH_MODE = 7; // Switch the boot mode of the device
+  MSG_SYS_DATA    = 8; // System data stream
+}
+
+enum SubId {
+  option allow_alias = true;
+  SUB_MSG_NONE = 0; // Invalid sub-message ID
+
+  // Parameter IO messages
+  SUB_MSG_PARAM_IO_GET  = 1;  // Retrieve the current value of a parameter
+  SUB_MSG_PARAM_IO_SET  = 2;  // Commit a new value of a parameter
+  SUB_MSG_PARAM_IO_SYNC = 3;  // Synchronize all parameters to disk
+  SUB_MSG_PARAM_IO_LOAD = 4;  // Load all parameters from disk
+
+  // System control messages
+  SUB_MSG_SYS_CTRL_RESET   = 1; // Reset the system
+  SUB_MSG_SYS_CTRL_MOTOR   = 2; // Inject manual motor control commands
+  SUB_MSG_SYS_CTRL_CAL_ADC = 3; // Calibrate the ADC
+}
+
+enum ParamId {
+  // Housekeeping parameters
+  PARAM_INVALID       = -1; // Invalid parameter
+
+  // Read Only Parameters
+  PARAM_BOOT_COUNT    = 0;  // Number of times the software has booted
+  PARAM_HW_VERSION    = 1;  // Hardware version of the PCB
+  PARAM_SW_VERSION    = 2;  // Software version of the firmware
+  PARAM_DEVICE_ID     = 3;  // Factory programmed unique device ID
+  PARAM_BOARD_NAME    = 4;  // Name of the board
+  PARAM_DESCRIPTION   = 5;  // Description of the project
+
+  // Read/Write Parameters
+  PARAM_SERIAL_NUMBER       = 10; // Serial number of the device
+  PARAM_DISK_UPDATE_RATE_MS = 11; // How often to write parameters to disk
+  PARAM_ACTIVITY_LED_SCALER = 12; // Scale the activity LED blink rate
+  PARAM_BOOT_MODE           = 13; // Boot mode of the device
+  PARAM_CAN_NODE_ID         = 14; // CAN node ID of the device
+
+  // Motor Control Parameters
+  PARAM_STATOR_PWM_FREQ = 20; // PWM frequency of the motor drive in Hz
+  PARAM_SPEED_CTRL_FREQ = 21; // Speed controller core update frequency in Hz
+  PARAM_TARGET_IDLE_RPM = 22; // Target RPM when the motor is idle
+  PARAM_SPEED_CTRL_KP = 23; // Speed controller proportional gain
+  PARAM_SPEED_CTRL_KI = 24; // Speed controller integral gain
+  PARAM_SPEED_CTRL_KD = 25; // Speed controller derivative gain
+  PARAM_CURRENT_CTRL_Q_AXIS_KP = 26; // Current controller Q-axis proportional gain
+  PARAM_CURRENT_CTRL_Q_AXIS_KI = 27; // Current controller Q-axis integral gain
+  PARAM_CURRENT_CTRL_Q_AXIS_KD = 28; // Current controller Q-axis derivative gain
+  PARAM_CURRENT_CTRL_D_AXIS_KP = 29; // Current controller D-axis proportional gain
+  PARAM_CURRENT_CTRL_D_AXIS_KI = 30; // Current controller D-axis integral gain
+  PARAM_CURRENT_CTRL_D_AXIS_KD = 31; // Current controller D-axis derivative gain
+  // PARAM_CURRENT_CTRL_Q_FIR_COEFFS = 32; // Current controller Q-axis FIR filter coefficients
+  // PARAM_CURRENT_CTRL_D_FIR_COEFFS = 33; // Current controller D-axis FIR filter coefficients
+  PARAM_RAMP_CTRL_FIRST_ORDER_TERM = 34; // First order term of the ramp controller
+  PARAM_RAMP_CTRL_SECOND_ORDER_TERM = 35; // Second order term of the ramp controller
+  PARAM_RAMP_CTRL_RAMP_TIME_SEC = 36; // Ramp time of the ramp controller in seconds
+  PARAM_CURRENT_OBSERVER_KSLIDE = 37; // Current observer sliding mode controller K gain value
+  PARAM_CURRENT_OBSERVER_MAX_ERROR = 38; // Current observer maximum error value
+
+  // Motor Description
+  PARAM_ROTOR_POLES = 50; // Number of poles in the motor
+  PARAM_STATOR_SLOTS = 51; // Number of slots in the motor
+  PARAM_STATOR_RESISTANCE = 52; // Stator resistance in Ohms
+  PARAM_STATOR_INDUCTANCE = 53; // Stator inductance in Henrys
+
+  // Monitor Thresholds
+  PARAM_PEAK_CURRENT_THRESHOLD = 60; // Peak current threshold in Amps
+  PARAM_PEAK_VOLTAGE_THRESHOLD = 61; // Peak voltage threshold in Volts
+
+  // System Behavior
+  PARAM_STREAM_PHASE_CURRENTS = 70; // Stream phase currents over serial debug port
+  PARAM_STREAM_PWM_COMMANDS = 71; // Stream PWM commands over serial debug port
+  PARAM_STREAM_STATE_ESTIMATES = 72; // Stream state estimates over serial debug port
+}
+
+enum ParamType {
+  UNKNOWN = 0;
+  BOOL    = 1;
+  UINT8   = 2;
+  UINT16  = 3;
+  UINT32  = 4;
+  FLOAT   = 5;
+  DOUBLE  = 6;
+  BYTES   = 7;
+  STRING  = 8;
+}
+
+enum StatusCode {
+  NO_ERROR = 0;
+  UNKNOWN_ERROR = 1;
+  INVALID_PARAM = 2;
+  INVALID_TYPE = 3;
+  INVALID_VALUE = 4;
+  REQUEST_FAILED = 5;
+}
+
+enum BootMode {
+  BOOT_MODE_NORMAL = 0;
+  BOOT_MODE_TEST = 1;
+  BOOT_MODE_CONFIG = 2;
+}
+
+enum MotorCtrlCmd {
+  ENABLE_OUTPUT_STAGE  = 0;  // Allow the power stage to drive the motor
+  DISABLE_OUTPUT_STAGE = 1;  // Disable the power stage
+  EMERGENCY_STOP       = 2;  // Immediately stop driving the power stage and halt
+}
+
+enum SystemDataId {
+  SYS_DATA_INVALID = 0; // Invalid data ID
+  ADC_PHASE_CURRENTS = 1; // ADC readings of the phase currents
+  PWM_COMMANDS = 2; // PWM commands being sent to the motor
+  STATE_ESTIMATES = 3; // State estimates of the motor
+}
+
+// Instrumentation message header common to all types. Each functional message type **must**
+// have this first in their list of declarations.
+message Header {
+  required uint32 msgId = 1 [(nanopb).int_size = IS_8]; // Root message identifier
+  required uint32 subId = 2 [(nanopb).int_size = IS_8]; // Possible sub-identifier to specify root ID details
+  required uint32 uuid = 3 [(nanopb).int_size = IS_16]; // Unique ID for the message
+}
+
+// Root type that parsers can use to peek at messages
+message BaseMessage {
+  required Header header = 1;
+}
+
+// Generic ACK or NACK to a previous message, with optional data payload
+message AckNackMessage {
+  required Header header = 1;
+  required bool acknowledge = 2;
+  required StatusCode status_code = 3 [(nanopb).int_size = IS_8];
+  optional bytes data = 4 [(nanopb).max_size = 64 ];
+}
+
+message PingMessage {
+  required Header header = 1;
+}
+
+message SystemTick {
+  required Header header = 1;
+  required uint32 tick = 2;
+}
+
+message ConsoleMessage {
+  required Header header = 1;
+  required uint32 this_frame = 2 [(nanopb).int_size = IS_8];
+  required uint32 total_frames = 3 [(nanopb).int_size = IS_8];
+  required bytes data = 4 [(nanopb).max_size = 128];
+}
+
+message SystemInfoMessage {
+  required Header header = 1;
+  required uint32 systemTick = 2;
+  required string swVersion = 3 [(nanopb).max_size = 16, (nanopb).fixed_length = true];
+  required string description = 4 [(nanopb).max_size = 16, (nanopb).fixed_length = true];
+  required string serialNumber = 5 [(nanopb).max_size = 16, (nanopb).fixed_length = true];
+}
+
+message ParamIOMessage {
+  required Header header = 1;
+  optional ParamId id = 2 [(nanopb).int_size = IS_16];
+  optional ParamType type = 3 [(nanopb).int_size = IS_8];
+  optional bytes data = 4 [(nanopb).max_size = 64 ];
+}
+
+message SystemControlMessage {
+  required Header header = 1;
+  optional MotorCtrlCmd motorCmd = 2 [(nanopb).int_size = IS_8];
+  /* Inject more commands here */
+  optional bytes data = 3 [(nanopb).max_size = 64 ];
+}
+
+message SwitchModeMessage {
+  required Header header = 1;
+  required BootMode mode = 2 [(nanopb).int_size = IS_8];
+}
+
+// Message type for streaming out raw data from the system in real time
+message SystemDataMessage {
+
+  // Message type for ADC phase currents
+  message ADCPhaseCurrents {
+    required uint32 timestamp = 1;  // System time of measurement in microseconds
+    required float ia = 2;          // Phase A current in Amps
+    required float ib = 3;          // Phase B current in Amps
+    required float ic = 4;          // Phase C current in Amps
+  }
+
+  // Message type for the PWM commands sent to the power stage
+  message PWMCommands {
+    required uint32 timestamp = 1;  // System time of measurement in microseconds
+    required float va = 2;          // Phase A voltage command in Volts
+    required float vb = 3;          // Phase B voltage command in Volts
+    required float vc = 4;          // Phase C voltage command in Volts
+  }
+
+  // Message type for the state estimates of the motor
+  message StateEstimates {
+    required uint32 timestamp = 1;  // System time of measurement in microseconds
+    required float theta_est = 2;  // Physical angle of the rotor in radians
+    required float omega_est = 3;  // Physical angular velocity of the rotor in radians per second
+  }
+
+  required Header header = 1;
+  required SystemDataId id = 2 [(nanopb).int_size = IS_8];
+  optional bytes data = 3 [(nanopb).max_size = 24 ];
+}

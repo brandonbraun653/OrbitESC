@@ -37,7 +37,6 @@ namespace Orbit::BoostXL
   /*---------------------------------------------------------------------------
   Public Methods
   ---------------------------------------------------------------------------*/
-
   static float adc_to_phase_current( float vin )
   {
     return ( vin - ISENSE_VREF ) / ( ISHUNT_AMP_GAIN * RSHUNT_OHM );

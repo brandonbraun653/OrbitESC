@@ -5,7 +5,7 @@
  *  Description:
  *    Orbit ESC USART Driver
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -16,10 +16,16 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/usart>
+#include <Chimera/serial>
 
 
 namespace Orbit::USART
 {
+  /*---------------------------------------------------------------------------
+  Public Data
+  ---------------------------------------------------------------------------*/
+  extern Chimera::Serial::Driver_rPtr SerialDriver;
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/

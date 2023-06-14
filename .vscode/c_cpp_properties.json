@@ -1,6 +1,8 @@
 {
     "env": {
         "defaultIncludePaths": [
+            "/usr/include",
+            "/usr/include/x86_64-linux-gnu/c++/11",
             "${workspaceFolder}",
             "${workspaceFolder}/lib/Aurora/include",
             "${workspaceFolder}/lib/Aurora/include/../",
@@ -8,7 +10,9 @@
             "${workspaceFolder}/lib/Aurora/lib/ctre/single-header",
             "${workspaceFolder}/lib/Aurora/lib/embedded_template_library/etl/include",
             "${workspaceFolder}/lib/Aurora/lib/littlefs/lfs",
+            "${workspaceFolder}/lib/Aurora/lib/cobs/cobs",
             "${workspaceFolder}/lib/Aurora/lib/nanoprintf",
+            "${workspaceFolder}/lib/Aurora/lib/nanopb/nanopb",
             "${workspaceFolder}/lib/Aurora/lib/segger/Config",
             "${workspaceFolder}/lib/Aurora/lib/segger/SEGGER",
             "${workspaceFolder}/lib/Aurora/lib/segger/SEGGER/Syscalls",
@@ -24,6 +28,7 @@
             "${workspaceFolder}/lib/Chimera/source/drivers/peripherals",
             "${workspaceFolder}/lib/Chimera/source/drivers/peripherals/timer",
             "${workspaceFolder}/lib/Chimera/source/drivers/peripherals/timer/views",
+            "${workspaceFolder}/lib/ChimeraSim/include",
             "${workspaceFolder}/lib/CommonTools/cpputest/include",
             "${workspaceFolder}/lib/CommonTools/googletest",
             "${workspaceFolder}/lib/CommonTools/googletest/googletest/googlemock/include",
@@ -34,6 +39,9 @@
             "${workspaceFolder}/lib/Thor/**",
             "${workspaceFolder}/lib/Thor/config/freertos",
             "${workspaceFolder}/lib/Thor/include",
+            "${workspaceFolder}/lib/json/ArduinoJson",
+            "${workspaceFolder}/lib/json/ArduinoJson/src",
+            "${workspaceFolder}/lib/json/ArduinoJson/src/ArduinoJson",
             "${workspaceFolder}/src",
             "${workspaceFolder}/src/config/aurora",
             "${workspaceFolder}/src/config/bsp",
@@ -119,13 +127,13 @@
         ],
         "defaultSimDefines": [
             "SIMULATOR",
+            "CHIMERA_VIRTUAL",
             "CHIMERA_SIMULATOR",
             "USING_NATIVE_THREADS",
             "${defaultDefines}"
         ],
         "defaultEmbeddedCStandard": "gnu17",
-        "defaultEmbeddedCppStandard": "gnu++20",
-        "arm_none_eabi_path": "~/toolchain/xpack-arm-none-eabi-gcc-11.2.1-1.2/bin/arm-none-eabi-gcc"
+        "defaultEmbeddedCppStandard": "gnu++20"
     },
     "configurations": [
         {
@@ -144,7 +152,7 @@
                 "TARGET_STM32L4",
                 "THOR_USER_CONFIG"
             ],
-            "compilerPath": "${arm_none_eabi_path}",
+            "compilerPath": "/usr/bin/gcc",
             "cStandard": "gnu17",
             "cppStandard": "gnu++20"
         },
@@ -164,7 +172,7 @@
                 "TARGET_STM32F4",
                 "THOR_USER_CONFIG"
             ],
-            "compilerPath": "${arm_none_eabi_path}",
+            "compilerPath": "/usr/bin/arm-none-eabi-gcc",
             "cStandard": "gnu17",
             "cppStandard": "gnu++20"
         },

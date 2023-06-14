@@ -5,7 +5,7 @@
  *  Description:
  *    Interface to the Idle task
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -18,13 +18,13 @@ Includes
 #include <Chimera/thread>
 #include <string>
 
-namespace Orbit::Tasks::Idle
+namespace Orbit::Tasks::BKD
 {
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr size_t STACK                           = STACK_BYTES( 1024 );
-  static constexpr std::string_view NAME                  = "idle";
+  static constexpr size_t                        STACK    = STACK_BYTES( 4096 );
+  static constexpr std::string_view              NAME     = "bkd";
   static constexpr Chimera::Thread::TaskPriority PRIORITY = 0;
 
   /*---------------------------------------------------------------------------
@@ -37,6 +37,6 @@ namespace Orbit::Tasks::Idle
    */
   void IdleThread( void *arg );
 
-}  // namespace Orbit::Tasks::Idle
+}    // namespace Orbit::Tasks::BKD
 
-#endif  /* !ORBIT_ESC_TASK_IDLE_HPP */
+#endif /* !ORBIT_ESC_TASK_IDLE_HPP */

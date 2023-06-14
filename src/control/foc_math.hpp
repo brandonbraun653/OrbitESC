@@ -17,6 +17,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <cmath>
 #include <cstdint>
+#include <limits>
 
 /*-----------------------------------------------------------------------------
 Macros
@@ -24,6 +25,11 @@ Macros
 #define US_TO_SEC( x ) ( static_cast<float>( x ) / 1e6f )
 #define RAD_TO_RPM( rad ) ( static_cast<float>( rad ) * static_cast<float>( 60.0 / ( 2.0 * M_PI ) ) )
 #define RPM_TO_RAD( rpm ) ( ( static_cast<float>( rpm ) / 60.0f ) * static_cast<float>( 2.0 * M_PI ) )
+#define RAD_TO_DEG( rad ) ( static_cast<float>( rad ) * static_cast<float>( 180.0 / M_PI ) )
+#define DEG_TO_RAD( deg ) ( static_cast<float>( deg ) * static_cast<float>( M_PI / 180.0 ) )
+
+#define SQ( x ) ( ( x ) * ( x ) )
+#define NORM2_f( x, y ) ( sqrtf( SQ( x ) + SQ( y ) ) )
 
 namespace Orbit::Control::Math
 {
@@ -34,27 +40,7 @@ namespace Orbit::Control::Math
   static constexpr float TWO_OVER_SQRT3 = 1.15470053837925152902f;
   static constexpr float SQRT3_OVER_2   = 0.86602540378443864676f;
   static constexpr float M_PI_F         = static_cast<float>( M_PI );
-
-  /*---------------------------------------------------------------------------
-  Structures
-  ---------------------------------------------------------------------------*/
-  /**
-   * @brief Container for numbers resulting from a Clarke transform
-   */
-  struct ClarkeSpace
-  {
-    float alpha;
-    float beta;
-  };
-
-  /**
-   * @brief Container for numbers resulting from a Park transform
-   */
-  struct ParkSpace
-  {
-    float d;
-    float q;
-  };
+  static constexpr float M_2PI_F        = 2.0f * M_PI_F;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -108,6 +94,56 @@ namespace Orbit::Control::Math
   }
 
   /**
+   * @brief Truncates a floating point value to a maximum value
+   *
+   * @param x   Value to truncate
+   * @param max Maximum value to truncate to
+   */
+  static inline void truncate_fabs( float &x, const float max )
+  {
+    if( x > max )
+    {
+      x = max;
+    }
+    else if( x < -max )
+    {
+      x = -max;
+    }
+  }
+
+  /**
+   * @brief Limits the magnitude of the vector to a maximum value
+   *
+   * @param x       X component of the vector
+   * @param y       Y component of the vector
+   * @param max     Maximum magnitude of the vector
+   * @return true   Vector was saturated
+   * @return false  Vector was not saturated
+   */
+  static inline bool saturate_vector_2d( float &x, float &y, float max )
+  {
+    bool  retval = false;
+    float mag    = NORM2_f( x, y );
+    max          = fabsf( max );
+
+    if ( mag < 1e-10 )
+    {
+      mag = 1e-10;
+    }
+
+    if ( mag > max )
+    {
+      const float f = max / mag;
+      x *= f;
+      y *= f;
+      retval = true;
+    }
+
+    return retval;
+  }
+
+
+  /**
    * @brief Computes the sine and cosine of an input angle
    * @see https://github.com/vedderb/bldc/blob/master/util/utils_math.c
    *
@@ -116,6 +152,15 @@ namespace Orbit::Control::Math
    * @param cos     Output pointer to store the cosine of the angle
    */
   void fast_sin_cos( float angle, float *const sin, float *const cos );
+
+  /**
+   * @brief Computes the sine of an input angle
+   * @note Sine only version of fast_sin_cos()
+   *
+   * @param angle   Angle to compute the sine of
+   * @param sin     Output pointer to store the sine of the angle
+   */
+  void fast_sin( float angle, float *const sin );
 
   /**
    * @brief Computes atan2 quickly, accurately, and with output normalization
@@ -131,43 +176,124 @@ namespace Orbit::Control::Math
    * @brief Computes the Clarke transform, disregarding the homopolar component
    * @see https://www.ti.com/lit/an/bpra048/bpra048.pdf
    *
-   * @param a   Phase A motor current
-   * @param b   Phase B motor current
-   * @return ClarkeSpace
+   * @param a       Phase A motor current
+   * @param b       Phase B motor current
+   * @param alpha   Output reference to store the alpha component
+   * @param beta    Output reference to store the beta component
+   * @return void
    */
-  ClarkeSpace clarke_transform( const float a, const float b );
+  void clarke_transform( const float a, const float b, float &alpha, float &beta );
 
   /**
    * @brief Computes the Park transform of the Clarke space input
    * @see https://www.ti.com/lit/an/bpra048/bpra048.pdf
    *
-   * @param clarke  Clarke space data to transform
-   * @param angle   Estimated angle of the motor
-   * @return ParkSpace
+   * @param alpha   Alpha component of the Clarke space data
+   * @param beta    Beta component of the Clarke space data
+   * @param theta   Estimated angle of the motor
+   * @param q       Output reference to store the q component
+   * @param d       Output reference to store the d component
+   * @return void
    */
-  ParkSpace park_transform( const ClarkeSpace &clarke, const float angle_est );
+  void park_transform( const float alpha, const float beta, const float theta, float &q, float &d );
 
   /**
    * @brief Computes the inverse Park transform of the Park space input
    * @see https://www.ti.com/lit/an/bpra048/bpra048.pdf
    *
-   * @param park        Park space data to transform
-   * @param angle_est   Estimated angle of the motor
-   * @return ClarkeSpace
+   * @param q       Q component
+   * @param d       D component
+   * @param theta   Estimated angle of the motor
+   * @param a       Output reference to store the alpha component
+   * @param b       Output reference to store the beta component
+   * @return void
    */
-  ClarkeSpace inverse_park_transform( const ParkSpace &park, const float angle_est );
+  void inverse_park_transform( const float q, const float d, const float theta, float &a, float &b );
 
   /**
    * @brief Computes the inverse Clarke transform of the Clarke space input
    * @see https://www.ti.com/lit/an/bpra048/bpra048.pdf
    *
-   * @param clarke  Clarke space data to transform
-   * @param a       Output pointer to store the phase A data
-   * @param b      Output pointer to store the phase B data
-   * @param c       Output pointer to store the phase C data
+   * @param a       Alpha component
+   * @param b       Beta component
+   * @param v1      Output reference to store the phase A voltage component
+   * @param v2      Output reference to store the phase B voltage component
+   * @param v3      Output reference to store the phase C voltage component
    * @return void
    */
-  void inverse_clarke_transform( const ClarkeSpace &clark, float *const a, float *const b, float *const c );
+  void inverse_clarke_transform( const float a, const float b, float &v1, float &v2, float &v3 );
+
+  /**
+   * @brief Clips an input value to be bounded between min/max
+   *
+   * @param v       Value being clipped
+   * @param min     Minimum limit
+   * @param max     Maximum limit
+   * @return float
+   */
+  float clamp( const float v, const float min, const float max );
+
+  /**
+   * @brief Performs Space Vector Modulation on the input alpha/beta vector
+   * @see https://github.com/vedderb/bldc
+   *
+   * @param alpha               Alpha component of the vector
+   * @param beta                Beta component of the vector
+   * @param timer_pwm_arr       Timer PWM ARR value, corresponding to full duty cycle
+   * @param timer_pwm_ccr1      Output reference to store the timer PWM CCR1 value
+   * @param timer_pwm_ccr2      Output reference to store the timer PWM CCR2 value
+   * @param timer_pwm_ccr3      Output reference to store the timer PWM CCR3 value
+   * @param commutation_sector  Output reference to store the new commutation sector
+   */
+  void space_vector_modulation( const float alpha, const float beta, const uint32_t timer_pwm_arr, uint32_t &timer_pwm_ccr1,
+                                uint32_t &timer_pwm_ccr2, uint32_t &timer_pwm_ccr3, uint32_t &commutation_sector );
+
+  /*---------------------------------------------------------------------------
+  Classes
+  ---------------------------------------------------------------------------*/
+  /**
+   * @brief Discrete time trapezoidal integrator
+   * @see https://www.mathworks.com/help/simulink/slref/discretetimeintegrator.html
+   */
+  class TrapInt
+  {
+  public:
+    float K;  /**< Proportionality constant to scale integration by*/
+
+    TrapInt();
+    ~TrapInt();
+
+    /**
+     * @brief Reset the integrator
+     *
+     * @param ic    Initial condition
+     * @param min   Minimum value saturation limit
+     * @param max   Maximum value saturation limit
+     */
+    void reset( const float ic = 0.0f, const float min = std::numeric_limits<float>::min(),
+                const float max = std::numeric_limits<float>::max() );
+
+    /**
+     * @brief Steps the integration forward by dt
+     *
+     * @param u   Input value for this time step
+     * @param dt  Time to integrate over
+     * @return float
+     */
+    float step( const float u, const float dt );
+
+    /**
+     * @brief Get the current value of the integration
+     * @return float
+     */
+    float value() const;
+
+  private:
+    float Min;
+    float Max;
+    float Y;
+    float ULast;
+  };
 
 }    // namespace Orbit::Control::Math
 

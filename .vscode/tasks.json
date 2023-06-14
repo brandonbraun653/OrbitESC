@@ -92,17 +92,27 @@
       "problemMatcher": []
     },
     {
-      "label": "Build Current Configuration",
+      "label": "Build Proto Interfaces",
       "type": "shell",
-      "command": "./build_embedded.sh",
+      "command": "./build_proto.sh",
       "options": {
         "cwd": "${workspaceFolder}/scripts"
       },
       "problemMatcher": []
     },
     {
+      "label": "Build Current Configuration",
+      "type": "shell",
+      "command": "./build_embedded.sh",
+      "options": {
+        "cwd": "${workspaceFolder}/scripts"
+      },
+      "problemMatcher": [],
+      "dependsOn": "Build Proto Interfaces"
+    },
+    {
       "label": "Dump Sections",
-      "type":"shell",
+      "type": "shell",
       "command": "arm-none-eabi-objdump -w -d --section=.text OrbitESC > sections.txt",
       "options": {
         "cwd": "${workspaceFolder}/artifacts/last_build_version"
@@ -111,7 +121,7 @@
     },
     {
       "label": "Dump Sections -- Unmangled",
-      "type":"shell",
+      "type": "shell",
       "command": "arm-none-eabi-objdump -w -d --demangle --section=.text OrbitESC > sections_unmangled.txt",
       "options": {
         "cwd": "${workspaceFolder}/artifacts/last_build_version"
@@ -120,7 +130,7 @@
     },
     {
       "label": "Dump Largest Symbols",
-      "type":"shell",
+      "type": "shell",
       "command": "arm-none-eabi-nm --print-size --size-sort --reverse-sort OrbitESC > symbols.txt",
       "options": {
         "cwd": "${workspaceFolder}/artifacts/last_build_version"
@@ -129,12 +139,57 @@
     },
     {
       "label": "Dump Largest Symbols -- Unmangled",
-      "type":"shell",
+      "type": "shell",
       "command": "arm-none-eabi-nm --demangle --print-size --size-sort --reverse-sort OrbitESC > symbols_unmangled.txt",
       "options": {
         "cwd": "${workspaceFolder}/artifacts/last_build_version"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "Analyze .elf RAM Usage",
+      "type": "shell",
+      "command": "python -m elf_size_analyze -R ${workspaceFolder}/artifacts/last_build_version/OrbitESC",
+      "options": {
+        "cwd": "${workspaceFolder}/lib/CommonTools/elf-size-analyze"
+      },
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "Minicom Terminal: ttyUSB0",
+      "command": "sudo", // <-- your shell here
+      "args": [
+        "minicom",
+        "-D",
+        "/dev/ttyUSB0",
+        "-b",
+        "921600"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "echo": false, // silence "Executing task ..."
+        "focus": true,
+        "panel": "dedicated"
+      }
+    },
+    {
+      "type": "shell",
+      "label": "Minicom Terminal: ttyUSB1",
+      "command": "sudo", // <-- your shell here
+      "args": [
+        "minicom",
+        "-D",
+        "/dev/ttyUSB1",
+        "-b",
+        "921600"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "echo": false, // silence "Executing task ..."
+        "focus": true,
+        "panel": "dedicated"
+      }
     }
   ]
 }

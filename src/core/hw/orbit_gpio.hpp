@@ -23,11 +23,11 @@ namespace Orbit::GPIO
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
-    /**
+  /**
    * @brief Powers up the GPIO driver subsystem
    */
   void powerUp();
 
-}  // namespace Orbit::GPIO
+}    // namespace Orbit::GPIO
 
-#endif  /* !ORBIT_ESC_GPIO_HPP */
+#endif /* !ORBIT_ESC_GPIO_HPP */

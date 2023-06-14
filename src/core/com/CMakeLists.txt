@@ -4,17 +4,25 @@ gen_static_lib_variants(
   TARGET
     lib_orbit_com
   SOURCES
-    can_periodic_message.cpp
-    can_server.cpp
-    routers/can_ehalt_router.cpp
-    routers/can_mode_router.cpp
-    routers/can_ping_router.cpp
-    routers/can_reset_router.cpp
-    routers/can_speed_router.cpp
+    can/can_periodic_message.cpp
+    can/can_server.cpp
+    can/routers/can_ehalt_router.cpp
+    can/routers/can_mode_router.cpp
+    can/routers/can_ping_router.cpp
+    can/routers/can_reset_router.cpp
+    can/routers/can_speed_router.cpp
+    serial/routers/serial_param_io_router.cpp
+    serial/routers/serial_ping_router.cpp
+    serial/routers/serial_switch_mode_router.cpp
+    serial/routers/serial_sys_ctrl_router.cpp
+    serial/serial_async_message.cpp
+    serial/serial_interface.pb.c
+    serial/serial_server.cpp
+    serial/serial_sink.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc
-    project_inc
+    project_intf_inc
   EXPORT_DIR
     "${PROJECT_BINARY_DIR}/OrbitESC"
 )

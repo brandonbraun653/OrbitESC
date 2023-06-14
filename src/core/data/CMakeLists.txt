@@ -5,10 +5,16 @@ gen_static_lib_variants(
     lib_orbit_data
   SOURCES
     orbit_data.cpp
+    orbit_data_storage.cpp
+    orbit_data_types.cpp
+    orbit_data_validators.cpp
+    orbit_log_io.cpp
+    orbit_log_sink.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc
-    project_inc
+    json_intf_inc
+    project_intf_inc
   EXPORT_DIR
     "${PROJECT_BINARY_DIR}/OrbitESC"
 )

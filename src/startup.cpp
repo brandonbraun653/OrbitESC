@@ -14,9 +14,11 @@ Includes
 #include <Chimera/common>
 #include <Chimera/thread>
 #include <src/core/tasks.hpp>
+
+#if defined( EMBEDDED )
 #include <Thor/lld/common/cortex-m4/debug.hpp>
 
-#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
+#if defined( SEGGER_SYS_VIEW )
 #include "SEGGER_SYSVIEW.h"
 
 /*-------------------------------------------------------------------------------
@@ -45,14 +47,18 @@ SYSVIEW_EVTMASK_TASK_STOP_READY   | SysView can re-build task sequences without 
     SYSVIEW_EVTMASK_TASK_START_READY  | \
     SYSVIEW_EVTMASK_TASK_STOP_READY )
 /* clang-format on */
-#endif
+#endif  /* SEGGER_SYS_VIEW */
+#endif  /* EMBEDDED */
+
 
 /*-----------------------------------------------------------------------------
 Public Functions
 -----------------------------------------------------------------------------*/
 int main()
 {
+#if defined( EMBEDDED )
   CortexM4::Debug::enableCounter();
+#endif
 
   /*---------------------------------------------------------------------------
   Perform peripheral driver system initialization

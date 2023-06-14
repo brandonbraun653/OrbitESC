@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
 set(CPP_PLATFORM "freertos")
+set(OVERRIDE_LINKER_SCRIPT ON)
+set(PRJ_LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/OrbitESC.lds")
 
 # ====================================================
 # Perform very high level configuration
@@ -31,8 +33,11 @@ endif()
 # ====================================================
 add_subdirectory("lib/Aurora")
 add_subdirectory("lib/Chimera")
+add_subdirectory("lib/ChimeraSim")
+add_subdirectory("lib/CommonTools/googletest")
 add_subdirectory("lib/FreeRTOS")
 add_subdirectory("lib/Thor")
+add_subdirectory("lib/json")
 
 # ====================================================
 # Project Exports
@@ -40,12 +45,13 @@ add_subdirectory("lib/Thor")
 # Project Headers
 gen_intf_lib(
   TARGET
-    project_inc
+    project_intf_inc
   INTF_DEFINES
     THOR_USER_CONFIG
-    SEGGER_SYS_VIEW
+    #SEGGER_SYS_VIEW
   INTF_INCLUDES
     "${PROJECT_ROOT}"
+    "${PROJECT_ROOT}/src"
     "${PROJECT_ROOT}/src/config/thor"
   INTF_LIBRARIES
     freertos_intf_inc_all
@@ -58,7 +64,7 @@ gen_intf_lib(
   TARGET
     freertos_cfg
   INTF_DEFINES
-    SEGGER_SYS_VIEW
+    #SEGGER_SYS_VIEW
   INTF_INCLUDES
     "${PROJECT_ROOT}/src/config/freertos"
     "${PROJECT_ROOT}/lib/Aurora/lib/segger/contrib/cortex_m4_freertos"

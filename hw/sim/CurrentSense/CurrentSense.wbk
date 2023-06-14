@@ -1,0 +1,16 @@
+1
+9
+.tran 25u 1.5 0
+4
+1
+Net-(R5-Pad2)
+V
+1
+VCC
+V
+1
+VCC_Noisy
+V
+1
+VRef
+V

@@ -12,58 +12,46 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/common>
+#include <Chimera/exti>
 #include <Chimera/gpio>
-#include <src/core/hw/orbit_gpio.hpp>
 #include <src/config/bsp/board_map.hpp>
+#include <src/core/hw/orbit_gpio.hpp>
+#include <src/control/foc_driver.hpp>
 
 
 namespace Orbit::GPIO
 {
   /*---------------------------------------------------------------------------
+  Static Functions
+  ---------------------------------------------------------------------------*/
+  static void eStopISR( void * )
+  {
+    using namespace Orbit::Control;
+    // FOCDriver.sendSystemEvent( EventId::EMERGENCY_HALT );
+  }
+
+  /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   void powerUp()
   {
-    using namespace Chimera::GPIO;
+    /*-------------------------------------------------------------------------
+    Initialize the emergency stop button
+    -------------------------------------------------------------------------*/
+    Chimera::Function::vGeneric callback = Chimera::Function::vGeneric::create<eStopISR>();
 
-    PinInit cfg;
-    Driver_rPtr pin = nullptr;
+    auto gpio = Chimera::GPIO::getDriver( IO::Digital::eStopPort, IO::Digital::eStopPin );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( IO::Digital::eStopPinInit ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->attachInterrupt( callback, Chimera::EXTI::EdgeTrigger::RISING_EDGE ) );
 
     /*-------------------------------------------------------------------------
-    Heartbeat/Status LED
+    Initialize the LED output enable pin
     -------------------------------------------------------------------------*/
-    cfg.clear();
-    cfg.validity  = true;
-    cfg.threaded  = true;
-    cfg.alternate = Alternate::NONE;
-    cfg.drive     = Drive::OUTPUT_PUSH_PULL;
-    cfg.pin       = IO::GPIO::pinHeartbeat;
-    cfg.port      = IO::GPIO::portHeartbeat;
-    cfg.pull      = Pull::NO_PULL;
-    cfg.state     = State::LOW;
-
-    pin = getDriver( cfg.port, cfg.pin );
-    RT_HARD_ASSERT( pin != nullptr );
-    RT_HARD_ASSERT( Chimera::Status::OK == pin->init( cfg ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == pin->setState( State::LOW ) );
-
-    /*-------------------------------------------------------------------------
-    User Button
-    -------------------------------------------------------------------------*/
-
-    cfg.clear();
-    cfg.threaded  = true;
-    cfg.validity  = true;
-    cfg.alternate = Chimera::GPIO::Alternate::NONE;
-    cfg.drive     = Chimera::GPIO::Drive::INPUT;
-    cfg.pin       = IO::GPIO::pinButton;
-    cfg.port      = IO::GPIO::portButton;
-    cfg.pull      = Chimera::GPIO::Pull::PULL_UP;
-    cfg.state     = Chimera::GPIO::State::HIGH;
-
-    pin = getDriver( cfg.port, cfg.pin );
-    RT_HARD_ASSERT( pin != nullptr );
-    RT_HARD_ASSERT( Chimera::Status::OK == pin->init( cfg ) );
+    #if defined( ORBIT_ESC_V2 )
+    gpio = Chimera::GPIO::getDriver( IO::Digital::ledOEPort, IO::Digital::ledOEPin );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( IO::Digital::ledOEPinInit ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->setState( Chimera::GPIO::State::LOW ) );
+    #endif
   }
 
 }    // namespace Orbit::GPIO

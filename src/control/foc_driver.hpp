@@ -31,7 +31,7 @@ namespace Orbit::Control
   /*---------------------------------------------------------------------------
   Public Data
   ---------------------------------------------------------------------------*/
-  extern FOC FOCDriver;
+  //extern FOC FOCDriver;
 
   /*---------------------------------------------------------------------------
   Structures
@@ -39,12 +39,11 @@ namespace Orbit::Control
   struct FOCConfig
   {
     Chimera::ADC::Peripheral                    adcSource; /**< Which ADC peripheral to use */
-    std::array<ADCTxfrFunc, ADC_CH_NUM_OPTIONS> txfrFuncs; /**< Conversion functions for each ADC channel */
+
 
     void clear()
     {
       adcSource = Chimera::ADC::Peripheral::UNKNOWN;
-      txfrFuncs.fill( nullptr );
     }
   };
 
@@ -78,34 +77,12 @@ namespace Orbit::Control
     void run();
 
     /**
-     * @brief Move from an idle state to prepared for running
+     * @brief Injects an event to the operational mode of the controller
      *
-     * @return int
+     * @param event System event being sent
+     * @return int  Zero if OK, negative on error
      */
-    int arm();
-
-    /**
-     * @brief Revert to SW idle state and disable all motor control outputs
-     *
-     * @return int
-     */
-    int disarm();
-
-    /**
-     * @brief Start closed loop control of motor speed
-     * @note Requires the motor to be armed
-     *
-     * @return int
-     */
-    int engage();
-
-    /**
-     * @brief Stop controlling motor speed and revert to arm mode
-     * @note Requires controller to be engaged
-     *
-     * @return int
-     */
-    int disengage();
+    int sendSystemEvent( const EventId_t event );
 
     /**
      * @brief Set a new speed reference for the motor
@@ -118,20 +95,6 @@ namespace Orbit::Control
      * @return int
      */
     int setSpeedRef( const float ref );
-
-    /**
-     * @brief Instructs an emergency halt of the motor
-     *
-     * @return int
-     */
-    int emergencyStop();
-
-    /**
-     * @brief Gets the last data collected from the ADC
-     *
-     * @param data  The data to fill with the last ADC data
-     */
-    void lastSensorData( ADCSensorBuffer &data );
 
     /**
      * @brief Gets a view of the internal state of the FOC driver
@@ -154,6 +117,14 @@ namespace Orbit::Control
      */
     void logUnhandledMessage( const etl::imessage &msg );
 
+    /**
+     * @brief Drive a test signal on the power stage of the ESC
+     * @note Must be in the Armed state for this to work
+     *
+     * @param commCycle   Commutation cycle to execute
+     * @param dutyCycle   Duty cycle to drive the output
+     */
+    void driveTestSignal( const uint8_t commCycle, const float dutyCycle );
 
     /*-------------------------------------------------------------------------
     Public Data:
@@ -162,9 +133,6 @@ namespace Orbit::Control
     -------------------------------------------------------------------------*/
     SuperState                       mState;            /**< Entire FOC subsystem state */
     FOCConfig                        mConfig;           /**< Configuration data for the FOC library */
-    Chimera::ADC::Driver_rPtr        mADCDriver;        /**< ADC Hardware Driver */
-    Chimera::Timer::Inverter::Driver mTimerDriver;      /**< Motor drive timer */
-    Chimera::Timer::Trigger::Master  mSpeedCtrlTrigger; /**< Trigger for the speed control loop */
 
   protected:
     /**
@@ -172,34 +140,21 @@ namespace Orbit::Control
      *
      * @param isr   Data from the ADC interrupt
      */
-    void dma_isr_current_controller( const Chimera::ADC::InterruptDetail &isr );
+    void adcISRTxfrComplete( const Chimera::ADC::InterruptDetail &isr );
 
     /**
      * @brief Interrupt handler for a periodic timer to do the speed control loop
      */
     void timer_isr_speed_controller();
 
-    /**
-     * @brief Interrupt context handler to control rotor ramp from park to run
-     */
-    void isr_rotor_ramp_controller();
-
   private:
-    std::array<etl::ifsm_state *, ModeId::NUM_STATES>  mFSMStateArray; /**< Storage for the FSM state controllers */
-    std::array<void ( FOC::* )( void ), ModeId::NUM_STATES> mRunFuncArray;  /**< Lookup for periodic state behavior */
+    bool                                              mInitialized;   /**< Driver initialized state */
+    std::array<etl::ifsm_state *, ModeId::NUM_STATES> mFSMStateArray; /**< Storage for the FSM state controllers */
 
-    /**
-     * @brief Calculates back-EMF estimates along the D and Q axes
-     *
-     * @param dt  The time in seconds since the last call to this function
-     */
+
     void stepEMFObserver( const float dt );
-
-    void onFault();
-    void onArmed();
-    void onPark();
-    void onRamp();
-    void onRun();
+    void stepIControl( const float dt );
+    void stepEstimator( const float dt );
   };
 }    // namespace Orbit::Control
 

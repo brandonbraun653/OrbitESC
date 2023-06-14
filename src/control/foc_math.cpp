@@ -70,6 +70,37 @@ namespace Orbit::Control::Math
   }
 
 
+  void fast_sin( float angle, float *const sin )
+  {
+    RT_DBG_ASSERT( ( sin != nullptr ) && ( cos != nullptr ) );
+
+    /*-------------------------------------------------------------------------
+    Wrap the angle from -PI to PI
+    -------------------------------------------------------------------------*/
+    while ( angle < -M_PI_F )
+    {
+      angle += 2.0f * M_PI_F;
+    }
+
+    while ( angle > M_PI_F )
+    {
+      angle -= 2.0f * M_PI_F;
+    }
+
+    /*-------------------------------------------------------------------------
+    Compute Sine
+    -------------------------------------------------------------------------*/
+    if ( angle < 0.0f )
+    {
+      *sin = 1.27323954f * angle + 0.405284735f * angle * angle;
+    }
+    else
+    {
+      *sin = 1.27323954f * angle - 0.405284735f * angle * angle;
+    }
+  }
+
+
   float fast_atan2_with_norm( const float y, const float x )
   {
     const float abs_y = fabsf( y ) + 1e-20f;    // kludge to prevent 0/0 condition
@@ -101,52 +132,223 @@ namespace Orbit::Control::Math
   }
 
 
-  ClarkeSpace clarke_transform( const float a, const float b )
+  void clarke_transform( const float a, const float b, float &alpha, float &beta )
   {
-    return { .alpha = a, .beta = ( a * ONE_OVER_SQRT3 ) + ( b * TWO_OVER_SQRT3 ) };
+    alpha = a;
+    beta  = ( a * ONE_OVER_SQRT3 ) + ( b * TWO_OVER_SQRT3 );
   }
 
 
-  ParkSpace park_transform( const ClarkeSpace &clarke, const float angle_est )
+  void park_transform( const float alpha, const float beta, const float theta, float &q, float &d )
   {
     /*-------------------------------------------------------------------------
     Cache the sine/cosine of the angle estimate
     -------------------------------------------------------------------------*/
     float sin, cos;
-    fast_sin_cos( angle_est, &sin, &cos );
+    fast_sin_cos( theta, &sin, &cos );
 
     /*-------------------------------------------------------------------------
     Park transform
     -------------------------------------------------------------------------*/
-    /* clang-format off */
-    return { .d = (  clarke.alpha * cos ) + ( clarke.beta * sin ),
-             .q = ( -clarke.alpha * sin ) + ( clarke.beta * cos ) };
-    /* clang-format on */
+    d = ( alpha * cos ) + ( beta * sin );
+    q = ( -alpha * sin ) + ( beta * cos );
   }
 
 
-  ClarkeSpace inverse_park_transform( const ParkSpace &park, const float angle_est )
+  void inverse_park_transform( const float q, const float d, const float theta, float &a, float &b )
   {
     /*-------------------------------------------------------------------------
     Cache the sine/cosine of the angle estimate
     -------------------------------------------------------------------------*/
     float sin, cos;
-    fast_sin_cos( angle_est, &sin, &cos );
+    fast_sin_cos( theta, &sin, &cos );
 
     /*-------------------------------------------------------------------------
     Inverse Park transform
     -------------------------------------------------------------------------*/
-    /* clang-format off */
-    return { .alpha = ( park.d * cos ) - ( park.q * sin ),
-             .beta  = ( park.d * sin ) + ( park.q * cos ) };
-    /* clang-format on */
+    a = ( d * cos ) - ( q * sin );
+    b = ( d * sin ) + ( q * cos );
   }
 
 
-  void inverse_clarke_transform( const ClarkeSpace &clark, float *const a, float *const b, float *const c )
+  void inverse_clarke_transform( const float a, const float b, float &v1, float &v2, float &v3 )
   {
-    *a = clark.alpha;
-    *b = -0.5f * clark.alpha + clark.beta * SQRT3_OVER_2;
-    *c = -0.5f * clark.alpha - clark.beta * SQRT3_OVER_2;
+    v1 = a;
+    v2 = -0.5f * a + b * SQRT3_OVER_2;
+    v3 = -0.5f * a - b * SQRT3_OVER_2;
   }
+
+
+  float clamp( const float v, const float min, const float max )
+  {
+    return std::max( min, std::min( v, max ) );
+  }
+
+  void space_vector_modulation( const float alpha, const float beta, const uint32_t timer_pwm_arr, uint32_t &timer_pwm_ccr1,
+                                uint32_t &timer_pwm_ccr2, uint32_t &timer_pwm_ccr3, uint32_t &commutation_sector )
+  {
+    /*-------------------------------------------------------------------------
+    Compute the current sector
+    -------------------------------------------------------------------------*/
+    uint32_t sector;
+    if ( beta >= 0.0f )
+    {
+      if ( alpha >= 0.0f )
+      {
+        sector = ONE_OVER_SQRT3 * beta > alpha ? 2 : 1;
+      }
+      else
+      {
+        sector = -ONE_OVER_SQRT3 * beta > alpha ? 3 : 2;
+      }
+    }
+    else
+    {
+      if ( alpha >= 0.0f )
+      {
+        sector = -ONE_OVER_SQRT3 * beta > alpha ? 5 : 6;
+      }
+      else
+      {
+        sector = ONE_OVER_SQRT3 * beta > alpha ? 4 : 5;
+      }
+    }
+
+    /*-------------------------------------------------------------------------
+    Compute the duty cycles for each PWM channel
+    -------------------------------------------------------------------------*/
+    uint32_t tA, tB, tC;
+    switch ( sector )
+    {
+      // sector 1-2
+      case 1: {
+        // Vector on-times
+        uint32_t t1 = ( alpha - ONE_OVER_SQRT3 * beta ) * timer_pwm_arr;
+        uint32_t t2 = ( TWO_OVER_SQRT3 * beta ) * timer_pwm_arr;
+
+        // PWM timings
+        tA = ( timer_pwm_arr + t1 + t2 ) / 2;
+        tB = tA - t1;
+        tC = tB - t2;
+
+        break;
+      }
+
+      // sector 2-3
+      case 2: {
+        // Vector on-times
+        uint32_t t2 = ( alpha + ONE_OVER_SQRT3 * beta ) * timer_pwm_arr;
+        uint32_t t3 = ( -alpha + ONE_OVER_SQRT3 * beta ) * timer_pwm_arr;
+
+        // PWM timings
+        tB = ( timer_pwm_arr + t2 + t3 ) / 2;
+        tA = tB - t3;
+        tC = tA - t2;
+
+        break;
+      }
+
+      // sector 3-4
+      case 3: {
+        // Vector on-times
+        uint32_t t3 = ( TWO_OVER_SQRT3 * beta ) * timer_pwm_arr;
+        uint32_t t4 = ( -alpha - ONE_OVER_SQRT3 * beta ) * timer_pwm_arr;
+
+        // PWM timings
+        tB = ( timer_pwm_arr + t3 + t4 ) / 2;
+        tC = tB - t3;
+        tA = tC - t4;
+
+        break;
+      }
+
+      // sector 4-5
+      case 4: {
+        // Vector on-times
+        uint32_t t4 = ( -alpha + ONE_OVER_SQRT3 * beta ) * timer_pwm_arr;
+        uint32_t t5 = ( -TWO_OVER_SQRT3 * beta ) * timer_pwm_arr;
+
+        // PWM timings
+        tC = ( timer_pwm_arr + t4 + t5 ) / 2;
+        tB = tC - t5;
+        tA = tB - t4;
+
+        break;
+      }
+
+      // sector 5-6
+      case 5: {
+        // Vector on-times
+        uint32_t t5 = ( -alpha - ONE_OVER_SQRT3 * beta ) * timer_pwm_arr;
+        uint32_t t6 = ( alpha - ONE_OVER_SQRT3 * beta ) * timer_pwm_arr;
+
+        // PWM timings
+        tC = ( timer_pwm_arr + t5 + t6 ) / 2;
+        tA = tC - t5;
+        tB = tA - t6;
+
+        break;
+      }
+
+      // sector 6-1
+      case 6: {
+        // Vector on-times
+        uint32_t t6 = ( -TWO_OVER_SQRT3 * beta ) * timer_pwm_arr;
+        uint32_t t1 = ( alpha + ONE_OVER_SQRT3 * beta ) * timer_pwm_arr;
+
+        // PWM timings
+        tA = ( timer_pwm_arr + t6 + t1 ) / 2;
+        tC = tA - t1;
+        tB = tC - t6;
+
+        break;
+      }
+    }
+
+    /*-------------------------------------------------------------------------
+    Assign output variables
+    -------------------------------------------------------------------------*/
+    timer_pwm_ccr1     = tA;
+    timer_pwm_ccr2     = tB;
+    timer_pwm_ccr3     = tC;
+    commutation_sector = sector;
+  }
+
+  /*---------------------------------------------------------------------------
+  Trapezoidal Integrator
+  ---------------------------------------------------------------------------*/
+  TrapInt::TrapInt() : K( 1.0f ), Min( 0.0f ), Max( 0.0f ), Y( 0.0f ), ULast( 0.0f )
+  {
+  }
+
+
+  TrapInt::~TrapInt()
+  {
+  }
+
+
+  void TrapInt::reset( const float ic, const float min, const float max )
+  {
+    Min   = min;
+    Max   = max;
+    Y     = clamp( ic, Min, Max );
+    ULast = 0.0f;
+  }
+
+
+  float TrapInt::step( const float u, const float dt )
+  {
+    Y = Y + ( K * dt * ( u + ULast ) ) / 2.0f;
+    Y = clamp( Y, Min, Max );
+
+    ULast = u;
+    return Y;
+  }
+
+
+  float TrapInt::value() const
+  {
+    return Y;
+  }
+
 }    // namespace Orbit::Control::Math

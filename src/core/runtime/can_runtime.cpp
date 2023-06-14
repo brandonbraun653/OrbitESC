@@ -16,21 +16,21 @@ Includes
 #include <Chimera/scheduler>
 #include <Chimera/system>
 #include <src/config/bsp/board_map.hpp>
-#include <src/core/com/can_async_message.hpp>
-#include <src/core/com/can_message.hpp>
-#include <src/core/com/can_periodic_message.hpp>
-#include <src/core/com/can_router.hpp>
-#include <src/core/com/can_server.hpp>
+#include <src/core/com/can/can_async_message.hpp>
+#include <src/core/com/can/can_message.hpp>
+#include <src/core/com/can/can_periodic_message.hpp>
+#include <src/core/com/can/can_router.hpp>
+#include <src/core/com/can/can_server.hpp>
+#include <src/core/data/orbit_data.hpp>
 #include <src/core/runtime/can_runtime.hpp>
 
 
 namespace Orbit::CAN
 {
   /*---------------------------------------------------------------------------
-  Static Data
+  Public Data
   ---------------------------------------------------------------------------*/
-  static NodeId s_this_node;
-  static Server s_can_server;
+  Server MessageServer;  /**< Driver for the board's CAN message server */
 
   /*---------------------------------------------------------------------------
   Periodic Message Declarations
@@ -40,6 +40,7 @@ namespace Orbit::CAN
   static Message::PowerSupplyVoltage s_msg_power_supply_voltage;
   static Message::PhaseACurrent      s_msg_phase_a_current;
   static Message::PhaseBCurrent      s_msg_phase_b_current;
+  static Message::PhaseCCurrent      s_msg_phase_c_current;
   static Message::MotorSpeed         s_msg_motor_speed;
   static Message::SpeedReference     s_msg_speed_reference;
 
@@ -60,42 +61,7 @@ namespace Orbit::CAN
     /*-------------------------------------------------------------------------
     Initialize the CAN bus dispatch server
     -------------------------------------------------------------------------*/
-    RT_HARD_ASSERT( s_can_server.initialize( Orbit::IO::CAN::channel ) == Chimera::Status::OK );
-
-    /*-------------------------------------------------------------------------
-    Pull the STM32 unique ID and assign a node to it. For now this is just for
-    development purposes. Eventually node assignment will be handled by the
-    flight controller and stored in NVM.
-    -------------------------------------------------------------------------*/
-    Chimera::System::Information *sys_info = nullptr;
-    if ( Chimera::System::getSystemInformation( sys_info ); sys_info != nullptr )
-    {
-      uint32_t unique_id = 0;
-      memcpy( &unique_id, sys_info->uniqueId.data(), sizeof( unique_id ) );
-
-      switch ( unique_id )
-      {
-        /*---------------------------------------------------------------------
-        STM32L432KB
-        ---------------------------------------------------------------------*/
-        case 0x0043002E:
-        case 0x005A002D:
-          s_this_node = NodeId::NODE_0;
-          break;
-
-        /*---------------------------------------------------------------------
-        STM32L432KC
-        ---------------------------------------------------------------------*/
-        case 0x00700054:
-          s_this_node = NodeId::NODE_1;
-          break;
-
-        default:
-          s_this_node = NodeId::NUM_SUPPORTED_NODES;
-          RT_HARD_ASSERT( false );
-          break;
-      }
-    }
+    RT_HARD_ASSERT( MessageServer.initialize( Orbit::IO::CAN::channel ) == Chimera::Status::OK );
 
     /*-------------------------------------------------------------------------
     Register update functions for periodic messages
@@ -103,58 +69,63 @@ namespace Orbit::CAN
     /* System Tick */
     auto sys_tick_func =
         Chimera::Function::Opaque::create<Message::SystemTick, &Message::SystemTick::update>( s_msg_system_tick );
-    s_can_server.registerPeriodic( sys_tick_func, s_msg_system_tick.period() );
+    MessageServer.registerPeriodic( sys_tick_func, s_msg_system_tick.period() );
 
     /* System Mode */
     auto sys_mode_func =
         Chimera::Function::Opaque::create<Message::SystemMode, &Message::SystemMode::update>( s_msg_system_mode );
-    s_can_server.registerPeriodic( sys_mode_func, s_msg_system_mode.period() );
+    MessageServer.registerPeriodic( sys_mode_func, s_msg_system_mode.period() );
 
     /* Power Supply Voltage */
     auto pwr_supply_func = Chimera::Function::Opaque::create<Message::PowerSupplyVoltage, &Message::PowerSupplyVoltage::update>(
         s_msg_power_supply_voltage );
-    s_can_server.registerPeriodic( pwr_supply_func, s_msg_power_supply_voltage.period() );
+    MessageServer.registerPeriodic( pwr_supply_func, s_msg_power_supply_voltage.period() );
 
     /* Phase A Current */
     auto phase_a_current_func =
         Chimera::Function::Opaque::create<Message::PhaseACurrent, &Message::PhaseACurrent::update>( s_msg_phase_a_current );
-    s_can_server.registerPeriodic( phase_a_current_func, s_msg_phase_a_current.period() );
+    MessageServer.registerPeriodic( phase_a_current_func, s_msg_phase_a_current.period() );
 
     /* Phase B Current */
     auto phase_b_current_func =
         Chimera::Function::Opaque::create<Message::PhaseBCurrent, &Message::PhaseBCurrent::update>( s_msg_phase_b_current );
-    s_can_server.registerPeriodic( phase_b_current_func, s_msg_phase_b_current.period() );
+    MessageServer.registerPeriodic( phase_b_current_func, s_msg_phase_b_current.period() );
+
+    /* Phase C Current */
+    auto phase_c_current_func =
+        Chimera::Function::Opaque::create<Message::PhaseCCurrent, &Message::PhaseCCurrent::update>( s_msg_phase_c_current );
+    MessageServer.registerPeriodic( phase_c_current_func, s_msg_phase_c_current.period() );
 
     /* Motor Speed */
     auto motor_speed_func =
         Chimera::Function::Opaque::create<Message::MotorSpeed, &Message::MotorSpeed::update>( s_msg_motor_speed );
-    s_can_server.registerPeriodic( motor_speed_func, s_msg_motor_speed.period() );
+    MessageServer.registerPeriodic( motor_speed_func, s_msg_motor_speed.period() );
 
     /* Speed Reference */
     auto speed_ref_func =
         Chimera::Function::Opaque::create<Message::SpeedReference, &Message::SpeedReference::update>( s_msg_speed_reference );
-    s_can_server.registerPeriodic( speed_ref_func, s_msg_speed_reference.period() );
+    MessageServer.registerPeriodic( speed_ref_func, s_msg_speed_reference.period() );
 
     /*-------------------------------------------------------------------------
     Register the routers for incoming messages
     -------------------------------------------------------------------------*/
-    RT_HARD_ASSERT( s_can_server.subscribe( s_ping_router ) );
-    RT_HARD_ASSERT( s_can_server.subscribe( s_set_system_mode_router ) );
-    RT_HARD_ASSERT( s_can_server.subscribe( s_set_motor_speed_router ) );
-    RT_HARD_ASSERT( s_can_server.subscribe( s_emergency_halt_router ) );
-    RT_HARD_ASSERT( s_can_server.subscribe( s_system_reset_router ) );
+    RT_HARD_ASSERT( MessageServer.subscribe( s_ping_router ) );
+    RT_HARD_ASSERT( MessageServer.subscribe( s_set_system_mode_router ) );
+    RT_HARD_ASSERT( MessageServer.subscribe( s_set_motor_speed_router ) );
+    RT_HARD_ASSERT( MessageServer.subscribe( s_emergency_halt_router ) );
+    RT_HARD_ASSERT( MessageServer.subscribe( s_system_reset_router ) );
   }
 
 
   NodeId thisNode()
   {
-    return s_this_node;
+    return Data::SysConfig.canNodeId;
   }
 
 
   void processCANBus()
   {
-    s_can_server.processRTX();
+    MessageServer.processRTX();
   }
 
 }    // namespace Orbit::CAN

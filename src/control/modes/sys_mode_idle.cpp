@@ -11,7 +11,10 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Chimera/system>
 #include <src/control/modes/sys_mode_idle.hpp>
+#include <src/core/hw/orbit_led.hpp>
+#include <src/monitor/orbit_monitors.hpp>
 
 namespace Orbit::Control::State
 {
@@ -25,32 +28,41 @@ namespace Orbit::Control::State
   ---------------------------------------------------------------------------*/
   void Idle::on_exit_state()
   {
-    LOG_TRACE_IF( DEBUG_MODULE, "Exiting Idle state\r\n" );
+    LOG_TRACE_IF( DEBUG_MODULE && !Chimera::System::inISR(), "Exiting Idle state\r\n" );
   }
 
 
   etl::fsm_state_id_t Idle::on_enter_state()
   {
-    /*-------------------------------------------------------------------------
-    Disable the drive signals going to the motor
-    -------------------------------------------------------------------------*/
-    get_fsm_context().mTimerDriver.disableOutput();
+    // /*-------------------------------------------------------------------------
+    // Disable the drive signals going to the motor
+    // -------------------------------------------------------------------------*/
+    // Orbit::Control::FOC& driver = get_fsm_context();
 
-    /*-------------------------------------------------------------------------
-    Reset the motor controller
-    -------------------------------------------------------------------------*/
-    get_fsm_context().mState.emfObserver.clear();
-    get_fsm_context().mState.speedEstimator.clear();
-    get_fsm_context().mState.motorController.clear();
+    // driver.mTimerDriver.disableOutput();
 
-    LOG_TRACE_IF( DEBUG_MODULE, "Entered Idle state\r\n" );
+    // /*-------------------------------------------------------------------------
+    // Enable the system monitors
+    // -------------------------------------------------------------------------*/
+    // for( auto mon : Orbit::Monitor::MonitorArray )
+    // {
+    //   mon->setEngageState( Orbit::Monitor::EngageState::ACTIVE );
+    // }
+
+    // /*-------------------------------------------------------------------------
+    // Clear any previous fault indicators
+    // -------------------------------------------------------------------------*/
+    // LED::clrChannel( LED::Channel::FAULT );
+
+    // LOG_TRACE_IF( DEBUG_MODULE && !Chimera::System::inISR(), "Entered Idle state\r\n" );
     return ModeId::IDLE;
   }
 
 
   etl::fsm_state_id_t Idle::on_event( const MsgEmergencyHalt &msg )
   {
-    return this->No_State_Change;
+    // get_fsm_context().mTimerDriver.emergencyBreak();
+    return ModeId::IDLE;
   }
 
 

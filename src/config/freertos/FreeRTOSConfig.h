@@ -94,7 +94,7 @@ Figure out how much RAM we want to allocate
 #endif
 
 #if defined( TARGET_STM32L4 ) && defined( STM32L432xx )
-#define configTOTAL_HEAP_SIZE ( ( size_t )( 30 * 1024 ) )
+#define configTOTAL_HEAP_SIZE ( ( size_t )( 15 * 1024 ) )
 #endif
 
 #elif defined( _SIM )
@@ -105,7 +105,7 @@ Figure out how much RAM we want to allocate
 
 
 #define configUSE_PREEMPTION 1
-#define configUSE_IDLE_HOOK 0
+#define configUSE_IDLE_HOOK 1
 #define configUSE_TICK_HOOK 1
 #define configCPU_CLOCK_HZ ( SystemCoreClock )
 #define configTICK_RATE_HZ ( ( TickType_t )1000 )
@@ -125,6 +125,7 @@ Figure out how much RAM we want to allocate
 #define configGENERATE_RUN_TIME_STATS 0
 #define configSUPPORT_DYNAMIC_ALLOCATION 1
 #define configSUPPORT_STATIC_ALLOCATION 1
+#define configRECORD_STACK_HIGH_ADDRESS 1
 
 /* Set the following definitions to 1 to include the API function, or zero
 to exclude the API function. */

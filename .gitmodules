@@ -22,3 +22,9 @@
 [submodule "hw/pcb/KiCadLib"]
 	path = hw/pcb/KiCadLib
 	url = https://github.com/brandonbraun653/KiCadLib.git
+[submodule "lib/ChimeraSim"]
+	path = lib/ChimeraSim
+	url = https://github.com/brandonbraun653/ChimeraSim.git
+[submodule "lib/json/ArduinoJson"]
+	path = lib/json/ArduinoJson
+	url = https://github.com/bblanchon/ArduinoJson.git

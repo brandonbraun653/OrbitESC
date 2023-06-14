@@ -8,12 +8,15 @@ gen_static_lib_variants(
     orbit_can.cpp
     orbit_gpio.cpp
     orbit_i2c.cpp
+    orbit_led.cpp
+    orbit_motor.cpp
+    orbit_spi.cpp
     orbit_timer.cpp
     orbit_usart.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc
-    project_inc
+    project_intf_inc
   EXPORT_DIR
     "${PROJECT_BINARY_DIR}/OrbitESC"
 )

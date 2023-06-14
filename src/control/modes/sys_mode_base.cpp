@@ -26,9 +26,7 @@ namespace Orbit::Control
     "EMERGENCY_HALT",
     "ARM",
     "DISARM",
-    "ALIGN",
-    "RAMP",
-    "RUN",
+    "ENGAGE",
     "DISENGAGE",
     "FAULT"
     /* clang-format on */
@@ -37,9 +35,7 @@ namespace Orbit::Control
   static_assert( s_event_names[ EventId::EMERGENCY_HALT ] == "EMERGENCY_HALT", "Event name mismatch" );
   static_assert( s_event_names[ EventId::ARM ] == "ARM", "Event name mismatch" );
   static_assert( s_event_names[ EventId::DISARM ] == "DISARM", "Event name mismatch" );
-  static_assert( s_event_names[ EventId::ALIGN ] == "ALIGN", "Event name mismatch" );
-  static_assert( s_event_names[ EventId::RAMP ] == "RAMP", "Event name mismatch" );
-  static_assert( s_event_names[ EventId::RUN ] == "RUN", "Event name mismatch" );
+  static_assert( s_event_names[ EventId::ENGAGE ] == "ENGAGE", "Event name mismatch" );
   static_assert( s_event_names[ EventId::DISENGAGE ] == "DISENGAGE", "Event name mismatch" );
   static_assert( s_event_names[ EventId::FAULT ] == "FAULT", "Event name mismatch" );
 
@@ -47,18 +43,14 @@ namespace Orbit::Control
     /* clang-format off */
     "IDLE",
     "ARMED",
-    "PARK",
-    "RAMP",
-    "RUN",
+    "ENGAGED",
     "FAULT"
     /* clang-format on */
   };
 
   static_assert( s_state_names[ ModeId::IDLE ] == "IDLE", "State name mismatch" );
   static_assert( s_state_names[ ModeId::ARMED ] == "ARMED", "State name mismatch" );
-  static_assert( s_state_names[ ModeId::ENGAGED_PARK ] == "PARK", "State name mismatch" );
-  static_assert( s_state_names[ ModeId::ENGAGED_RAMP ] == "RAMP", "State name mismatch" );
-  static_assert( s_state_names[ ModeId::ENGAGED_RUN ] == "RUN", "State name mismatch" );
+  static_assert( s_state_names[ ModeId::ENGAGED ] == "ENGAGED", "State name mismatch" );
   static_assert( s_state_names[ ModeId::FAULT ] == "FAULT", "State name mismatch" );
 
   /*---------------------------------------------------------------------------

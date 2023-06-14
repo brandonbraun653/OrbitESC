@@ -5,7 +5,7 @@
  *  Description:
  *    Device driver power up procedures
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -20,13 +20,17 @@ Includes
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/bootup.hpp>
 #include <src/core/data/orbit_data.hpp>
+#include <src/core/data/orbit_log_io.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_can.hpp>
 #include <src/core/hw/orbit_gpio.hpp>
 #include <src/core/hw/orbit_i2c.hpp>
+#include <src/core/hw/orbit_led.hpp>
+#include <src/core/hw/orbit_spi.hpp>
 #include <src/core/hw/orbit_timer.hpp>
 #include <src/core/hw/orbit_usart.hpp>
 #include <src/core/tasks.hpp>
+#include <src/monitor/orbit_monitors.hpp>
 
 
 namespace Orbit::Boot
@@ -53,6 +57,7 @@ namespace Orbit::Boot
    */
   static void setSystemBehavior()
   {
+#if defined( EMBEDDED )
     /*-------------------------------------------------------------------------
     Connect the CM4 lockup bit to the break input of TIM1. This should place
     the 3-phase inverter into a safe state on hard-faults.
@@ -64,6 +69,7 @@ namespace Orbit::Boot
     timer and will continue indefinitely.
     -------------------------------------------------------------------------*/
     *( ( uint32_t * )DBGMCU_APB2FZR_ADDR ) &= ~DBGMCU_TIM1_STOP_EN;
+#endif
   }
 
 
@@ -78,19 +84,34 @@ namespace Orbit::Boot
     setSystemBehavior();
 
     /*-------------------------------------------------------------------------
-    Power up the hardware peripherals
+    Power up the HW peripherals supporting the file system (ORDER MATTERS!)
+    -------------------------------------------------------------------------*/
+    Orbit::USART::powerUp();           // Serial debug port logging
+    Orbit::SPI::powerUp();             // NOR bus driver
+    Orbit::I2C::powerUp();             // EEPROM bus driver
+    Orbit::Data::initialize();         // Prepare system data memory
+    Orbit::Data::bootFileSystem();     // Attach and load the file system
+    Orbit::Data::printSystemInfo();    // Print the system info to the console
+
+    /*-------------------------------------------------------------------------
+    Power up the file logging system as early as possible to catch any errors
+    -------------------------------------------------------------------------*/
+    Log::initialize();
+    Log::enable();
+
+    /*-------------------------------------------------------------------------
+    Power up the peripherals with re-configurable settings
     -------------------------------------------------------------------------*/
     Orbit::ADC::powerUp();
     Orbit::CAN::powerUp();
-    Orbit::GPIO::powerUp();
-    Orbit::I2C::powerUp();
     Orbit::TIMER::powerUp();
-    Orbit::USART::powerUp();
 
     /*-------------------------------------------------------------------------
-    Power up more complex system components
+    Power up remaining system components
     -------------------------------------------------------------------------*/
-    Orbit::Data::initialize();
+    Orbit::GPIO::powerUp();
+    Orbit::LED::powerUp();
+    // Orbit::Monitor::initialize();
   }
 
 
@@ -98,8 +119,17 @@ namespace Orbit::Boot
   {
     using namespace Chimera::Thread;
 
+    /*-------------------------------------------------------------------------
+    On the simulator, we need a bit more time to allow tasks to fully register
+    -------------------------------------------------------------------------*/
+#if defined( SIMULATOR )
+    std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
+#endif
+
+    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_IDLE ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_HWM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
-    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CTRL_SYS ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_COM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CTL ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
   }
 
 }    // namespace Orbit::Boot

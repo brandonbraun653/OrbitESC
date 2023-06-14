@@ -33,6 +33,18 @@ namespace Orbit::TIMER
    */
   void powerUp();
 
+  /**
+   * @brief Reconfigures the IO to support manual testing
+   * @return void
+   */
+  void configureIOTesting();
+
+  /**
+   * @brief Configures the IO to support the PWM driver
+   * @return void
+   */
+  void configureIOControl();
+
 }  // namespace Orbit::TIMER
 
 #endif  /* !ORBIT_ESC_TIMER_HPP */

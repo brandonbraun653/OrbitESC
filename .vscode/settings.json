@@ -130,7 +130,9 @@
     "assert": "cpp",
     "csetjmp": "cpp",
     "semaphore": "cpp",
-    "numbers": "cpp"
+    "numbers": "cpp",
+    "common.hpp": "c",
+    "*.def": "cpp"
   },
   "peacock.color": "#f9e64f",
   "cSpell.words": [
@@ -197,7 +199,7 @@
   "workbench.colorCustomizations": {
     "activityBar.activeBorder": "#06b9a5"
   },
-  "cortex-debug.variableUseNaturalFormat": false,
+  "cortex-debug.variableUseNaturalFormat": true,
   "cortex-debug.showRTOS": false,
   "C_Cpp.exclusionPolicy": "checkFilesAndFolders",
   "C_Cpp.intelliSenseMemoryLimit": 8192,
@@ -213,5 +215,14 @@
     "**/.conda": true,
     "**/build": true,
     "**/.idea": true,
-  }
+  },
+  "terminal.integrated.profiles.linux":{
+    "bash": {
+      "path": "bash",
+      "icon": "terminal-bash",
+      "args": ["--login"]
+    }
+  },
+  "git.detectSubmodulesLimit": 45,
+  "cmake.configureOnOpen": false
 }
