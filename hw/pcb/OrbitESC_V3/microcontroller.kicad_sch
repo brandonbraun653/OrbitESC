@@ -2778,6 +2778,15 @@
     (uuid fe2d68de-e340-4a5a-b2ea-5b327fd04c7e)
   )
 
+  (text "Packaging is wrong for this chip?" (at 274.955 131.445 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid 4132f62a-dae0-4a55-af84-ec6b581333ee)
+  )
+  (text "Pretty sure this resistor is preventing DFU from working\nb/c the pullup never goes high with STM32 bootloader code."
+    (at 273.05 243.84 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid c06759aa-6829-4d51-8b75-98d363e1938e)
+  )
   (text "16MB NOR" (at 358.14 125.095 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid fa8d41db-3ebe-4e29-9eef-3288b3e3a982)

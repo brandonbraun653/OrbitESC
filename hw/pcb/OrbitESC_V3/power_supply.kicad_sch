@@ -1665,6 +1665,10 @@
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid a0f64964-4978-4f3a-b594-9fce03944e85)
   )
+  (text "1k resistor here prevents boot up. Remove it." (at 165.1 114.3 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid a8351b50-19ca-4151-ab8f-f97b87819b44)
+  )
 
   (symbol (lib_id "Device:R_US") (at 125.73 34.29 90) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
