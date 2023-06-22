@@ -41,7 +41,6 @@ namespace Orbit::Tasks::BKD
     for ( auto x = 0; x < 8; x++ )
     {
       LED::toggleChannel( LED::Channel::HEARTBEAT );
-      LED::sendUpdate();
       Chimera::delayMilliseconds( 35 );
     }
     Chimera::delayMilliseconds( 500 );

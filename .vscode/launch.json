@@ -40,6 +40,34 @@
       ]
     },
     {
+      "name": "J-Link OrbitESC V3",
+      "cwd": "${workspaceRoot}",
+      "executable": "./artifacts/last_build_version/sys_image",
+      "request": "launch",
+      "type": "cortex-debug",
+      "servertype": "jlink",
+      "interface": "swd",
+      "device": "STM32F446RE",
+      "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32F446.svd",
+      "gdbPath": "arm-none-eabi-gdb",
+    },
+    {
+      "name": "BMP OrbitESC V3",
+      "cwd": "${workspaceRoot}",
+      "executable": "./artifacts/last_build_version/sys_image",
+      "request": "launch",
+      "type": "cortex-debug",
+      "servertype": "bmp",
+      "interface": "swd",
+      "device": "STM32F446RE",
+      "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32F446.svd",
+      "gdbPath": "arm-none-eabi-gdb",
+      "BMPGDBSerialPort": "/dev/ttyACM0",
+      "preRestartCommands": [
+          "enable breakpoint"
+      ]
+    },
+    {
       "name": "BMP STM32L432KB",
       "cwd": "${workspaceRoot}",
       "executable": "./artifacts/last_build_version/sys_image",
