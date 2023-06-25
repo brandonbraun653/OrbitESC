@@ -40,9 +40,10 @@ namespace Orbit::Tasks::BKD
     -------------------------------------------------------------------------*/
     for ( auto x = 0; x < 8; x++ )
     {
-      LED::toggleChannel( LED::Channel::HEARTBEAT );
+      LED::toggleChannel( LED::Channel::ALL );
       Chimera::delayMilliseconds( 35 );
     }
+    LED::clearChannel( LED::Channel::ALL );
     Chimera::delayMilliseconds( 500 );
 
     /*-------------------------------------------------------------------------
@@ -61,7 +62,7 @@ namespace Orbit::Tasks::BKD
       -----------------------------------------------------------------------*/
       LED::setChannel( LED::Channel::HEARTBEAT );
       Chimera::delayMilliseconds( flash_delay );
-      LED::clrChannel( LED::Channel::HEARTBEAT );
+      LED::clearChannel( LED::Channel::HEARTBEAT );
       Chimera::delayMilliseconds( flash_delay );
 
       /*-----------------------------------------------------------------------
@@ -69,7 +70,7 @@ namespace Orbit::Tasks::BKD
       -----------------------------------------------------------------------*/
       LED::setChannel( LED::Channel::HEARTBEAT );
       Chimera::delayMilliseconds( flash_delay );
-      LED::clrChannel( LED::Channel::HEARTBEAT );
+      LED::clearChannel( LED::Channel::HEARTBEAT );
       Chimera::delayMilliseconds( flash_delay );
 
       /*-----------------------------------------------------------------------

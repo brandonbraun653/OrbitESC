@@ -52,7 +52,7 @@ namespace Orbit::Control::State
     // /*-------------------------------------------------------------------------
     // Clear any previous fault indicators
     // -------------------------------------------------------------------------*/
-    // LED::clrChannel( LED::Channel::FAULT );
+    // LED::clearChannel( LED::Channel::FAULT );
 
     // LOG_TRACE_IF( DEBUG_MODULE && !Chimera::System::inISR(), "Entered Idle state\r\n" );
     return ModeId::IDLE;

@@ -24,7 +24,6 @@ Includes
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_can.hpp>
 #include <src/core/hw/orbit_gpio.hpp>
-#include <src/core/hw/orbit_i2c.hpp>
 #include <src/core/hw/orbit_led.hpp>
 #include <src/core/hw/orbit_spi.hpp>
 #include <src/core/hw/orbit_timer.hpp>
@@ -81,23 +80,22 @@ namespace Orbit::Boot
     /*-------------------------------------------------------------------------
     Power up high level system controls
     -------------------------------------------------------------------------*/
-    // setSystemBehavior();
+    setSystemBehavior();
 
     /*-------------------------------------------------------------------------
     Power up the HW peripherals supporting the file system (ORDER MATTERS!)
     -------------------------------------------------------------------------*/
-    // Orbit::USART::powerUp();           // Serial debug port logging
-    // Orbit::SPI::powerUp();             // NOR bus driver
-    // Orbit::I2C::powerUp();             // EEPROM bus driver
-    // Orbit::Data::initialize();         // Prepare system data memory
-    // Orbit::Data::bootFileSystem();     // Attach and load the file system
+    //Orbit::USART::powerUp();           // Serial debug port logging
+    Orbit::SPI::powerUp();             // NOR bus driver
+    Orbit::Data::initialize();         // Prepare system data memory
+    Orbit::Data::bootFileSystem();     // Attach and load the file system
     // Orbit::Data::printSystemInfo();    // Print the system info to the console
 
     /*-------------------------------------------------------------------------
     Power up the file logging system as early as possible to catch any errors
     -------------------------------------------------------------------------*/
-    // Log::initialize();
-    // Log::enable();
+    Log::initialize();
+    Log::enable();
 
     /*-------------------------------------------------------------------------
     Power up the peripherals with re-configurable settings
@@ -109,7 +107,7 @@ namespace Orbit::Boot
     /*-------------------------------------------------------------------------
     Power up remaining system components
     -------------------------------------------------------------------------*/
-    //Orbit::GPIO::powerUp();
+    Orbit::GPIO::powerUp();
     Orbit::LED::powerUp();
     // Orbit::Monitor::initialize();
   }
@@ -127,7 +125,7 @@ namespace Orbit::Boot
 #endif
 
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_IDLE ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
-    // RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_HWM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_HWM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     // RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_COM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     // RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CTL ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
   }

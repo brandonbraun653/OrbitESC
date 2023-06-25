@@ -8,90 +8,6 @@
       "problemMatcher": []
     },
     {
-      "label": "Configure Simulator",
-      "type": "shell",
-      "command": "cmake -DTOOLCHAIN=gcc -DNATIVE_THREADS=ON -DDEVICE_TARGET=sim -DCMAKE_BUILD_TYPE=Debug ./../",
-      "dependsOn": [
-        "CMake Clean"
-      ],
-      "options": {
-        "cwd": "${workspaceFolder}/build"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Configure Embedded Debug: STM32F446RE",
-      "type": "shell",
-      "command": "cmake -DTOOLCHAIN=arm-none-eabi -DFREERTOS_THREADS=ON -DDEVICE_TARGET=stm32f446re -DCMAKE_BUILD_TYPE=Debug ./../",
-      "dependsOn": [
-        "CMake Clean"
-      ],
-      "options": {
-        "cwd": "${workspaceFolder}/build"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Configure Embedded Debug: STM32L432KB",
-      "type": "shell",
-      "command": "cmake -DTOOLCHAIN=arm-none-eabi -DFREERTOS_THREADS=ON -DDEVICE_TARGET=stm32l432kb -DCMAKE_BUILD_TYPE=Debug ./../",
-      "dependsOn": [
-        "CMake Clean"
-      ],
-      "options": {
-        "cwd": "${workspaceFolder}/build"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Configure Embedded Debug: STM32L432KC",
-      "type": "shell",
-      "command": "cmake -DTOOLCHAIN=arm-none-eabi -DFREERTOS_THREADS=ON -DDEVICE_TARGET=stm32l432kc -DCMAKE_BUILD_TYPE=Debug ./../",
-      "dependsOn": [
-        "CMake Clean"
-      ],
-      "options": {
-        "cwd": "${workspaceFolder}/build"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Configure Embedded Release: STM32F446RE",
-      "type": "shell",
-      "command": "cmake -DTOOLCHAIN=arm-none-eabi -DFREERTOS_THREADS=ON -DDEVICE_TARGET=stm32f446re -DCMAKE_BUILD_TYPE=Release ./../",
-      "dependsOn": [
-        "CMake Clean"
-      ],
-      "options": {
-        "cwd": "${workspaceFolder}/build"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Configure Embedded Release: STM32L432KB",
-      "type": "shell",
-      "command": "cmake -DTOOLCHAIN=arm-none-eabi -DFREERTOS_THREADS=ON -DDEVICE_TARGET=stm32l432kb -DCMAKE_BUILD_TYPE=Release ./../",
-      "dependsOn": [
-        "CMake Clean"
-      ],
-      "options": {
-        "cwd": "${workspaceFolder}/build"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Configure Embedded Release: STM32L432KC",
-      "type": "shell",
-      "command": "cmake -DTOOLCHAIN=arm-none-eabi -DFREERTOS_THREADS=ON -DDEVICE_TARGET=stm32l432kc -DCMAKE_BUILD_TYPE=Release ./../",
-      "dependsOn": [
-        "CMake Clean"
-      ],
-      "options": {
-        "cwd": "${workspaceFolder}/build"
-      },
-      "problemMatcher": []
-    },
-    {
       "label": "Build Proto Interfaces",
       "type": "shell",
       "command": "./build_proto.sh",
@@ -99,16 +15,6 @@
         "cwd": "${workspaceFolder}/scripts"
       },
       "problemMatcher": []
-    },
-    {
-      "label": "Build Current Configuration",
-      "type": "shell",
-      "command": "./build_embedded.sh",
-      "options": {
-        "cwd": "${workspaceFolder}/scripts"
-      },
-      "problemMatcher": [],
-      "dependsOn": "Build Proto Interfaces"
     },
     {
       "label": "Dump Sections",

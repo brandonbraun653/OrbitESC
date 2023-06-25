@@ -96,16 +96,47 @@ namespace Orbit::LED
 #if defined( ORBIT_ESC_V3 )
   static void powerUpHW_V3()
   {
+    /*-------------------------------------------------------------------------
+    Fault LED
+    -------------------------------------------------------------------------*/
+    s_led_pins[ FAULT_POS ] = Chimera::GPIO::getDriver( IO::Digital::ledFaultPort, IO::Digital::ledFaultPin );
+    RT_HARD_ASSERT( s_led_pins[ FAULT_POS ] );
+    RT_HARD_ASSERT( s_led_pins[ FAULT_POS ]->init( IO::Digital::ledFaultPinInit ) == Chimera::Status::OK );
+
+    /*-------------------------------------------------------------------------
+    Armed LED 
+    -------------------------------------------------------------------------*/
+    s_led_pins[ ARMED_POS ] = Chimera::GPIO::getDriver( IO::Digital::ledArmedPort, IO::Digital::ledArmedPin );
+    RT_HARD_ASSERT( s_led_pins[ ARMED_POS ] );
+    RT_HARD_ASSERT( s_led_pins[ ARMED_POS ]->init( IO::Digital::ledArmedPinInit ) == Chimera::Status::OK );
+
+    /*-------------------------------------------------------------------------
+    Heartbeat LED
+    -------------------------------------------------------------------------*/
     s_led_pins[ HEARTBEAT_POS ] = Chimera::GPIO::getDriver( IO::Digital::ledHeartbeatPort, IO::Digital::ledHeartbeatPin );
     RT_HARD_ASSERT( s_led_pins[ HEARTBEAT_POS ] );
     RT_HARD_ASSERT( s_led_pins[ HEARTBEAT_POS ]->init( IO::Digital::ledHeartbeatPinInit ) == Chimera::Status::OK );
+
+    /*-------------------------------------------------------------------------
+    CAN Active LED  
+    -------------------------------------------------------------------------*/
+    s_led_pins[ CAN_ACTIVE_POS ] = Chimera::GPIO::getDriver( IO::Digital::ledCANActivePort, IO::Digital::ledCANActivePin );
+    RT_HARD_ASSERT( s_led_pins[ CAN_ACTIVE_POS ] );
+    RT_HARD_ASSERT( s_led_pins[ CAN_ACTIVE_POS ]->init( IO::Digital::ledCANActivePinInit ) == Chimera::Status::OK );
+
+    /*-------------------------------------------------------------------------
+    USB Active LED
+    -------------------------------------------------------------------------*/
+    s_led_pins[ USB_ACTIVE_POS ] = Chimera::GPIO::getDriver( IO::Digital::ledUSBActivePort, IO::Digital::ledUSBActivePin );
+    RT_HARD_ASSERT( s_led_pins[ USB_ACTIVE_POS ] );
+    RT_HARD_ASSERT( s_led_pins[ USB_ACTIVE_POS ]->init( IO::Digital::ledUSBActivePinInit ) == Chimera::Status::OK );
   }
 
 
   static void updateLEDs_V3()
   {
-    constexpr Chimera::GPIO::State LED_ON  = Chimera::GPIO::State::LOW;
-    constexpr Chimera::GPIO::State LED_OFF = Chimera::GPIO::State::HIGH;
+    constexpr Chimera::GPIO::State LED_ON  = Chimera::GPIO::State::HIGH;
+    constexpr Chimera::GPIO::State LED_OFF = Chimera::GPIO::State::LOW;
 
     for ( size_t x = 0; x < ARRAY_COUNT( s_led_pins ); x++ )
     {
@@ -185,7 +216,7 @@ namespace Orbit::LED
   }
 
 
-  void clrChannel( const Channel channel )
+  void clearChannel( const Channel channel )
   {
     Chimera::Thread::LockGuard _lck( s_data_lock );
     if ( channel < Channel::NUM_OPTIONS )

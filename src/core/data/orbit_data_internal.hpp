@@ -24,11 +24,6 @@ namespace Orbit::Data::Internal
   Public Data
   ---------------------------------------------------------------------------*/
   /**
-   * @brief Core EEPROM driver for persistent but rarely changing data
-   */
-  extern Aurora::Memory::Flash::EEPROM::Driver EepromCtrl;
-
-  /**
    * @brief Dynamic mount point for the file system driver
    */
   static const etl::string_view FileSystemMountPoint = "/";

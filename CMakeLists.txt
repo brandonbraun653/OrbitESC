@@ -7,8 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
 set(CPP_PLATFORM "freertos")
-set(OVERRIDE_LINKER_SCRIPT ON)
-set(PRJ_LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/OrbitESC.lds")
+# set(OVERRIDE_LINKER_SCRIPT ON)
+# set(PRJ_LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/src/OrbitESC.lds")
 
 # ====================================================
 # Perform very high level configuration

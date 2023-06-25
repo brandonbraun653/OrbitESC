@@ -81,6 +81,7 @@ namespace Orbit::LED
     STATUS_2   = STATUS_2_MSK,
     CAN_ACTIVE = CAN_ACTIVE_MSK,
     USB_ACTIVE = USB_ACTIVE_MSK,
+    ALL        = ALL_LED_MSK,
 
     NUM_OPTIONS = INVALID_MSK,
   };
@@ -111,7 +112,7 @@ namespace Orbit::LED
    *
    * @param channel   Which LED to enable
    */
-  void clrChannel( const Channel channel );
+  void clearChannel( const Channel channel );
 
   /**
    * @brief Toggles the state of the given channel

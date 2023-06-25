@@ -3,7 +3,7 @@
  *    orbit_data.cpp
  *
  *  Description:
- *    Insert Description
+ *    Supporting software for enabling data storage on OrbitESC
  *
  *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
@@ -67,18 +67,6 @@ namespace Orbit::Data
     SysControl.clear();
     SysInfo.clear();
     SysConfig.clear();
-
-    /*-------------------------------------------------------------------------
-    Initialize the EEPROM driver
-    -------------------------------------------------------------------------*/
-    Aurora::Memory::Flash::EEPROM::DeviceConfig cfg;
-    cfg.clear();
-    cfg.whichChip     = Aurora::Memory::Flash::EEPROM::Chip::E24LC128;
-    cfg.deviceAddress = 0x50;
-    cfg.i2cChannel    = IO::I2C::channel;
-
-    RT_HARD_ASSERT( Internal::EepromCtrl.configure( cfg ) );
-    RT_HARD_ASSERT( Internal::EepromCtrl.open( nullptr ) == Aurora::Memory::Status::ERR_OK );
 
     /*-------------------------------------------------------------------------
     Initialize sub-components
@@ -173,12 +161,3 @@ namespace Orbit::Data
   }
 
 }    // namespace Orbit::Data
-
-
-namespace Orbit::Data::Internal
-{
-  /*---------------------------------------------------------------------------
-  Public Data
-  ---------------------------------------------------------------------------*/
-  Aurora::Memory::Flash::EEPROM::Driver EepromCtrl;
-}    // namespace Orbit::Data::Internal

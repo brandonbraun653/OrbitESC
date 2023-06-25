@@ -1,0 +1,48 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 16,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "OrbitESC_V3 Debug",
+      "displayName": "OrbitESC_V3 Debug",
+      "description": "Build and debug OrbitESC_V3",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "TOOLCHAIN": "arm-none-eabi",
+        "FREERTOS_THREADS": "ON",
+        "DEVICE_TARGET": "stm32f446re"
+      }
+    },
+    {
+      "name": "OrbitESC Simulator",
+      "displayName": "OrbitESC Simulator",
+      "description": "Simulate OrbitESC",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "TOOLCHAIN": "gcc",
+        "NATIVE_THREADS": "ON",
+        "DEVICE_TARGET": "sim"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "OrbitESC_V3 Debug",
+      "description":"Build and debug OrbitESC_V3",
+      "displayName": "OrbitESC_V3 Debug",
+      "configurePreset": "OrbitESC_V3 Debug",
+      "targets": [
+        "OrbitESC"
+      ],
+      "jobs": 8
+    }
+  ]
+}

@@ -245,6 +245,11 @@ namespace Orbit::Data
     s_json_is_synced      = false;
     s_json_last_crc       = 0;
     s_last_param_update_time = Chimera::millis();
+
+    /*-------------------------------------------------------------------------
+    Always load the default configuration as a fallback
+    -------------------------------------------------------------------------*/
+    load_defaults();
   }
 
 
@@ -257,11 +262,6 @@ namespace Orbit::Data
     -------------------------------------------------------------------------*/
     FS::FileId fd       = -1;
     s_json_pend_changes = false;
-
-    /*-------------------------------------------------------------------------
-    Always load the default configuration as a fallback
-    -------------------------------------------------------------------------*/
-    load_defaults();
 
     /*-------------------------------------------------------------------------
     Open the file
