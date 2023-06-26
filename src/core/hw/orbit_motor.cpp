@@ -1006,7 +1006,7 @@ namespace Orbit::Motor
     -------------------------------------------------------------------------*/
     Chimera::ADC::ISRCallback callback = Chimera::ADC::ISRCallback::create<adcISRTxfrComplete>();
 
-    auto adc = Chimera::ADC::getDriver( Orbit::IO::Analog::peripheral );
+    auto adc = Chimera::ADC::getDriver( Orbit::IO::Analog::MotorPeripheral );
     adc->onInterrupt( Chimera::ADC::Interrupt::EOC_SEQUENCE, callback );
 
     /*-------------------------------------------------------------------------
@@ -1015,11 +1015,11 @@ namespace Orbit::Motor
     Chimera::Timer::Inverter::DriverConfig pwm_cfg;
 
     pwm_cfg.clear();
-    pwm_cfg.coreCfg.instance    = Chimera::Timer::Instance::TIMER1;
+    pwm_cfg.coreCfg.instance    = Orbit::IO::Timer::MotorControl;
     pwm_cfg.coreCfg.clockSource = Chimera::Clock::Bus::SYSCLK;
     pwm_cfg.coreCfg.baseFreq    = 40'000'000.0f;
     pwm_cfg.coreCfg.tolerance   = 1.0f;
-    pwm_cfg.adcPeripheral       = Orbit::IO::Analog::peripheral;
+    pwm_cfg.adcPeripheral       = Orbit::IO::Analog::MotorPeripheral;
     pwm_cfg.adcTriggerOffsetNs  = 50.0f;
     pwm_cfg.adcTriggerSignal    = Chimera::Timer::Trigger::Signal::TRIG_SIG_5;
     pwm_cfg.breakIOLevel        = Chimera::GPIO::State::LOW;
@@ -1038,7 +1038,7 @@ namespace Orbit::Motor
     trig_cfg.clear();
     trig_cfg.trigFreq               = Orbit::Data::SysControl.speedCtrlUpdateFreq;
     trig_cfg.isrCallback            = Chimera::Function::Opaque::create<timer_isr_speed_controller>();
-    trig_cfg.coreConfig.instance    = Chimera::Timer::Instance::TIMER2;
+    trig_cfg.coreConfig.instance    = Orbit::IO::Timer::SpeedControl;
     trig_cfg.coreConfig.baseFreq    = 100'000.0f;
     trig_cfg.coreConfig.clockSource = Chimera::Clock::Bus::SYSCLK;
 

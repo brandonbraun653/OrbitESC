@@ -1,6 +1,6 @@
 /********************************************************************************
  *  File Name:
- *    board_map_v1.hpp
+ *    board_map_v2.hpp
  *
  *  Description:
  *    Maps system hardware resources for the OrbitESC PCB Version 2.0

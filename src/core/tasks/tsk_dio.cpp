@@ -74,11 +74,12 @@ namespace Orbit::Tasks::DIO
       /*-----------------------------------------------------------------------
       Synchronize any updates to the configuration backing store
       -----------------------------------------------------------------------*/
-      if( wake_up_tick >= next_sync )
-      {
-        next_sync = wake_up_tick + Data::SysConfig.diskUpdateRateMs;
-        Data::syncDisk();
-      }
+      // TODO: Re-enable this once the file system is working again
+      // if( wake_up_tick >= next_sync )
+      // {
+      //   next_sync = wake_up_tick + Data::SysConfig.diskUpdateRateMs;
+      //   Data::syncDisk();
+      // }
 
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically

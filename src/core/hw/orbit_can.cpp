@@ -94,10 +94,10 @@ namespace Orbit::CAN
     cfg.HWInit.rxBuffer           = s_rx_frame_buffer;
     cfg.HWInit.rxElements         = ARRAY_COUNT( s_rx_frame_buffer );
     cfg.HWInit.samplePointPercent = 0.875f;
-    cfg.HWInit.baudRate           = 1000000;
+    cfg.HWInit.baudRate           = 100000;
     cfg.HWInit.timeQuanta         = 16;
     cfg.HWInit.resyncJumpWidth    = 1;
-    cfg.HWInit.maxBaudError       = 0.05;
+    cfg.HWInit.maxBaudError       = 2.00f;
 
     CANDriver = Chimera::CAN::getDriver( cfg.HWInit.channel );
     RT_HARD_ASSERT( CANDriver != nullptr );

@@ -3,9 +3,9 @@
  *    orbit_timer.cpp
  *
  *  Description:
- *    Orbit TIMER bus driver
+ *    OrbitESC TIMER driver
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -21,11 +21,6 @@ Includes
 
 namespace Orbit::TIMER
 {
-  /*---------------------------------------------------------------------------
-  Public Data
-  ---------------------------------------------------------------------------*/
-  Chimera::Timer::PWM::Driver     PWMDriver;
-
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
@@ -185,6 +180,4 @@ namespace Orbit::TIMER
       RT_HARD_ASSERT( Chimera::Status::OK == pin->init( cfg[ pinIdx ] ) );
     }
   }
-
-
 }    // namespace Orbit::TIMER

@@ -15,38 +15,38 @@ gen_intf_lib_variants(
   TARGET
     embedded_core_libs
   LIBRARIES
-    thor_cfg_freertos_rel_dbg
+    thor_cfg_freertos
     thor_cmn_cm4_dbg
-    thor_hld_adc_rel_dbg
-    thor_hld_can_rel_dbg
-    thor_hld_clock_rel_dbg
-    thor_hld_dma_rel_dbg
-    thor_hld_exti_rel_dbg
-    thor_hld_gpio_rel_dbg
-    thor_hld_i2c_rel_dbg
-    thor_hld_interrupt_rel_dbg
-    thor_hld_serial_rel_dbg
-    thor_hld_spi_rel_dbg
-    thor_hld_system_rel_dbg
-    thor_hld_timer_rel_dbg
-    thor_hld_uart_rel_dbg
-    thor_hld_usart_rel_dbg
-    thor_hld_watchdog_rel_dbg
-    thor_lld_cmn_rel_dbg
-    thor_lld_intf_adc_rel_dbg
-    thor_lld_intf_can_rel_dbg
-    thor_lld_intf_dma_rel_dbg
-    thor_lld_intf_exti_rel_dbg
-    thor_lld_intf_gpio_rel_dbg
-    thor_lld_intf_i2c_rel_dbg
-    thor_lld_intf_interrupt_rel_dbg
-    thor_lld_intf_rcc_rel_dbg
-    thor_lld_intf_serial_rel_dbg
-    thor_lld_intf_spi_rel_dbg
-    thor_lld_intf_sys_rel_dbg
-    thor_lld_intf_timer_rel_dbg
-    thor_lld_intf_usart_rel_dbg
-    thor_lld_intf_watchdog_rel_dbg
+    thor_hld_adc
+    thor_hld_can
+    thor_hld_clock
+    thor_hld_dma
+    thor_hld_exti
+    thor_hld_gpio
+    thor_hld_i2c
+    thor_hld_interrupt
+    thor_hld_serial
+    thor_hld_spi
+    thor_hld_system
+    thor_hld_timer
+    thor_hld_uart
+    thor_hld_usart
+    thor_hld_watchdog
+    thor_lld_cmn
+    thor_lld_intf_adc
+    thor_lld_intf_can
+    thor_lld_intf_dma
+    thor_lld_intf_exti
+    thor_lld_intf_gpio
+    thor_lld_intf_i2c
+    thor_lld_intf_interrupt
+    thor_lld_intf_rcc
+    thor_lld_intf_serial
+    thor_lld_intf_spi
+    thor_lld_intf_sys
+    thor_lld_intf_timer
+    thor_lld_intf_usart
+    thor_lld_intf_watchdog
   EXPORT_DIR
     ${PROJECT_BINARY_DIR}/OrbitESC
 )
@@ -55,24 +55,24 @@ gen_intf_lib_variants(
   TARGET
     stm32l4_libs
   LIBRARIES
-    thor_lld_stm32l4_adc_rel_dbg
-    thor_lld_stm32l4_can_rel_dbg
-    thor_lld_stm32l4_crs_rel_dbg
-    thor_lld_stm32l4_des_rel_dbg
-    thor_lld_stm32l4_dma_rel_dbg
-    thor_lld_stm32l4_exti_rel_dbg
-    thor_lld_stm32l4_flash_rel_dbg
-    thor_lld_stm32l4_gpio_rel_dbg
-    thor_lld_stm32l4_i2c_rel_dbg
-    thor_lld_stm32l4_interrupt_rel_dbg
-    thor_lld_stm32l4_iwdg_rel_dbg
-    thor_lld_stm32l4_power_rel_dbg
-    thor_lld_stm32l4_rcc_rel_dbg
-    thor_lld_stm32l4_spi_rel_dbg
-    thor_lld_stm32l4_startup_rel_dbg
-    thor_lld_stm32l4_system_rel_dbg
-    thor_lld_stm32l4_usart_rel_dbg
-    thor_lld_stm32l4_wwdg_rel_dbg
+    thor_lld_stm32l4_adc
+    thor_lld_stm32l4_can
+    thor_lld_stm32l4_crs
+    thor_lld_stm32l4_des
+    thor_lld_stm32l4_dma
+    thor_lld_stm32l4_exti
+    thor_lld_stm32l4_flash
+    thor_lld_stm32l4_gpio
+    thor_lld_stm32l4_i2c
+    thor_lld_stm32l4_interrupt
+    thor_lld_stm32l4_iwdg
+    thor_lld_stm32l4_power
+    thor_lld_stm32l4_rcc
+    thor_lld_stm32l4_spi
+    thor_lld_stm32l4_startup
+    thor_lld_stm32l4_system
+    thor_lld_stm32l4_usart
+    thor_lld_stm32l4_wwdg
   EXPORT_DIR
     ${PROJECT_BINARY_DIR}/OrbitESC
 )
@@ -156,21 +156,21 @@ target_link_libraries(OrbitESC PRIVATE
   thor_intf_inc
 
   # Project Libraries
-  aurora_libs_rel_dbg
-  chimera_core_rel_dbg
-  lib_cobs_rel_dbg
-  lib_nanopb_rel_dbg
+  aurora_libs
+  chimera_core
+  lib_cobs
+  lib_nanopb
 
   # Orbit Libraries
-  lib_orbit_com_rel_dbg
-  lib_orbit_core_rel_dbg
-  lib_orbit_ctrl_rel_dbg
-  lib_orbit_data_rel_dbg
-  lib_orbit_hw_rel_dbg
-  lib_orbit_monitor_rel_dbg
-  lib_orbit_runtime_rel_dbg
-  lib_orbit_tasks_rel_dbg
-  lib_orbit_testing_rel_dbg
+  lib_orbit_com
+  lib_orbit_core
+  lib_orbit_ctrl
+  lib_orbit_data
+  lib_orbit_hw
+  lib_orbit_monitor
+  lib_orbit_runtime
+  lib_orbit_tasks
+  lib_orbit_testing
 
   # Target Properties
   prj_device_target
@@ -203,16 +203,16 @@ if(Toolchain::HAS_GCC_ARM_NONE_EABI)
   target_link_libraries(OrbitESC PRIVATE
     # Threading Library
     freertos_intf_inc_all
-    freertos_core_rel_dbg
+    freertos_core
     freertos_port
     freertos_heap
-    freertos_heap_4_rel_dbg
-    freertos_cm4f_port_rel_dbg
+    freertos_heap_4
+    freertos_cm4f_port
 
     # Segger System View
-    #segger_sys_view_rel_dbg
+    #segger_sys_view
     #segger_sys_view_intf
-    #segger_sys_view_cortex_m4_freertos_rel_dbg
+    #segger_sys_view_cortex_m4_freertos
   )
 endif()
 
