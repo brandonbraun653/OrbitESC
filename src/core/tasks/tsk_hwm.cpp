@@ -5,7 +5,7 @@
  *  Description:
  *    Hardware manager task
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------

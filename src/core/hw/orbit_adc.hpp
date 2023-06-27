@@ -41,8 +41,14 @@ namespace Orbit::ADC
    */
   void powerUp();
 
+  /**
+   * @brief Starts all ADC sampling
+   */
   void startSampling();
 
+  /**
+   * @brief Stops all ADC sampling
+   */
   void stopSampling();
 
   /**
