@@ -86,7 +86,7 @@ namespace Orbit::Boot
     /*-------------------------------------------------------------------------
     Power up the HW peripherals supporting the file system (ORDER MATTERS!)
     -------------------------------------------------------------------------*/
-    //Orbit::USART::powerUp();           // Serial debug port logging
+    Orbit::USART::powerUp();           // Serial debug port logging
     Orbit::SPI::powerUp();             // NOR bus driver
     Orbit::Data::initialize();         // Prepare system data memory
     //Orbit::Data::bootFileSystem();     // Attach and load the file system

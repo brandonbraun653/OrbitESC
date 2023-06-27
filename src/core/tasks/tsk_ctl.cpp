@@ -15,7 +15,7 @@ Includes
 #include <Chimera/adc>
 #include <Chimera/thread>
 #include <src/control/foc_driver.hpp>
-#include <src/core/hw/drv8301.hpp>
+
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_ctl.hpp>

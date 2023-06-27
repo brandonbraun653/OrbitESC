@@ -35,7 +35,7 @@ namespace Orbit::Tasks::HWM
     /*-------------------------------------------------------------------------
     Initialize the HWM drivers
     -------------------------------------------------------------------------*/
-    //Orbit::ADC::initRuntime();
+    Orbit::ADC::initRuntime();
 
     /*-------------------------------------------------------------------------
     Run the HWM thread
@@ -47,7 +47,7 @@ namespace Orbit::Tasks::HWM
       Process hardware drivers
       -----------------------------------------------------------------------*/
       Orbit::LED::sendUpdate();
-      //Orbit::ADC::processADC();
+      Orbit::ADC::processADC();
 
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically
