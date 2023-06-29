@@ -90,13 +90,13 @@ namespace Orbit::Boot
     Orbit::SPI::powerUp();             // NOR bus driver
     Orbit::Data::initialize();         // Prepare system data memory
     Orbit::Data::bootFileSystem();     // Attach and load the file system
-    // Orbit::Data::printSystemInfo();    // Print the system info to the console
+    Orbit::Data::printSystemInfo();    // Print the system info to the console
 
     /*-------------------------------------------------------------------------
     Power up the file logging system as early as possible to catch any errors
     -------------------------------------------------------------------------*/
     Log::initialize();
-    //Log::enable();
+    Log::enable();
 
     /*-------------------------------------------------------------------------
     Power up the peripherals with re-configurable settings
@@ -110,7 +110,6 @@ namespace Orbit::Boot
     -------------------------------------------------------------------------*/
     Orbit::GPIO::powerUp();
     Orbit::LED::powerUp();
-    // Orbit::Monitor::initialize();
     Orbit::Sensor::powerUp();
   }
 

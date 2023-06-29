@@ -318,7 +318,7 @@ namespace Orbit::IO
                                                               .clockFreq   = 40'000'000,
                                                               .clockMode   = Chimera::SPI::ClockMode::MODE0,
                                                               .dataSize    = Chimera::SPI::DataSize::SZ_8BIT,
-                                                              .hwChannel   = Chimera::SPI::Channel::SPI3,
+                                                              .hwChannel   = spiChannel,
                                                               .txfrMode    = Chimera::SPI::TransferMode::BLOCKING,
                                                               .validity    = true };
 

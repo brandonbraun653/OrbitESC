@@ -124,7 +124,7 @@ gen_intf_lib_variants(
     lib_orbit_com
     lib_orbit_core
     lib_orbit_ctrl
-    lib_orbit_data
+    lib_orbit_data_rel_dbg
     lib_orbit_hw
     lib_orbit_monitor
     lib_orbit_runtime
