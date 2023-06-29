@@ -89,7 +89,7 @@ namespace Orbit::Boot
     Orbit::USART::powerUp();           // Serial debug port logging
     Orbit::SPI::powerUp();             // NOR bus driver
     Orbit::Data::initialize();         // Prepare system data memory
-    //Orbit::Data::bootFileSystem();     // Attach and load the file system
+    Orbit::Data::bootFileSystem();     // Attach and load the file system
     // Orbit::Data::printSystemInfo();    // Print the system info to the console
 
     /*-------------------------------------------------------------------------
