@@ -152,7 +152,7 @@
                 "TARGET_STM32L4",
                 "THOR_USER_CONFIG"
             ],
-            "compilerPath": "/usr/bin/gcc",
+            "compilerPath": "/home/brandon/toolchain/xpack-arm-none-eabi-gcc-12.2.1-1.2/bin/arm-none-eabi-gcc",
             "cStandard": "gnu17",
             "cppStandard": "gnu++20"
         },
@@ -172,7 +172,7 @@
                 "TARGET_STM32F4",
                 "THOR_USER_CONFIG"
             ],
-            "compilerPath": "/usr/bin/arm-none-eabi-gcc",
+            "compilerPath": "/home/brandon/toolchain/xpack-arm-none-eabi-gcc-12.2.1-1.2/bin/arm-none-eabi-gcc",
             "cStandard": "gnu17",
             "cppStandard": "gnu++20"
         },
