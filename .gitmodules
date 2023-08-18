@@ -28,3 +28,6 @@
 [submodule "lib/json/ArduinoJson"]
 	path = lib/json/ArduinoJson
 	url = https://github.com/bblanchon/ArduinoJson.git
+[submodule "lib/usb/tinyusb"]
+	path = lib/usb/tinyusb
+	url = https://github.com/hathach/tinyusb.git
