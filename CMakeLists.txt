@@ -51,6 +51,7 @@ gen_intf_lib(
     "${PROJECT_ROOT}"
     "${PROJECT_ROOT}/src"
     "${PROJECT_ROOT}/src/config/thor"
+    "${PROJECT_ROOT}/src/config/tinyusb"
   INTF_LIBRARIES
     freertos_intf_inc_all
   EXPORT_DIR

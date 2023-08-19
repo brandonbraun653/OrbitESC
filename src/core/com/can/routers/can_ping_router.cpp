@@ -12,6 +12,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/logging>
+#include <Aurora/utility>
 #include <src/core/com/can/can_message.hpp>
 #include <src/core/com/can/can_router.hpp>
 #include <src/core/hw/orbit_can.hpp>

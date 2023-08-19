@@ -174,7 +174,21 @@
             ],
             "compilerPath": "/home/brandon/toolchain/xpack-arm-none-eabi-gcc-12.2.1-1.2/bin/arm-none-eabi-gcc",
             "cStandard": "gnu17",
-            "cppStandard": "gnu++20"
+            "cppStandard": "gnu++20",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/src",
+                    "${workspaceFolder}/lib/Aurora",
+                    "${workspaceFolder}/lib/Chimera",
+                    "${workspaceFolder}/lib/FreeRTOS",
+                    "${workspaceFolder}/lib/json",
+                    "${workspaceFolder}/lib/Thor",
+                    "${workspaceFolder}/lib/usb/tinyusb/src",
+
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+              }
         },
         {
             "name": "Simulator Development",

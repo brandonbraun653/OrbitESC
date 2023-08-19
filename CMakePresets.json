@@ -16,7 +16,8 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "TOOLCHAIN": "arm-none-eabi",
         "FREERTOS_THREADS": "ON",
-        "DEVICE_TARGET": "stm32f446re"
+        "DEVICE_TARGET": "stm32f446re",
+        "THOR_IMPL": "HW"
       }
     },
     {
@@ -27,9 +28,12 @@
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "TOOLCHAIN": "gcc",
-        "NATIVE_THREADS": "ON",
-        "DEVICE_TARGET": "sim"
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_VERBOSE_MAKEFILE": "OFF",
+        "FREERTOS_THREADS": "ON",
+        "TOOLCHAIN": "arm-none-eabi",
+        "DEVICE_TARGET": "STM32F446RE",
+        "THOR_IMPL": "HW"
       }
     }
   ],
