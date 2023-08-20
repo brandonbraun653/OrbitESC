@@ -25,6 +25,7 @@ Includes
 #include <src/core/data/orbit_data_defaults.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_motor.hpp>
+#include <src/core/hw/orbit_sensor.hpp>
 #include <src/core/hw/orbit_usart.hpp>
 #include <src/core/runtime/serial_runtime.hpp>
 
@@ -261,7 +262,7 @@ namespace Orbit::Motor
       }
     };
 
-    using ChannelBuffer = etl::array<ChannelData, ADC_CH_NUM_OPTIONS>;
+    using ChannelBuffer = etl::array<ChannelData, CHANNEL_COUNT>;
 
     bool          calibrating;  /**< Flag to enable/disable calibration routines */
     size_t        calStartTime; /**< System time when the calibration started */
@@ -635,9 +636,9 @@ namespace Orbit::Motor
     time for the ADC to get a good reading. Use Kirchoff's current law to get
     the third phase current.
     -------------------------------------------------------------------------*/
-    float ia = Orbit::ADC::sample2PhaseCurrent( s_adc_control.data[ ADC_CH_MOTOR_PHASE_A_CURRENT ].measured );
-    float ib = Orbit::ADC::sample2PhaseCurrent( s_adc_control.data[ ADC_CH_MOTOR_PHASE_B_CURRENT ].measured );
-    float ic = Orbit::ADC::sample2PhaseCurrent( s_adc_control.data[ ADC_CH_MOTOR_PHASE_C_CURRENT ].measured );
+    float ia = 0.0f; // Orbit::ADC::sample2PhaseCurrent( s_adc_control.data[ CHANNEL_PHASE_A_CURRENT ].measured );
+    float ib = 0.0f; // Orbit::ADC::sample2PhaseCurrent( s_adc_control.data[ CHANNEL_PHASE_B_CURRENT ].measured );
+    float ic = 0.0f; // Orbit::ADC::sample2PhaseCurrent( s_adc_control.data[ CHANNEL_PHASE_C_CURRENT ].measured );
 
     if ( ( pICtl->tOnA >= pICtl->tOnB ) && ( pICtl->tOnA >= pICtl->tOnC ) )
     {
@@ -664,7 +665,7 @@ namespace Orbit::Motor
       pICtl->imc = 0.0f;
     }
 
-    pICtl->vm = Orbit::ADC::sample2BusVoltage( s_adc_control.data[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ].measured );
+    pICtl->vm = Orbit::Sensor::getSupplyVoltage();
 
     // measurement.push( pICtl->imb );
 
@@ -814,55 +815,7 @@ namespace Orbit::Motor
    */
   static void adcISRTxfrComplete( const Chimera::ADC::InterruptDetail &isr )
   {
-#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
-    SEGGER_SYSVIEW_RecordEnterISR();
-#endif
 
-    /*-------------------------------------------------------------------------
-    Process the raw ADC data
-    -------------------------------------------------------------------------*/
-    const float counts_to_volts = isr.vref / isr.resolution;
-
-    s_adc_control.sampleTimeUs = Chimera::micros();
-    for ( size_t i = 0; i < ADC_CH_NUM_OPTIONS; i++ )
-    {
-      const float sampledAsVoltage = static_cast<float>( isr.samples[ i ] ) * counts_to_volts;
-      const float correctedVoltage = sampledAsVoltage - s_adc_control.data[ i ].calOffset;
-
-      s_adc_control.data[ i ].measured = correctedVoltage;
-      s_adc_control.data[ i ].calSamples++;
-
-      if ( s_adc_control.calibrating && ( s_adc_control.data[ i ].calSamples >= 100 ) )
-      {
-        s_adc_control.data[ i ].calSum += s_adc_control.data[ i ].measured;
-      }
-    }
-
-    /*-------------------------------------------------------------------------
-    Allow the calibration sequence to proceed if enabled
-    -------------------------------------------------------------------------*/
-    if ( s_adc_control.calibrating && ( ( Chimera::millis() - s_adc_control.calStartTime ) > 500 ) )
-    {
-      s_adc_control.calibrating = false;
-      s_state.isrControlActive  = true;
-
-      for ( size_t i = 0; i < ADC_CH_MOTOR_SUPPLY_VOLTAGE; i++ )
-      {
-        s_adc_control.data[ i ].calOffset = s_adc_control.data[ i ].calSum / ( s_adc_control.data[ i ].calSamples - 100 );
-      }
-    }
-
-    /*-------------------------------------------------------------------------
-    Gate the behavior of this ISR without stopping the Timer/ADC/DMA hardware
-    -------------------------------------------------------------------------*/
-    if ( s_state.isrControlActive && !s_adc_control.calibrating )
-    {
-      runInnerLoopCurrentControl();
-    }
-
-#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
-    SEGGER_SYSVIEW_RecordExitISR();
-#endif
   }
 
   /**
@@ -1001,13 +954,7 @@ namespace Orbit::Motor
     s_state.iObserve.phase[ 1 ].lpf_alpha = initial_alpha;
     s_state.sObserve.lpf_alpha            = initial_alpha;
 
-    /*-------------------------------------------------------------------------
-    Link the ADC's DMA end-of-transfer interrupt to this module's ISR handler
-    -------------------------------------------------------------------------*/
-    Chimera::ADC::ISRCallback callback = Chimera::ADC::ISRCallback::create<adcISRTxfrComplete>();
 
-    auto adc = Chimera::ADC::getDriver( Orbit::IO::Analog::MotorPeripheral );
-    adc->onInterrupt( Chimera::ADC::Interrupt::EOC_SEQUENCE, callback );
 
     /*-------------------------------------------------------------------------
     Configure the Advanced Timer for center-aligned 3-phase PWM
@@ -1015,7 +962,7 @@ namespace Orbit::Motor
     Chimera::Timer::Inverter::DriverConfig pwm_cfg;
 
     pwm_cfg.clear();
-    pwm_cfg.coreCfg.instance    = Orbit::IO::Timer::MotorControl;
+    pwm_cfg.coreCfg.instance    = Orbit::IO::Timer::MotorDrive;
     pwm_cfg.coreCfg.clockSource = Chimera::Clock::Bus::SYSCLK;
     pwm_cfg.coreCfg.baseFreq    = 40'000'000.0f;
     pwm_cfg.coreCfg.tolerance   = 1.0f;

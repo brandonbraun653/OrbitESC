@@ -111,6 +111,12 @@ namespace Orbit::IO
     static constexpr Chimera::GPIO::Port   portVISenseRef = Chimera::GPIO::Port::PORTC;
     static constexpr Chimera::ADC::Channel adcVISenseRef  = Chimera::ADC::Channel::ADC_CH_13;
 
+    /*-------------------------------------------------------------------------
+    Timer Event Injection
+    -------------------------------------------------------------------------*/
+    static constexpr size_t MotorExternalEventChannel  = 14; /**< EXTSEL Regular Channel, TIM8_TRGO */
+    static constexpr size_t SensorExternalEventChannel = 8;  /**< EXTSEL Regular Channel, TIM3_TRGO */
+
   }    // namespace Analog
 
   namespace Digital
@@ -364,7 +370,8 @@ namespace Orbit::IO
     /*-------------------------------------------------------------------------
     High Level Parameters
     -------------------------------------------------------------------------*/
-    static constexpr Chimera::Timer::Instance MotorControl  = Chimera::Timer::Instance::TIMER1;
+    static constexpr Chimera::Timer::Instance MotorDrive    = Chimera::Timer::Instance::TIMER1;
+    static constexpr Chimera::Timer::Instance MotorSense    = Chimera::Timer::Instance::TIMER8;
     static constexpr Chimera::Timer::Instance SpeedControl  = Chimera::Timer::Instance::TIMER2;
     static constexpr Chimera::Timer::Instance SensorCapture = Chimera::Timer::Instance::TIMER3;
 

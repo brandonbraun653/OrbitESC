@@ -24,9 +24,9 @@ namespace Orbit::Monitor
   // CurrentMonitor IPhCMonitor;
 
   // const etl::array<IAnalogMonitor *const, Orbit::Control::ADC_CH_NUM_OPTIONS> MonitorArray = {
-  //   &IPhAMonitor, /* ADC_CH_MOTOR_PHASE_A_CURRENT */
-  //   &IPhBMonitor, /* ADC_CH_MOTOR_PHASE_B_CURRENT */
-  //   &IPhCMonitor, /* ADC_CH_MOTOR_PHASE_C_CURRENT */
+  //   &IPhAMonitor, /* CHANNEL_PHASE_A_CURRENT */
+  //   &IPhBMonitor, /* CHANNEL_PHASE_B_CURRENT */
+  //   &IPhCMonitor, /* CHANNEL_PHASE_C_CURRENT */
   //   &VBusMonitor  /* ADC_CH_MOTOR_SUPPLY_VOLTAGE */
   // };
 
@@ -38,9 +38,9 @@ namespace Orbit::Monitor
   //   using namespace Orbit::Control;
 
   //   RT_DBG_ASSERT( MonitorArray[ ADC_CH_MOTOR_SUPPLY_VOLTAGE ] == &VBusMonitor );
-  //   RT_DBG_ASSERT( MonitorArray[ ADC_CH_MOTOR_PHASE_A_CURRENT ] == &IPhAMonitor );
-  //   RT_DBG_ASSERT( MonitorArray[ ADC_CH_MOTOR_PHASE_B_CURRENT ] == &IPhBMonitor );
-  //   RT_DBG_ASSERT( MonitorArray[ ADC_CH_MOTOR_PHASE_C_CURRENT ] == &IPhCMonitor );
+  //   RT_DBG_ASSERT( MonitorArray[ CHANNEL_PHASE_A_CURRENT ] == &IPhAMonitor );
+  //   RT_DBG_ASSERT( MonitorArray[ CHANNEL_PHASE_B_CURRENT ] == &IPhBMonitor );
+  //   RT_DBG_ASSERT( MonitorArray[ CHANNEL_PHASE_C_CURRENT ] == &IPhCMonitor );
 
   //   VBusMonitor.setThresholds( 0.0f, 14.0f );
   //   IPhAMonitor.setThresholds( -3.0f, 3.0f );

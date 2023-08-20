@@ -40,7 +40,8 @@ namespace Orbit::Tasks::CTL
     -------------------------------------------------------------------------*/
 
     Chimera::delayMilliseconds( 1000 );
-    Motor::powerUp();
+    Motor::powerUpSense();
+    Motor::powerUpDrive();
 
 
     /*-------------------------------------------------------------------------
