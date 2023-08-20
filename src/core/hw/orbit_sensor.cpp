@@ -20,7 +20,26 @@ namespace Orbit::Sensor
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static Chimera::ADC::Driver_rPtr s_adc_driver;
+  static Chimera::ADC::Driver_rPtr       s_adc_driver;
+  static Chimera::Timer::Trigger::Master s_sensor_timer;
+
+  static volatile uint16_t s_adc_samples[ 4 ];
+
+  /*---------------------------------------------------------------------------
+  Static Functions
+  ---------------------------------------------------------------------------*/
+  /**
+   * @brief Callback to handle results of ADC conversions
+   *
+   * @param isr  Results of the ADC conversion
+   */
+  static void adcISRTxfrComplete( const Chimera::ADC::InterruptDetail &isr )
+  {
+    for( auto i = 0; i < isr.num_samples; i++ )
+    {
+      s_adc_samples[ 0 ] = isr.samples[ i ];
+    }
+  }
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -29,6 +48,30 @@ namespace Orbit::Sensor
   {
     s_adc_driver = Chimera::ADC::getDriver( IO::Analog::SensorPeripheral );
     RT_DBG_ASSERT( s_adc_driver );
+
+    /*-------------------------------------------------------------------------
+    Link the ADC's DMA end-of-transfer interrupt to this module's ISR handler
+    -------------------------------------------------------------------------*/
+    Chimera::ADC::ISRCallback callback = Chimera::ADC::ISRCallback::create<adcISRTxfrComplete>();
+    s_adc_driver->onInterrupt( Chimera::ADC::Interrupt::EOC_SEQUENCE, callback );
+
+    /*-------------------------------------------------------------------------
+    Configure the timer for triggering ADC samples
+    -------------------------------------------------------------------------*/
+    Chimera::Timer::Trigger::MasterConfig trig_cfg;
+    trig_cfg.clear();
+    trig_cfg.trigFreq               = 10;
+    trig_cfg.coreConfig.instance    = Orbit::IO::Timer::SensorCapture;
+    trig_cfg.coreConfig.baseFreq    = 100'000.0f;
+    trig_cfg.coreConfig.clockSource = Chimera::Clock::Bus::SYSCLK;
+
+    RT_HARD_ASSERT( Chimera::Status::OK == s_sensor_timer.init( trig_cfg ) );
+    s_sensor_timer.enable();
+
+    /*-------------------------------------------------------------------------
+    Enable the ADC to start sampling
+    -------------------------------------------------------------------------*/
+    s_adc_driver->startSequence();
   }
 
 

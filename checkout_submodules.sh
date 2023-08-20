@@ -14,7 +14,7 @@ fi
 
 # Root submodules
 echo "${green}Updating core OrbitESC submodules${reset}"
-git submodule update --init --depth 1 --jobs $joblevel
+git submodule update --init --depth 100 --jobs $joblevel
 
 # Initialize submodules that also contain submodules
 declare -a RecursiveSubmodules=("$root/lib/Aurora" "$root/lib/ChimeraSim" "$root/lib/CommonTools")

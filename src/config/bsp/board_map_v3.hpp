@@ -47,7 +47,7 @@ namespace Orbit::IO
                                                                    .port      = Chimera::GPIO::Port::UNKNOWN_PORT,
                                                                    .pull      = Chimera::GPIO::Pull::NO_PULL,
                                                                    .state     = Chimera::GPIO::State::HIGH,
-                                                                   .threaded  = true,
+                                                                   .threaded  = false,
                                                                    .validity  = false };
 
     /*-------------------------------------------------------------------------
@@ -366,7 +366,7 @@ namespace Orbit::IO
     -------------------------------------------------------------------------*/
     static constexpr Chimera::Timer::Instance MotorControl  = Chimera::Timer::Instance::TIMER1;
     static constexpr Chimera::Timer::Instance SpeedControl  = Chimera::Timer::Instance::TIMER2;
-    static constexpr Chimera::Timer::Instance SensorCapture = Chimera::Timer::Instance::TIMER15;
+    static constexpr Chimera::Timer::Instance SensorCapture = Chimera::Timer::Instance::TIMER3;
 
     /*-------------------------------------------------------------------------
     Timer 1 Channel 1: Phase A

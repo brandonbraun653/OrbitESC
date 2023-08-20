@@ -201,14 +201,13 @@ namespace Orbit::ADC
    */
   static void cfg_motor_adc()
   {
-    /*-------------------------------------------------------------------------
-    Configure the ADC driver
-    -------------------------------------------------------------------------*/
     Chimera::ADC::Driver_rPtr  adc;
     Chimera::ADC::DriverConfig adc_cfg;
     Chimera::ADC::SequenceInit seq;
 
-    /* Core configuration */
+    /*-------------------------------------------------------------------------
+    Core configuration
+    -------------------------------------------------------------------------*/
     adc_cfg.clear();
     adc_cfg.defaultSampleCycles = 1000;
     adc_cfg.bmISREnable         = Chimera::ADC::Interrupt::EOC_SEQUENCE;
@@ -224,21 +223,24 @@ namespace Orbit::ADC
     RT_DBG_ASSERT( adc );
     RT_HARD_ASSERT( Chimera::Status::OK == adc->open( adc_cfg ) );
 
-    /* Configure the sequence conversion */
+    /*-------------------------------------------------------------------------
+    Sequence conversion configuration
+    -------------------------------------------------------------------------*/
     s_motor_channels.fill( Chimera::ADC::Channel::UNKNOWN );
-    s_motor_channels[ 0 ] = IO::Analog::adcIPhaseA;
-    s_motor_channels[ 1 ] = IO::Analog::adcVPhaseA;
-    s_motor_channels[ 2 ] = IO::Analog::adcIPhaseB;
-    s_motor_channels[ 3 ] = IO::Analog::adcVPhaseB;
-    s_motor_channels[ 4 ] = IO::Analog::adcIPhaseC;
-    s_motor_channels[ 5 ] = IO::Analog::adcVPhaseC;
+    s_motor_channels[ 0 ] = IO::Analog::adcVPhaseA;
+    s_motor_channels[ 1 ] = IO::Analog::adcVPhaseB;
+    s_motor_channels[ 2 ] = IO::Analog::adcVPhaseC;
+    s_motor_channels[ 3 ] = IO::Analog::adcIPhaseA;
+    s_motor_channels[ 4 ] = IO::Analog::adcIPhaseB;
+    s_motor_channels[ 5 ] = IO::Analog::adcIPhaseC;
 
     seq.clear();
     seq.channels    = &s_motor_channels;
     seq.numChannels = 6;
+    seq.seqGroup    = Chimera::ADC::SequenceGroup::REGULAR;
     seq.seqMode     = Chimera::ADC::SamplingMode::TRIGGER;
     seq.trigMode    = Chimera::ADC::TriggerMode::RISING_EDGE;
-    seq.trigChannel = 10;    // Regular channel, TIM1_TRGO2
+    seq.trigChannel = 0;  // EXTSEL Regular Channel, TIM1_CC1
 
     RT_HARD_ASSERT( Chimera::Status::OK == adc->configSequence( seq ) );
     RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseA, 12 ) );
@@ -288,15 +290,16 @@ namespace Orbit::ADC
     seq.clear();
     seq.channels    = &s_sensor_channels;
     seq.numChannels = 4;
+    seq.seqGroup    = Chimera::ADC::SequenceGroup::REGULAR;
     seq.seqMode     = Chimera::ADC::SamplingMode::TRIGGER;
     seq.trigMode    = Chimera::ADC::TriggerMode::RISING_EDGE;
-    seq.trigChannel = 10;    // Regular channel, TIM1_TRGO2
+    seq.trigChannel = 8;    // EXTSEL Regular channel, TIM3_TRGO, OC1REF
 
     RT_HARD_ASSERT( Chimera::Status::OK == adc->configSequence( seq ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseA, 12 ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseA, 12 ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseB, 12 ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseB, 12 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVSupply, 12 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVMCU, 12 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVTemp, 12 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVISenseRef, 12 ) );
   }
 
 

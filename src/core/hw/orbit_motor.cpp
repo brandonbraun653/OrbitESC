@@ -1021,7 +1021,7 @@ namespace Orbit::Motor
     pwm_cfg.coreCfg.tolerance   = 1.0f;
     pwm_cfg.adcPeripheral       = Orbit::IO::Analog::MotorPeripheral;
     pwm_cfg.adcTriggerOffsetNs  = 50.0f;
-    pwm_cfg.adcTriggerSignal    = Chimera::Timer::Trigger::Signal::TRIG_SIG_5;
+    pwm_cfg.adcTriggerSignal    = Chimera::Timer::Trigger::Signal::TRIG_SIG_4;
     pwm_cfg.breakIOLevel        = Chimera::GPIO::State::LOW;
     pwm_cfg.deadTimeNs          = 250.0f;
     pwm_cfg.pwmFrequency        = Orbit::Data::SysControl.statorPWMFreq;
