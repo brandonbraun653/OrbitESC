@@ -21,5 +21,5 @@ declare -a RecursiveSubmodules=("$root/lib/Aurora" "$root/lib/ChimeraSim" "$root
 for path in "${RecursiveSubmodules[@]}"; do
   echo "${green}Updating $path${reset}"
   cd $path
-  git submodule update --init --recursive --depth 1 --jobs $joblevel
+  git submodule update --init --recursive --depth 100 --jobs $joblevel
 done
