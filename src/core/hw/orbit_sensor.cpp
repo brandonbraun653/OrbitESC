@@ -62,7 +62,7 @@ namespace Orbit::Sensor
     trig_cfg.clear();
     trig_cfg.trigFreq               = 10;
     trig_cfg.coreConfig.instance    = Orbit::IO::Timer::SensorCapture;
-    trig_cfg.coreConfig.baseFreq    = 100'000.0f;
+    trig_cfg.coreConfig.baseFreq    = 10'000.0f;
     trig_cfg.coreConfig.clockSource = Chimera::Clock::Bus::SYSCLK;
 
     RT_HARD_ASSERT( Chimera::Status::OK == s_sensor_timer.init( trig_cfg ) );
