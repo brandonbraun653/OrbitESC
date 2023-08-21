@@ -297,7 +297,6 @@ namespace Orbit::Motor
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static Chimera::Timer::Inverter::Driver s_motor_ctrl_timer; /**< Motor drive timer */
   static Chimera::Timer::Trigger::Master  s_speed_ctrl_timer; /**< Trigger for the speed control loop */
   static ADCControl                       s_adc_control;      /**< ADC control data */
   static MotorControlState                s_state;            /**< State of the motor controller */
@@ -956,27 +955,6 @@ namespace Orbit::Motor
 
 
 
-    /*-------------------------------------------------------------------------
-    Configure the Advanced Timer for center-aligned 3-phase PWM
-    -------------------------------------------------------------------------*/
-    Chimera::Timer::Inverter::DriverConfig pwm_cfg;
-
-    pwm_cfg.clear();
-    pwm_cfg.coreCfg.instance    = Orbit::IO::Timer::MotorDrive;
-    pwm_cfg.coreCfg.clockSource = Chimera::Clock::Bus::SYSCLK;
-    pwm_cfg.coreCfg.baseFreq    = 40'000'000.0f;
-    pwm_cfg.coreCfg.tolerance   = 1.0f;
-    pwm_cfg.adcPeripheral       = Orbit::IO::Analog::MotorPeripheral;
-    pwm_cfg.adcTriggerOffsetNs  = 50.0f;
-    pwm_cfg.adcTriggerSignal    = Chimera::Timer::Trigger::Signal::TRIG_SIG_4;
-    pwm_cfg.breakIOLevel        = Chimera::GPIO::State::LOW;
-    pwm_cfg.deadTimeNs          = 250.0f;
-    pwm_cfg.pwmFrequency        = Orbit::Data::SysControl.statorPWMFreq;
-
-    RT_HARD_ASSERT( Chimera::Status::OK == s_motor_ctrl_timer.init( pwm_cfg ) );
-
-    s_motor_ctrl_timer.setPhaseDutyCycle( 0.0f, 0.0f, 0.0f );
-    s_motor_ctrl_timer.enableOutput();
 
     /*-------------------------------------------------------------------------
     Configure the Speed control outer loop update timer
@@ -991,17 +969,6 @@ namespace Orbit::Motor
 
     RT_HARD_ASSERT( Chimera::Status::OK == s_speed_ctrl_timer.init( trig_cfg ) );
     s_speed_ctrl_timer.enable();
-
-    /*-------------------------------------------------------------------------
-    Calibrate the ADC values
-    -------------------------------------------------------------------------*/
-    s_adc_control.startCalibration();
-    adc->startSequence();
   }
 
-
-  void emergencyStop()
-  {
-    s_motor_ctrl_timer.emergencyBreak();
-  }
 }    // namespace Orbit::Motor

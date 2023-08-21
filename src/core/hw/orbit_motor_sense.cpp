@@ -20,6 +20,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/adc>
 #include <src/config/bsp/board_map.hpp>
+#include <src/core/data/orbit_data.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 
 
@@ -42,8 +43,9 @@ namespace Orbit::Motor
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static volatile SenseControlBlock s_last_sense_data;
-  static Chimera::Function::Opaque  s_sense_callback;
+  static volatile SenseControlBlock     s_last_sense_data;
+  static Chimera::Function::Opaque      s_sense_callback;
+  static Chimera::Timer::Trigger::Slave s_motor_sense_timer;
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -196,7 +198,18 @@ namespace Orbit::Motor
     /*-------------------------------------------------------------------------
     Configure Timer 8 to trigger ADC conversions at a fixed rate
     -------------------------------------------------------------------------*/
-    // Use the same period as the motor drive timer
+    Chimera::Timer::Trigger::SlaveConfig trig_cfg;
+    trig_cfg.clear();
+    trig_cfg.coreConfig.instance    = Orbit::IO::Timer::MotorSense;
+    trig_cfg.coreConfig.baseFreq    = 40'000'000.0f;
+    trig_cfg.coreConfig.clockSource = Chimera::Clock::Bus::SYSCLK;
+    trig_cfg.frequency              = Orbit::Data::SysControl.statorPWMFreq;
+    trig_cfg.trigOutputSignal       = Chimera::Timer::Trigger::Signal::TRIG_SIG_1;
+    trig_cfg.trigSyncAction         = Chimera::Timer::Trigger::SyncAction::SYNC_RESET;
+    trig_cfg.trigSyncSignal         = Chimera::Timer::Trigger::Signal::TRIG_SIG_0;      /**< ITR0: TIM1 TRGO->TIM8*/
+
+    RT_HARD_ASSERT( Chimera::Status::OK == s_motor_sense_timer.init( trig_cfg ) );
+    s_motor_sense_timer.enable();
   }
 
 
