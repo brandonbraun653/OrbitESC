@@ -30,7 +30,8 @@ namespace Orbit::Testing::SystemControl
       switch( msg.payload.motorCmd )
       {
         case MotorCtrlCmd_EMERGENCY_STOP:
-          Motor::emergencyStop();
+          //Motor::emergencyStop();
+          RT_HARD_ASSERT( false );
           return true;
 
         default:

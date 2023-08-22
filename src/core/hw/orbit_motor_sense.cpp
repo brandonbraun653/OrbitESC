@@ -128,6 +128,9 @@ namespace Orbit::Motor
    */
   static void isr_on_motor_sense_adc_conversion_complete( const Chimera::ADC::InterruptDetail &isr )
   {
+    // TODO: I need to do some timing to make sure this ISR is actually running at
+    // TODO: the expected frequency. Not sure I configured the slave timer correctly.
+
     /*-------------------------------------------------------------------------
     Update the sense data cache
     -------------------------------------------------------------------------*/
@@ -198,17 +201,19 @@ namespace Orbit::Motor
     /*-------------------------------------------------------------------------
     Configure Timer 8 to trigger ADC conversions at a fixed rate
     -------------------------------------------------------------------------*/
+    // TODO: Problem #1. No clock gets enabled for TIM8.
+
     Chimera::Timer::Trigger::SlaveConfig trig_cfg;
     trig_cfg.clear();
     trig_cfg.coreConfig.instance    = Orbit::IO::Timer::MotorSense;
     trig_cfg.coreConfig.baseFreq    = 40'000'000.0f;
     trig_cfg.coreConfig.clockSource = Chimera::Clock::Bus::SYSCLK;
     trig_cfg.frequency              = Orbit::Data::SysControl.statorPWMFreq;
-    trig_cfg.trigOutputSignal       = Chimera::Timer::Trigger::Signal::TRIG_SIG_1;
     trig_cfg.trigSyncAction         = Chimera::Timer::Trigger::SyncAction::SYNC_RESET;
     trig_cfg.trigSyncSignal         = Chimera::Timer::Trigger::Signal::TRIG_SIG_0;      /**< ITR0: TIM1 TRGO->TIM8*/
 
     RT_HARD_ASSERT( Chimera::Status::OK == s_motor_sense_timer.init( trig_cfg ) );
+    s_motor_sense_timer.setEventOffset( 25 );
     s_motor_sense_timer.enable();
   }
 
