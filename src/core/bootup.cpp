@@ -25,7 +25,7 @@ Includes
 #include <src/core/hw/orbit_can.hpp>
 #include <src/core/hw/orbit_gpio.hpp>
 #include <src/core/hw/orbit_led.hpp>
-#include <src/core/hw/orbit_sensor.hpp>
+#include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_spi.hpp>
 #include <src/core/hw/orbit_timer.hpp>
 #include <src/core/hw/orbit_usart.hpp>
@@ -110,7 +110,7 @@ namespace Orbit::Boot
     -------------------------------------------------------------------------*/
     Orbit::GPIO::powerUp();
     Orbit::LED::powerUp();
-    Orbit::Sensor::powerUp();
+    Orbit::Instrumentation::powerUp();
   }
 
 
@@ -128,7 +128,7 @@ namespace Orbit::Boot
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_IDLE ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_HWM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     // RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_COM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
-    // RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CTL ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CTL ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
   }
 
 }    // namespace Orbit::Boot

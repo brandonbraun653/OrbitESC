@@ -1,6 +1,6 @@
 /******************************************************************************
  *  File Name:
- *    orbit_sensor.hpp
+ *    orbit_instrumentation.hpp
  *
  *  Description:
  *    OrbitESC interface for reading various low level sensor measurements on
@@ -19,7 +19,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <cstdint>
 
-namespace Orbit::Sensor
+namespace Orbit::Instrumentation
 {
   /*---------------------------------------------------------------------------
   Enumerations
@@ -79,6 +79,6 @@ namespace Orbit::Sensor
    */
   float getCurrentSenseReferenceVoltage();
 
-}    // namespace Orbit::Sensor
+}    // namespace Orbit::Instrumentation
 
 #endif /* !ORBIT_ESC_SENSOR_HPP */

@@ -1,6 +1,6 @@
 /******************************************************************************
  *  File Name:
- *    orbit_sensor.cpp
+ *    orbit_instrumentation.cpp
  *
  *  Description:
  *    Implementation of sensor interface for the OrbitESC board
@@ -11,11 +11,11 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <src/core/hw/orbit_sensor.hpp>
+#include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/config/bsp/board_map.hpp>
 #include <Chimera/adc>
 
-namespace Orbit::Sensor
+namespace Orbit::Instrumentation
 {
   /*---------------------------------------------------------------------------
   Constants
@@ -54,7 +54,7 @@ namespace Orbit::Sensor
     -------------------------------------------------------------------------*/
     for( auto i = 0; i < isr.num_samples; i++ )
     {
-      s_adc_samples[ 0 ] = isr.samples[ i ];
+      s_adc_samples[ i ] = isr.samples[ i ];
     }
   }
 
@@ -76,7 +76,7 @@ namespace Orbit::Sensor
   ---------------------------------------------------------------------------*/
   void powerUp()
   {
-    auto pADC = Chimera::ADC::getDriver( IO::Analog::SensorPeripheral );
+    auto pADC = Chimera::ADC::getDriver( IO::Analog::InstrPeripheral );
     RT_DBG_ASSERT( pADC );
 
     /*-------------------------------------------------------------------------
@@ -173,4 +173,4 @@ namespace Orbit::Sensor
     return counts_to_voltage( s_adc_samples[ CHANNEL_VREF ] );
   }
 
-}    // namespace Orbit::Sensor
+}    // namespace Orbit::Instrumentation

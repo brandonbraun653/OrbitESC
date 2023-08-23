@@ -195,18 +195,16 @@ namespace Orbit::Motor
     -------------------------------------------------------------------------*/
     Chimera::ADC::ISRCallback callback = Chimera::ADC::ISRCallback::create<isr_on_motor_sense_adc_conversion_complete>();
 
-    auto adc = Chimera::ADC::getDriver( Orbit::IO::Analog::MotorPeripheral );
-    adc->onInterrupt( Chimera::ADC::Interrupt::EOC_SEQUENCE, callback );
+    auto pADC = Chimera::ADC::getDriver( Orbit::IO::Analog::MotorPeripheral );
+    pADC->onInterrupt( Chimera::ADC::Interrupt::EOC_SEQUENCE, callback );
 
     /*-------------------------------------------------------------------------
     Configure Timer 8 to trigger ADC conversions at a fixed rate
     -------------------------------------------------------------------------*/
-    // TODO: Problem #1. No clock gets enabled for TIM8.
-
     Chimera::Timer::Trigger::SlaveConfig trig_cfg;
     trig_cfg.clear();
     trig_cfg.coreConfig.instance    = Orbit::IO::Timer::MotorSense;
-    trig_cfg.coreConfig.baseFreq    = 40'000'000.0f;
+    trig_cfg.coreConfig.baseFreq    = 30'000'000.0f;
     trig_cfg.coreConfig.clockSource = Chimera::Clock::Bus::SYSCLK;
     trig_cfg.frequency              = Orbit::Data::SysControl.statorPWMFreq;
     trig_cfg.trigSyncAction         = Chimera::Timer::Trigger::SyncAction::SYNC_RESET;
@@ -215,6 +213,11 @@ namespace Orbit::Motor
     RT_HARD_ASSERT( Chimera::Status::OK == s_motor_sense_timer.init( trig_cfg ) );
     s_motor_sense_timer.setEventOffset( 25 );
     s_motor_sense_timer.enable();
+
+    /*-------------------------------------------------------------------------
+    Enable the ADC peripheral
+    -------------------------------------------------------------------------*/
+    pADC->startSequence();
   }
 
 

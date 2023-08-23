@@ -25,7 +25,7 @@ Includes
 #include <src/core/data/orbit_data_defaults.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_motor.hpp>
-#include <src/core/hw/orbit_sensor.hpp>
+#include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_usart.hpp>
 #include <src/core/runtime/serial_runtime.hpp>
 
@@ -664,7 +664,7 @@ namespace Orbit::Motor
       pICtl->imc = 0.0f;
     }
 
-    pICtl->vm = Orbit::Sensor::getSupplyVoltage();
+    pICtl->vm = Orbit::Instrumentation::getSupplyVoltage();
 
     // measurement.push( pICtl->imb );
 

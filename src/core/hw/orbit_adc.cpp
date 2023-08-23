@@ -17,7 +17,7 @@ Includes
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_motor.hpp>
-#include <src/core/hw/orbit_sensor.hpp>
+#include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_timer.hpp>
 
 
@@ -158,7 +158,7 @@ namespace Orbit::ADC
     RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
 
     /*-------------------------------------------------------------------------
-    Temperature Sensor Voltage GPIO Config
+    Temperature Instrumentation Voltage GPIO Config
     -------------------------------------------------------------------------*/
     pin_cfg          = IO::Analog::CommonAnalogCfg;
     pin_cfg.port     = IO::Analog::portVTemp;
@@ -240,9 +240,9 @@ namespace Orbit::ADC
 
 
   /**
-   * @brief Configures the ADC channels used for the sensor inputs
+   * @brief Configures the ADC channels used for the instrumentation inputs
    */
-  static void cfg_sensor_adc()
+  static void cfg_instrumentation_adc()
   {
     Chimera::ADC::Driver_rPtr  adc;
     Chimera::ADC::DriverConfig adc_cfg;
@@ -252,7 +252,7 @@ namespace Orbit::ADC
     Core peripheral configuration
     -------------------------------------------------------------------------*/
     adc_cfg.clear();
-    adc_cfg.periph          = IO::Analog::SensorPeripheral;
+    adc_cfg.periph          = IO::Analog::InstrPeripheral;
     adc_cfg.bmISREnable     = Chimera::ADC::Interrupt::EOC_SEQUENCE;
     adc_cfg.clockPrescale   = Chimera::ADC::PreScaler::DIV_2;
     adc_cfg.clockSource     = Chimera::Clock::Bus::SYSCLK;
@@ -270,14 +270,14 @@ namespace Orbit::ADC
     to be initialized elsewhere to trigger the ADC at a fixed rate.
     -------------------------------------------------------------------------*/
     s_sensor_channels.fill( Chimera::ADC::Channel::UNKNOWN );
-    s_sensor_channels[ Sensor::CHANNEL_VSUPPLY ] = IO::Analog::adcVSupply;
-    s_sensor_channels[ Sensor::CHANNEL_VMCU ]    = IO::Analog::adcVMCU;
-    s_sensor_channels[ Sensor::CHANNEL_TEMP ]    = IO::Analog::adcVTemp;
-    s_sensor_channels[ Sensor::CHANNEL_VREF ]    = IO::Analog::adcVISenseRef;
+    s_sensor_channels[ Instrumentation::CHANNEL_VSUPPLY ] = IO::Analog::adcVSupply;
+    s_sensor_channels[ Instrumentation::CHANNEL_VMCU ]    = IO::Analog::adcVMCU;
+    s_sensor_channels[ Instrumentation::CHANNEL_TEMP ]    = IO::Analog::adcVTemp;
+    s_sensor_channels[ Instrumentation::CHANNEL_VREF ]    = IO::Analog::adcVISenseRef;
 
     seq.clear();
     seq.channels    = &s_sensor_channels;
-    seq.numChannels = Sensor::CHANNEL_COUNT;
+    seq.numChannels = Instrumentation::CHANNEL_COUNT;
     seq.seqGroup    = Chimera::ADC::SequenceGroup::REGULAR;
     seq.seqMode     = Chimera::ADC::SamplingMode::TRIGGER;
     seq.trigMode    = Chimera::ADC::TriggerMode::RISING_EDGE;
@@ -298,29 +298,8 @@ namespace Orbit::ADC
   {
     init_gpio_pins();
     cfg_motor_adc();
-    cfg_sensor_adc();
+    cfg_instrumentation_adc();
   }
-
-
-  void startSampling()
-  {
-    auto adc_motor = Chimera::ADC::getDriver( IO::Analog::MotorPeripheral );
-    adc_motor->startSequence();
-
-    auto adc_sensor = Chimera::ADC::getDriver( IO::Analog::SensorPeripheral );
-    adc_sensor->startSequence();
-  }
-
-
-  void stopSampling()
-  {
-    auto adc_motor = Chimera::ADC::getDriver( IO::Analog::MotorPeripheral );
-    adc_motor->stopSequence();
-
-    auto adc_sensor = Chimera::ADC::getDriver( IO::Analog::SensorPeripheral );
-    adc_sensor->stopSequence();
-  }
-
 
   void calibrateCurrentSensors( IPhaseCalArray &cal, const size_t sampleTimeMs )
   {
@@ -352,30 +331,30 @@ namespace Orbit::ADC
     LOG_TRACE( "Calibrating phase current sensors\r\n" );
     auto adc = Chimera::ADC::getDriver( IO::Analog::MotorPeripheral );
 
-    for( int idx = 0; idx <= 3; idx++ )
+    for ( int idx = 0; idx <= 3; idx++ )
     {
       cal[ idx ].ceiling  = -FLT_MAX;
       cal[ idx ].floor    = FLT_MAX;
       cal[ idx ].dcOffset = 0.0f;
 
-      float samples = 0.0f;
-      float pIxAvg  = 0.0f;
+      float  samples   = 0.0f;
+      float  pIxAvg    = 0.0f;
       size_t startTime = Chimera::millis();
 
       while ( ( Chimera::millis() - startTime ) < sampleTimeMs )
       {
-        auto sample = adc->sampleChannel( sample_channels[ idx ] );
+        auto  sample  = adc->sampleChannel( sample_channels[ idx ] );
         float voltage = adc->toVoltage( sample );
         pIxAvg += voltage;
         samples++;
 
-        if( voltage > cal[idx].ceiling )
+        if ( voltage > cal[ idx ].ceiling )
         {
-          cal[idx].ceiling = voltage;
+          cal[ idx ].ceiling = voltage;
         }
-        else if( voltage < cal[idx].floor )
+        else if ( voltage < cal[ idx ].floor )
         {
-          cal[idx].floor = voltage;
+          cal[ idx ].floor = voltage;
         }
       }
 

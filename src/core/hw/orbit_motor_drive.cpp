@@ -37,7 +37,7 @@ namespace Orbit::Motor
     pwm_cfg.clear();
     pwm_cfg.coreCfg.instance    = Orbit::IO::Timer::MotorDrive;
     pwm_cfg.coreCfg.clockSource = Chimera::Clock::Bus::SYSCLK;
-    pwm_cfg.coreCfg.baseFreq    = 40'000'000.0f;
+    pwm_cfg.coreCfg.baseFreq    = 30'000'000.0f;
     pwm_cfg.coreCfg.tolerance   = 1.0f;
     pwm_cfg.adcPeripheral       = Orbit::IO::Analog::MotorPeripheral;
     pwm_cfg.breakIOLevel        = Chimera::GPIO::State::LOW;

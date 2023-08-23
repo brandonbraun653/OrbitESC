@@ -39,16 +39,16 @@ namespace Orbit::IO
     /*-------------------------------------------------------------------------
     High Level Parameters
     -------------------------------------------------------------------------*/
-    static constexpr Chimera::ADC::Peripheral MotorPeripheral  = Chimera::ADC::Peripheral::ADC_0;
-    static constexpr Chimera::ADC::Peripheral SensorPeripheral = Chimera::ADC::Peripheral::ADC_1;
-    static constexpr Chimera::GPIO::PinInit   CommonAnalogCfg  = { .alternate = Chimera::GPIO::Alternate::NONE,
-                                                                   .drive     = Chimera::GPIO::Drive::ANALOG,
-                                                                   .pin       = 0,
-                                                                   .port      = Chimera::GPIO::Port::UNKNOWN_PORT,
-                                                                   .pull      = Chimera::GPIO::Pull::NO_PULL,
-                                                                   .state     = Chimera::GPIO::State::HIGH,
-                                                                   .threaded  = false,
-                                                                   .validity  = false };
+    static constexpr Chimera::ADC::Peripheral MotorPeripheral = Chimera::ADC::Peripheral::ADC_0;
+    static constexpr Chimera::ADC::Peripheral InstrPeripheral = Chimera::ADC::Peripheral::ADC_1;
+    static constexpr Chimera::GPIO::PinInit   CommonAnalogCfg = { .alternate = Chimera::GPIO::Alternate::NONE,
+                                                                  .drive     = Chimera::GPIO::Drive::ANALOG,
+                                                                  .pin       = 0,
+                                                                  .port      = Chimera::GPIO::Port::UNKNOWN_PORT,
+                                                                  .pull      = Chimera::GPIO::Pull::NO_PULL,
+                                                                  .state     = Chimera::GPIO::State::HIGH,
+                                                                  .threaded  = false,
+                                                                  .validity  = false };
 
     /*-------------------------------------------------------------------------
     Phase A Current/Voltage

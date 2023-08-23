@@ -10,7 +10,7 @@ gen_static_lib_variants(
     orbit_led.cpp
     orbit_motor_drive.cpp
     orbit_motor_sense.cpp
-    orbit_sensor.cpp
+    orbit_instrumentation.cpp
     orbit_spi.cpp
     orbit_timer.cpp
     orbit_usart.cpp
