@@ -130,6 +130,17 @@ namespace Orbit::Motor
   {
     // TODO: I need to do some timing to make sure this ISR is actually running at
     // TODO: the expected frequency. Not sure I configured the slave timer correctly.
+    static volatile float last_time = static_cast<float>( Chimera::micros() );
+    static volatile float curr_time = last_time;
+    static volatile float delta = 0.0f;
+    static volatile float freq = 0.0f;
+
+    curr_time = static_cast<float>( Chimera::micros() );
+    delta     = curr_time - last_time;
+    last_time = curr_time;
+    freq = 1.0f / ( delta / 1e6f );
+
+    // Huh, guess this isn't running right.
 
     /*-------------------------------------------------------------------------
     Update the sense data cache
