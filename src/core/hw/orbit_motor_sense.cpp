@@ -19,6 +19,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/adc>
+#include <Thor/lld/common/cortex-m4/system_time.hpp>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/hw/orbit_motor.hpp>
@@ -46,6 +47,7 @@ namespace Orbit::Motor
   static volatile SenseControlBlock     s_last_sense_data;
   static Chimera::Function::Opaque      s_sense_callback;
   static Chimera::Timer::Trigger::Slave s_motor_sense_timer;
+  static volatile Chimera::GPIO::Driver_rPtr s_dbg_pin;
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -68,7 +70,7 @@ namespace Orbit::Motor
    */
   static inline float current_time_sec()
   {
-    return static_cast<float>( Chimera::micros() ) / 1e6f;
+    return static_cast<float>( CortexM4::SYSTick::getMicroseconds() ) / 1e6f;
   }
 
 
@@ -130,17 +132,10 @@ namespace Orbit::Motor
   {
     // TODO: I need to do some timing to make sure this ISR is actually running at
     // TODO: the expected frequency. Not sure I configured the slave timer correctly.
-    static volatile float last_time = static_cast<float>( Chimera::micros() );
-    static volatile float curr_time = last_time;
-    static volatile float delta = 0.0f;
-    static volatile float freq = 0.0f;
 
-    curr_time = static_cast<float>( Chimera::micros() );
-    delta     = curr_time - last_time;
-    last_time = curr_time;
-    freq = 1.0f / ( delta / 1e6f );
+    // Huh, guess this isn't running right. Currently about double the frequency.
 
-    // Huh, guess this isn't running right.
+    s_dbg_pin->toggle();
 
     /*-------------------------------------------------------------------------
     Update the sense data cache
@@ -200,6 +195,9 @@ namespace Orbit::Motor
       s_last_sense_data.siData[ i ]    = 0.0f;
     }
 
+    s_dbg_pin = Chimera::GPIO::getDriver( Orbit::IO::Digital::dbg1Port, Orbit::IO::Digital::dbg1Pin );
+    s_dbg_pin->setState( Chimera::GPIO::State::HIGH );
+
     /*-------------------------------------------------------------------------
     Link the ADC's DMA end-of-transfer interrupt to this module's ISR handler.
     This ADC should already be pre-configured to listen for timer events.
@@ -216,6 +214,7 @@ namespace Orbit::Motor
     trig_cfg.clear();
     trig_cfg.coreConfig.instance    = Orbit::IO::Timer::MotorSense;
     trig_cfg.coreConfig.baseFreq    = 30'000'000.0f;
+    trig_cfg.coreConfig.tolerance   = 0.0f;
     trig_cfg.coreConfig.clockSource = Chimera::Clock::Bus::SYSCLK;
     trig_cfg.frequency              = Orbit::Data::SysControl.statorPWMFreq;
     trig_cfg.trigSyncAction         = Chimera::Timer::Trigger::SyncAction::SYNC_RESET;

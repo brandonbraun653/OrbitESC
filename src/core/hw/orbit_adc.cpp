@@ -196,15 +196,15 @@ namespace Orbit::ADC
     Core configuration
     -------------------------------------------------------------------------*/
     adc_cfg.clear();
-    adc_cfg.defaultSampleCycles = 1000;
-    adc_cfg.bmISREnable         = Chimera::ADC::Interrupt::EOC_SEQUENCE;
-    adc_cfg.clockPrescale       = Chimera::ADC::PreScaler::DIV_2;
-    adc_cfg.clockSource         = Chimera::Clock::Bus::SYSCLK;
-    adc_cfg.overSampleRate      = Chimera::ADC::OverSampler::OS_NONE;
-    adc_cfg.overSampleShift     = Chimera::ADC::OverSampleShift::OS_NONE;
-    adc_cfg.periph              = IO::Analog::MotorPeripheral;
-    adc_cfg.resolution          = Chimera::ADC::Resolution::BIT_12;
-    adc_cfg.transferMode        = Chimera::ADC::TransferMode::DMA;
+    adc_cfg.bmISREnable     = Chimera::ADC::Interrupt::EOC_SEQUENCE;
+    adc_cfg.clockPrescale   = Chimera::ADC::PreScaler::DIV_2;
+    adc_cfg.clockSource     = Chimera::Clock::Bus::SYSCLK;
+    adc_cfg.overSampleRate  = Chimera::ADC::OverSampler::OS_NONE;
+    adc_cfg.overSampleShift = Chimera::ADC::OverSampleShift::OS_NONE;
+    adc_cfg.periph          = IO::Analog::MotorPeripheral;
+    adc_cfg.resolution      = Chimera::ADC::Resolution::BIT_12;
+    adc_cfg.transferMode    = Chimera::ADC::TransferMode::DMA;
+    adc_cfg.analogVRef      = 3.30f;
 
     adc = Chimera::ADC::getDriver( adc_cfg.periph );
     RT_DBG_ASSERT( adc );
@@ -260,6 +260,7 @@ namespace Orbit::ADC
     adc_cfg.overSampleShift = Chimera::ADC::OverSampleShift::OS_NONE;
     adc_cfg.resolution      = Chimera::ADC::Resolution::BIT_12;
     adc_cfg.transferMode    = Chimera::ADC::TransferMode::DMA;
+    adc_cfg.analogVRef      = 3.30f;
 
     adc = Chimera::ADC::getDriver( adc_cfg.periph );
     RT_DBG_ASSERT( adc );
