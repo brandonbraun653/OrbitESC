@@ -217,7 +217,7 @@ namespace Orbit::Motor
     Chimera::Timer::Trigger::SlaveConfig trig_cfg;
     trig_cfg.clear();
     trig_cfg.coreConfig.instance    = Orbit::IO::Timer::MotorSense;
-    trig_cfg.coreConfig.baseFreq    = 30'000'000.0f;
+    trig_cfg.coreConfig.baseFreq    = TIMER_BASE_FREQ;
     trig_cfg.coreConfig.tolerance   = 0.0f;
     trig_cfg.coreConfig.clockSource = Chimera::Clock::Bus::SYSCLK;
     trig_cfg.frequency              = Orbit::Data::SysControl.statorPWMFreq;

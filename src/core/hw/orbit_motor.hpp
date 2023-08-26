@@ -22,6 +22,18 @@ Includes
 namespace Orbit::Motor
 {
   /*---------------------------------------------------------------------------
+  Constants
+  ---------------------------------------------------------------------------*/
+
+  /**
+   * @brief Base frequency of the motor drive and sense timers.
+   *
+   * The same frequency is used for both timers to that they share the
+   * same timebase and event period. This makes it easier to synchronize.
+   */
+  static constexpr uint32_t TIMER_BASE_FREQ = 10'000'000;
+
+  /*---------------------------------------------------------------------------
   Enumerations
   ---------------------------------------------------------------------------*/
 
