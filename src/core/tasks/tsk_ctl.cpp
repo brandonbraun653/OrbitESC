@@ -15,13 +15,13 @@ Includes
 #include <Chimera/adc>
 #include <Chimera/thread>
 #include <src/control/foc_driver.hpp>
-
+#include <src/control/foc_motor.hpp>
+#include <src/control/speed_control.hpp>
 #include <src/core/hw/orbit_adc.hpp>
+#include <src/core/hw/orbit_motor.hpp>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_ctl.hpp>
 #include <src/monitor/orbit_monitors.hpp>
-#include <src/core/hw/orbit_motor.hpp>
-
 
 namespace Orbit::Tasks::CTL
 {
@@ -38,11 +38,12 @@ namespace Orbit::Tasks::CTL
     /*-------------------------------------------------------------------------
     Initialize the CTL drivers
     -------------------------------------------------------------------------*/
-
     Chimera::delayMilliseconds( 1000 );
     Motor::powerUpSense();
     Motor::powerUpDrive();
 
+    Control::Field::powerUp();
+    Control::Speed::powerUp();
 
     /*-------------------------------------------------------------------------
     Run the CTL thread

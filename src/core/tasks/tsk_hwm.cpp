@@ -16,7 +16,6 @@ Includes
 #include <Chimera/can>
 #include <Chimera/thread>
 #include <src/core/hw/orbit_led.hpp>
-#include <src/core/runtime/adc_runtime.hpp>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_hwm.hpp>
 
@@ -33,11 +32,6 @@ namespace Orbit::Tasks::HWM
     waitInit();
 
     /*-------------------------------------------------------------------------
-    Initialize the HWM drivers
-    -------------------------------------------------------------------------*/
-    Orbit::ADC::initRuntime();
-
-    /*-------------------------------------------------------------------------
     Run the HWM thread
     -------------------------------------------------------------------------*/
     size_t wake_up_tick = Chimera::millis();
@@ -47,7 +41,6 @@ namespace Orbit::Tasks::HWM
       Process hardware drivers
       -----------------------------------------------------------------------*/
       Orbit::LED::sendUpdate();
-      Orbit::ADC::processADC();
 
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically

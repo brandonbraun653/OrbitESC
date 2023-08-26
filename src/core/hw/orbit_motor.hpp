@@ -141,7 +141,7 @@ namespace Orbit::Motor
    * @param callback  Callback to invoke
    * @return void
    */
-  inline void setSenseCallback( Chimera::Function::Opaque &callback );
+  void setSenseCallback( Chimera::Function::Opaque &callback );
 
   /**
    * @brief Gets the latest motor sense data
@@ -149,7 +149,7 @@ namespace Orbit::Motor
    * @param data  Buffer to store the data into
    * @return void
    */
-  inline void getSenseData( SenseData &data );
+  void getSenseData( SenseData &data );
 
 }  // namespace Orbit::Motor
 

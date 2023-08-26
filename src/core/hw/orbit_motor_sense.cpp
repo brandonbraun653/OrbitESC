@@ -44,9 +44,9 @@ namespace Orbit::Motor
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static volatile SenseControlBlock     s_last_sense_data;
-  static Chimera::Function::Opaque      s_sense_callback;
-  static Chimera::Timer::Trigger::Slave s_motor_sense_timer;
+  static volatile SenseControlBlock          s_last_sense_data;
+  static Chimera::Function::Opaque           s_sense_callback;
+  static Chimera::Timer::Trigger::Slave      s_motor_sense_timer;
   static volatile Chimera::GPIO::Driver_rPtr s_dbg_pin;
 
   /*---------------------------------------------------------------------------
@@ -135,7 +135,11 @@ namespace Orbit::Motor
 
     // Huh, guess this isn't running right. Currently about double the frequency.
 
-    s_dbg_pin->toggle();
+    /*-------------------------------------------------------------------------
+    Set the debug pin high to start measuring ISR execution time. Should be
+    set low again via the user callback.
+    -------------------------------------------------------------------------*/
+    s_dbg_pin->setState( Chimera::GPIO::State::HIGH );
 
     /*-------------------------------------------------------------------------
     Update the sense data cache
@@ -196,7 +200,7 @@ namespace Orbit::Motor
     }
 
     s_dbg_pin = Chimera::GPIO::getDriver( Orbit::IO::Digital::dbg1Port, Orbit::IO::Digital::dbg1Pin );
-    s_dbg_pin->setState( Chimera::GPIO::State::HIGH );
+    s_dbg_pin->setState( Chimera::GPIO::State::LOW );
 
     /*-------------------------------------------------------------------------
     Link the ADC's DMA end-of-transfer interrupt to this module's ISR handler.
@@ -218,7 +222,7 @@ namespace Orbit::Motor
     trig_cfg.coreConfig.clockSource = Chimera::Clock::Bus::SYSCLK;
     trig_cfg.frequency              = Orbit::Data::SysControl.statorPWMFreq;
     trig_cfg.trigSyncAction         = Chimera::Timer::Trigger::SyncAction::SYNC_RESET;
-    trig_cfg.trigSyncSignal         = Chimera::Timer::Trigger::Signal::TRIG_SIG_0;      /**< ITR0: TIM1 TRGO->TIM8*/
+    trig_cfg.trigSyncSignal         = Chimera::Timer::Trigger::Signal::TRIG_SIG_0; /**< ITR0: TIM1 TRGO->TIM8*/
 
     RT_HARD_ASSERT( Chimera::Status::OK == s_motor_sense_timer.init( trig_cfg ) );
     s_motor_sense_timer.setEventOffset( 25 );

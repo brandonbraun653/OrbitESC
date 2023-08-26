@@ -807,94 +807,6 @@ namespace Orbit::Motor
   }
 
 
-  /**
-   * @brief Callback to handle results of ADC conversions
-   *
-   * @param isr  Results of the ADC conversion
-   */
-  static void adcISRTxfrComplete( const Chimera::ADC::InterruptDetail &isr )
-  {
-
-  }
-
-  /**
-   * @brief Callback to process the speed controller within a timer ISR
-   */
-  static void timer_isr_speed_controller()
-  {
-#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
-    SEGGER_SYSVIEW_RecordEnterISR();
-#endif
-
-    static const float    deg2rad    = 0.0174533f;
-    static volatile float start_time = 0.0f;
-    static volatile float dt         = 0.0f;
-
-    /*-------------------------------------------------------------------------
-    Gate the behavior of this ISR without stopping the Timer/ADC/DMA hardware
-    -------------------------------------------------------------------------*/
-    s_speed_ctrl_timer.ackISR();
-    if ( !s_state.isrControlActive )
-    {
-      start_time = Chimera::micros() / 1e6f;
-      dt         = 0.0f;
-      return;
-    }
-
-    // !TESTING
-    const float ramp_time = ( Chimera::micros() / 1e6f ) - start_time;
-    if ( ramp_time < Data::SysControl.rampCtrlRampTimeSec )
-    {
-      dt = ramp_time;
-    }
-    else if ( !s_state.switchToClosedLoop )
-    {
-      s_state.switchToClosedLoop = true;
-      s_state.iLoop.vq           = 0.0f;
-      s_state.iLoop.vd           = 0.0f;
-      s_state.iLoop.idPID.resetState();
-      s_state.iLoop.iqPID.resetState();
-    }
-
-    /*-----------------------------------------------------------------------------
-    Limit the ramp rate of theta so that it can't cross more than one sector
-    -----------------------------------------------------------------------------*/
-    float dTheta = ( Data::SysControl.rampCtrlSecondOrderTerm * deg2rad * dt * dt ) +
-                   ( Data::SysControl.rampCtrlFirstOrderTerm * deg2rad * dt );
-
-    dTheta = Control::Math::clamp( dTheta, 0.0f, DEG_TO_RAD( 59.9f ) );
-    s_state.iLoop.theta += dTheta;
-
-    /*-----------------------------------------------------------------------------
-    Limit the ramp rate of theta so that it can't cross more than one sector
-    -----------------------------------------------------------------------------*/
-    if ( s_state.iLoop.theta > 6.283185f )
-    {
-      s_state.iLoop.theta -= 6.283185f;
-    }
-
-    // TODO: Update these with the speed control PI loops
-    s_state.iLoop.iqRef = 0.00002f;    // Simulink model was using this in startup?
-    s_state.iLoop.idRef = 0.0f;
-
-    // !TESTING
-
-    // runOuterLoopSpeedControl();
-
-    /*-------------------------------------------------------------------------
-    Push the latest streaming parameters into the transmission buffer
-    -------------------------------------------------------------------------*/
-    const uint32_t timestamp = Chimera::micros();
-    publishPhaseCurrents( timestamp );
-    publishPhaseCommands( timestamp );
-    publishStateEstimates( timestamp );
-
-#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
-    SEGGER_SYSVIEW_RecordExitISR();
-#endif
-  }
-
-
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
@@ -956,19 +868,6 @@ namespace Orbit::Motor
 
 
 
-    /*-------------------------------------------------------------------------
-    Configure the Speed control outer loop update timer
-    -------------------------------------------------------------------------*/
-    Chimera::Timer::Trigger::MasterConfig trig_cfg;
-    trig_cfg.clear();
-    trig_cfg.trigFreq               = Orbit::Data::SysControl.speedCtrlUpdateFreq;
-    trig_cfg.isrCallback            = Chimera::Function::Opaque::create<timer_isr_speed_controller>();
-    trig_cfg.coreConfig.instance    = Orbit::IO::Timer::SpeedControl;
-    trig_cfg.coreConfig.baseFreq    = 100'000.0f;
-    trig_cfg.coreConfig.clockSource = Chimera::Clock::Bus::SYSCLK;
-
-    RT_HARD_ASSERT( Chimera::Status::OK == s_speed_ctrl_timer.init( trig_cfg ) );
-    s_speed_ctrl_timer.enable();
   }
 
 }    // namespace Orbit::Motor

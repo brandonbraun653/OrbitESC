@@ -6,11 +6,13 @@ gen_static_lib_variants(
   SOURCES
     foc_driver.cpp
     foc_math.cpp
+    foc_motor.cpp
     modes/sys_mode_armed.cpp
     modes/sys_mode_base.cpp
     modes/sys_mode_fault.cpp
     modes/sys_mode_idle.cpp
     modes/sys_mode_run.cpp
+    speed_control.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc
