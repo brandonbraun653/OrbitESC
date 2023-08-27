@@ -76,7 +76,7 @@ namespace Orbit::Instrumentation
   ---------------------------------------------------------------------------*/
   void powerUp()
   {
-    auto pADC = Chimera::ADC::getDriver( IO::Analog::InstrPeripheral );
+    auto pADC = Chimera::ADC::getDriver( IO::Analog::InstrADC );
     RT_DBG_ASSERT( pADC );
 
     /*-------------------------------------------------------------------------

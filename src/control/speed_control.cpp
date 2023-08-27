@@ -115,7 +115,45 @@ namespace Orbit::Control::Speed
     Set the debug pin low to indicate the start of the control loop
     -------------------------------------------------------------------------*/
     s_dbg_pin->setState( Chimera::GPIO::State::LOW );
+
+
   }
+
+
+
+// TODO: Copied over from orbit_motor.cpp. Need to figure out what to do with it.
+  // static inline void runOuterLoopSpeedControl()
+  // {
+  //   static constexpr float KSpeed = 1.0f;    // TODO: Tune this/make it configurable
+
+  //   static const float irp_percalc = ( Data::SysControl.statorPWMFreq / Data::SysControl.speedCtrlUpdateFreq );
+
+  //   SpeedPosObserverState *pAlg = &s_state.sObserve;
+
+  //   /*-------------------------------------------------------------------------
+  //   Calculate the unfiltered speed estimate
+  //   -------------------------------------------------------------------------*/
+  //   pAlg->omega_est       = pAlg->acc_theta_delta * KSpeed;
+  //   pAlg->acc_theta_delta = 0.0f;
+
+  //   /*-------------------------------------------------------------------------
+  //   Generate filtered speed estimate with first order low pass filter
+  //   -------------------------------------------------------------------------*/
+  //   pAlg->omega_filtered = pAlg->lpf_alpha * pAlg->omega_est + ( 1.0f - pAlg->lpf_alpha ) * pAlg->omega_filtered;
+
+  //   /*-------------------------------------------------------------------------
+  //   Compensate the theta estimate for the filtered speed
+  //   -------------------------------------------------------------------------*/
+  //   pAlg->theta_comp = pAlg->theta_est + pAlg->omega_filtered;
+
+  //   /*-------------------------------------------------------------------------
+  //   Update the LPF gains based on the current speed
+  //   -------------------------------------------------------------------------*/
+  //   // TODO: Don't do this until we have a stable speed estimate
+  //   // pAlg->lpf_alpha = pAlg->omega_filtered * ( Control::Math::M_PI_F / irp_percalc );
+  //   // s_state.iObserve.phase[ 0 ].lpf_alpha = pAlg->lpf_alpha;
+  //   // s_state.iObserve.phase[ 1 ].lpf_alpha = pAlg->lpf_alpha;
+  // }
 
 
   /*---------------------------------------------------------------------------
@@ -132,7 +170,7 @@ namespace Orbit::Control::Speed
     Initialize the debug pin
     -------------------------------------------------------------------------*/
     s_dbg_pin = Chimera::GPIO::getDriver( Orbit::IO::Digital::dbg2Port, Orbit::IO::Digital::dbg2Pin );
-    s_dbg_pin->setState( Chimera::GPIO::State::HIGH );
+    s_dbg_pin->setState( Chimera::GPIO::State::LOW );
 
     /*-------------------------------------------------------------------------
     Configure the Speed control outer loop update timer

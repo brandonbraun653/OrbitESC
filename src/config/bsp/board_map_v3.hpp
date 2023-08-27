@@ -39,8 +39,8 @@ namespace Orbit::IO
     /*-------------------------------------------------------------------------
     High Level Parameters
     -------------------------------------------------------------------------*/
-    static constexpr Chimera::ADC::Peripheral MotorPeripheral = Chimera::ADC::Peripheral::ADC_0;
-    static constexpr Chimera::ADC::Peripheral InstrPeripheral = Chimera::ADC::Peripheral::ADC_1;
+    static constexpr Chimera::ADC::Peripheral MotorADC        = Chimera::ADC::Peripheral::ADC_0;
+    static constexpr Chimera::ADC::Peripheral InstrADC        = Chimera::ADC::Peripheral::ADC_1;
     static constexpr Chimera::GPIO::PinInit   CommonAnalogCfg = { .alternate = Chimera::GPIO::Alternate::NONE,
                                                                   .drive     = Chimera::GPIO::Drive::ANALOG,
                                                                   .pin       = 0,

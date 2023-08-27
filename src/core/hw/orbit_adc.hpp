@@ -42,6 +42,12 @@ namespace Orbit::ADC
   void powerUp();
 
   /**
+   * @brief Computes the total time it takes to sample all the motor channels in nanoseconds
+   * @return uint32_t
+   */
+  uint32_t motorChannelSampleTimeNs();
+
+  /**
    * @brief Calibrate the motor current sensors
    * @note This function will block for a few seconds
    *

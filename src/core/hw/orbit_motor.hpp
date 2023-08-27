@@ -22,6 +22,12 @@ Includes
 namespace Orbit::Motor
 {
   /*---------------------------------------------------------------------------
+  Aliases
+  ---------------------------------------------------------------------------*/
+
+  using SenseCallback = void ( * )( void );
+
+  /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
 
@@ -53,6 +59,26 @@ namespace Orbit::Motor
     CHANNEL_PHASE_C_CURRENT,
 
     CHANNEL_COUNT
+  };
+
+
+  enum Rotation : uint8_t
+  {
+    ROTATION_CW,
+    ROTATION_CCW
+  };
+
+
+  enum DriveSector : uint8_t
+  {
+    SECTOR_1,
+    SECTOR_2,
+    SECTOR_3,
+    SECTOR_4,
+    SECTOR_5,
+    SECTOR_6,
+
+    SECTOR_COUNT
   };
 
 
@@ -124,7 +150,16 @@ namespace Orbit::Motor
    * @param c Offset to apply to phase C
    * @return void
    */
-  inline void setDrivePhaseWidth( const uint32_t a, const uint32_t b, const uint32_t c );
+  void setDrivePhaseWidth( const uint32_t a, const uint32_t b, const uint32_t c );
+
+  /**
+   * @brief Set drive output commutation
+   *
+   * @param direction Current rotation direction
+   * @param sector    New sector to commutate at
+   * @return void
+   */
+  void setDriveCommutation( const Rotation direction, const DriveSector sector );
 
   /**
    * @brief Updates the timing of when the sense trigger should be fired.
@@ -135,7 +170,7 @@ namespace Orbit::Motor
    * @param offset  Number of ticks to offset the trigger by
    * @return void
    */
-  inline void setSenseTriggerOffset( const uint32_t offset );
+  void setSenseTriggerOffset( const uint32_t offset );
 
   /**
    * @brief Updates the measurement offset voltage
@@ -145,7 +180,7 @@ namespace Orbit::Motor
    * @param channel   Which channel to update
    * @param offset    Voltage to apply to the measurement
    */
-  inline void setSenseCalOffset( const ChannelSequence channel, const float offset );
+  void setSenseCalOffset( const ChannelSequence channel, const float offset );
 
   /**
    * @brief Sets the callback to invoke when the ADC completes a conversion
@@ -153,15 +188,13 @@ namespace Orbit::Motor
    * @param callback  Callback to invoke
    * @return void
    */
-  void setSenseCallback( Chimera::Function::Opaque &callback );
+  void setSenseCallback( SenseCallback callback );
 
   /**
    * @brief Gets the latest motor sense data
-   *
-   * @param data  Buffer to store the data into
-   * @return void
+   * @return Const reference to the data
    */
-  void getSenseData( SenseData &data );
+  volatile const SenseData& getSenseData();
 
 }  // namespace Orbit::Motor
 

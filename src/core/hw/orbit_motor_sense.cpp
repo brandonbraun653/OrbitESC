@@ -32,22 +32,21 @@ namespace Orbit::Motor
   ---------------------------------------------------------------------------*/
   struct SenseControlBlock
   {
-    float timestamp;                  /**< Time stamp in seconds */
-    float adc_vref;                   /**< ADC reference voltage */
-    float adc_vres;                   /**< ADC resolution in counts/volt */
-    float rawData[ CHANNEL_COUNT ];   /**< Raw measured voltage */
-    float calOffset[ CHANNEL_COUNT ]; /**< Calibration offset voltage */
-    float calData[ CHANNEL_COUNT ];   /**< Calibrated voltage */
-    float siData[ CHANNEL_COUNT ];    /**< Data interpreted as SI units */
+    float                      adc_vref;                   /**< ADC reference voltage */
+    float                      adc_vres;                   /**< ADC resolution in counts/volt */
+    float                      rawData[ CHANNEL_COUNT ];   /**< Raw measured voltage */
+    float                      calOffset[ CHANNEL_COUNT ]; /**< Calibration offset voltage */
+    float                      calData[ CHANNEL_COUNT ];   /**< Calibrated voltage */
+    SenseData                  siData;                     /**< Data interpreted as SI units */
+    SenseCallback              callback;                   /**< User adc complete callback */
+    Chimera::GPIO::Driver_rPtr dbg_pin;                    /**< Debug output pin for timing */
   };
 
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static volatile SenseControlBlock          s_last_sense_data;
-  static Chimera::Function::Opaque           s_sense_callback;
-  static Chimera::Timer::Trigger::Slave      s_motor_sense_timer;
-  static volatile Chimera::GPIO::Driver_rPtr s_dbg_pin;
+  static volatile SenseControlBlock     s_ctl_blk;
+  static Chimera::Timer::Trigger::Slave s_motor_sense_timer;
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -60,7 +59,7 @@ namespace Orbit::Motor
    */
   static inline float counts_to_voltage( const uint16_t counts )
   {
-    return ( static_cast<float>( counts ) * s_last_sense_data.adc_vref ) / s_last_sense_data.adc_vres;
+    return ( static_cast<float>( counts ) * s_ctl_blk.adc_vref ) / s_ctl_blk.adc_vres;
   }
 
 
@@ -130,52 +129,41 @@ namespace Orbit::Motor
    */
   static void isr_on_motor_sense_adc_conversion_complete( const Chimera::ADC::InterruptDetail &isr )
   {
-    // TODO: I need to do some timing to make sure this ISR is actually running at
-    // TODO: the expected frequency. Not sure I configured the slave timer correctly.
-
-    // Huh, guess this isn't running right. Currently about double the frequency.
-
     /*-------------------------------------------------------------------------
     Set the debug pin high to start measuring ISR execution time. Should be
     set low again via the user callback.
     -------------------------------------------------------------------------*/
-    s_dbg_pin->setState( Chimera::GPIO::State::HIGH );
+    s_ctl_blk.dbg_pin->setState( Chimera::GPIO::State::HIGH );
 
     /*-------------------------------------------------------------------------
     Update the sense data cache
     -------------------------------------------------------------------------*/
-    s_last_sense_data.timestamp = current_time_sec();
-    s_last_sense_data.adc_vref  = isr.vref;
-    s_last_sense_data.adc_vres  = isr.resolution;
+    s_ctl_blk.siData.timestamp = current_time_sec();
+    s_ctl_blk.adc_vref         = isr.vref;
+    s_ctl_blk.adc_vres         = isr.resolution;
 
     for ( auto i = 0; ( i < isr.num_samples ) && ( i < CHANNEL_COUNT ); i++ )
     {
-      s_last_sense_data.rawData[ i ] = counts_to_voltage( isr.samples[ i ] );
-      s_last_sense_data.calData[ i ] = s_last_sense_data.rawData[ i ] - s_last_sense_data.calOffset[ i ];
+      s_ctl_blk.rawData[ i ] = counts_to_voltage( isr.samples[ i ] );
+      s_ctl_blk.calData[ i ] = s_ctl_blk.rawData[ i ] - s_ctl_blk.calOffset[ i ];
     }
 
     /*-------------------------------------------------------------------------
     Translate raw measurements into representative SI units
     -------------------------------------------------------------------------*/
-    s_last_sense_data.siData[ CHANNEL_PHASE_A_CURRENT ] =
-        compute_phase_current( s_last_sense_data.calData[ CHANNEL_PHASE_A_CURRENT ] );
-    s_last_sense_data.siData[ CHANNEL_PHASE_B_CURRENT ] =
-        compute_phase_current( s_last_sense_data.calData[ CHANNEL_PHASE_B_CURRENT ] );
-    s_last_sense_data.siData[ CHANNEL_PHASE_C_CURRENT ] =
-        compute_phase_current( s_last_sense_data.calData[ CHANNEL_PHASE_C_CURRENT ] );
-    s_last_sense_data.siData[ CHANNEL_PHASE_A_VOLTAGE ] =
-        compute_phase_voltage( s_last_sense_data.calData[ CHANNEL_PHASE_A_VOLTAGE ] );
-    s_last_sense_data.siData[ CHANNEL_PHASE_B_VOLTAGE ] =
-        compute_phase_voltage( s_last_sense_data.calData[ CHANNEL_PHASE_B_VOLTAGE ] );
-    s_last_sense_data.siData[ CHANNEL_PHASE_C_VOLTAGE ] =
-        compute_phase_voltage( s_last_sense_data.calData[ CHANNEL_PHASE_C_VOLTAGE ] );
+    s_ctl_blk.siData.channel[ CHANNEL_PHASE_A_CURRENT ] = compute_phase_current( s_ctl_blk.calData[ CHANNEL_PHASE_A_CURRENT ] );
+    s_ctl_blk.siData.channel[ CHANNEL_PHASE_B_CURRENT ] = compute_phase_current( s_ctl_blk.calData[ CHANNEL_PHASE_B_CURRENT ] );
+    s_ctl_blk.siData.channel[ CHANNEL_PHASE_C_CURRENT ] = compute_phase_current( s_ctl_blk.calData[ CHANNEL_PHASE_C_CURRENT ] );
+    s_ctl_blk.siData.channel[ CHANNEL_PHASE_A_VOLTAGE ] = compute_phase_voltage( s_ctl_blk.calData[ CHANNEL_PHASE_A_VOLTAGE ] );
+    s_ctl_blk.siData.channel[ CHANNEL_PHASE_B_VOLTAGE ] = compute_phase_voltage( s_ctl_blk.calData[ CHANNEL_PHASE_B_VOLTAGE ] );
+    s_ctl_blk.siData.channel[ CHANNEL_PHASE_C_VOLTAGE ] = compute_phase_voltage( s_ctl_blk.calData[ CHANNEL_PHASE_C_VOLTAGE ] );
 
     /*-------------------------------------------------------------------------
     Invoke the user callback
     -------------------------------------------------------------------------*/
-    if ( s_sense_callback )
+    if ( s_ctl_blk.callback )
     {
-      s_sense_callback();
+      s_ctl_blk.callback();
     }
   }
 
@@ -188,19 +176,18 @@ namespace Orbit::Motor
     /*-------------------------------------------------------------------------
     Reset the state of the module
     -------------------------------------------------------------------------*/
-    s_sense_callback            = {};
-    s_last_sense_data.timestamp = current_time_sec();
+    s_ctl_blk.siData.timestamp = current_time_sec();
 
     for ( auto i = 0; i < CHANNEL_COUNT; i++ )
     {
-      s_last_sense_data.calData[ i ]   = 0.0f;
-      s_last_sense_data.calOffset[ i ] = 0.0f;
-      s_last_sense_data.rawData[ i ]   = 0.0f;
-      s_last_sense_data.siData[ i ]    = 0.0f;
+      s_ctl_blk.calData[ i ]        = 0.0f;
+      s_ctl_blk.calOffset[ i ]      = 0.0f;
+      s_ctl_blk.rawData[ i ]        = 0.0f;
+      s_ctl_blk.siData.channel[ i ] = 0.0f;
     }
 
-    s_dbg_pin = Chimera::GPIO::getDriver( Orbit::IO::Digital::dbg1Port, Orbit::IO::Digital::dbg1Pin );
-    s_dbg_pin->setState( Chimera::GPIO::State::LOW );
+    s_ctl_blk.dbg_pin = Chimera::GPIO::getDriver( Orbit::IO::Digital::dbg1Port, Orbit::IO::Digital::dbg1Pin );
+    s_ctl_blk.dbg_pin->setState( Chimera::GPIO::State::LOW );
 
     /*-------------------------------------------------------------------------
     Link the ADC's DMA end-of-transfer interrupt to this module's ISR handler.
@@ -208,7 +195,7 @@ namespace Orbit::Motor
     -------------------------------------------------------------------------*/
     Chimera::ADC::ISRCallback callback = Chimera::ADC::ISRCallback::create<isr_on_motor_sense_adc_conversion_complete>();
 
-    auto pADC = Chimera::ADC::getDriver( Orbit::IO::Analog::MotorPeripheral );
+    auto pADC = Chimera::ADC::getDriver( Orbit::IO::Analog::MotorADC );
     pADC->onInterrupt( Chimera::ADC::Interrupt::EOC_SEQUENCE, callback );
 
     /*-------------------------------------------------------------------------
@@ -225,11 +212,12 @@ namespace Orbit::Motor
     trig_cfg.trigSyncSignal         = Chimera::Timer::Trigger::Signal::TRIG_SIG_0; /**< ITR0: TIM1 TRGO->TIM8*/
 
     RT_HARD_ASSERT( Chimera::Status::OK == s_motor_sense_timer.init( trig_cfg ) );
-    s_motor_sense_timer.setEventOffset( 25 );
+    s_motor_sense_timer.setEventOffset( 350 );
     s_motor_sense_timer.enable();
 
     /*-------------------------------------------------------------------------
-    Enable the ADC peripheral
+    Enable the ADC peripheral after the timer initializes to prevent any
+    spurrious triggering.
     -------------------------------------------------------------------------*/
     pADC->startSequence();
   }
@@ -245,25 +233,19 @@ namespace Orbit::Motor
   {
     if ( channel < CHANNEL_COUNT )
     {
-      s_last_sense_data.calOffset[ channel ] = offset;
+      s_ctl_blk.calOffset[ channel ] = offset;
     }
   }
 
 
-  void setSenseCallback( Chimera::Function::Opaque &callback )
+  void setSenseCallback( SenseCallback callback )
   {
-    s_sense_callback = callback;
+    s_ctl_blk.callback = callback;
   }
 
 
-  void getSenseData( SenseData &data )
+  volatile const SenseData &getSenseData()
   {
-    data.timestamp                          = s_last_sense_data.timestamp;
-    data.channel[ CHANNEL_PHASE_A_CURRENT ] = s_last_sense_data.siData[ CHANNEL_PHASE_A_CURRENT ];
-    data.channel[ CHANNEL_PHASE_B_CURRENT ] = s_last_sense_data.siData[ CHANNEL_PHASE_B_CURRENT ];
-    data.channel[ CHANNEL_PHASE_C_CURRENT ] = s_last_sense_data.siData[ CHANNEL_PHASE_C_CURRENT ];
-    data.channel[ CHANNEL_PHASE_A_VOLTAGE ] = s_last_sense_data.siData[ CHANNEL_PHASE_A_VOLTAGE ];
-    data.channel[ CHANNEL_PHASE_B_VOLTAGE ] = s_last_sense_data.siData[ CHANNEL_PHASE_B_VOLTAGE ];
-    data.channel[ CHANNEL_PHASE_C_VOLTAGE ] = s_last_sense_data.siData[ CHANNEL_PHASE_C_VOLTAGE ];
+    return s_ctl_blk.siData;
   }
 }    // namespace Orbit::Motor

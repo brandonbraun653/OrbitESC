@@ -39,9 +39,6 @@ namespace Orbit::Tasks::CTL
     Initialize the CTL drivers
     -------------------------------------------------------------------------*/
     Chimera::delayMilliseconds( 1000 );
-    Motor::powerUpSense();
-    Motor::powerUpDrive();
-
     Control::Field::powerUp();
     Control::Speed::powerUp();
 

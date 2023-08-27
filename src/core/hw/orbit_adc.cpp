@@ -201,7 +201,7 @@ namespace Orbit::ADC
     adc_cfg.clockSource     = Chimera::Clock::Bus::SYSCLK;
     adc_cfg.overSampleRate  = Chimera::ADC::OverSampler::OS_NONE;
     adc_cfg.overSampleShift = Chimera::ADC::OverSampleShift::OS_NONE;
-    adc_cfg.periph          = IO::Analog::MotorPeripheral;
+    adc_cfg.periph          = IO::Analog::MotorADC;
     adc_cfg.resolution      = Chimera::ADC::Resolution::BIT_12;
     adc_cfg.transferMode    = Chimera::ADC::TransferMode::DMA;
     adc_cfg.analogVRef      = 3.30f;
@@ -252,7 +252,7 @@ namespace Orbit::ADC
     Core peripheral configuration
     -------------------------------------------------------------------------*/
     adc_cfg.clear();
-    adc_cfg.periph          = IO::Analog::InstrPeripheral;
+    adc_cfg.periph          = IO::Analog::InstrADC;
     adc_cfg.bmISREnable     = Chimera::ADC::Interrupt::EOC_SEQUENCE;
     adc_cfg.clockPrescale   = Chimera::ADC::PreScaler::DIV_2;
     adc_cfg.clockSource     = Chimera::Clock::Bus::SYSCLK;
@@ -302,6 +302,27 @@ namespace Orbit::ADC
     cfg_instrumentation_adc();
   }
 
+
+  uint32_t motorChannelSampleTimeNs()
+  {
+    using namespace Chimera::Timer;
+    using namespace Chimera::ADC;
+
+    /*-------------------------------------------------------------------------
+    Compute the total time it takes to sample all the motor channels in
+    nanoseconds. This is used to configure the ADC trigger timing.
+    -------------------------------------------------------------------------*/
+    uint32_t sampleTimeNs = 0;
+    auto     adc          = Chimera::ADC::getDriver( IO::Analog::MotorADC );
+
+    for ( size_t idx = 0; idx < Motor::CHANNEL_COUNT; idx++ )
+    {
+      sampleTimeNs += adc->totalMeasureTime( adc->getSampleCycle( s_motor_channels[ idx ] ) );
+    }
+
+    return sampleTimeNs;
+  }
+
   void calibrateCurrentSensors( IPhaseCalArray &cal, const size_t sampleTimeMs )
   {
     const Chimera::ADC::Channel sample_channels[] = { IO::Analog::adcIPhaseA, IO::Analog::adcIPhaseB, IO::Analog::adcIPhaseC };
@@ -330,7 +351,7 @@ namespace Orbit::ADC
     Measure the DC offset of the motor phase current sensors
     -------------------------------------------------------------------------*/
     LOG_TRACE( "Calibrating phase current sensors\r\n" );
-    auto adc = Chimera::ADC::getDriver( IO::Analog::MotorPeripheral );
+    auto adc = Chimera::ADC::getDriver( IO::Analog::MotorADC );
 
     for ( int idx = 0; idx <= 3; idx++ )
     {
