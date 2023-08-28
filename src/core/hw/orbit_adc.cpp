@@ -214,12 +214,12 @@ namespace Orbit::ADC
     Sequence conversion configuration
     -------------------------------------------------------------------------*/
     s_motor_channels.fill( Chimera::ADC::Channel::UNKNOWN );
-    s_motor_channels[ Motor::CHANNEL_PHASE_A_VOLTAGE ] = IO::Analog::adcVPhaseA;
-    s_motor_channels[ Motor::CHANNEL_PHASE_B_VOLTAGE ] = IO::Analog::adcVPhaseB;
-    s_motor_channels[ Motor::CHANNEL_PHASE_C_VOLTAGE ] = IO::Analog::adcVPhaseC;
     s_motor_channels[ Motor::CHANNEL_PHASE_A_CURRENT ] = IO::Analog::adcIPhaseA;
     s_motor_channels[ Motor::CHANNEL_PHASE_B_CURRENT ] = IO::Analog::adcIPhaseB;
     s_motor_channels[ Motor::CHANNEL_PHASE_C_CURRENT ] = IO::Analog::adcIPhaseC;
+    s_motor_channels[ Motor::CHANNEL_PHASE_A_VOLTAGE ] = IO::Analog::adcVPhaseA;
+    s_motor_channels[ Motor::CHANNEL_PHASE_B_VOLTAGE ] = IO::Analog::adcVPhaseB;
+    s_motor_channels[ Motor::CHANNEL_PHASE_C_VOLTAGE ] = IO::Analog::adcVPhaseC;
 
     seq.clear();
     seq.channels    = &s_motor_channels;
@@ -321,69 +321,6 @@ namespace Orbit::ADC
     }
 
     return sampleTimeNs;
-  }
-
-  void calibrateCurrentSensors( IPhaseCalArray &cal, const size_t sampleTimeMs )
-  {
-    const Chimera::ADC::Channel sample_channels[] = { IO::Analog::adcIPhaseA, IO::Analog::adcIPhaseB, IO::Analog::adcIPhaseC };
-
-    /*-------------------------------------------------------------------------
-    Ensure the motor is off for calibration
-    -------------------------------------------------------------------------*/
-    // TODO: Add a check to ensure the motor is off
-
-    /*-------------------------------------------------------------------------
-    Short the low side of the motor drive to ground. This assumes the motor has
-    been connected, which creates the ground path.
-    -------------------------------------------------------------------------*/
-    TIMER::configureIOTesting();
-    auto pin1 = Chimera::GPIO::getDriver( IO::Timer::portT1Ch1N, IO::Timer::pinT1Ch1N );
-    auto pin2 = Chimera::GPIO::getDriver( IO::Timer::portT1Ch2N, IO::Timer::pinT1Ch2N );
-    auto pin3 = Chimera::GPIO::getDriver( IO::Timer::portT1Ch3N, IO::Timer::pinT1Ch3N );
-
-    pin1->setState( Chimera::GPIO::State::HIGH );
-    pin2->setState( Chimera::GPIO::State::HIGH );
-    pin3->setState( Chimera::GPIO::State::HIGH );
-
-    Chimera::delayMilliseconds( 100 );
-
-    /*-------------------------------------------------------------------------
-    Measure the DC offset of the motor phase current sensors
-    -------------------------------------------------------------------------*/
-    LOG_TRACE( "Calibrating phase current sensors\r\n" );
-    auto adc = Chimera::ADC::getDriver( IO::Analog::MotorADC );
-
-    for ( int idx = 0; idx <= 3; idx++ )
-    {
-      cal[ idx ].ceiling  = -FLT_MAX;
-      cal[ idx ].floor    = FLT_MAX;
-      cal[ idx ].dcOffset = 0.0f;
-
-      float  samples   = 0.0f;
-      float  pIxAvg    = 0.0f;
-      size_t startTime = Chimera::millis();
-
-      while ( ( Chimera::millis() - startTime ) < sampleTimeMs )
-      {
-        auto  sample  = adc->sampleChannel( sample_channels[ idx ] );
-        float voltage = adc->toVoltage( sample );
-        pIxAvg += voltage;
-        samples++;
-
-        if ( voltage > cal[ idx ].ceiling )
-        {
-          cal[ idx ].ceiling = voltage;
-        }
-        else if ( voltage < cal[ idx ].floor )
-        {
-          cal[ idx ].floor = voltage;
-        }
-      }
-
-      cal[ idx ].dcOffset = ( pIxAvg / samples );
-    }
-
-    LOG_TRACE( "Done\r\n" );
   }
 
 }    // namespace Orbit::ADC

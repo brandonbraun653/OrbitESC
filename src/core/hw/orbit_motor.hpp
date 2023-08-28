@@ -51,12 +51,12 @@ namespace Orbit::Motor
    */
   enum ChannelSequence : uint8_t
   {
-    CHANNEL_PHASE_A_VOLTAGE,
-    CHANNEL_PHASE_B_VOLTAGE,
-    CHANNEL_PHASE_C_VOLTAGE,
     CHANNEL_PHASE_A_CURRENT,
     CHANNEL_PHASE_B_CURRENT,
     CHANNEL_PHASE_C_CURRENT,
+    CHANNEL_PHASE_A_VOLTAGE,
+    CHANNEL_PHASE_B_VOLTAGE,
+    CHANNEL_PHASE_C_VOLTAGE,
 
     CHANNEL_COUNT
   };
@@ -99,6 +99,7 @@ namespace Orbit::Motor
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+
   /**
    * @brief Powers up the motor driver sensor subsystem.
    * @return void
@@ -162,27 +163,6 @@ namespace Orbit::Motor
   void setDriveCommutation( const Rotation direction, const DriveSector sector );
 
   /**
-   * @brief Updates the timing of when the sense trigger should be fired.
-   *
-   * This is used to align the sense trigger with the PWM Drive signals
-   * so that the motor current/voltage can be sampled at the correct time.
-   *
-   * @param offset  Number of ticks to offset the trigger by
-   * @return void
-   */
-  void setSenseTriggerOffset( const uint32_t offset );
-
-  /**
-   * @brief Updates the measurement offset voltage
-   *
-   * This is applied directly to the raw data before any conversion to SI units is performed.
-   *
-   * @param channel   Which channel to update
-   * @param offset    Voltage to apply to the measurement
-   */
-  void setSenseCalOffset( const ChannelSequence channel, const float offset );
-
-  /**
    * @brief Sets the callback to invoke when the ADC completes a conversion
    *
    * @param callback  Callback to invoke
@@ -195,6 +175,12 @@ namespace Orbit::Motor
    * @return Const reference to the data
    */
   volatile const SenseData& getSenseData();
+
+  /**
+   * @brief Calibrate the motor current/voltage sense inputs
+   * @return void
+   */
+  void calibrateSenseInputs();
 
 }  // namespace Orbit::Motor
 

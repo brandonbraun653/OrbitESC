@@ -5,7 +5,7 @@
  *  Description:
  *    Orbit ESC ADC driver interface
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -22,18 +22,6 @@ Includes
 namespace Orbit::ADC
 {
   /*---------------------------------------------------------------------------
-  Structures
-  ---------------------------------------------------------------------------*/
-  struct IPhaseCal
-  {
-    float dcOffset; /**< Averaged DC offset when inputs are shorted */
-    float floor;    /**< Minimum value seen */
-    float ceiling;  /**< Maximum value seen */
-  };
-
-  using IPhaseCalArray = etl::array< IPhaseCal, 3>;
-
-  /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   /**
@@ -47,15 +35,6 @@ namespace Orbit::ADC
    */
   uint32_t motorChannelSampleTimeNs();
 
-  /**
-   * @brief Calibrate the motor current sensors
-   * @note This function will block for a few seconds
-   *
-   * @param cal           Calibration data structure
-   * @param sampleTimeMs  Time to sample for each channel
-   */
-  void calibrateCurrentSensors( IPhaseCalArray &cal, const size_t sampleTimeMs );
+}    // namespace Orbit::ADC
 
-}  // namespace Orbit::ADC
-
-#endif  /* !ORBIT_ESC_ADC_HPP */
+#endif /* !ORBIT_ESC_ADC_HPP */

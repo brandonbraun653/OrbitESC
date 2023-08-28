@@ -23,6 +23,7 @@ Includes
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/hw/orbit_motor.hpp>
+#include <src/core/hw/orbit_timer.hpp>
 
 
 namespace Orbit::Motor
@@ -41,6 +42,15 @@ namespace Orbit::Motor
     SenseCallback              callback;                   /**< User adc complete callback */
     Chimera::GPIO::Driver_rPtr dbg_pin;                    /**< Debug output pin for timing */
   };
+
+  struct IPhaseCal
+  {
+    float dcOffset; /**< Averaged DC offset when inputs are shorted */
+    float floor;    /**< Minimum value seen */
+    float ceiling;  /**< Maximum value seen */
+  };
+
+  using IPhaseCalArray = etl::array<IPhaseCal, 3>;
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -190,6 +200,11 @@ namespace Orbit::Motor
     s_ctl_blk.dbg_pin->setState( Chimera::GPIO::State::LOW );
 
     /*-------------------------------------------------------------------------
+    Calibrate the sense inputs
+    -------------------------------------------------------------------------*/
+    calibrateSenseInputs();
+
+    /*-------------------------------------------------------------------------
     Link the ADC's DMA end-of-transfer interrupt to this module's ISR handler.
     This ADC should already be pre-configured to listen for timer events.
     -------------------------------------------------------------------------*/
@@ -212,7 +227,7 @@ namespace Orbit::Motor
     trig_cfg.trigSyncSignal         = Chimera::Timer::Trigger::Signal::TRIG_SIG_0; /**< ITR0: TIM1 TRGO->TIM8*/
 
     RT_HARD_ASSERT( Chimera::Status::OK == s_motor_sense_timer.init( trig_cfg ) );
-    s_motor_sense_timer.setEventOffset( 350 );
+    s_motor_sense_timer.setEventOffset( 0 );
     s_motor_sense_timer.enable();
 
     /*-------------------------------------------------------------------------
@@ -220,21 +235,6 @@ namespace Orbit::Motor
     spurrious triggering.
     -------------------------------------------------------------------------*/
     pADC->startSequence();
-  }
-
-
-  void setSenseTriggerOffset( const uint32_t offset )
-  {
-    // configure timer to trigger ADC at offset
-  }
-
-
-  void setSenseCalOffset( const ChannelSequence channel, const float offset )
-  {
-    if ( channel < CHANNEL_COUNT )
-    {
-      s_ctl_blk.calOffset[ channel ] = offset;
-    }
   }
 
 
@@ -248,4 +248,87 @@ namespace Orbit::Motor
   {
     return s_ctl_blk.siData;
   }
+
+
+  void calibrateSenseInputs()
+  {
+    /*-------------------------------------------------------------------------
+    Local Constants
+    -------------------------------------------------------------------------*/
+    const Chimera::ADC::Channel sample_channels[] = {
+      IO::Analog::adcIPhaseA, /**< CHANNEL_PHASE_A_CURRENT */
+      IO::Analog::adcIPhaseB, /**< CHANNEL_PHASE_B_CURRENT */
+      IO::Analog::adcIPhaseC, /**< CHANNEL_PHASE_C_CURRENT */
+      IO::Analog::adcVPhaseA, /**< CHANNEL_PHASE_A_VOLTAGE */
+      IO::Analog::adcVPhaseB, /**< CHANNEL_PHASE_B_VOLTAGE */
+      IO::Analog::adcVPhaseC  /**< CHANNEL_PHASE_C_VOLTAGE */
+    };
+
+    static_assert( CHANNEL_PHASE_A_CURRENT == 0 );
+    static_assert( CHANNEL_PHASE_B_CURRENT == 1 );
+    static_assert( CHANNEL_PHASE_C_CURRENT == 2 );
+    static_assert( CHANNEL_PHASE_A_VOLTAGE == 3 );
+    static_assert( CHANNEL_PHASE_B_VOLTAGE == 4 );
+    static_assert( CHANNEL_PHASE_C_VOLTAGE == 5 );
+    static_assert( ARRAY_COUNT( sample_channels ) == CHANNEL_COUNT );
+
+    /*-------------------------------------------------------------------------
+    Relinquish control from the timer peripheral of the motor power stage.
+    -------------------------------------------------------------------------*/
+    TIMER::configureIOTesting();
+
+    /*-------------------------------------------------------------------------
+    Short the low side of the motor drive to ground. This assumes the motor has
+    been connected, which creates the ground path.
+    -------------------------------------------------------------------------*/
+    auto pin1 = Chimera::GPIO::getDriver( IO::Timer::portT1Ch1N, IO::Timer::pinT1Ch1N );
+    auto pin2 = Chimera::GPIO::getDriver( IO::Timer::portT1Ch2N, IO::Timer::pinT1Ch2N );
+    auto pin3 = Chimera::GPIO::getDriver( IO::Timer::portT1Ch3N, IO::Timer::pinT1Ch3N );
+
+    pin1->setState( Chimera::GPIO::State::HIGH );
+    pin2->setState( Chimera::GPIO::State::HIGH );
+    pin3->setState( Chimera::GPIO::State::HIGH );
+
+    /* Allow time for settling */
+    Chimera::delayMilliseconds( 5 );
+
+    /*-------------------------------------------------------------------------
+    Measure the DC offset of the motor phase current/voltage sensors
+    -------------------------------------------------------------------------*/
+    auto adc = Chimera::ADC::getDriver( IO::Analog::MotorADC );
+
+    for ( size_t idx = 0; idx < ARRAY_COUNT( sample_channels ); idx++ )
+    {
+      float  ceiling   = -FLT_MAX;
+      float  floor     = FLT_MAX;
+      float  samples   = 0.0f;
+      float  pIxAvg    = 0.0f;
+      size_t startTime = Chimera::millis();
+
+      while ( ( Chimera::millis() - startTime ) < Chimera::Thread::TIMEOUT_5MS )
+      {
+        auto  sample  = adc->sampleChannel( sample_channels[ idx ] );
+        float voltage = adc->toVoltage( sample );
+        pIxAvg += voltage;
+        samples++;
+
+        if ( voltage > ceiling )
+        {
+          ceiling = voltage;
+        }
+        else if ( voltage < floor )
+        {
+          floor = voltage;
+        }
+      }
+
+      s_ctl_blk.calOffset[ idx ] = ( pIxAvg / samples );
+    }
+
+    /*-------------------------------------------------------------------------
+    Give control back to the timer peripheral
+    -------------------------------------------------------------------------*/
+    TIMER::configureIOControl();
+  }
+
 }    // namespace Orbit::Motor
