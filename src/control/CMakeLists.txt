@@ -4,6 +4,7 @@ gen_static_lib_variants(
   TARGET
     lib_orbit_ctrl
   SOURCES
+    Biquad.cpp
     foc_driver.cpp
     foc_math.cpp
     foc_motor.cpp

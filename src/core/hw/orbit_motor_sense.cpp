@@ -26,6 +26,9 @@ Includes
 #include <src/core/hw/orbit_timer.hpp>
 
 
+//!Testing
+#include <src/control/Biquad.h>
+
 namespace Orbit::Motor
 {
   /*---------------------------------------------------------------------------
@@ -57,6 +60,11 @@ namespace Orbit::Motor
   ---------------------------------------------------------------------------*/
   static volatile SenseControlBlock     s_ctl_blk;
   static Chimera::Timer::Trigger::Slave s_motor_sense_timer;
+
+  //!Testing
+  static Biquad bq_a;
+  static Biquad bq_b;
+  static Biquad bq_c;
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -158,6 +166,10 @@ namespace Orbit::Motor
       s_ctl_blk.calData[ i ] = s_ctl_blk.rawData[ i ] - s_ctl_blk.calOffset[ i ];
     }
 
+    // s_ctl_blk.calData[ CHANNEL_PHASE_A_CURRENT ] = bq_a.process( s_ctl_blk.calData[ CHANNEL_PHASE_A_CURRENT ] );
+    // s_ctl_blk.calData[ CHANNEL_PHASE_B_CURRENT ] = bq_b.process( s_ctl_blk.calData[ CHANNEL_PHASE_B_CURRENT ] );
+    // s_ctl_blk.calData[ CHANNEL_PHASE_C_CURRENT ] = bq_c.process( s_ctl_blk.calData[ CHANNEL_PHASE_C_CURRENT ] );
+
     /*-------------------------------------------------------------------------
     Translate raw measurements into representative SI units
     -------------------------------------------------------------------------*/
@@ -183,6 +195,11 @@ namespace Orbit::Motor
   ---------------------------------------------------------------------------*/
   void powerUpSense()
   {
+    //!Testing
+    bq_a.setBiquad( bq_type_lowpass, 1000.0f / Orbit::Data::SysControl.statorPWMFreq, 0.707f, 0.0f );
+    bq_b.setBiquad( bq_type_lowpass, 1000.0f / Orbit::Data::SysControl.statorPWMFreq, 0.707f, 0.0f );
+    bq_c.setBiquad( bq_type_lowpass, 1000.0f / Orbit::Data::SysControl.statorPWMFreq, 0.707f, 0.0f );
+
     /*-------------------------------------------------------------------------
     Reset the state of the module
     -------------------------------------------------------------------------*/
