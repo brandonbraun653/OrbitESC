@@ -73,19 +73,8 @@ namespace Orbit::Motor
   }
 
 
-  void setDrivePhaseWidth( const uint32_t a, const uint32_t b, const uint32_t c )
+  void svmUpdate( const float drive, const float theta)
   {
-    if( s_motor_drive_timer.setPhaseDutyCycle( a, b, c ) != Chimera::Status::OK )
-    {
-      s_motor_drive_timer.emergencyBreak();
-    }
-  }
-
-  void setDriveCommutation( const Rotation direction, const DriveSector sector )
-  {
-    if( direction == Rotation::ROTATION_CW )
-    {
-      s_motor_drive_timer.setForwardCommState( EnumValue( sector ) );
-    }
+    s_motor_drive_timer.svmUpdate( drive, theta );
   }
 }    // namespace Orbit::Motor

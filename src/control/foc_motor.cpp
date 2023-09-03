@@ -16,6 +16,7 @@ Includes
 #include <Chimera/function>
 #include <Chimera/gpio>
 #include <src/config/bsp/board_map.hpp>
+#include <src/control/foc_math.hpp>
 #include <src/control/foc_motor.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 
@@ -79,8 +80,8 @@ namespace Orbit::Control::Field
 
     // TODO: Move this elsewhere
     Orbit::Motor::enableDriveOutput();
-    Orbit::Motor::setDrivePhaseWidth( 40, 50, 60 );
-    Orbit::Motor::setDriveCommutation( Orbit::Motor::Rotation::ROTATION_CW, Orbit::Motor::DriveSector::SECTOR_5 );
+    Orbit::Motor::svmUpdate( 0.02, DEG_TO_RAD( 0.0f ) );
+
   }
 
 
@@ -103,7 +104,7 @@ namespace Orbit::Control::Field
   {
     using namespace Orbit::Motor;
 
-    volatile const SenseData& sense_data = getSenseData();
+    // volatile const SenseData& sense_data = getSenseData();
 
     // using namespace Orbit::Control::Math;
     // using namespace Chimera::Timer::Inverter;

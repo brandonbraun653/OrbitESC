@@ -37,7 +37,7 @@ namespace Orbit::Motor
    * The same frequency is used for both timers to that they share the
    * same timebase and event period. This makes it easier to synchronize.
    */
-  static constexpr uint32_t TIMER_BASE_FREQ = 10'000'000;
+  static constexpr uint32_t TIMER_BASE_FREQ = 60'000'000;
 
   /*---------------------------------------------------------------------------
   Enumerations
@@ -140,27 +140,13 @@ namespace Orbit::Motor
   void disableDriveOutput();
 
   /**
-   * @brief Updates the timing of when the drive signals should be fired.
+   * @brief Updates drive outputs using space vector modulation
    *
-   * Sets the power stage timer capture compare registers to control output PWM width for
-   * each phase. It's implied that these values are ready for immediate use by the timer
-   * peripheral on the next cycle.
-   *
-   * @param a Offset to apply to phase A
-   * @param b Offset to apply to phase B
-   * @param c Offset to apply to phase C
-   * @return void
+   * @param drive   Drive magnitude on the range of [0.0, 0.866]
+   * @param theta   Electrical angle of the resulting drive vector in radians
+   * @return Chimera::Status_t
    */
-  void setDrivePhaseWidth( const uint32_t a, const uint32_t b, const uint32_t c );
-
-  /**
-   * @brief Set drive output commutation
-   *
-   * @param direction Current rotation direction
-   * @param sector    New sector to commutate at
-   * @return void
-   */
-  void setDriveCommutation( const Rotation direction, const DriveSector sector );
+  void svmUpdate( const float drive, const float theta);
 
   /**
    * @brief Sets the callback to invoke when the ADC completes a conversion

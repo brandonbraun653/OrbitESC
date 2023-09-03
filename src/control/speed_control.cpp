@@ -13,9 +13,12 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/timer>
 #include <src/config/bsp/board_map.hpp>
+#include <src/control/foc_math.hpp>
+#include <src/control/foc_motor.hpp>
 #include <src/control/speed_control.hpp>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/data/orbit_data_defaults.hpp>
+#include <src/core/hw/orbit_motor.hpp>
 
 #if defined( EMBEDDED )
 #include <Thor/lld/interface/inc/timer>
@@ -43,14 +46,18 @@ namespace Orbit::Control::Speed
    */
   static void timer_isr_speed_controller()
   {
+    using namespace Orbit::Motor;
+
     /*-------------------------------------------------------------------------
     Set the debug pin high to indicate the start of the control loop
     -------------------------------------------------------------------------*/
     s_dbg_pin->setState( Chimera::GPIO::State::HIGH );
 
-    // static const float    deg2rad    = 0.0174533f;
-    // static volatile float start_time = 0.0f;
-    // static volatile float dt         = 0.0f;
+    static const float    deg2rad    = 0.0174533f;
+    static volatile float start_time = Chimera::micros() / 1e6f;
+    static volatile float dt         = 0.0f;
+    static volatile float theta      = 0.0f;
+    static volatile float ramp_drive = 0.866;
 
     /*-------------------------------------------------------------------------
     Gate the behavior of this ISR without stopping the Timer/ADC/DMA hardware
@@ -63,12 +70,16 @@ namespace Orbit::Control::Speed
     //   return;
     // }
 
-    // // !TESTING
-    // const float ramp_time = ( Chimera::micros() / 1e6f ) - start_time;
-    // if ( ramp_time < Data::SysControl.rampCtrlRampTimeSec )
-    // {
-    //   dt = ramp_time;
-    // }
+    // !TESTING
+    const float ramp_time = ( Chimera::micros() / 1e6f ) - start_time;
+    if ( ramp_time < 2.0f )
+    {
+      dt = ramp_time;
+    }
+    else
+    {
+      //ramp_drive = 0.25;
+    }
     // else if ( !s_state.switchToClosedLoop )
     // {
     //   s_state.switchToClosedLoop = true;
@@ -78,22 +89,28 @@ namespace Orbit::Control::Speed
     //   s_state.iLoop.iqPID.resetState();
     // }
 
-    // /*-----------------------------------------------------------------------------
-    // Limit the ramp rate of theta so that it can't cross more than one sector
-    // -----------------------------------------------------------------------------*/
+    /*-----------------------------------------------------------------------------
+    Limit the ramp rate of theta so that it can't cross more than one sector
+    -----------------------------------------------------------------------------*/
     // float dTheta = ( Data::SysControl.rampCtrlSecondOrderTerm * deg2rad * dt * dt ) +
     //                ( Data::SysControl.rampCtrlFirstOrderTerm * deg2rad * dt );
 
-    // dTheta = Control::Math::clamp( dTheta, 0.0f, DEG_TO_RAD( 59.9f ) );
-    // s_state.iLoop.theta += dTheta;
+    float dTheta = ( 15.0f * deg2rad * dt * dt ) + ( 1.5f * deg2rad * dt );
 
-    // /*-----------------------------------------------------------------------------
-    // Limit the ramp rate of theta so that it can't cross more than one sector
-    // -----------------------------------------------------------------------------*/
-    // if ( s_state.iLoop.theta > 6.283185f )
-    // {
-    //   s_state.iLoop.theta -= 6.283185f;
-    // }
+    dTheta = Control::Math::clamp( dTheta, 0.0f, DEG_TO_RAD( 59.9f ) );
+    theta += dTheta;
+
+    /*-----------------------------------------------------------------------------
+    Limit the ramp rate of theta so that it can't cross more than one sector
+    -----------------------------------------------------------------------------*/
+    if ( theta > 6.283185f )
+    {
+      theta -= 6.283185f;
+    }
+
+
+    svmUpdate( ramp_drive, theta );
+
 
     // // TODO: Update these with the speed control PI loops
     // s_state.iLoop.iqRef = 0.00002f;    // Simulink model was using this in startup?
