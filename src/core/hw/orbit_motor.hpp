@@ -92,8 +92,8 @@ namespace Orbit::Motor
    */
   struct SenseData
   {
-    float channel[ CHANNEL_COUNT ];  /**< Voltage/current measurements */
-    float timestamp;                 /**< System time of the measurement */
+    float channel[ CHANNEL_COUNT ]; /**< Voltage/current measurements */
+    float timestamp;                /**< System time of the measurement */
   };
 
   /*---------------------------------------------------------------------------
@@ -142,11 +142,25 @@ namespace Orbit::Motor
   /**
    * @brief Updates drive outputs using space vector modulation
    *
-   * @param drive   Drive magnitude on the range of [0.0, 0.866]
-   * @param theta   Electrical angle of the resulting drive vector in radians
+   * @param alpha   Output of inverse park transform
+   * @param beta    Output of inverse park transform
+   * @param theta   Desired electrical angle of the resulting drive vector in radians
    * @return Chimera::Status_t
    */
-  void svmUpdate( const float drive, const float theta);
+  void svmUpdate( const float &alpha, const float &beta, const float &theta );
+
+  /**
+   * @brief Retrieves the number of timer ticks each high side switch is on for.
+   *
+   * These values can be used to determine which phases have the most time
+   * available for ADC sampling.
+   *
+   * @param tOnA  Phase A high side on time in timer ticks
+   * @param tOnB  Phase B high side on time in timer ticks
+   * @param tOnC  Phase C high side on time in timer ticks
+   * @return void
+   */
+  void svmOnTicks( uint32_t &tOnA, uint32_t &tOnB, uint32_t &tOnC );
 
   /**
    * @brief Sets the callback to invoke when the ADC completes a conversion
@@ -160,7 +174,7 @@ namespace Orbit::Motor
    * @brief Gets the latest motor sense data
    * @return Const reference to the data
    */
-  volatile const SenseData& getSenseData();
+  volatile const SenseData &getSenseData();
 
   /**
    * @brief Calibrate the motor current/voltage sense inputs
@@ -168,6 +182,6 @@ namespace Orbit::Motor
    */
   void calibrateSenseInputs();
 
-}  // namespace Orbit::Motor
+}    // namespace Orbit::Motor
 
-#endif  /* !ORBIT_MOTOR_HPP */
+#endif /* !ORBIT_MOTOR_HPP */

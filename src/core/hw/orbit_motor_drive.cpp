@@ -73,8 +73,14 @@ namespace Orbit::Motor
   }
 
 
-  void svmUpdate( const float drive, const float theta)
+  void svmUpdate( const float &alpha, const float &beta, const float &theta )
   {
-    s_motor_drive_timer.svmUpdate( drive, theta );
+    s_motor_drive_timer.svmUpdate( alpha, beta, theta );
+  }
+
+
+  void svmOnTicks( uint32_t &tOnA, uint32_t &tOnB, uint32_t &tOnC )
+  {
+    s_motor_drive_timer.getSVMOnTicks( tOnA, tOnB, tOnC );
   }
 }    // namespace Orbit::Motor

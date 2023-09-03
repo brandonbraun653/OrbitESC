@@ -68,65 +68,7 @@ namespace Orbit::Motor
    *
    * Follows the Microchip AN1078 example from Figure 6
    */
-  struct CurrentControlState
-  {
-    float    dt;              /**< Time delta between current control loop invocation */
-    float    ima;             /**< Current measured at phase A terminal */
-    float    imb;             /**< Current measured at phase B terminal */
-    float    imc;             /**< Current measured at phase C terminal */
-    float    vm;              /**< Voltage measured at the motor supply terminal */
-    float    iq;              /**< Current output measurement for the q-axis */
-    float    id;              /**< Current output measurement for the d-axis */
-    float    vq;              /**< Voltage command for the q-axis */
-    float    vd;              /**< Voltage command for the d-axis */
-    float    va;              /**< Voltage (alpha) after inverse-park transform */
-    float    vb;              /**< Voltage (beta) after inverse-park transform */
-    float    ia;              /**< Current (alpha) after clarke transform */
-    float    ib;              /**< Current (beta) after clarke transform */
-    float    theta;           /**< Current estimated rotor angle in radians */
-    float    omega;           /**< Current estimated rotor speed in radians/sec */
-    float    iqRef;           /**< Current reference for the q-axis */
-    float    idRef;           /**< Current reference for the d-axis */
-    float    pa;              /**< Phase A PWM duty cycle */
-    float    pb;              /**< Phase B PWM duty cycle */
-    float    pc;              /**< Phase C PWM duty cycle */
-    uint32_t tOnA;            /**< Phase A PWM on time */
-    uint32_t tOnB;            /**< Phase B PWM on time */
-    uint32_t tOnC;            /**< Phase C PWM on time */
-    int      activeSector;    /**< Currently active sector */
 
-    Control::Math::PID iqPID; /**< Current controller for the q-axis */
-    Control::Math::PID idPID; /**< Current controller for the d-axis */
-
-    void clear()
-    {
-      dt           = 0.0f;
-      ima          = 0.0f;
-      imb          = 0.0f;
-      imc          = 0.0f;
-      iq           = 0.0f;
-      id           = 0.0f;
-      vq           = 0.0f;
-      vd           = 0.0f;
-      va           = 0.0f;
-      vb           = 0.0f;
-      ia           = 0.0f;
-      ib           = 0.0f;
-      theta        = 0.0f;
-      omega        = 0.0f;
-      iqRef        = 0.0f;
-      idRef        = 0.0f;
-      pa           = 0.0f;
-      pb           = 0.0f;
-      pc           = 0.0f;
-      tOnA         = 0;
-      tOnB         = 0;
-      tOnC         = 0;
-      activeSector = Chimera::Timer::Inverter::CommutationState::STATE_OFF;
-      iqPID.init();
-      idPID.init();
-    }
-  };
 
   /**
    * @brief Stores state for the current observer detailed in AN1078
@@ -620,13 +562,6 @@ namespace Orbit::Motor
   }
 
 
-  static inline void runInnerLoopCurrentControl()
-  {
-  }
-
-
-
-
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
@@ -648,20 +583,6 @@ namespace Orbit::Motor
     s_state.motor.m_gamma_now = 2500.0f;
     // !TESTING
 
-    /*-------------------------------------------------------------------------
-    Assign PID current control parameters
-    -------------------------------------------------------------------------*/
-    s_state.iLoop.dt = 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ;
-
-    s_state.iLoop.iqPID.OutMinLimit = -1.0f;
-    s_state.iLoop.iqPID.OutMaxLimit = 1.0f;
-    s_state.iLoop.iqPID.setTunings( Data::SysControl.currentCtrl_Q_Kp, Data::SysControl.currentCtrl_Q_Ki,
-                                    Data::SysControl.currentCtrl_Q_Kd, s_state.iLoop.dt );
-
-    s_state.iLoop.idPID.OutMinLimit = -1.0f;
-    s_state.iLoop.idPID.OutMaxLimit = 1.0f;
-    s_state.iLoop.idPID.setTunings( Data::SysControl.currentCtrl_D_Kp, Data::SysControl.currentCtrl_D_Ki,
-                                    Data::SysControl.currentCtrl_D_Kd, s_state.iLoop.dt );
 
     /*-------------------------------------------------------------------------
     Initialize the current observer
@@ -684,10 +605,6 @@ namespace Orbit::Motor
     s_state.iObserve.phase[ 0 ].lpf_alpha = initial_alpha;
     s_state.iObserve.phase[ 1 ].lpf_alpha = initial_alpha;
     s_state.sObserve.lpf_alpha            = initial_alpha;
-
-
-
-
   }
 
 }    // namespace Orbit::Motor

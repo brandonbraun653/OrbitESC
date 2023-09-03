@@ -13,8 +13,9 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/timer>
 #include <src/config/bsp/board_map.hpp>
+#include <src/control/current_control.hpp>
+#include <src/control/foc_data.hpp>
 #include <src/control/foc_math.hpp>
-#include <src/control/foc_motor.hpp>
 #include <src/control/speed_control.hpp>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/data/orbit_data_defaults.hpp>
@@ -57,7 +58,6 @@ namespace Orbit::Control::Speed
     static volatile float start_time = Chimera::micros() / 1e6f;
     static volatile float dt         = 0.0f;
     static volatile float theta      = 0.0f;
-    static volatile float ramp_drive = 0.866;
 
     /*-------------------------------------------------------------------------
     Gate the behavior of this ISR without stopping the Timer/ADC/DMA hardware
@@ -108,9 +108,7 @@ namespace Orbit::Control::Speed
       theta -= 6.283185f;
     }
 
-
-    svmUpdate( ramp_drive, theta );
-
+    foc_motor_state.thetaEst = theta;
 
     // // TODO: Update these with the speed control PI loops
     // s_state.iLoop.iqRef = 0.00002f;    // Simulink model was using this in startup?
@@ -132,8 +130,6 @@ namespace Orbit::Control::Speed
     Set the debug pin low to indicate the start of the control loop
     -------------------------------------------------------------------------*/
     s_dbg_pin->setState( Chimera::GPIO::State::LOW );
-
-
   }
 
 

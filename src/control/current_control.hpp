@@ -1,6 +1,6 @@
 /******************************************************************************
  *  File Name:
- *    foc_motor.hpp
+ *    current_control.hpp
  *
  *  Description:
  *    Field Oriented Control (FOC) Driver
@@ -9,8 +9,8 @@
  *****************************************************************************/
 
 #pragma once
-#ifndef ORBIT_FOC_MOTOR_HPP
-#define ORBIT_FOC_MOTOR_HPP
+#ifndef ORBIT_CURRENT_CONTROL_HPP
+#define ORBIT_CURRENT_CONTROL_HPP
 
 /*-----------------------------------------------------------------------------
 Includes
@@ -56,4 +56,4 @@ namespace Orbit::Control::Field
 
 }    // namespace Orbit::Control::Field
 
-#endif /* !ORBIT_FOC_MOTOR_HPP */
+#endif /* !ORBIT_CURRENT_CONTROL_HPP */

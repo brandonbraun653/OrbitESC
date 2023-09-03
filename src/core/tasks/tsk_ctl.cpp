@@ -15,7 +15,7 @@ Includes
 #include <Chimera/adc>
 #include <Chimera/thread>
 #include <src/control/foc_driver.hpp>
-#include <src/control/foc_motor.hpp>
+#include <src/control/current_control.hpp>
 #include <src/control/speed_control.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_motor.hpp>
@@ -38,7 +38,7 @@ namespace Orbit::Tasks::CTL
     /*-------------------------------------------------------------------------
     Initialize the CTL drivers
     -------------------------------------------------------------------------*/
-    Chimera::delayMilliseconds( 1000 );
+    Chimera::delayMilliseconds( 5000 );
     Control::Field::powerUp();
     Control::Speed::powerUp();
 
