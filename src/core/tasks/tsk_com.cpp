@@ -16,7 +16,7 @@ Includes
 #include <src/core/tasks/tsk_com.hpp>
 #include <src/core/runtime/serial_runtime.hpp>
 #include <src/core/runtime/can_runtime.hpp>
-
+#include <src/core/com/com_app_tx.hpp>
 
 namespace Orbit::Tasks::COM
 {
@@ -47,6 +47,13 @@ namespace Orbit::Tasks::COM
       -----------------------------------------------------------------------*/
       Orbit::CAN::processCANBus();
       Orbit::Serial::processSerial();
+
+      /*-----------------------------------------------------------------------
+      Publish available data to the remote host
+      -----------------------------------------------------------------------*/
+      Orbit::Com::publishPhaseCurrents();
+      Orbit::Com::publishPhaseVoltages();
+      Orbit::Com::publishStateEstimates();
 
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically

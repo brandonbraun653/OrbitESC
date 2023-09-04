@@ -15,6 +15,7 @@ gen_static_lib_variants(
     modes/sys_mode_run.cpp
     pid.cpp
     speed_control.cpp
+    system_observer.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc

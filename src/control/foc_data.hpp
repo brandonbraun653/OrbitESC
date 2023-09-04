@@ -136,22 +136,25 @@ namespace Orbit::Control
    */
   struct CurrentControlState
   {
-    float              dt;           /**< Time delta between current control loop invocation */
-    float              ima;          /**< Current measured at phase A terminal */
-    float              imb;          /**< Current measured at phase B terminal */
-    float              imc;          /**< Current measured at phase C terminal */
-    float              iq;           /**< Current output measurement for the q-axis */
-    float              id;           /**< Current output measurement for the d-axis */
-    float              vq;           /**< Voltage command for the q-axis */
-    float              vd;           /**< Voltage command for the d-axis */
-    float              va;           /**< Voltage (alpha) after inverse-park transform */
-    float              vb;           /**< Voltage (beta) after inverse-park transform */
-    float              ia;           /**< Current (alpha) after clarke transform */
-    float              ib;           /**< Current (beta) after clarke transform */
-    float              iqRef;        /**< Current reference for the q-axis */
-    float              idRef;        /**< Current reference for the d-axis */
-    Control::Math::PID iqPID;        /**< Current controller for the q-axis */
-    Control::Math::PID idPID;        /**< Current controller for the d-axis */
+    float              dt;    /**< Time delta between current control loop invocation */
+    float              ima;   /**< Current measured at phase A terminal */
+    float              imb;   /**< Current measured at phase B terminal */
+    float              imc;   /**< Current measured at phase C terminal */
+    float              vma;   /**< Voltage measured at phase A terminal */
+    float              vmb;   /**< Voltage measured at phase B terminal */
+    float              vmc;   /**< Voltage measured at phase C terminal */
+    float              iq;    /**< Current output measurement for the q-axis */
+    float              id;    /**< Current output measurement for the d-axis */
+    float              vq;    /**< Voltage command for the q-axis */
+    float              vd;    /**< Voltage command for the d-axis */
+    float              va;    /**< Voltage (alpha) after inverse-park transform */
+    float              vb;    /**< Voltage (beta) after inverse-park transform */
+    float              ia;    /**< Current (alpha) after clarke transform */
+    float              ib;    /**< Current (beta) after clarke transform */
+    float              iqRef; /**< Current reference for the q-axis */
+    float              idRef; /**< Current reference for the d-axis */
+    Control::Math::PID iqPID; /**< Current controller for the q-axis */
+    Control::Math::PID idPID; /**< Current controller for the d-axis */
   };
 
   extern CurrentControlState foc_ireg_state;

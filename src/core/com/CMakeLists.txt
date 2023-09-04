@@ -11,6 +11,7 @@ gen_static_lib_variants(
     can/routers/can_ping_router.cpp
     can/routers/can_reset_router.cpp
     can/routers/can_speed_router.cpp
+    com_app_tx.cpp
     serial/routers/serial_param_io_router.cpp
     serial/routers/serial_ping_router.cpp
     serial/routers/serial_switch_mode_router.cpp

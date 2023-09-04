@@ -42,6 +42,9 @@ namespace Orbit::Control
     foc_ireg_state.ima   = 0.0f;
     foc_ireg_state.imb   = 0.0f;
     foc_ireg_state.imc   = 0.0f;
+    foc_ireg_state.vma   = 0.0f;
+    foc_ireg_state.vmb   = 0.0f;
+    foc_ireg_state.vmc   = 0.0f;
     foc_ireg_state.iq    = 0.0f;
     foc_ireg_state.id    = 0.0f;
     foc_ireg_state.vq    = 0.0f;

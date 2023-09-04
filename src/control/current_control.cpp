@@ -134,6 +134,10 @@ namespace Orbit::Control::Field
     volatile const SenseData &sense_data = getSenseData();
     const float               vSupply    = getSupplyVoltage();
 
+    foc_ireg_state.vma = sense_data.channel[ CHANNEL_PHASE_A_VOLTAGE ];
+    foc_ireg_state.vmb = sense_data.channel[ CHANNEL_PHASE_B_VOLTAGE ];
+    foc_ireg_state.vmc = sense_data.channel[ CHANNEL_PHASE_C_VOLTAGE ];
+
     /*-------------------------------------------------------------------------
     Reconstruct 3-phase currents from two phases. One phase could have the
     low side switch active for a very short amount of time, leading to a bad
