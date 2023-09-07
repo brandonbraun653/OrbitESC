@@ -32,7 +32,9 @@ typedef enum _SubId {
     /* System control messages */
     SubId_SUB_MSG_SYS_CTRL_RESET = 1, /* Reset the system */
     SubId_SUB_MSG_SYS_CTRL_MOTOR = 2, /* Inject manual motor control commands */
-    SubId_SUB_MSG_SYS_CTRL_CAL_ADC = 3 /* Calibrate the ADC */
+    SubId_SUB_MSG_SYS_CTRL_CAL_ADC = 3, /* Calibrate the ADC */
+    SubId_SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP = 4, /* Manual inner loop control enable/disable */
+    SubId_SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP_REF = 5 /* New references to use for manual inner loop control */
 } SubId;
 
 typedef enum _ParamId {
@@ -195,6 +197,12 @@ typedef struct _SystemControlMessage {
     SystemControlMessage_data_t data;
 } SystemControlMessage;
 
+typedef struct _SystemControlMessage_ManualICtrlSetPoint {
+    float rotor_theta_rad;
+    float id_ref;
+    float iq_ref;
+} SystemControlMessage_ManualICtrlSetPoint;
+
 typedef struct _SwitchModeMessage {
     Header header;
     BootMode mode;
@@ -239,8 +247,8 @@ typedef struct _SystemDataMessage_StateEstimates {
 #define _MsgId_ARRAYSIZE ((MsgId)(MsgId_MSG_SYS_DATA+1))
 
 #define _SubId_MIN SubId_SUB_MSG_NONE
-#define _SubId_MAX SubId_SUB_MSG_PARAM_IO_LOAD
-#define _SubId_ARRAYSIZE ((SubId)(SubId_SUB_MSG_PARAM_IO_LOAD+1))
+#define _SubId_MAX SubId_SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP_REF
+#define _SubId_ARRAYSIZE ((SubId)(SubId_SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP_REF+1))
 
 #define _ParamId_MIN ParamId_PARAM_INVALID
 #define _ParamId_MAX ParamId_PARAM_STREAM_STATE_ESTIMATES
@@ -279,6 +287,7 @@ typedef struct _SystemDataMessage_StateEstimates {
 
 #define SystemControlMessage_motorCmd_ENUMTYPE MotorCtrlCmd
 
+
 #define SwitchModeMessage_mode_ENUMTYPE BootMode
 
 #define SystemDataMessage_id_ENUMTYPE SystemDataId
@@ -301,6 +310,7 @@ extern "C" {
 #define SystemInfoMessage_init_default           {Header_init_default, 0, "", "", ""}
 #define ParamIOMessage_init_default              {Header_init_default, false, _ParamId_MIN, false, _ParamType_MIN, false, {0, {0}}}
 #define SystemControlMessage_init_default        {Header_init_default, false, _MotorCtrlCmd_MIN, false, {0, {0}}}
+#define SystemControlMessage_ManualICtrlSetPoint_init_default {0, 0, 0}
 #define SwitchModeMessage_init_default           {Header_init_default, _BootMode_MIN}
 #define SystemDataMessage_init_default           {Header_init_default, _SystemDataId_MIN, false, {0, {0}}}
 #define SystemDataMessage_ADCPhaseCurrents_init_default {0, 0, 0, 0}
@@ -315,6 +325,7 @@ extern "C" {
 #define SystemInfoMessage_init_zero              {Header_init_zero, 0, "", "", ""}
 #define ParamIOMessage_init_zero                 {Header_init_zero, false, _ParamId_MIN, false, _ParamType_MIN, false, {0, {0}}}
 #define SystemControlMessage_init_zero           {Header_init_zero, false, _MotorCtrlCmd_MIN, false, {0, {0}}}
+#define SystemControlMessage_ManualICtrlSetPoint_init_zero {0, 0, 0}
 #define SwitchModeMessage_init_zero              {Header_init_zero, _BootMode_MIN}
 #define SystemDataMessage_init_zero              {Header_init_zero, _SystemDataId_MIN, false, {0, {0}}}
 #define SystemDataMessage_ADCPhaseCurrents_init_zero {0, 0, 0, 0}
@@ -349,6 +360,9 @@ extern "C" {
 #define SystemControlMessage_header_tag          1
 #define SystemControlMessage_motorCmd_tag        2
 #define SystemControlMessage_data_tag            3
+#define SystemControlMessage_ManualICtrlSetPoint_rotor_theta_rad_tag 1
+#define SystemControlMessage_ManualICtrlSetPoint_id_ref_tag 2
+#define SystemControlMessage_ManualICtrlSetPoint_iq_ref_tag 3
 #define SwitchModeMessage_header_tag             1
 #define SwitchModeMessage_mode_tag               2
 #define SystemDataMessage_header_tag             1
@@ -438,6 +452,13 @@ X(a, STATIC,   OPTIONAL, BYTES,    data,              3)
 #define SystemControlMessage_DEFAULT NULL
 #define SystemControlMessage_header_MSGTYPE Header
 
+#define SystemControlMessage_ManualICtrlSetPoint_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, FLOAT,    rotor_theta_rad,   1) \
+X(a, STATIC,   REQUIRED, FLOAT,    id_ref,            2) \
+X(a, STATIC,   REQUIRED, FLOAT,    iq_ref,            3)
+#define SystemControlMessage_ManualICtrlSetPoint_CALLBACK NULL
+#define SystemControlMessage_ManualICtrlSetPoint_DEFAULT NULL
+
 #define SwitchModeMessage_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
 X(a, STATIC,   REQUIRED, UENUM,    mode,              2)
@@ -485,6 +506,7 @@ extern const pb_msgdesc_t ConsoleMessage_msg;
 extern const pb_msgdesc_t SystemInfoMessage_msg;
 extern const pb_msgdesc_t ParamIOMessage_msg;
 extern const pb_msgdesc_t SystemControlMessage_msg;
+extern const pb_msgdesc_t SystemControlMessage_ManualICtrlSetPoint_msg;
 extern const pb_msgdesc_t SwitchModeMessage_msg;
 extern const pb_msgdesc_t SystemDataMessage_msg;
 extern const pb_msgdesc_t SystemDataMessage_ADCPhaseCurrents_msg;
@@ -501,6 +523,7 @@ extern const pb_msgdesc_t SystemDataMessage_StateEstimates_msg;
 #define SystemInfoMessage_fields &SystemInfoMessage_msg
 #define ParamIOMessage_fields &ParamIOMessage_msg
 #define SystemControlMessage_fields &SystemControlMessage_msg
+#define SystemControlMessage_ManualICtrlSetPoint_fields &SystemControlMessage_ManualICtrlSetPoint_msg
 #define SwitchModeMessage_fields &SwitchModeMessage_msg
 #define SystemDataMessage_fields &SystemDataMessage_msg
 #define SystemDataMessage_ADCPhaseCurrents_fields &SystemDataMessage_ADCPhaseCurrents_msg
@@ -515,6 +538,7 @@ extern const pb_msgdesc_t SystemDataMessage_StateEstimates_msg;
 #define ParamIOMessage_size                      91
 #define PingMessage_size                         12
 #define SwitchModeMessage_size                   14
+#define SystemControlMessage_ManualICtrlSetPoint_size 15
 #define SystemControlMessage_size                80
 #define SystemDataMessage_ADCPhaseCurrents_size  21
 #define SystemDataMessage_PWMCommands_size       21

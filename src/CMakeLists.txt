@@ -16,7 +16,7 @@ gen_intf_lib_variants(
     embedded_core_libs
   LIBRARIES
     thor_cfg_freertos
-    thor_cmn_cm4_dbg
+    thor_cmn_cm4
     thor_hld_adc
     thor_hld_can
     thor_hld_clock
@@ -158,8 +158,8 @@ target_link_libraries(OrbitESC PRIVATE
   # Project Libraries
   aurora_libs
   chimera_core
-  lib_cobs
-  lib_nanopb
+  lib_cobs_rel
+  lib_nanopb_rel
 
   # Orbit Libraries
   lib_orbit_com
@@ -203,7 +203,7 @@ if(Toolchain::HAS_GCC_ARM_NONE_EABI)
   target_link_libraries(OrbitESC PRIVATE
     # Threading Library
     freertos_intf_inc_all
-    freertos_core
+    freertos_core_rel
     freertos_port
     freertos_heap
     freertos_heap_4

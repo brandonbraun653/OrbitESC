@@ -122,7 +122,7 @@ namespace Orbit::Motor
    *
    * @return void
    */
-  inline void emergencyStop();
+  void emergencyStop();
 
   /**
    * @brief Enable the power stage drive signals

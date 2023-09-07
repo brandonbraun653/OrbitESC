@@ -29,7 +29,10 @@ namespace Orbit::Control::Field
   ---------------------------------------------------------------------------*/
   struct ControlState
   {
-    Mode ctl_mode; /**< Current control mode */
+    volatile Mode ctl_mode; /**< Current control mode */
+    volatile float open_loop_theta;
+    volatile float open_loop_iq_ref;
+    volatile float open_loop_id_ref;
   };
 
 
@@ -60,7 +63,7 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Initialize the control state
     -------------------------------------------------------------------------*/
-    s_state.ctl_mode = Mode::DISABLED;
+    s_state.ctl_mode = Mode::UNKNOWN;
 
     /*-------------------------------------------------------------------------
     Get a reference to the debug pin. This is used for timing measurements.
@@ -89,11 +92,13 @@ namespace Orbit::Control::Field
     -------------------------------------------------------------------------*/
     foc_ireg_state.dt = 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ;
 
+    foc_ireg_state.iqPID.init();
     foc_ireg_state.iqPID.OutMinLimit = -1.0f;
     foc_ireg_state.iqPID.OutMaxLimit = 1.0f;
     foc_ireg_state.iqPID.setTunings( Data::SysControl.currentCtrl_Q_Kp, Data::SysControl.currentCtrl_Q_Ki,
                                      Data::SysControl.currentCtrl_Q_Kd, foc_ireg_state.dt );
 
+    foc_ireg_state.idPID.init();
     foc_ireg_state.idPID.OutMinLimit = -1.0f;
     foc_ireg_state.idPID.OutMaxLimit = 1.0f;
     foc_ireg_state.idPID.setTunings( Data::SysControl.currentCtrl_D_Kp, Data::SysControl.currentCtrl_D_Ki,
@@ -104,19 +109,77 @@ namespace Orbit::Control::Field
     Orbit::Motor::svmUpdate( 1.0f, 1.0f, 1.0f ); // Have to call this to kick initial PWM update
     foc_ireg_state.iqRef = 0.0f;
     foc_ireg_state.idRef = 0.001f; // Torque command
+
+    setControlMode( Mode::DISABLED );
   }
 
 
   bool setControlMode( const Mode mode )
   {
-    // TODO
-    return false;
+    /*-------------------------------------------------------------------------
+    Check if the mode is already set
+    -------------------------------------------------------------------------*/
+    if( mode == s_state.ctl_mode )
+    {
+      return true;
+    }
+
+    /*-------------------------------------------------------------------------
+    Gate the ISR from running temporarily while state data gets updated
+    -------------------------------------------------------------------------*/
+    s_state.ctl_mode = Mode::DISABLED;
+
+    /*-------------------------------------------------------------------------
+    Otherwise, cleanly transition to the new mode
+    -------------------------------------------------------------------------*/
+    foc_ireg_state.iqPID.resetState();
+    foc_ireg_state.idPID.resetState();
+
+    switch( mode )
+    {
+      case Mode::DISABLED:
+        Orbit::Motor::disableDriveOutput();
+        break;
+
+      case Mode::OPEN_LOOP:
+        s_state.open_loop_id_ref = 0.0f;
+        s_state.open_loop_iq_ref = 0.0f;
+        s_state.open_loop_theta  = 0.0f;
+        break;
+
+      case Mode::CLOSED_LOOP:
+        foc_motor_state.thetaEst = 0.0f;
+        foc_ireg_state.iqRef     = 0.0f;
+        foc_ireg_state.idRef     = 0.0f;
+        break;
+
+      default:
+        Orbit::Motor::disableDriveOutput();
+        return false;
+    }
+
+    /*-------------------------------------------------------------------------
+    Activate the new mode
+    -------------------------------------------------------------------------*/
+    s_state.ctl_mode = mode;
+    return true;
   }
 
 
   Mode getControlMode()
   {
     return s_state.ctl_mode;
+  }
+
+
+  void setInnerLoopReferences( const float iq_ref, const float id_ref, const float theta )
+  {
+    if( s_state.ctl_mode == Mode::OPEN_LOOP )
+    {
+      s_state.open_loop_iq_ref = iq_ref;
+      s_state.open_loop_id_ref = id_ref;
+      s_state.open_loop_theta  = theta;
+    }
   }
 
   /*---------------------------------------------------------------------------
@@ -127,6 +190,43 @@ namespace Orbit::Control::Field
     using namespace Orbit::Motor;
     using namespace Orbit::Instrumentation;
     using namespace Orbit::Control::Math;
+
+    /*-------------------------------------------------------------------------
+    Decide how to proceed depending on our current mode
+    -------------------------------------------------------------------------*/
+    float theta = 0.0f;
+    float iqRef = 0.0f;
+    float idRef = 0.0f;
+
+    switch( s_state.ctl_mode )
+    {
+      /*-----------------------------------------------------------------------
+      Use external references for the current control loop. This is used for
+      manual control.
+      -----------------------------------------------------------------------*/
+      case Mode::OPEN_LOOP:
+        theta = s_state.open_loop_theta;
+        iqRef = s_state.open_loop_iq_ref;
+        idRef = s_state.open_loop_id_ref;
+        break;
+
+      /*-----------------------------------------------------------------------
+      Use internal references generated by state estimator and speed control
+      outer loop to generate current control references.
+      -----------------------------------------------------------------------*/
+      case Mode::CLOSED_LOOP:
+        theta = foc_motor_state.thetaEst;
+        iqRef = foc_ireg_state.iqRef;
+        idRef = foc_ireg_state.idRef;
+        break;
+
+      /*-----------------------------------------------------------------------
+      Default case is to do nothing and immediately return.
+      -----------------------------------------------------------------------*/
+      case Mode::DISABLED:
+      default:
+        return;
+    }
 
     /*-------------------------------------------------------------------------
     Pull the latest ADC samples
@@ -195,7 +295,7 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Use Park Transform to convert phase currents from 2-axis to d-q axis
     -------------------------------------------------------------------------*/
-    park_transform( foc_ireg_state.ia, foc_ireg_state.ib, foc_motor_state.thetaEst, foc_ireg_state.iq, foc_ireg_state.id );
+    park_transform( foc_ireg_state.ia, foc_ireg_state.ib, theta, foc_ireg_state.iq, foc_ireg_state.id );
 
 
     // /*-------------------------------------------------------------------------
@@ -207,8 +307,8 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Run PI controllers for motor currents to generate voltage commands
     -------------------------------------------------------------------------*/
-    foc_ireg_state.vq -= foc_ireg_state.iqPID.run( foc_ireg_state.iqRef - foc_ireg_state.iq );
-    foc_ireg_state.vd += foc_ireg_state.idPID.run( foc_ireg_state.idRef - foc_ireg_state.id );
+    foc_ireg_state.vq -= foc_ireg_state.iqPID.run( iqRef - foc_ireg_state.iq );
+    foc_ireg_state.vd += foc_ireg_state.idPID.run( idRef - foc_ireg_state.id );
 
     const float max_duty  = 1.0;
     const float max_v_mag = ONE_OVER_SQRT3 * max_duty * vSupply;
@@ -222,13 +322,12 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Use Inverse Park Transform to convert d-q voltages to 2-axis phase voltages
     -------------------------------------------------------------------------*/
-    inverse_park_transform( foc_ireg_state.vq, foc_ireg_state.vd, foc_motor_state.thetaEst, foc_ireg_state.va,
-                            foc_ireg_state.vb );
+    inverse_park_transform( foc_ireg_state.vq, foc_ireg_state.vd, theta, foc_ireg_state.va, foc_ireg_state.vb );
 
     /*-------------------------------------------------------------------------
     Apply the SVM updates
     -------------------------------------------------------------------------*/
-    svmUpdate( foc_ireg_state.va, foc_ireg_state.vb, foc_motor_state.thetaEst );
+    svmUpdate( foc_ireg_state.va, foc_ireg_state.vb, theta );
 
     /*-------------------------------------------------------------------------
     Set the debug pin low to indicate the end of the control loop

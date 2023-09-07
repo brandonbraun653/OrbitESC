@@ -27,6 +27,8 @@ enum SubId {
   SUB_MSG_SYS_CTRL_RESET   = 1; // Reset the system
   SUB_MSG_SYS_CTRL_MOTOR   = 2; // Inject manual motor control commands
   SUB_MSG_SYS_CTRL_CAL_ADC = 3; // Calibrate the ADC
+  SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP = 4; // Manual inner loop control enable/disable
+  SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP_REF = 5; // New references to use for manual inner loop control
 }
 
 enum ParamId {
@@ -178,6 +180,12 @@ message ParamIOMessage {
 }
 
 message SystemControlMessage {
+  message ManualICtrlSetPoint {
+    required float rotor_theta_rad = 1;
+    required float id_ref = 2;
+    required float iq_ref = 3;
+  }
+
   required Header header = 1;
   optional MotorCtrlCmd motorCmd = 2 [(nanopb).int_size = IS_8];
   /* Inject more commands here */
@@ -219,3 +227,4 @@ message SystemDataMessage {
   required SystemDataId id = 2 [(nanopb).int_size = IS_8];
   optional bytes data = 3 [(nanopb).max_size = 24 ];
 }
+

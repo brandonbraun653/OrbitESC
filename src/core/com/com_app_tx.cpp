@@ -31,12 +31,12 @@ namespace Orbit::Com
     Local Constants
     -------------------------------------------------------------------------*/
     static constexpr uint32_t publish_delta_us = 4 * 1000; /* 250Hz */
-    static const uint32_t     time_us          = Chimera::micros();
 
     /*-------------------------------------------------------------------------
     Local Variables
     -------------------------------------------------------------------------*/
     static uint32_t last_publish = 0;
+    uint32_t        time_us      = Chimera::micros();
 
     /*-------------------------------------------------------------------------
     Wait until it's time to publish the next message
@@ -80,12 +80,12 @@ namespace Orbit::Com
     Local Constants
     -------------------------------------------------------------------------*/
     static constexpr uint32_t publish_delta_us = 25 * 1000; /* 40Hz */
-    static const uint32_t     time_us          = Chimera::micros();
 
     /*-------------------------------------------------------------------------
     Local Variables
     -------------------------------------------------------------------------*/
     static uint32_t last_publish = 0;
+    const uint32_t  time_us      = Chimera::micros();
 
     /*-------------------------------------------------------------------------
     Wait until it's time to publish the next message
@@ -129,12 +129,12 @@ namespace Orbit::Com
     Local Constants
     -------------------------------------------------------------------------*/
     static constexpr uint32_t publish_delta_us = 4 * 1000; /* 100Hz */
-    static const uint32_t     time_us          = Chimera::micros();
 
     /*-------------------------------------------------------------------------
     Local Variables
     -------------------------------------------------------------------------*/
     static uint32_t last_publish = 0;
+    const uint32_t  time_us      = Chimera::micros();
 
     /*-------------------------------------------------------------------------
     Wait until it's time to publish the next message
@@ -152,7 +152,7 @@ namespace Orbit::Com
     SystemDataMessage_StateEstimates msg;
     msg.timestamp = time_us;
     //msg.omega_est = static_cast<float>( s_state.iLoop.activeSector );
-    msg.omega_est = 0.0f;
+    msg.omega_est = Control::foc_ireg_state.vd;
     //msg.omega_est = s_state.motor.m_phase_now_observer;
     // msg.theta_est = s_state.sObserve.theta_comp;
 

@@ -63,39 +63,19 @@ namespace Orbit::Control::Speed
     Gate the behavior of this ISR without stopping the Timer/ADC/DMA hardware
     -------------------------------------------------------------------------*/
     s_speed_ctrl_timer.ackISR();
-    // if ( !s_state.isrControlActive )
-    // {
-    //   start_time = Chimera::micros() / 1e6f;
-    //   dt         = 0.0f;
-    //   return;
-    // }
 
     // !TESTING
     const float ramp_time = ( Chimera::micros() / 1e6f ) - start_time;
-    if ( ramp_time < 2.0f )
+    if ( ramp_time < Data::SysControl.rampCtrlRampTimeSec )
     {
       dt = ramp_time;
     }
-    else
-    {
-      //ramp_drive = 0.25;
-    }
-    // else if ( !s_state.switchToClosedLoop )
-    // {
-    //   s_state.switchToClosedLoop = true;
-    //   s_state.iLoop.vq           = 0.0f;
-    //   s_state.iLoop.vd           = 0.0f;
-    //   s_state.iLoop.idPID.resetState();
-    //   s_state.iLoop.iqPID.resetState();
-    // }
 
     /*-----------------------------------------------------------------------------
     Limit the ramp rate of theta so that it can't cross more than one sector
     -----------------------------------------------------------------------------*/
-    // float dTheta = ( Data::SysControl.rampCtrlSecondOrderTerm * deg2rad * dt * dt ) +
-    //                ( Data::SysControl.rampCtrlFirstOrderTerm * deg2rad * dt );
-
-    float dTheta = ( 15.0f * deg2rad * dt * dt ) + ( 1.5f * deg2rad * dt );
+    float dTheta = ( Data::SysControl.rampCtrlSecondOrderTerm * deg2rad * dt * dt ) +
+                   ( Data::SysControl.rampCtrlFirstOrderTerm * deg2rad * dt );
 
     dTheta = Control::Math::clamp( dTheta, 0.0f, DEG_TO_RAD( 59.9f ) );
     theta += dTheta;

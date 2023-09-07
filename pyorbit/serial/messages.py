@@ -44,6 +44,8 @@ class MessageSubId(IntEnum):
     # System Control
     SystemControl_Reset = proto.SUB_MSG_SYS_CTRL_RESET
     SystemControl_Motor = proto.SUB_MSG_SYS_CTRL_MOTOR
+    SystemControl_ManualInnerLoop = proto.SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP
+    SystemControl_ManualInnerLoopRef = proto.SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP_REF
 
 
 class StatusCode(IntEnum):
@@ -282,6 +284,32 @@ class MotorControlMessage(BaseMessage):
     @payload.setter
     def payload(self, data: bytes):
         self._pb_msg.data = data
+
+
+class ManualCurrentControlToggleMessage(BaseMessage):
+
+    def __init__(self):
+        super().__init__()
+        self._pb_msg = proto.SystemControlMessage()
+        self._pb_msg.header.msgId = MessageId.SystemCtrl.value
+        self._pb_msg.header.subId = MessageSubId.SystemControl_ManualInnerLoop.value
+        self._pb_msg.header.uuid = self._id_gen.next_uuid
+
+
+class ManualCurrentControlSetPointMessage(BaseMessage):
+
+    def __init__(self, id_ref: float, iq_ref: float, theta: float):
+        super().__init__()
+        self._pb_msg = proto.SystemControlMessage()
+        self._pb_msg.header.msgId = MessageId.SystemCtrl.value
+        self._pb_msg.header.subId = MessageSubId.SystemControl_ManualInnerLoopRef.value
+        self._pb_msg.header.uuid = self._id_gen.next_uuid
+
+        set_point = proto.SystemControlMessage.ManualICtrlSetPoint()
+        set_point.rotor_theta_rad = theta
+        set_point.id_ref = id_ref
+        set_point.iq_ref = iq_ref
+        self._pb_msg.data = bytes(set_point)
 
 
 class SetActivityLedBlinkScalerMessage(BaseMessage):

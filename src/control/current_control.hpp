@@ -28,6 +28,7 @@ namespace Orbit::Control::Field
    */
   enum class Mode : uint8_t
   {
+    UNKNOWN,    /**< Mode is not known */
     DISABLED,   /**< Control loop is not active */
     OPEN_LOOP,  /**< Control references set, but not actively regulated */
     CLOSED_LOOP /**< Full control with feedback */
@@ -53,6 +54,17 @@ namespace Orbit::Control::Field
    * @return Mode
    */
   Mode getControlMode();
+
+  /**
+   * @brief Sets the input references for the inner loop current controller.
+   * @note Only active in manual (open loop) control mode.
+   *
+   * @param iq_ref  Current reference in the q-axis
+   * @param id_ref  Current reference in the d-axis
+   * @param theta   Rotor angle in radians
+   * @return void
+   */
+  void setInnerLoopReferences( const float iq_ref, const float id_ref, const float theta );
 
 }    // namespace Orbit::Control::Field
 

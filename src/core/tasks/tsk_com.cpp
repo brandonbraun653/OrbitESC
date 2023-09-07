@@ -52,7 +52,7 @@ namespace Orbit::Tasks::COM
       Publish available data to the remote host
       -----------------------------------------------------------------------*/
       Orbit::Com::publishPhaseCurrents();
-      Orbit::Com::publishPhaseVoltages();
+      // Orbit::Com::publishPhaseVoltages();
       Orbit::Com::publishStateEstimates();
 
       /*-----------------------------------------------------------------------

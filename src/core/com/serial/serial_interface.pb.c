@@ -33,6 +33,9 @@ PB_BIND(ParamIOMessage, ParamIOMessage, AUTO)
 PB_BIND(SystemControlMessage, SystemControlMessage, AUTO)
 
 
+PB_BIND(SystemControlMessage_ManualICtrlSetPoint, SystemControlMessage_ManualICtrlSetPoint, AUTO)
+
+
 PB_BIND(SwitchModeMessage, SwitchModeMessage, AUTO)
 
 

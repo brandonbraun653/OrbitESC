@@ -424,7 +424,7 @@ namespace Orbit::IO
                                                           .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
                                                           .pin       = txPin,
                                                           .port      = txPort,
-                                                          .pull      = Chimera::GPIO::Pull::NO_PULL,
+                                                          .pull      = Chimera::GPIO::Pull::PULL_UP,
                                                           .state     = Chimera::GPIO::State::HIGH,
                                                           .threaded  = false,
                                                           .validity  = true };
@@ -433,7 +433,7 @@ namespace Orbit::IO
                                                           .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
                                                           .pin       = rxPin,
                                                           .port      = rxPort,
-                                                          .pull      = Chimera::GPIO::Pull::NO_PULL,
+                                                          .pull      = Chimera::GPIO::Pull::PULL_UP,
                                                           .state     = Chimera::GPIO::State::HIGH,
                                                           .threaded  = false,
                                                           .validity  = true };
