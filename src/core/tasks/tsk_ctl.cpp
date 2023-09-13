@@ -27,31 +27,81 @@ Includes
 namespace Orbit::Tasks::CTL
 {
   /*---------------------------------------------------------------------------
+  Static Functions
+  ---------------------------------------------------------------------------*/
+  /**
+   * @brief Process any task messages that may have arrived
+   * @return void
+   */
+  static void process_task_messages()
+  {
+    using namespace Chimera::Thread;
+
+    TaskMsg tsk_msg = TASK_MSG_NUM_OPTIONS;
+
+    /*-------------------------------------------------------------------------
+    Process any task messages that may have arrived
+    -------------------------------------------------------------------------*/
+    if ( this_thread::receiveTaskMsg( tsk_msg, TIMEOUT_DONT_WAIT ) )
+    {
+      switch( tsk_msg )
+      {
+        case TASK_MSG_CTRL_ARM:
+
+          if( Orbit::Instrumentation::getSupplyVoltage() > 10.0f )
+          {
+            Control::Field::powerUp();
+            Control::Speed::powerUp();
+          }
+
+          // todo FILL THIS OUT
+          // Control::FOCDriver.sendSystemEvent( Control::EventId::ARM );
+          break;
+
+        case TASK_MSG_CTRL_DISARM:
+          break;
+
+        case TASK_MSG_CTRL_ENGAGE:
+          break;
+
+        case TASK_MSG_CTRL_DISENGAGE:
+          break;
+
+        case TASK_MSG_CTRL_FAULT:
+
+          break;
+
+        default:
+          break;
+      }
+    }
+  }
+
+
+  /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   void CTLThread( void *arg )
   {
+    using namespace Chimera::Thread;
+
     /*-------------------------------------------------------------------------
     Wait for the start signal
     -------------------------------------------------------------------------*/
     waitInit();
 
     /*-------------------------------------------------------------------------
-    Initialize the CTL drivers
-    -------------------------------------------------------------------------*/
-    Chimera::delayMilliseconds( 1000 );
-    if( Orbit::Instrumentation::getSupplyVoltage() > 10.0f )
-    {
-      Control::Field::powerUp();
-      Control::Speed::powerUp();
-    }
-
-    /*-------------------------------------------------------------------------
     Run the CTL thread
     -------------------------------------------------------------------------*/
     size_t wake_up_tick = Chimera::millis();
+
     while ( 1 )
     {
+      /*-----------------------------------------------------------------------
+      Process any task messages that may have arrived
+      -----------------------------------------------------------------------*/
+      process_task_messages();
+
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically
       -----------------------------------------------------------------------*/

@@ -37,9 +37,21 @@ namespace Orbit::Tasks
   };
   static_assert( TASK_IDLE == 0 );
 
-  enum PrjTaskMsg : uint8_t
+  enum PrjTaskMsg : uint32_t
   {
-    TASK_MSG_PARAM_IO_EVENT = ( 1u << 0 ), /**< Handle incoming ParamIO messages */
+    /*-------------------------------------------------------------------------
+    Delayed IO
+    -------------------------------------------------------------------------*/
+    TASK_MSG_PARAM_IO_EVENT,  /**< Handle incoming ParamIO messages */
+
+    /*-------------------------------------------------------------------------
+    System Control
+    -------------------------------------------------------------------------*/
+    TASK_MSG_CTRL_ARM,        /**< Transition from IDLE to ARM */
+    TASK_MSG_CTRL_DISARM,     /**< Transition from ARM to IDLE */
+    TASK_MSG_CTRL_ENGAGE,     /**< Transition from ARM to ENGAGED */
+    TASK_MSG_CTRL_DISENGAGE,  /**< Transition from ENGAGED to ARM */
+    TASK_MSG_CTRL_FAULT,      /**< Transition from ENGAGED to FAULT */
 
     TASK_MSG_NUM_OPTIONS
   };
