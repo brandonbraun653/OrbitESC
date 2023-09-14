@@ -6,9 +6,10 @@ gen_static_lib_variants(
   SOURCES
     tsk_com.cpp
     tsk_ctl.cpp
-    tsk_hwm.cpp
     tsk_dio.cpp
+    tsk_hwm.cpp
     tsk_idle.cpp
+    tsk_usb.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc

@@ -17,9 +17,10 @@ Includes
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_com.hpp>
 #include <src/core/tasks/tsk_ctl.hpp>
-#include <src/core/tasks/tsk_hwm.hpp>
 #include <src/core/tasks/tsk_dio.hpp>
+#include <src/core/tasks/tsk_hwm.hpp>
 #include <src/core/tasks/tsk_idle.hpp>
+#include <src/core/tasks/tsk_usb.hpp>
 
 
 namespace Orbit::Tasks
@@ -33,6 +34,7 @@ namespace Orbit::Tasks
   static uint32_t                s_dio_thread_stack[ STACK_BYTES( DIO::STACK ) ] __attribute__((section(".app_stack")));
   static uint32_t                s_ctl_thread_stack[ STACK_BYTES( CTL::STACK ) ] __attribute__((section(".app_stack")));
   static uint32_t                s_com_thread_stack[ STACK_BYTES( COM::STACK ) ] __attribute__((section(".app_stack")));
+  static uint32_t                s_usb_thread_stack[ STACK_BYTES( USB::STACK ) ] __attribute__((section(".app_stack")));
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -141,6 +143,28 @@ namespace Orbit::Tasks
     s_thread_id[ TASK_COM ] = tsk.start();
   }
 
+
+  static void init_usb_task()
+  {
+    using namespace Chimera::Thread;
+
+    TaskConfig cfg;
+    Task       tsk;
+
+    cfg.name                                  = USB::NAME.data();
+    cfg.arg                                   = nullptr;
+    cfg.function                              = USB::USBThread;
+    cfg.priority                              = USB::PRIORITY;
+    cfg.stackWords                            = STACK_BYTES( sizeof( s_usb_thread_stack ) );
+    cfg.type                                  = TaskInitType::STATIC;
+    cfg.specialization.staticTask.stackBuffer = s_usb_thread_stack;
+    cfg.specialization.staticTask.stackSize   = sizeof( s_usb_thread_stack );
+
+    tsk.create( cfg );
+    s_thread_id[ TASK_USB ] = tsk.start();
+  }
+
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
@@ -168,6 +192,7 @@ namespace Orbit::Tasks
     init_hwm_task();
     init_ctrl_sys_task();
     init_com_task();
+    init_usb_task();
   }
 
 
