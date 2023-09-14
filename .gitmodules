@@ -28,3 +28,15 @@
 [submodule "lib/json/ArduinoJson"]
 	path = lib/json/ArduinoJson
 	url = https://github.com/bblanchon/ArduinoJson.git
+[submodule "lib/usb/tinyusb/hw/mcu/st/cmsis_device_f4"]
+	path = lib/usb/tinyusb/hw/mcu/st/cmsis_device_f4
+	url = https://github.com/STMicroelectronics/cmsis_device_f4.git
+[submodule "lib/usb/tinyusb/hw/mcu/st/stm32f4xx_hal_driver"]
+	path = lib/usb/tinyusb/hw/mcu/st/stm32f4xx_hal_driver
+	url = https://github.com/STMicroelectronics/stm32f4xx_hal_driver.git
+[submodule "lib/usb/tinyusb/lib/CMSIS_5"]
+	path = lib/usb/tinyusb/lib/CMSIS_5
+	url = https://github.com/ARM-software/CMSIS_5.git
+[submodule "lib/usb/tinyusb/tools/uf2"]
+	path = lib/usb/tinyusb/tools/uf2
+	url = https://github.com/microsoft/uf2.git
