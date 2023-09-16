@@ -20,7 +20,6 @@ gen_intf_lib(
     ./tinyusb/src/host
     ./tinyusb/src/portable/st/stm32_fsdev
     ./tinyusb/src/portable/st/synopsys
-    ./tinyusb/src/portable/synopsys/dwc2
     ./tinyusb/src
   INTF_LIBRARIES
     project_intf_inc
@@ -30,7 +29,7 @@ gen_intf_lib(
 
 gen_static_lib_variants(
   TARGET
-    tiny_usb
+    lib_tiny_usb
   SOURCES
     tinyusb/src/class/audio/audio_device.c
     tinyusb/src/class/bth/bth_device.c
@@ -57,8 +56,10 @@ gen_static_lib_variants(
     tinyusb/src/host/usbh.c
     tinyusb/src/portable/st/stm32_fsdev/dcd_stm32_fsdev.c
     tinyusb/src/portable/st/synopsys/dcd_synopsys.c
-    tinyusb/src/portable/synopsys/dwc2/dcd_dwc2.c
     tinyusb/src/tusb.c
+  PRV_INCLUDES
+    ./tinyusb/hw/mcu/st/cmsis_device_f4/Include
+    ./tinyusb/lib/CMSIS_5/CMSIS/Core/Include
   PRV_LIBRARIES
     tiny_usb_intf_inc
   EXPORT_DIR
