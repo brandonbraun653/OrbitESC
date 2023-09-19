@@ -160,6 +160,7 @@ target_link_libraries(OrbitESC PRIVATE
   chimera_core
   lib_cobs_rel
   lib_nanopb_rel
+  lib_tiny_usb
 
   # Orbit Libraries
   lib_orbit_com

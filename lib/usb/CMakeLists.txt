@@ -27,6 +27,19 @@ gen_intf_lib(
     "${PROJECT_BINARY_DIR}/tinyusb"
 )
 
+# Internal library for HW definitions. Separated from the main interface library
+# to prevent propagating conflicts with Thor/Chimera definitions. This is only
+# required to get HW support in a format expected by TinyUSB.
+gen_intf_lib(
+  TARGET
+    tiny_usb_prv_intf_inc
+  INTF_INCLUDES
+    ./tinyusb/hw/mcu/st/cmsis_device_f4/Include
+    ./tinyusb/lib/CMSIS_5/CMSIS/Core/Include
+  EXPORT_DIR
+    "${PROJECT_BINARY_DIR}/tinyusb"
+)
+
 gen_static_lib_variants(
   TARGET
     lib_tiny_usb
@@ -57,11 +70,9 @@ gen_static_lib_variants(
     tinyusb/src/portable/st/stm32_fsdev/dcd_stm32_fsdev.c
     tinyusb/src/portable/st/synopsys/dcd_synopsys.c
     tinyusb/src/tusb.c
-  PRV_INCLUDES
-    ./tinyusb/hw/mcu/st/cmsis_device_f4/Include
-    ./tinyusb/lib/CMSIS_5/CMSIS/Core/Include
   PRV_LIBRARIES
     tiny_usb_intf_inc
+    tiny_usb_prv_intf_inc
   EXPORT_DIR
     "${PROJECT_BINARY_DIR}/tinyusb"
 )

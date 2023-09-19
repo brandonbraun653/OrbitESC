@@ -446,7 +446,7 @@ namespace Orbit::IO
     -------------------------------------------------------------------------*/
     static constexpr Chimera::GPIO::Pin     dmPin     = 14;
     static constexpr Chimera::GPIO::Port    dmPort    = Chimera::GPIO::Port::PORTB;
-    static constexpr Chimera::GPIO::PinInit dmPinInit = { .alternate = Chimera::GPIO::Alternate::USB_DM,
+    static constexpr Chimera::GPIO::PinInit dmPinInit = { .alternate = Chimera::GPIO::Alternate::OTG_HS_DM,
                                                           .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
                                                           .pin       = dmPin,
                                                           .port      = dmPort,
@@ -457,7 +457,7 @@ namespace Orbit::IO
 
     static constexpr Chimera::GPIO::Pin     dpPin     = 15;
     static constexpr Chimera::GPIO::Port    dpPort    = Chimera::GPIO::Port::PORTB;
-    static constexpr Chimera::GPIO::PinInit dpPinInit = { .alternate = Chimera::GPIO::Alternate::USB_DP,
+    static constexpr Chimera::GPIO::PinInit dpPinInit = { .alternate = Chimera::GPIO::Alternate::OTG_HS_DP,
                                                           .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
                                                           .pin       = dpPin,
                                                           .port      = dpPort,
@@ -472,8 +472,8 @@ namespace Orbit::IO
                                                             .drive     = Chimera::GPIO::Drive::OUTPUT_PUSH_PULL,
                                                             .pin       = enumPin,
                                                             .port      = enumPort,
-                                                            .pull      = Chimera::GPIO::Pull::PULL_UP,
-                                                            .state     = Chimera::GPIO::State::HIGH,
+                                                            .pull      = Chimera::GPIO::Pull::NO_PULL,
+                                                            .state     = Chimera::GPIO::State::LOW,
                                                             .threaded  = false,
                                                             .validity  = true };
 

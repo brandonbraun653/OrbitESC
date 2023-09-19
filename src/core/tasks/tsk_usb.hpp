@@ -24,7 +24,7 @@ namespace Orbit::Tasks::USB
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr size_t                        STACK    = STACK_BYTES( 4096 );
+  static constexpr size_t                        STACK    = STACK_BYTES( 8192 );
   static constexpr std::string_view              NAME     = "usb";
   static constexpr Chimera::Thread::TaskPriority PRIORITY = 5;
 

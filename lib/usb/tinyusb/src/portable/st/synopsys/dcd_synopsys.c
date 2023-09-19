@@ -465,6 +465,7 @@ void dcd_init (uint8_t rhport)
   // peripheral in each Reference Manual.
 
   USB_OTG_GlobalTypeDef * usb_otg = GLOBAL_BASE(rhport);
+  USB_OTG_DeviceTypeDef * dev = DEVICE_BASE(rhport);
 
   // No HNP/SRP (no OTG support), program timeout later.
   if ( rhport == 1 )
@@ -480,7 +481,22 @@ void dcd_init (uint8_t rhport)
     // Select default internal VBUS Indicator and Drive for ULPI
     usb_otg->GUSBCFG &= ~(USB_OTG_GUSBCFG_ULPIEVBUSD | USB_OTG_GUSBCFG_ULPIEVBUSI);
 #else
-    usb_otg->GUSBCFG |= USB_OTG_GUSBCFG_PHYSEL;
+    /*-------------------------------------------------------------------------
+    Init sequence to work around an issue with VBus sensing. See:
+    https://github.com/hathach/tinyusb/issues/126#issuecomment-631475084
+    -------------------------------------------------------------------------*/
+    usb_otg->GUSBCFG |= USB_OTG_GUSBCFG_PHYSEL | USB_OTG_GUSBCFG_FDMOD;
+    osal_task_delay( 50 );
+
+    /* Generate soft-disconnet */
+    dev->DCTL |= USB_OTG_DCTL_SDIS;
+
+    /* Deactivate VBus Sensing*/
+    usb_otg->GCCFG &= ~USB_OTG_GCCFG_VBDEN;
+
+    /* B-Peripheral session valid override */
+    usb_otg->GOTGCTL |= USB_OTG_GOTGCTL_BVALOEN;
+    usb_otg->GOTGCTL |= USB_OTG_GOTGCTL_BVALOVAL;
 #endif
 
 #if defined(USB_HS_PHYC)
@@ -515,8 +531,6 @@ void dcd_init (uint8_t rhport)
   // TODO: How should mode mismatch be handled? It will cause
   // the core to stop working/require reset.
   usb_otg->GINTMSK |= USB_OTG_GINTMSK_OTGINT | USB_OTG_GINTMSK_MMISM;
-
-  USB_OTG_DeviceTypeDef * dev = DEVICE_BASE(rhport);
 
   // If USB host misbehaves during status portion of control xfer
   // (non zero-length packet), send STALL back and discard.

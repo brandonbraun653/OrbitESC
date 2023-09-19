@@ -35,6 +35,7 @@ Includes
 #include <src/core/hw/orbit_spi.hpp>
 #include <src/core/hw/orbit_timer.hpp>
 #include <src/core/hw/orbit_usart.hpp>
+#include <src/core/hw/orbit_usb.hpp>
 #include <src/core/tasks.hpp>
 #include <src/monitor/orbit_monitors.hpp>
 
@@ -110,6 +111,7 @@ namespace Orbit::Boot
     Orbit::ADC::powerUp();
     Orbit::CAN::powerUp();
     Orbit::TIMER::powerUp();
+    Orbit::USB::powerUp();
 
     /*-------------------------------------------------------------------------
     Power up remaining system components
@@ -207,7 +209,7 @@ namespace Thor::LLD::RCC
 
     /* SAI PLL configuration settings */
     clkCfg.PLLSAI.M = 16;
-    clkCfg.PLLSAI.N = 192;
+    clkCfg.PLLSAI.N = 128;
     clkCfg.PLLSAI.P = 4;
     clkCfg.PLLSAI.Q = 2;    // Doesn't matter, not used
 

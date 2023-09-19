@@ -1,39 +1,32 @@
 /******************************************************************************
  *  File Name:
- *    orbit_adc.hpp
+ *    orbit_usb.hpp
  *
  *  Description:
- *    Orbit ESC ADC driver interface
+ *    Orbit ESC USB driver interface
  *
- *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
-#ifndef ORBIT_ESC_ADC_HPP
-#define ORBIT_ESC_ADC_HPP
+#ifndef ORBIT_ESC_USB_HPP
+#define ORBIT_ESC_USB_HPP
 
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <Chimera/adc>
 
 
-namespace Orbit::ADC
+namespace Orbit::USB
 {
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   /**
-   * @brief Powers up the ADC driver subsystem
+   * @brief Powers up the USB driver subsystem
    */
   void powerUp();
 
-  /**
-   * @brief Computes the total time it takes to sample all the motor channels in nanoseconds
-   * @return uint32_t
-   */
-  uint32_t motorChannelSampleTimeNs();
+}    // namespace Orbit::USB
 
-}    // namespace Orbit::ADC
-
-#endif /* !ORBIT_ESC_ADC_HPP */
+#endif /* !ORBIT_ESC_USB_HPP */

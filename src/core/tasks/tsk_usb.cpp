@@ -14,6 +14,7 @@ Includes
 #include <Chimera/thread>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_usb.hpp>
+#include <tusb.h>
 
 namespace Orbit::Tasks::USB
 {
@@ -41,6 +42,7 @@ namespace Orbit::Tasks::USB
       /*-----------------------------------------------------------------------
       Process hardware drivers
       -----------------------------------------------------------------------*/
+      tud_task();
 
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically
