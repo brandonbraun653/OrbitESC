@@ -159,7 +159,7 @@ target_link_libraries(OrbitESC PRIVATE
   aurora_libs
   chimera_core
   lib_cobs_rel
-  # lib_flash_db_rel
+  lib_flash_db_rel
   lib_nanopb_rel
   lib_tiny_usb
 

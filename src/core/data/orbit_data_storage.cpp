@@ -27,6 +27,9 @@ Includes
 #include <etl/algorithm.h>
 #include <etl/crc32.h>
 
+
+#include <src/core/data/persistent/orbit_database.hpp>
+
 namespace Orbit::Data
 {
   /*---------------------------------------------------------------------------
@@ -236,6 +239,8 @@ namespace Orbit::Data
   ---------------------------------------------------------------------------*/
   void initStorage()
   {
+    Persistent::initDatabase();
+
     /*-------------------------------------------------------------------------
     Initialize module variables to defaults
     -------------------------------------------------------------------------*/

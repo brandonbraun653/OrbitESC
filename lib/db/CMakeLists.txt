@@ -6,7 +6,7 @@ gen_intf_lib(
   INTF_INCLUDES
     ./flashdb/inc
   INTF_LIBRARIES
-    #project_intf_inc
+    project_intf_inc
   EXPORT_DIR
     "${PROJECT_BINARY_DIR}/flasdb"
 )

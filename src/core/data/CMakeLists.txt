@@ -10,9 +10,11 @@ gen_static_lib_variants(
     orbit_data_validators.cpp
     orbit_log_io.cpp
     orbit_log_sink.cpp
+    persistent/orbit_database.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc
+    flash_db_intf_inc
     json_intf_inc
     project_intf_inc
   EXPORT_DIR
