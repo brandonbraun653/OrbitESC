@@ -11,6 +11,7 @@ gen_static_lib_variants(
     orbit_log_io.cpp
     orbit_log_sink.cpp
     persistent/orbit_database.cpp
+    volatile/orbit_parameter.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc

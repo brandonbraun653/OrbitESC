@@ -43,7 +43,7 @@ namespace Orbit::Data
   static constexpr size_t          JSON_FILE_SIZE_MAX = 1536;
   static constexpr size_t          JSON_SYNC_DELAY_MS = 600;
   static constexpr FS::AccessFlags FILE_FLAGS         = FS::AccessFlags::O_RDWR | FS::AccessFlags::O_CREAT;
-  static const ParameterList       PARAM_INFO         = Internal::_compile_time_sort( Internal::_unsorted_parameters );
+  static const ParameterList       PARAM_INFO         = ParamSorter( Internal::_unsorted_parameters );
 
   /*---------------------------------------------------------------------------
   Static Data

@@ -1,16 +1,16 @@
 /******************************************************************************
  *  File Name:
- *    orbit_data_params.hpp
+ *    orbit_parameter_decl.hpp
  *
  *  Description:
- *    Parameter listings for the whole orbit data system
+ *    Declarations for system parameters
  *
  *  2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
-#ifndef ORBIT_DATA_PARAMETERS_HPP
-#define ORBIT_DATA_PARAMETERS_HPP
+#ifndef ORBIT_ESC_PARAMETER_DECLARATIONS_HPP
+#define ORBIT_ESC_PARAMETER_DECLARATIONS_HPP
 
 /*-----------------------------------------------------------------------------
 Includes
@@ -20,39 +20,25 @@ Includes
 #include <cstddef>
 #include <src/core/com/serial/serial_interface.pb.h>
 #include <src/core/data/orbit_data_validators.hpp>
+#include <src/core/data/orbit_data.hpp>
+
 
 namespace Orbit::Data
 {
-  /*---------------------------------------------------------------------------
-  Aliases
-  ---------------------------------------------------------------------------*/
-  using ParameterList = std::array<ParameterNode, 37>;
-
-  /*---------------------------------------------------------------------------
-  Constants
-  ---------------------------------------------------------------------------*/
-  static constexpr const char *FMT_UINT8  = "%u";
-  static constexpr const char *FMT_UINT16 = FMT_UINT8;
-  static constexpr const char *FMT_UINT32 = "%lu";
-  static constexpr const char *FMT_FLOAT  = "%4.9f";
-  static constexpr const char *FMT_DOUBLE = "%4.17f";
-  static constexpr const char *FMT_STRING = "%s";
-  static constexpr const char *FMT_BOOL   = "%d";
-
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
   namespace Internal
   {
-    static constexpr ParameterList _compile_time_sort( const ParameterList &list )
-    {
-      auto result = list;
-      std::sort( result.begin(), result.end(),
-                 []( const ParameterNode &a, const ParameterNode &b ) -> bool { return a.id < b.id; } );
-      return result;
-    }
-
-    static constexpr ParameterList _unsorted_parameters = {
+    /**
+     * @brief Root declaration of all configurable parameters.
+     *
+     * These are not meant to be accessed directly but only serve as a declaration
+     * of the parameters that must exist. The final instance is declared elsewhere
+     * after the parameter list has been sorted to allow fast lookup by ID. It doesn't
+     * matter what order the parameters are declared in here.
+     */
+    static constexpr auto _unsorted_parameters = std::to_array<ParameterNode>({
       /*-----------------------------------------------------------------------------
       Read Only Parameters
       -----------------------------------------------------------------------------*/
@@ -328,9 +314,8 @@ namespace Orbit::Data
                       .validator = nullptr },
 
       /***** Add new entries above here *****/
-    };
+    });
   }    // namespace Internal
+}  // namespace Orbit::Data
 
-}    // namespace Orbit::Data
-
-#endif /* !ORBIT_DATA_PARAMETERS_HPP */
+#endif  /* !ORBIT_ESC_PARAMETER_DECLARATIONS_HPP */
