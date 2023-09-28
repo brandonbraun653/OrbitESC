@@ -1,6 +1,6 @@
 /******************************************************************************
  *  File Name:
- *    orbit_data_validators.cpp
+ *    orbit_parameter_validators.cpp
  *
  *  Description:
  *    Validator function implementations
@@ -11,15 +11,15 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <src/core/data/orbit_data_validators.hpp>
+#include <src/core/data/volatile/orbit_parameter_validators.hpp>
 #include <src/core/hw/orbit_can.hpp>
 
-namespace Orbit::Data
+namespace Orbit::Data::Param
 {
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
-  bool ValidateParamId_PARAM_CAN_NODE_ID( const ParameterNode &node, const void *data, const size_t size )
+  bool ValidateParamId_PARAM_CAN_NODE_ID( const Node &node, const void *data, const size_t size )
   {
     if ( ( size == node.maxSize ) && ( node.type == ParamType_UINT8 ) )
     {
@@ -31,4 +31,4 @@ namespace Orbit::Data
       return false;
     }
   }
-}  // namespace Orbit::Data
+}    // namespace Orbit::Data::Param

@@ -5,12 +5,12 @@ gen_static_lib_variants(
     lib_orbit_data
   SOURCES
     orbit_data.cpp
-    orbit_data_storage.cpp
     orbit_data_types.cpp
-    orbit_data_validators.cpp
     orbit_log_io.cpp
     orbit_log_sink.cpp
     persistent/orbit_database.cpp
+    persistent/orbit_filesystem.cpp
+    volatile/orbit_parameter_validators.cpp
     volatile/orbit_parameter.cpp
   PRV_LIBRARIES
     aurora_intf_inc

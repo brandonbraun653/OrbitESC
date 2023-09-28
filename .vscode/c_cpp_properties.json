@@ -59,7 +59,6 @@
             "${workspaceFolder}/lib/usb/tinyusb/src/host",
             "${workspaceFolder}/lib/usb/tinyusb/src/portable/st/stm32_fsdev",
             "${workspaceFolder}/lib/usb/tinyusb/src/portable/st/synopsys",
-            "${workspaceFolder}/lib/usb/tinyusb/src/portable/synopsys/dwc2",
             "${workspaceFolder}/lib/usb/tinyusb/hw/mcu/st/cmsis_device_f4/Include",
             "${workspaceFolder}/src",
             "${workspaceFolder}/src/config/aurora",
@@ -69,6 +68,9 @@
             "${workspaceFolder}/src/control",
             "${workspaceFolder}/src/core",
             "${workspaceFolder}/src/core/com",
+            "${workspaceFolder}/src/core/data",
+            "${workspaceFolder}/src/core/data/persistent",
+            "${workspaceFolder}/src/core/data/volatile",
             "${workspaceFolder}/src/core/hw",
             "${workspaceFolder}/src/core/tasks"
         ],

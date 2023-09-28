@@ -18,7 +18,7 @@ Includes
 #include <src/core/com/serial/serial_async_message.hpp>
 #include <src/core/com/serial/serial_router.hpp>
 #include <src/core/com/serial/serial_server.hpp>
-#include <src/core/data/orbit_data_storage.hpp>
+#include <src/core/data/volatile/orbit_parameter.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 #include <src/core/hw/orbit_usart.hpp>
 #include <src/core/runtime/serial_runtime.hpp>
@@ -61,7 +61,8 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Ensure the parameter ID is valid
     -------------------------------------------------------------------------*/
-    if ( !paramExists( msg.payload.id ) )
+    const ParamId id = static_cast<ParamId>( msg.payload.id );
+    if ( !Param::exists( id ) )
     {
       sendAckNack( false, msg.payload.header, StatusCode_INVALID_PARAM );
       return;
@@ -73,7 +74,7 @@ namespace Orbit::Serial
     ParamIOMessage response;
     response.header   = msg.payload.header;
     response.id       = msg.payload.id;
-    response.type     = getParamType( msg.payload.id );
+    response.type     = Param::type( id );
     response.has_type = true;
     response.has_data = true;
     memset( response.data.bytes, 0, sizeof( response.data.bytes ) );
@@ -81,7 +82,7 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Copy out the serialized data
     -------------------------------------------------------------------------*/
-    response.data.size = copyFromCache( msg.payload.id, response.data.bytes, sizeof( response.data.bytes ) );
+    response.data.size = Param::read( id, response.data.bytes, sizeof( response.data.bytes ) );
     if ( response.data.size == 0 )
     {
       sendAckNack( false, msg.payload.header, StatusCode_REQUEST_FAILED );
@@ -112,7 +113,8 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Ensure the parameter ID is valid
     -------------------------------------------------------------------------*/
-    if ( !paramExists( msg.payload.id ) )
+    const ParamId id = static_cast<ParamId>( msg.payload.id );
+    if ( !Param::exists( id ) )
     {
       sendAckNack( false, msg.payload.header, StatusCode_INVALID_PARAM );
       return;
@@ -121,7 +123,7 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Load the data into the cache
     -------------------------------------------------------------------------*/
-    if ( msg.payload.has_data && copyToCache( msg.payload.id, msg.payload.data.bytes, msg.payload.data.size ) )
+    if ( msg.payload.has_data && Param::write( id, msg.payload.data.bytes, msg.payload.data.size ) )
     {
       sendAckNack( true, msg.payload.header );
     }
@@ -138,7 +140,7 @@ namespace Orbit::Serial
    */
   static void handle_load( const Message::ParamIO &msg )
   {
-    sendAckNack( Data::loadDisk(), msg.payload.header );
+    sendAckNack( Data::Param::load(), msg.payload.header );
   }
 
 
@@ -148,7 +150,7 @@ namespace Orbit::Serial
    */
   static void handle_sync( const Message::ParamIO &msg )
   {
-    sendAckNack( Data::flushDisk(), msg.payload.header );
+    sendAckNack( Data::Param::flush(), msg.payload.header );
   }
 
   /*---------------------------------------------------------------------------

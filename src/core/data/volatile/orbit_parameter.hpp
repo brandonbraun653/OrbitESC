@@ -21,46 +21,88 @@ Includes
 
 #include <src/core/data/volatile/orbit_parameter_decl.hpp>
 
-namespace Orbit::Data
+namespace Orbit::Data::Param
 {
-  /*---------------------------------------------------------------------------
-  Constants
-  ---------------------------------------------------------------------------*/
-  static constexpr const char *FMT_UINT8  = "%u";
-  static constexpr const char *FMT_UINT16 = FMT_UINT8;
-  static constexpr const char *FMT_UINT32 = "%lu";
-  static constexpr const char *FMT_FLOAT  = "%4.9f";
-  static constexpr const char *FMT_DOUBLE = "%4.17f";
-  static constexpr const char *FMT_STRING = "%s";
-  static constexpr const char *FMT_BOOL   = "%d";
-
-
-
-
-  /*---------------------------------------------------------------------------
-  Aliases
-  ---------------------------------------------------------------------------*/
-  using ParameterList = std::array<ParameterNode, Internal::_unsorted_parameters.size()>;
-
-
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
 
   /**
-   * @brief Helper function to sort the parameter list by ID
-   *
-   * @param list Array of parameters to sort
-   * @return constexpr ParameterList
+   * @brief Gets the core list storing parameter information
+   * @return const ParameterList&
    */
-  static constexpr ParameterList ParamSorter( const ParameterList &list )
-  {
-    auto result = list;
-    std::sort( result.begin(), result.end(),
-                []( const ParameterNode &a, const ParameterNode &b ) -> bool { return a.id < b.id; } );
-    return result;
-  }
+  const ParameterList& list();
 
-}    // namespace Orbit::Data
+  /**
+   * @brief Get storage type of the parameter
+   *
+   * @param param   Which parameter to query
+   * @return ParamType
+   */
+  ParamType type( const ParamId param );
+
+  /**
+   * @brief Checks if the given parameter ID exists
+   *
+   * @param param   Parameter ID to check
+   * @return bool   True if the parameter exists, false if not
+   */
+  bool exists( const ParamId param );
+
+  /**
+   * @brief Finds a parameter node by its ID
+   *
+   * @param id    The ID of the parameter to find
+   * @return Node*
+   */
+  Node *find( const ParamId id );
+
+  /**
+   * @brief Finds a parameter node by its key
+   *
+   * @param key   The key of the parameter to find
+   * @return Node*
+   */
+  Node *find( const etl::string_view &key );
+
+  /**
+   * @brief Binary copy a parameter from cache into a given buffer
+   *
+   * @param param   Which parameter to copy
+   * @param dest    Where to copy the data to
+   * @param size    How many bytes to copy
+   * @return bool   True if success, false if not
+   */
+  bool read( const ParamId param, void *const dest, const size_t size );
+
+  /**
+   * @brief Binary write a parameter from a given buffer into cache
+   *
+   * @param param   Which parameter to update
+   * @param src     Where to copy the data from
+   * @param size    How many bytes to copy
+   * @return bool   True if success, false if not
+   */
+  bool write( const ParamId param, const void *const src, const size_t size );
+
+  /**
+   * @brief Flushes all dirty parameters to disk
+   * @return bool
+   */
+  bool flush();
+
+  /**
+   * @brief Loads all parameters from disk
+   * @return bool
+   */
+  bool load();
+
+  /**
+   * @brief Status flag indicating if all parameters are saved to disk
+   * @return bool
+   */
+  bool synchronized();
+
+}    // namespace Orbit::Data::Param
 
 #endif /* !ORBIT_DATA_PARAMETERS_HPP */

@@ -12,7 +12,6 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <src/core/data/orbit_data.hpp>
-#include <src/core/data/orbit_data_storage.hpp>
 #include <src/core/data/orbit_data_types.hpp>
 
 namespace Orbit::Data

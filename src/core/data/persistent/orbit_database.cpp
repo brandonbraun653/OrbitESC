@@ -13,18 +13,15 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/logging>
 #include <src/core/data/persistent/orbit_database.hpp>
-#include <src/core/data/orbit_data_params.hpp>
+#include <src/core/data/volatile/orbit_parameter.hpp>
+#include <src/core/data/volatile/orbit_parameter_type.hpp>
+#include <src/core/data/volatile/orbit_parameter_decl.hpp>
 
 #include <flashdb.h>
 
 
 namespace Orbit::Data::Persistent
 {
-  /*---------------------------------------------------------------------------
-  Constants
-  ---------------------------------------------------------------------------*/
-  static constexpr ParameterList ParamInfo = ParamSorter( Internal::_unsorted_parameters );
-
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
@@ -42,7 +39,7 @@ namespace Orbit::Data::Persistent
    * every key. We already have that information in the parameter list, so this
    * just maps the two together at the cost of a little extra memory.
    */
-  static fdb_default_kv_node s_dflt_kv_table[ ParamInfo.size() ];
+  static fdb_default_kv_node s_dflt_kv_table[ Param::NUM_PARAMS ];
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -52,11 +49,15 @@ namespace Orbit::Data::Persistent
     /*-------------------------------------------------------------------------
     Initialize default KV table
     -------------------------------------------------------------------------*/
-    for ( size_t idx = 0; idx < ParamInfo.size(); idx++ )
+    size_t idx = 0;
+    for ( const Param::Node& node : Param::list() )
     {
-      s_dflt_kv_table[ idx ].key       = ParamInfo[ idx ].key;
-      s_dflt_kv_table[ idx ].value     = ParamInfo[ idx ].address;
-      s_dflt_kv_table[ idx ].value_len = ParamInfo[ idx ].maxSize;
+      RT_DBG_ASSERT( idx < ARRAY_COUNT( s_dflt_kv_table ) );
+
+      s_dflt_kv_table[ idx ].key       = node.key;
+      s_dflt_kv_table[ idx ].value     = node.address;
+      s_dflt_kv_table[ idx ].value_len = node.maxSize;
+      idx++;
     }
 
     /*-------------------------------------------------------------------------

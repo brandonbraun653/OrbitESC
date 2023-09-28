@@ -15,7 +15,7 @@ Includes
 #include <Chimera/system>
 #include <src/core/system.hpp>
 #include <src/core/data/orbit_data.hpp>
-#include <src/core/data/orbit_data_storage.hpp>
+#include <src/core/data/volatile/orbit_parameter.hpp>
 
 namespace Orbit::System
 {
@@ -30,9 +30,7 @@ namespace Orbit::System
 
   void setMode( const Mode next )
   {
-    Data::SysInfo.bootMode = next;
-    Data::updateDiskCache( ParamId_PARAM_BOOT_MODE );
-
+    Data::Param::write( ParamId_PARAM_BOOT_MODE, &next, sizeof( next ) );
     doSafeShutdown();
   }
 
@@ -64,7 +62,7 @@ namespace Orbit::System
     Wait for the DIO thread to sync the disk cache
     -------------------------------------------------------------------------*/
     LOG_DEBUG( "Waiting for cache to sync to disk" );
-    while ( !Data::syncedToDisk() )
+    while ( !Data::Param::synchronized() )
     {
       Chimera::delayMilliseconds( 100 );
     }

@@ -24,6 +24,24 @@ Includes
 namespace Orbit::Data
 {
   /*---------------------------------------------------------------------------
+  File System
+  ---------------------------------------------------------------------------*/
+  /**
+   * @brief Dynamic mount point for the file system driver
+   */
+  static const etl::string_view FileSystemMountPoint = "/";
+
+  /**
+   * @brief Name of the file used internally to back our key-value store
+   */
+  static const etl::string_view SystemConfigFile = "/sys_config.json";
+
+  /**
+   * @brief Name of the file used internally to store logs to
+   */
+  static const etl::string_view SystemLogFile = "/sys_log.txt";
+
+  /*---------------------------------------------------------------------------
   System Configuration
   ---------------------------------------------------------------------------*/
   /**

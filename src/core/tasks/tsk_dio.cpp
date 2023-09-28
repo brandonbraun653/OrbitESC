@@ -13,10 +13,10 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/logging>
 #include <Chimera/thread>
-#include <src/core/data/orbit_data.hpp>
-#include <src/core/data/orbit_data_storage.hpp>
-#include <src/core/data/orbit_log_io.hpp>
 #include <src/core/bootup.hpp>
+#include <src/core/data/orbit_data.hpp>
+#include <src/core/data/orbit_log_io.hpp>
+#include <src/core/data/volatile/orbit_parameter.hpp>
 #include <src/core/runtime/serial_runtime.hpp>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_dio.hpp>
@@ -40,7 +40,7 @@ namespace Orbit::Tasks::DIO
     Finalize the power up sequence
     -------------------------------------------------------------------------*/
     Data::SysInfo.bootCount++;
-    Data::updateDiskCache( ParamId_PARAM_BOOT_COUNT );
+    Data::Param::write( ParamId_PARAM_BOOT_COUNT, &Data::SysInfo.bootCount, sizeof( Data::SysInfo.bootCount ) );
 
     /*-------------------------------------------------------------------------
     Run the delayed-io thread
@@ -77,7 +77,7 @@ namespace Orbit::Tasks::DIO
       if( wake_up_tick >= next_sync )
       {
         next_sync = wake_up_tick + Data::SysConfig.diskUpdateRateMs;
-        Data::syncDisk();
+        Data::Param::flush();
       }
 
       /*-----------------------------------------------------------------------
