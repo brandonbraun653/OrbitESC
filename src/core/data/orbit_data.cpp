@@ -18,11 +18,12 @@ Includes
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/system.hpp>
+#include <src/core/data/volatile/orbit_parameter.hpp>
 #include <src/core/data/persistent/orbit_database.hpp>
+#include <src/core/data/persistent/orbit_filesystem.hpp>
 
 namespace Orbit::Data
 {
-
   /*---------------------------------------------------------------------------
   Public Data
   ---------------------------------------------------------------------------*/
@@ -32,34 +33,22 @@ namespace Orbit::Data
   Information   SysInfo;
   Configuration SysConfig;
 
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   bool initialize()
   {
     /*-------------------------------------------------------------------------
-    Reset module memory cache
+    Initialize volatile data storage
     -------------------------------------------------------------------------*/
-    SysCalibration.clear();
-    SysConfig.clear();
-    SysControl.clear();
-    SysIdentity.clear();
-    SysInfo.clear();
+    Param::init();
 
     /*-------------------------------------------------------------------------
-    Load all defaults
+    Initialize persistent data storage
     -------------------------------------------------------------------------*/
-    SysCalibration.setDefaults();
-    SysConfig.setDefaults();
-    SysControl.setDefaults();
-    SysIdentity.setDefaults();
-    SysInfo.setDefaults();
-
-    /*-------------------------------------------------------------------------
-    Initialize sub-components
-    -------------------------------------------------------------------------*/
-    Persistent::initDatabase();
-
+    File::init();               // Attach and load the file system
+    Persistent::db_init();
 
     return true;
   }

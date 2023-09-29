@@ -11,13 +11,17 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Aurora/logging>
+#include <Chimera/thread>
 #include <algorithm>
 #include <etl/algorithm.h>
+#include <etl/forward_list.h>
 #include <etl/string.h>
 #include <etl/string_view.h>
+#include <src/core/data/orbit_data_defaults.hpp>
 #include <src/core/data/volatile/orbit_parameter.hpp>
 #include <src/core/data/volatile/orbit_parameter_decl.hpp>
-#include <src/core/data/orbit_data_defaults.hpp>
+#include <src/core/data/persistent/orbit_database.hpp>
 
 namespace Orbit::Data::Param
 {
@@ -42,12 +46,53 @@ namespace Orbit::Data::Param
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static ParameterList ParamInfo = ParamSorter( Internal::_unsorted_parameters );
+
+  /**
+   * @brief Descriptor for all supported parameters
+   */
+  static const ParameterList ParamInfo = ParamSorter( Internal::_unsorted_parameters );
+
+  /**
+   * @brief Maintenance list for parameters that have been modified and need flushing
+   */
+  static etl::forward_list<const Node *, Param::NUM_PARAMS> s_dirty_list;
+
+  /**
+   * @brief Protect write access to the parameter cache
+   */
+  static Chimera::Thread::RecursiveMutex s_write_lock;
 
 
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+
+  void init()
+  {
+    /*-------------------------------------------------------------------------
+    Reset module memory cache
+    -------------------------------------------------------------------------*/
+    SysCalibration.clear();
+    SysConfig.clear();
+    SysControl.clear();
+    SysIdentity.clear();
+    SysInfo.clear();
+
+    /*-------------------------------------------------------------------------
+    Load all defaults
+    -------------------------------------------------------------------------*/
+    SysCalibration.setDefaults();
+    SysConfig.setDefaults();
+    SysControl.setDefaults();
+    SysIdentity.setDefaults();
+    SysInfo.setDefaults();
+
+    /*-------------------------------------------------------------------------
+    Intialize remaining module data
+    -------------------------------------------------------------------------*/
+    s_dirty_list.clear();
+  }
+
 
   const ParameterList& list()
   {
@@ -75,7 +120,7 @@ namespace Orbit::Data::Param
   }
 
 
-  Node *find( const ParamId id )
+  const Node *find( const ParamId id )
   {
     auto iterator = etl::find_if( ParamInfo.begin(), ParamInfo.end(),
                                   [ id ]( const Node &node ) { return static_cast<int>( node.id ) == id; } );
@@ -91,7 +136,7 @@ namespace Orbit::Data::Param
   }
 
 
-  Node *find( const etl::string_view &key )
+  const Node *find( const etl::string_view &key )
   {
     auto iterator = etl::find_if( ParamInfo.begin(), ParamInfo.end(),
                                   [ key ]( const Node &node ) { return key.compare( node.key ) == 0; } );
@@ -138,7 +183,7 @@ namespace Orbit::Data::Param
     /*-------------------------------------------------------------------------
     Find the parameter in the list
     -------------------------------------------------------------------------*/
-    Node *node = find( param );
+    const Node *node = find( param );
     if ( !node )
     {
       return false;
@@ -156,6 +201,8 @@ namespace Orbit::Data::Param
     Adjust the copy method depending on the underlying type. Strings need to
     be handled differently than the rest of the POD types.
     -----------------------------------------------------------------------*/
+    Chimera::Thread::LockGuard _lck( s_write_lock );
+
     switch ( node->type )
     {
       case ParamType_STRING: {
@@ -169,46 +216,88 @@ namespace Orbit::Data::Param
         break;
     }
 
-    node->dirty = true;
+    /*-------------------------------------------------------------------------
+    Add the node to the dirty list. Push to the front of the list using the
+    assumption that more recently modified parameters are more likely to be
+    modified again, decreasing search time.
+    -------------------------------------------------------------------------*/
+    auto iterator = etl::find( s_dirty_list.begin(), s_dirty_list.end(), node );
+    if ( iterator == s_dirty_list.end() )
+    {
+      s_dirty_list.push_front( node );
+    }
+
     return true;
   }
 
 
   bool flush()
   {
-   // /*-------------------------------------------------------------------------
-    // Flush the data to disk
-    // -------------------------------------------------------------------------*/
-    // LOG_INFO( "Storing configuration to disk..." );
-    // FS::FileId fd       = -1;
-    // s_json_pend_changes = false;
+    /*-------------------------------------------------------------------------
+    Don't flush if nothing to do
+    -------------------------------------------------------------------------*/
+    if( synchronized() )
+    {
+      return true;
+    }
 
-    // if ( 0 == FS::fopen( Internal::SystemConfigFile.cbegin(), FILE_FLAGS, fd ) )
-    // {
-    //   FS::frewind( fd );
-    //   const size_t written = FS::fwrite( file_data, 1u, serialized_size, fd );
-    //   FS::fclose( fd );
-    //   LOG_ERROR_IF( written != serialized_size, "Failed to flush all bytes to disk. Act:%d, Exp:%d", written, serialized_size );
-    //   return written == serialized_size;
-    // }
-    // else
-    // {
-    //   LOG_ERROR( "Disk flush failed. Cannot open file." );
-    //   return false;
-    // }
+    /*-------------------------------------------------------------------------
+    Flush the dirty list to disk
+    -------------------------------------------------------------------------*/
+    Chimera::Thread::LockGuard _lck( s_write_lock );
 
-    return false;
+    size_t max_attempts = 0;
+    while( ( max_attempts < 5 ) && !s_dirty_list.empty())
+    {
+      const Node *node = s_dirty_list.front();
+      if( Persistent::db_write( node->key, node->address, node->maxSize ) == node->maxSize )
+      {
+        s_dirty_list.pop_front();
+      }
+      else
+      {
+        max_attempts++;
+        LOG_ERROR( "Failed to write parameter to disk: %s", node->key );
+      }
+    }
+
+    return synchronized();
   }
 
 
   bool load()
   {
-    return false;
+    /*-------------------------------------------------------------------------
+    Acquire the lock first to prevent any other threads from modifying the
+    cache after the initial flush.
+    -------------------------------------------------------------------------*/
+    Chimera::Thread::LockGuard _lck( s_write_lock );
+
+    /*-------------------------------------------------------------------------
+    Ensure we've synchronized any dirty parameters
+    -------------------------------------------------------------------------*/
+    flush();
+
+    /*-------------------------------------------------------------------------
+    Pull each parameter from disk
+    -------------------------------------------------------------------------*/
+    for( const auto &node : ParamInfo )
+    {
+      const size_t read_size = Persistent::db_read( node.key, node.address, node.maxSize );
+      LOG_WARN_IF( read_size != node.maxSize, "Size mismatch reading parameter %s from disk: %d != %d", node.key, read_size,
+                   node.maxSize );
+    }
+
+    /*-------------------------------------------------------------------------
+    Cache is now clean
+    -------------------------------------------------------------------------*/
+    s_dirty_list.clear();
+    return true;
   }
 
 
   bool synchronized()
   {
-    return false;
+    return s_dirty_list.empty();
   }
 }    // namespace Orbit::Data::Param

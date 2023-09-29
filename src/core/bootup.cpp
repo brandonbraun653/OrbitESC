@@ -27,7 +27,6 @@ Includes
 #include <src/core/bootup.hpp>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/data/orbit_log_io.hpp>
-#include <src/core/data/persistent/orbit_filesystem.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_can.hpp>
 #include <src/core/hw/orbit_gpio.hpp>
@@ -97,7 +96,6 @@ namespace Orbit::Boot
     Orbit::USART::powerUp();           // Serial debug port logging
     Orbit::SPI::powerUp();             // NOR bus driver
     Orbit::Data::initialize();         // Prepare system data memory
-    Orbit::Data::File::init();         // Attach and load the file system
     Orbit::Data::printSystemInfo();    // Print the system info to the console
 
     /*-------------------------------------------------------------------------

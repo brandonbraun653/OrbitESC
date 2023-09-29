@@ -40,7 +40,6 @@ namespace Orbit::Data::Param
     const char  *key;       /**< String to use in database lookup*/
     void        *address;   /**< Fixed location in memory where data lives */
     uint16_t     maxSize;   /**< Max possible size of the data */
-    bool         dirty;     /**< True if the parameter needs flushed to database */
     VerifierFunc validator; /**< Function to validate the data before writing */
   };
 }    // namespace Orbit::Data::Param

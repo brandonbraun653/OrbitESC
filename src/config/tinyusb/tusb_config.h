@@ -64,7 +64,7 @@ extern "C"
 
 // Map printf to custom logger
 #ifndef CFG_TUSB_DEBUG_PRINTF
-#define CFG_TUSB_DEBUG_PRINTF orbit_usb_printf
+#define CFG_TUSB_DEBUG_PRINTF orbit_esc_printf
 #endif
 
 

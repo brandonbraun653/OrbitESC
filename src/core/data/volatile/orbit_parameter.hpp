@@ -28,6 +28,12 @@ namespace Orbit::Data::Param
   ---------------------------------------------------------------------------*/
 
   /**
+   * @brief Initializes the parameter system
+   * @return void
+   */
+  void init();
+
+  /**
    * @brief Gets the core list storing parameter information
    * @return const ParameterList&
    */
@@ -55,7 +61,7 @@ namespace Orbit::Data::Param
    * @param id    The ID of the parameter to find
    * @return Node*
    */
-  Node *find( const ParamId id );
+  const Node *find( const ParamId id );
 
   /**
    * @brief Finds a parameter node by its key
@@ -63,7 +69,7 @@ namespace Orbit::Data::Param
    * @param key   The key of the parameter to find
    * @return Node*
    */
-  Node *find( const etl::string_view &key );
+  const Node *find( const etl::string_view &key );
 
   /**
    * @brief Binary copy a parameter from cache into a given buffer

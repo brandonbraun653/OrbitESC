@@ -48,7 +48,6 @@ namespace Orbit::Data::Param
               .key       = "pwr_cnt",
               .address   = &SysInfo.bootCount,
               .maxSize   = sizeof( SysInfo.bootCount ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_HW_VERSION,
@@ -56,7 +55,6 @@ namespace Orbit::Data::Param
               .key       = "hw_ver",
               .address   = &SysIdentity.hwVersion,
               .maxSize   = sizeof( SysIdentity.hwVersion ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_SW_VERSION,
@@ -64,7 +62,6 @@ namespace Orbit::Data::Param
               .key       = "sw_ver",
               .address   = &SysIdentity.swVersion,
               .maxSize   = SysIdentity.swVersion.MAX_SIZE,
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_DEVICE_ID,
@@ -72,7 +69,6 @@ namespace Orbit::Data::Param
               .key       = "dev_id",
               .address   = &SysIdentity.deviceId,
               .maxSize   = sizeof( SysIdentity.deviceId ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_BOARD_NAME,
@@ -80,7 +76,6 @@ namespace Orbit::Data::Param
               .key       = "name",
               .address   = &SysIdentity.boardName,
               .maxSize   = SysIdentity.boardName.MAX_SIZE,
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_DESCRIPTION,
@@ -88,7 +83,6 @@ namespace Orbit::Data::Param
               .key       = "desc",
               .address   = &SysIdentity.description,
               .maxSize   = SysIdentity.description.MAX_SIZE,
-              .dirty     = false,
               .validator = nullptr },
 
         /*-----------------------------------------------------------------------------
@@ -99,7 +93,6 @@ namespace Orbit::Data::Param
               .key       = "ser_num",
               .address   = &SysIdentity.serialNumber,
               .maxSize   = SysIdentity.serialNumber.MAX_SIZE,
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_DISK_UPDATE_RATE_MS,
@@ -107,7 +100,6 @@ namespace Orbit::Data::Param
               .key       = "dsk_updt",
               .address   = &SysConfig.diskUpdateRateMs,
               .maxSize   = sizeof( SysConfig.diskUpdateRateMs ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_ACTIVITY_LED_SCALER,
@@ -115,7 +107,6 @@ namespace Orbit::Data::Param
               .key       = "actv_led_scale",
               .address   = &SysConfig.activityLedScaler,
               .maxSize   = sizeof( SysConfig.activityLedScaler ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_BOOT_MODE,
@@ -123,7 +114,6 @@ namespace Orbit::Data::Param
               .key       = "boot_mode",
               .address   = &SysInfo.bootMode,
               .maxSize   = sizeof( SysInfo.bootMode ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_CAN_NODE_ID,
@@ -131,7 +121,6 @@ namespace Orbit::Data::Param
               .key       = "can_id",
               .address   = &SysConfig.canNodeId,
               .maxSize   = sizeof( SysConfig.canNodeId ),
-              .dirty     = false,
               .validator = ValidateParamId_PARAM_CAN_NODE_ID },
 
         /*-----------------------------------------------------------------------
@@ -142,7 +131,6 @@ namespace Orbit::Data::Param
               .key       = "stator_pwm_freq",
               .address   = &SysControl.statorPWMFreq,
               .maxSize   = sizeof( SysControl.statorPWMFreq ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_SPEED_CTRL_FREQ,
@@ -150,7 +138,6 @@ namespace Orbit::Data::Param
               .key       = "spd_ctrl_freq",
               .address   = &SysControl.speedCtrlUpdateFreq,
               .maxSize   = sizeof( SysControl.speedCtrlUpdateFreq ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_SPEED_CTRL_KP,
@@ -158,7 +145,6 @@ namespace Orbit::Data::Param
               .key       = "spd_ctrl_kp",
               .address   = &SysControl.speedCtrlKp,
               .maxSize   = sizeof( SysControl.speedCtrlKp ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_SPEED_CTRL_KI,
@@ -166,7 +152,6 @@ namespace Orbit::Data::Param
               .key       = "spd_ctrl_ki",
               .address   = &SysControl.speedCtrlKi,
               .maxSize   = sizeof( SysControl.speedCtrlKi ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_SPEED_CTRL_KD,
@@ -174,7 +159,6 @@ namespace Orbit::Data::Param
               .key       = "spd_ctrl_kd",
               .address   = &SysControl.speedCtrlKd,
               .maxSize   = sizeof( SysControl.speedCtrlKd ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_TARGET_IDLE_RPM,
@@ -182,7 +166,6 @@ namespace Orbit::Data::Param
               .key       = "target_idle_rpm",
               .address   = &SysControl.targetIdleRPM,
               .maxSize   = sizeof( SysControl.targetIdleRPM ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_CURRENT_CTRL_Q_AXIS_KP,
@@ -190,7 +173,6 @@ namespace Orbit::Data::Param
               .key       = "iq_ctrl_kp",
               .address   = &SysControl.currentCtrl_Q_Kp,
               .maxSize   = sizeof( SysControl.currentCtrl_Q_Kp ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_CURRENT_CTRL_Q_AXIS_KI,
@@ -198,7 +180,6 @@ namespace Orbit::Data::Param
               .key       = "iq_ctrl_ki",
               .address   = &SysControl.currentCtrl_Q_Ki,
               .maxSize   = sizeof( SysControl.currentCtrl_Q_Ki ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_CURRENT_CTRL_Q_AXIS_KD,
@@ -206,7 +187,6 @@ namespace Orbit::Data::Param
               .key       = "iq_ctrl_kd",
               .address   = &SysControl.currentCtrl_Q_Kd,
               .maxSize   = sizeof( SysControl.currentCtrl_Q_Kd ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_CURRENT_CTRL_D_AXIS_KP,
@@ -214,7 +194,6 @@ namespace Orbit::Data::Param
               .key       = "id_ctrl_kp",
               .address   = &SysControl.currentCtrl_D_Kp,
               .maxSize   = sizeof( SysControl.currentCtrl_D_Kp ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_CURRENT_CTRL_D_AXIS_KI,
@@ -222,7 +201,6 @@ namespace Orbit::Data::Param
               .key       = "id_ctrl_ki",
               .address   = &SysControl.currentCtrl_D_Ki,
               .maxSize   = sizeof( SysControl.currentCtrl_D_Ki ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_CURRENT_CTRL_D_AXIS_KD,
@@ -230,7 +208,6 @@ namespace Orbit::Data::Param
               .key       = "id_ctrl_kd",
               .address   = &SysControl.currentCtrl_D_Kd,
               .maxSize   = sizeof( SysControl.currentCtrl_D_Kd ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_RAMP_CTRL_FIRST_ORDER_TERM,
@@ -238,7 +215,6 @@ namespace Orbit::Data::Param
               .key       = "ramp_1st_term",
               .address   = &SysControl.rampCtrlFirstOrderTerm,
               .maxSize   = sizeof( SysControl.rampCtrlFirstOrderTerm ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_RAMP_CTRL_SECOND_ORDER_TERM,
@@ -246,7 +222,6 @@ namespace Orbit::Data::Param
               .key       = "ramp_2nd_term",
               .address   = &SysControl.rampCtrlSecondOrderTerm,
               .maxSize   = sizeof( SysControl.rampCtrlSecondOrderTerm ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_RAMP_CTRL_RAMP_TIME_SEC,
@@ -254,7 +229,6 @@ namespace Orbit::Data::Param
               .key       = "ramp_time_sec",
               .address   = &SysControl.rampCtrlRampTimeSec,
               .maxSize   = sizeof( SysControl.rampCtrlRampTimeSec ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_CURRENT_OBSERVER_KSLIDE,
@@ -262,7 +236,6 @@ namespace Orbit::Data::Param
               .key       = "smc_kslide",
               .address   = &SysControl.currentObserver_KSlide,
               .maxSize   = sizeof( SysControl.currentObserver_KSlide ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_CURRENT_OBSERVER_MAX_ERROR,
@@ -270,7 +243,6 @@ namespace Orbit::Data::Param
               .key       = "smc_max_error",
               .address   = &SysControl.currentObserver_MaxError,
               .maxSize   = sizeof( SysControl.currentObserver_MaxError ),
-              .dirty     = false,
               .validator = nullptr },
 
         /*-----------------------------------------------------------------------
@@ -281,7 +253,6 @@ namespace Orbit::Data::Param
               .key       = "rotor_poles",
               .address   = &SysConfig.rotorPoles,
               .maxSize   = sizeof( SysConfig.rotorPoles ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_STATOR_SLOTS,
@@ -289,7 +260,6 @@ namespace Orbit::Data::Param
               .key       = "stator_slots",
               .address   = &SysConfig.statorSlots,
               .maxSize   = sizeof( SysConfig.statorSlots ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_STATOR_RESISTANCE,
@@ -297,7 +267,6 @@ namespace Orbit::Data::Param
               .key       = "stator_resistance",
               .address   = &SysConfig.statorResistance,
               .maxSize   = sizeof( SysConfig.statorResistance ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_STATOR_INDUCTANCE,
@@ -305,7 +274,6 @@ namespace Orbit::Data::Param
               .key       = "stator_inductance",
               .address   = &SysConfig.statorInductance,
               .maxSize   = sizeof( SysConfig.statorInductance ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_PEAK_CURRENT_THRESHOLD,
@@ -313,7 +281,6 @@ namespace Orbit::Data::Param
               .key       = "peak_current_threshold",
               .address   = &SysConfig.peakCurrentThreshold,
               .maxSize   = sizeof( SysConfig.peakCurrentThreshold ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD,
@@ -321,7 +288,6 @@ namespace Orbit::Data::Param
               .key       = "peak_voltage_threshold",
               .address   = &SysConfig.peakVoltageThreshold,
               .maxSize   = sizeof( SysConfig.peakVoltageThreshold ),
-              .dirty     = false,
               .validator = nullptr },
 
         /*-----------------------------------------------------------------------
@@ -332,7 +298,6 @@ namespace Orbit::Data::Param
               .key       = "stream_phase_currents",
               .address   = &SysConfig.streamPhaseCurrents,
               .maxSize   = sizeof( SysConfig.streamPhaseCurrents ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_STREAM_PWM_COMMANDS,
@@ -340,7 +305,6 @@ namespace Orbit::Data::Param
               .key       = "stream_pwm_commands",
               .address   = &SysConfig.streamPwmCommands,
               .maxSize   = sizeof( SysConfig.streamPwmCommands ),
-              .dirty     = false,
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_STREAM_STATE_ESTIMATES,
@@ -348,7 +312,6 @@ namespace Orbit::Data::Param
               .key       = "stream_state_estimates",
               .address   = &SysConfig.streamStateEstimates,
               .maxSize   = sizeof( SysConfig.streamStateEstimates ),
-              .dirty     = false,
               .validator = nullptr },
 
         /***** Add new entries above here *****/

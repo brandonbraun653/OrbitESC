@@ -93,7 +93,7 @@ namespace Orbit::Data::File
     {
       LOG_TRACE( "Formatting filesystem and remounting\r\n" );
       FS::LFS::formatVolume( &s_lfs_volume );
-      FS::VolumeId mnt_vol = FS::mount( "/", intf );
+      FS::VolumeId mnt_vol = FS::mount( FileSystemMountPoint.cbegin(), intf );
 
       if ( mnt_vol < 0 )
       {
@@ -110,10 +110,13 @@ namespace Orbit::Data::File
     FS::FileId      fd    = -1;
     FS::AccessFlags flags = ( FS::AccessFlags::O_RDONLY | FS::AccessFlags::O_CREAT );
 
-    RT_HARD_ASSERT( 0 == FS::fopen( SystemConfigFile.cbegin(), flags, fd ) );
-    RT_HARD_ASSERT( 0 == FS::fclose( fd ) );
+    if( fs_mounted )
+    {
+      RT_HARD_ASSERT( 0 == FS::fopen( SystemConfigFile.cbegin(), flags, fd ) );
+      RT_HARD_ASSERT( 0 == FS::fclose( fd ) );
 
-    RT_HARD_ASSERT( 0 == FS::fopen( SystemLogFile.cbegin(), flags, fd ) );
-    RT_HARD_ASSERT( 0 == FS::fclose( fd ) );
+      RT_HARD_ASSERT( 0 == FS::fopen( SystemLogFile.cbegin(), flags, fd ) );
+      RT_HARD_ASSERT( 0 == FS::fclose( fd ) );
+    }
   }
 }  // namespace Orbit::Data::File

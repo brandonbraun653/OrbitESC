@@ -28,8 +28,10 @@ Using File Storage feature
 -----------------------------------------------------------------------------*/
 #define FDB_USING_FILE_MODE
 
-/* log print macro. default EF_PRINT macro is printf() */
-/* #define FDB_PRINT(...)              my_printf(__VA_ARGS__) */
+/*-----------------------------------------------------------------------------
+Override default printf with the OrbitESC version
+-----------------------------------------------------------------------------*/
+#define FDB_PRINT(...)              orbit_esc_printf(__VA_ARGS__)
 
 /* print debug information */
 // #define FDB_DEBUG_ENABLE

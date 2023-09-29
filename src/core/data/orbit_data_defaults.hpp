@@ -34,7 +34,7 @@ namespace Orbit::Data
   /**
    * @brief Name of the file used internally to back our key-value store
    */
-  static const etl::string_view SystemConfigFile = "/sys_config.json";
+  static const etl::string_view SystemConfigFile = "/sys_config.bin";
 
   /**
    * @brief Name of the file used internally to store logs to

@@ -14,8 +14,6 @@ Includes
 
 #include <Aurora/logging>
 #include <Chimera/gpio>
-#include <Chimera/thread>
-#include <Chimera/system>
 #include <src/config/bsp/board_map.hpp>
 #include <Thor/lld/interface/inc/interrupt>
 #include <src/core/hw/orbit_tusb.h>
@@ -24,17 +22,6 @@ Includes
 
 namespace Orbit::USB
 {
-  /*---------------------------------------------------------------------------
-  Constants
-  ---------------------------------------------------------------------------*/
-  static constexpr size_t LOG_BUF_SIZE = 512;
-
-  /*---------------------------------------------------------------------------
-  Static Data
-  ---------------------------------------------------------------------------*/
-  static char                   s_log_buffer[ LOG_BUF_SIZE ];
-  static Chimera::Thread::Mutex s_format_lock;
-
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
@@ -95,44 +82,6 @@ TinyUSB functionality that uses our C++ infrastructure
 -----------------------------------------------------------------------------*/
 extern "C"
 {
-  /**
-   * @brief Logs a message from the USB driver to the system logger
-   *
-   * @param format  The format string
-   * @param ...     Variable arguments
-   * @return int    Number of bytes written
-   */
-  int orbit_usb_printf( const char *format, ... )
-  {
-    using namespace Orbit::USB;
-    using namespace Aurora::Logging;
-
-    if ( Chimera::System::inISR() )
-    {
-      return 0;
-    }
-
-    // TODO BMB: Evaluate if this is necessary
-    // Chimera::Thread::LockGuard _lock( s_format_lock );
-
-    memset( s_log_buffer, 0, LOG_BUF_SIZE );
-    va_list argptr;
-    va_start( argptr, format );
-    const int write_size = npf_vsnprintf( s_log_buffer, LOG_BUF_SIZE, format, argptr );
-    va_end( argptr );
-
-    if ( write_size > 0 )
-    {
-      getRootSink()->log( Level::LVL_DEBUG, s_log_buffer, static_cast<size_t>( write_size ) );
-      return write_size;
-    }
-    else
-    {
-      return 0;
-    }
-  }
-
-
   /**
    * @brief Invoked when device is mounted (configured)
    * @return void
