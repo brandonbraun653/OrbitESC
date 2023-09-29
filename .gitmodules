@@ -25,9 +25,6 @@
 [submodule "lib/ChimeraSim"]
 	path = lib/ChimeraSim
 	url = https://github.com/brandonbraun653/ChimeraSim.git
-[submodule "lib/json/ArduinoJson"]
-	path = lib/json/ArduinoJson
-	url = https://github.com/bblanchon/ArduinoJson.git
 [submodule "lib/usb/tinyusb/hw/mcu/st/cmsis_device_f4"]
 	path = lib/usb/tinyusb/hw/mcu/st/cmsis_device_f4
 	url = https://github.com/STMicroelectronics/cmsis_device_f4.git

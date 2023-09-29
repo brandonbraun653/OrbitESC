@@ -36,7 +36,6 @@ add_subdirectory("lib/CommonTools/googletest")
 add_subdirectory("lib/db")
 add_subdirectory("lib/FreeRTOS")
 add_subdirectory("lib/Thor")
-add_subdirectory("lib/json")
 add_subdirectory("lib/usb")
 
 # ====================================================
