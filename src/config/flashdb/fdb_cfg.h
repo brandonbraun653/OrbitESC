@@ -24,9 +24,10 @@ Using Time-Series Database feature
 #define FDB_USING_TSDB
 
 /*-----------------------------------------------------------------------------
-Using File Storage feature
+Using flash abstraction layer
 -----------------------------------------------------------------------------*/
-#define FDB_USING_FILE_MODE
+#define FDB_USING_FAL_MODE
+#define FDB_WRITE_GRAN 1
 
 /*-----------------------------------------------------------------------------
 Override default printf with the OrbitESC version

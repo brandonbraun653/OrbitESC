@@ -47,7 +47,7 @@ namespace Orbit::Data
     /*-------------------------------------------------------------------------
     Initialize persistent data storage
     -------------------------------------------------------------------------*/
-    File::init();               // Attach and load the file system
+    //File::init();               // Attach and load the file system
     Persistent::db_init();
 
     return true;

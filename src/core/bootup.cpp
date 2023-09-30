@@ -110,7 +110,7 @@ namespace Orbit::Boot
     Orbit::ADC::powerUp();
     Orbit::CAN::powerUp();
     Orbit::TIMER::powerUp();
-    Orbit::USB::powerUp();
+    //Orbit::USB::powerUp();
 
     /*-------------------------------------------------------------------------
     Power up remaining system components

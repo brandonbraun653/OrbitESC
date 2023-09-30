@@ -16,7 +16,7 @@ Includes
 #include <Aurora/memory>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/data/orbit_data_defaults.hpp>
-#include <src/core/data/persistent/orbit_filesystem.hpp>
+#include <src/core/data/persistent/orbit_database.hpp>
 
 namespace Orbit::Data::File
 {
@@ -107,6 +107,7 @@ namespace Orbit::Data::File
     /*-------------------------------------------------------------------------
     Create root files if not present yet
     -------------------------------------------------------------------------*/
+    // TODO: Move this into the control of respective modules
     FS::FileId      fd    = -1;
     FS::AccessFlags flags = ( FS::AccessFlags::O_RDONLY | FS::AccessFlags::O_CREAT );
 
