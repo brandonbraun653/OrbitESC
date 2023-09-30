@@ -5,7 +5,7 @@ from pyorbit.motor_control import MotorControl
 
 @pytest.fixture
 def serial_client() -> SerialClient:
-    client = SerialClient(port="/dev/ttyUSB0", baudrate=2000000)
+    client = SerialClient(port="/dev/ttyACM1", baudrate=2000000)
     yield client
     client.close()
 

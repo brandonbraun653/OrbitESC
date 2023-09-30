@@ -145,18 +145,19 @@ class ParameterObserver(MessageObserver):
         # Deserialize the data returned
         if data_messages:
             rsp = data_messages[0]
-            msg = rsp.data.decode('utf-8')
 
             try:
                 if rsp.param_type == ParameterType.STRING:
-                    return msg
+                    return rsp.data.decode('utf-8')
                 elif rsp.param_type == ParameterType.FLOAT or rsp.param_type == ParameterType.DOUBLE:
-                    return float(msg)
+                    return float(struct.unpack("<f", rsp.data)[0])
                 elif rsp.param_type == ParameterType.UINT8 or rsp.param_type == ParameterType.UINT16 or \
                         rsp.param_type == ParameterType.UINT32:
-                    return int(msg)
+                    return int.from_bytes(rsp.data, byteorder='little')
                 elif rsp.param_type == ParameterType.BOOL:
-                    return True if msg == '1' else False
+                    assert len(rsp.data) == 1, f"Expected length 1 for bool type but got {len(rsp.data)}"
+                    assert rsp.data[0] == 0 or rsp.data[0] == 1, f"Expected 0 or 1 for bool type but got {rsp.data[0]}"
+                    return bool(rsp.data[0])
                 else:
                     logger.warning(f"Don't know how to decode parameter type {rsp.param_type}")
                     return rsp.data

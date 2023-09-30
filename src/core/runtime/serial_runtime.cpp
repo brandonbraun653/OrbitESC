@@ -82,12 +82,14 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Copy out the serialized data
     -------------------------------------------------------------------------*/
-    response.data.size = Param::read( id, response.data.bytes, sizeof( response.data.bytes ) );
-    if ( response.data.size == 0 )
+    const ssize_t read_size = Param::read( id, response.data.bytes, sizeof( response.data.bytes ) );
+    if ( read_size < 0 )
     {
       sendAckNack( false, msg.payload.header, StatusCode_REQUEST_FAILED );
       return;
     }
+
+    response.data.size = static_cast<pb_size_t>( read_size );
 
     /*-------------------------------------------------------------------------
     Ship the response on the wire

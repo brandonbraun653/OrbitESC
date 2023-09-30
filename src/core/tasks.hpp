@@ -40,6 +40,8 @@ namespace Orbit::Tasks
 
   enum PrjTaskMsg : uint32_t
   {
+    __PRJ_FIRST_MSG = Chimera::Thread::TSK_MSG_PRJ_FIRST_MSG,
+
     /*-------------------------------------------------------------------------
     Delayed IO
     -------------------------------------------------------------------------*/

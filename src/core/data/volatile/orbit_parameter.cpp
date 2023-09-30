@@ -152,7 +152,7 @@ namespace Orbit::Data::Param
   }
 
 
-  bool read( const ParamId param, void *const dest, const size_t size )
+  ssize_t read( const ParamId param, void *const dest, const size_t size )
   {
     /*-------------------------------------------------------------------------
     Find the parameter in the list
@@ -160,21 +160,26 @@ namespace Orbit::Data::Param
     const Node *node = find( param );
     if ( !node )
     {
-      return false;
+      return -1;
     }
 
     /*-------------------------------------------------------------------------
     Copy the data from the cache
     -------------------------------------------------------------------------*/
-    if ( node->maxSize >= size )
+    size_t read_size = std::min( size, static_cast<size_t>( node->maxSize ) );
+
+    if( node->type == ParamType_STRING )
     {
-      memcpy( dest, node->address, size );
-      return true;
+      auto val = reinterpret_cast<etl::istring *>( node->address );
+      read_size = std::min( read_size, val->length() );
+      val->copy( reinterpret_cast<char *>( dest ), read_size );
     }
     else
     {
-      return false;
+      memcpy( dest, node->address, read_size );
     }
+
+    return static_cast<ssize_t>( read_size );
   }
 
 
@@ -279,13 +284,21 @@ namespace Orbit::Data::Param
     flush();
 
     /*-------------------------------------------------------------------------
-    Pull each parameter from disk
+    Pull each parameter from disk. If a parameter doesn't exist, program in the
+    default value, which was set during the init() call.
     -------------------------------------------------------------------------*/
     for( const auto &node : ParamInfo )
     {
       const size_t read_size = Persistent::db_read( node.key, node.address, node.maxSize );
-      LOG_WARN_IF( read_size != node.maxSize, "Size mismatch reading parameter %s from disk: %d != %d", node.key, read_size,
-                   node.maxSize );
+      if( read_size == 0 )
+      {
+        LOG_INFO( "Missing parameter from disk: %s. Programming defaults.", node.key );
+        Persistent::db_write( node.key, node.address, node.maxSize );
+      }
+
+      LOG_WARN_IF( ( read_size != node.maxSize ) && ( read_size != 0 ),
+                   "Size mismatch reading parameter %s from disk: %d != %d",
+                   node.key, read_size, node.maxSize );
     }
 
     /*-------------------------------------------------------------------------

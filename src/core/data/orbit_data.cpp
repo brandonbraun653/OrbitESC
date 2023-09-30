@@ -40,15 +40,16 @@ namespace Orbit::Data
   bool initialize()
   {
     /*-------------------------------------------------------------------------
-    Initialize volatile data storage
-    -------------------------------------------------------------------------*/
-    Param::init();
-
-    /*-------------------------------------------------------------------------
     Initialize persistent data storage
     -------------------------------------------------------------------------*/
     //File::init();               // Attach and load the file system
     Persistent::db_init();
+
+    /*-------------------------------------------------------------------------
+    Initialize volatile data storage
+    -------------------------------------------------------------------------*/
+    Param::init();  // Initialize the parameter system
+    Param::load();  // Load the parameters from persistent storage
 
     return true;
   }

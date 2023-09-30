@@ -23,6 +23,7 @@ namespace Orbit::Data::Persistent
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+
   /**
    * @brief Initializes the persistent storage layer
    * @return void

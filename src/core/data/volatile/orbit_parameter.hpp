@@ -15,10 +15,9 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <array>
-#include <algorithm>
 #include <cstddef>
-
+#include <etl/string_view.h>
+#include <src/core/com/serial/serial_interface.pb.h>
 #include <src/core/data/volatile/orbit_parameter_decl.hpp>
 
 namespace Orbit::Data::Param
@@ -37,7 +36,7 @@ namespace Orbit::Data::Param
    * @brief Gets the core list storing parameter information
    * @return const ParameterList&
    */
-  const ParameterList& list();
+  const ParameterList &list();
 
   /**
    * @brief Get storage type of the parameter
@@ -76,10 +75,10 @@ namespace Orbit::Data::Param
    *
    * @param param   Which parameter to copy
    * @param dest    Where to copy the data to
-   * @param size    How many bytes to copy
-   * @return bool   True if success, false if not
+   * @param size    Size of the destination buffer
+   * @return size_t How many bytes were read, or negative on error
    */
-  bool read( const ParamId param, void *const dest, const size_t size );
+  ssize_t read( const ParamId param, void *const dest, const size_t size );
 
   /**
    * @brief Binary write a parameter from a given buffer into cache

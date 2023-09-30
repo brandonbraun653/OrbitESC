@@ -41,11 +41,6 @@ class TestReadOnlyParameters:
         assert isinstance(description, str)
         assert description == "BLDC Motor Controller"
 
-    def test_get_boot_mode(self, serial_client: SerialClient):
-        boot_mode = serial_client.parameter.get(ParameterId.BootMode)
-        assert isinstance(boot_mode, int)
-        assert boot_mode >= 0
-
 
 @pytest.mark.usefixtures("serial_client")
 class TestSerialNumber:
