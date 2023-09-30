@@ -5,6 +5,7 @@ gen_intf_lib(
     flash_db_intf_inc
   INTF_INCLUDES
     ./flashdb/inc
+    ./flashdb/port/fal/inc
   INTF_LIBRARIES
     project_intf_inc
   EXPORT_DIR
@@ -20,6 +21,10 @@ gen_static_lib_variants(
     flashdb/src/fdb_tsdb.c
     flashdb/src/fdb_utils.c
     flashdb/src/fdb.c
+    flashdb/port/fal/src/fal_flash.c
+    flashdb/port/fal/src/fal_partition.c
+    flashdb/port/fal/src/fal_rtt.c
+    flashdb/port/fal/src/fal.c
   PRV_LIBRARIES
     flash_db_intf_inc
   EXPORT_DIR

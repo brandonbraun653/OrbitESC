@@ -109,7 +109,7 @@ namespace Orbit::Data::Persistent
     /*-------------------------------------------------------------------------
     Initialize the KV control block
     -------------------------------------------------------------------------*/
-    uint32_t sectorSize  = 512;
+    uint32_t sectorSize  = 4096;
     uint32_t dbMaxSize   = DB_MAX_SIZE;
     bool     useFileMode = true;
 
@@ -126,7 +126,7 @@ namespace Orbit::Data::Persistent
     /*-------------------------------------------------------------------------
     Initialize the KV database
     -------------------------------------------------------------------------*/
-    s_kv_db_ready = fdb_kvdb_init( &s_kv_db, "orbit_db", "fdb_kv_db1", &default_table, NULL );
+    s_kv_db_ready = fdb_kvdb_init( &s_kv_db, "orbit_db", KVDB_PARTITION_NAME, &default_table, NULL );
     LOG_ERROR_IF( s_kv_db_ready != FDB_NO_ERR, "Failed to initialize FlashDB" );
   }
 
@@ -148,7 +148,7 @@ namespace Orbit::Data::Persistent
     /*-------------------------------------------------------------------------
     Look up the data in the database
     -------------------------------------------------------------------------*/
-    fdb_blob  blob;
+    fdb_blob blob;
     fdb_kv_get_blob( &s_kv_db, key, &blob );
 
     /*-------------------------------------------------------------------------
@@ -180,7 +180,7 @@ namespace Orbit::Data::Persistent
     /*-------------------------------------------------------------------------
     Pad the file out to the desired size
     -------------------------------------------------------------------------*/
-    if( 0 == FS::fopen( SystemConfigFile.cbegin(), FS::AccessFlags::O_RDWR, fd ) )
+    if ( 0 == FS::fopen( SystemConfigFile.cbegin(), FS::AccessFlags::O_RDWR, fd ) )
     {
       /*-----------------------------------------------------------------------
       Figure out the current size of the file
@@ -190,7 +190,7 @@ namespace Orbit::Data::Persistent
       const size_t  PaddingSize   = DB_MAX_SIZE - DatabaseSize;
       const uint8_t padding[ 64 ] = { 0xFF };
 
-      if( PaddingSize < DB_MAX_SIZE )
+      if ( PaddingSize < DB_MAX_SIZE )
       {
         /*---------------------------------------------------------------------
         Write chunk sized padding
@@ -225,91 +225,144 @@ namespace Orbit::Data::Persistent
 
 
 /*-----------------------------------------------------------------------------
-FlashDB File Access Functions
+FlashDB Interface Layer
 -----------------------------------------------------------------------------*/
 namespace FS = ::Aurora::FileSystem;
 
-extern "C" fdb_err_t _fdb_file_read( fdb_db_t db, uint32_t addr, void *buf, size_t size )
+#ifdef __cplusplus
+extern "C"
 {
-  using namespace Orbit::Data;
+#endif
+  using namespace Orbit::Data::Persistent;
 
-  FS::FileId fd         = -1;
-  size_t     bytes_read = 0;
+  static int _fdb_flash_init( void );
+  static int _fdb_flash_read( long offset, uint8_t *buf, size_t size );
+  static int _fdb_flash_write( long offset, const uint8_t *buf, size_t size );
+  static int _fdb_flash_erase( long offset, size_t size );
 
-  if ( 0 == FS::fopen( SystemConfigFile.cbegin(), FS::AccessFlags::O_RDWR, fd ) )
+  const fal_flash_dev fdb_nor_flash0 = {
+    .name = NOR_FLASH_DEV_NAME,
+    .addr = 0,
+    .len  = 1024 * 1024,
+    .blk_size = 4096,
+    .ops = {
+      .init  = _fdb_flash_init,
+      .read  = _fdb_flash_read,
+      .write = _fdb_flash_write,
+      .erase = _fdb_flash_erase,
+    },
+    .write_gran = 1
+  };
+
+  static int _fdb_flash_init( void )
   {
-    if ( 0 == FS::fseek( fd, addr, FS::WhenceFlags::F_SEEK_SET ) )
-    {
-      bytes_read = FS::fread( buf, 1u, size, fd );
-    }
-
-    FS::fclose( fd );
+    return 0;
   }
 
-  return ( bytes_read == size ) ? FDB_NO_ERR : FDB_READ_ERR;
-}
 
-
-extern "C" fdb_err_t _fdb_file_write( fdb_db_t db, uint32_t addr, const void *buf, size_t size, bool sync )
-{
-  using namespace Orbit::Data;
-
-  FS::FileId fd            = -1;
-  size_t     bytes_written = 0;
-
-  if ( 0 == FS::fopen( SystemConfigFile.cbegin(), FS::AccessFlags::O_RDWR, fd ) )
+  static int _fdb_flash_read( long offset, uint8_t *buf, size_t size )
   {
-    if ( 0 == FS::fseek( fd, addr, FS::WhenceFlags::F_SEEK_SET ) )
-    {
-      bytes_written = FS::fwrite( buf, 1u, size, fd );
+    return ( s_nor.read( offset, buf, size ) == Aurora::Memory::Status::ERR_OK ) ? size : -1;
+  }
 
-      if ( sync )
+
+  static int _fdb_flash_write( long offset, const uint8_t *buf, size_t size )
+  {
+    return ( s_nor.write( offset, buf, size ) == Aurora::Memory::Status::ERR_OK ) ? size : -1;
+  }
+
+
+  static int _fdb_flash_erase( long offset, size_t size )
+  {
+    return ( s_nor.erase( offset, size ) == Aurora::Memory::Status::ERR_OK ) ? size : -1;
+  }
+
+
+  fdb_err_t _fdb_file_read( fdb_db_t db, uint32_t addr, void *buf, size_t size )
+  {
+    using namespace Orbit::Data;
+
+    FS::FileId fd         = -1;
+    size_t     bytes_read = 0;
+
+    if ( 0 == FS::fopen( SystemConfigFile.cbegin(), FS::AccessFlags::O_RDWR, fd ) )
+    {
+      if ( 0 == FS::fseek( fd, addr, FS::WhenceFlags::F_SEEK_SET ) )
       {
+        bytes_read = FS::fread( buf, 1u, size, fd );
+      }
+
+      FS::fclose( fd );
+    }
+
+    return ( bytes_read == size ) ? FDB_NO_ERR : FDB_READ_ERR;
+  }
+
+
+  fdb_err_t _fdb_file_write( fdb_db_t db, uint32_t addr, const void *buf, size_t size, bool sync )
+  {
+    using namespace Orbit::Data;
+
+    FS::FileId fd            = -1;
+    size_t     bytes_written = 0;
+
+    if ( 0 == FS::fopen( SystemConfigFile.cbegin(), FS::AccessFlags::O_RDWR, fd ) )
+    {
+      if ( 0 == FS::fseek( fd, addr, FS::WhenceFlags::F_SEEK_SET ) )
+      {
+        bytes_written = FS::fwrite( buf, 1u, size, fd );
+
+        if ( sync )
+        {
+          FS::fflush( fd );
+        }
+      }
+
+      FS::fclose( fd );
+    }
+
+    return ( bytes_written == size ) ? FDB_NO_ERR : FDB_WRITE_ERR;
+  }
+
+
+  fdb_err_t _fdb_file_erase( fdb_db_t db, uint32_t addr, size_t size )
+  {
+    using namespace Orbit::Data;
+
+    constexpr size_t BUF_SIZE     = 32;
+    FS::FileId       fd           = -1;
+    size_t           bytes_erased = 0;
+    size_t           i            = 0;
+    uint8_t          buf[ BUF_SIZE ];
+
+
+    if ( 0 == FS::fopen( SystemConfigFile.cbegin(), FS::AccessFlags::O_RDWR, fd ) )
+    {
+      if ( 0 == FS::fseek( fd, addr, FS::WhenceFlags::F_SEEK_SET ) )
+      {
+        /*-----------------------------------------------------------------------
+        Write as many full buffers as possible
+        -----------------------------------------------------------------------*/
+        for ( i = 0; i * BUF_SIZE < size; i++ )
+        {
+          memset( buf, 0xFF, BUF_SIZE );
+          bytes_erased += FS::fwrite( buf, 1u, BUF_SIZE, fd );
+        }
+
+        /*-----------------------------------------------------------------------
+        Write the last (possibly) partial buffer
+        -----------------------------------------------------------------------*/
+        memset( buf, 0xFF, BUF_SIZE );
+        bytes_erased += FS::fwrite( buf, 1u, ( size - ( i * BUF_SIZE ) ), fd );
         FS::fflush( fd );
       }
+
+      FS::fclose( fd );
     }
 
-    FS::fclose( fd );
+    return ( bytes_erased == size ) ? FDB_NO_ERR : FDB_ERASE_ERR;
   }
 
-  return ( bytes_written == size ) ? FDB_NO_ERR : FDB_WRITE_ERR;
+#ifdef __cplusplus
 }
-
-
-extern "C" fdb_err_t _fdb_file_erase( fdb_db_t db, uint32_t addr, size_t size )
-{
-  using namespace Orbit::Data;
-
-  constexpr size_t BUF_SIZE     = 32;
-  FS::FileId       fd           = -1;
-  size_t           bytes_erased = 0;
-  size_t           i            = 0;
-  uint8_t          buf[ BUF_SIZE ];
-
-
-  if ( 0 == FS::fopen( SystemConfigFile.cbegin(), FS::AccessFlags::O_RDWR, fd ) )
-  {
-    if ( 0 == FS::fseek( fd, addr, FS::WhenceFlags::F_SEEK_SET ) )
-    {
-      /*-----------------------------------------------------------------------
-      Write as many full buffers as possible
-      -----------------------------------------------------------------------*/
-      for ( i = 0; i * BUF_SIZE < size; i++ )
-      {
-        memset( buf, 0xFF, BUF_SIZE );
-        bytes_erased += FS::fwrite( buf, 1u, BUF_SIZE, fd );
-      }
-
-      /*-----------------------------------------------------------------------
-      Write the last (possibly) partial buffer
-      -----------------------------------------------------------------------*/
-      memset( buf, 0xFF, BUF_SIZE );
-      bytes_erased += FS::fwrite( buf, 1u, ( size - ( i * BUF_SIZE ) ), fd );
-      FS::fflush( fd );
-    }
-
-    FS::fclose( fd );
-  }
-
-  return ( bytes_erased == size ) ? FDB_NO_ERR : FDB_ERASE_ERR;
-}
+#endif

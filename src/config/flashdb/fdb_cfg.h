@@ -32,6 +32,8 @@ Using flash abstraction layer
 /*-----------------------------------------------------------------------------
 Override default printf with the OrbitESC version
 -----------------------------------------------------------------------------*/
+extern int orbit_esc_printf( const char *format, ... );
+
 #define FDB_PRINT(...)              orbit_esc_printf(__VA_ARGS__)
 
 /* print debug information */
