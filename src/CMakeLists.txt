@@ -110,7 +110,7 @@ gen_intf_lib_variants(
     aurora_database
     aurora_datastore
     aurora_filesystem_core
-    aurora_filesystem_lfs_driver
+    aurora_filesystem_fatfs_driver
     aurora_logging
     aurora_memory
   EXPORT_DIR
