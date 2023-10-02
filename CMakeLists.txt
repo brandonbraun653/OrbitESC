@@ -51,6 +51,7 @@ gen_intf_lib(
   INTF_INCLUDES
     "${PROJECT_ROOT}"
     "${PROJECT_ROOT}/src"
+    "${PROJECT_ROOT}/src/config/fatfs"
     "${PROJECT_ROOT}/src/config/flashdb"
     "${PROJECT_ROOT}/src/config/thor"
     "${PROJECT_ROOT}/src/config/tinyusb"
