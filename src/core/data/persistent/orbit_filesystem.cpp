@@ -51,14 +51,34 @@ namespace Orbit::Data::File
     -------------------------------------------------------------------------*/
     FS::FatFs::initialize();
 
-    s_fatfs_volume.device = &s_sd_driver;
+    /*-------------------------------------------------------------------------
+    Initialize the driver configuration
+    -------------------------------------------------------------------------*/
+    Chimera::SDIO::HWConfig cfg;
+    cfg.clear();
+    cfg.channel    = IO::SDIO::Channel;
+    cfg.clockSpeed = IO::SDIO::ClockSpeed;
+    cfg.blockSize  = IO::SDIO::BlockSize;
+    cfg.width      = IO::SDIO::BusWidth;
+    cfg.clkPin     = IO::SDIO::clkPinInit;
+    cfg.cmdPin     = IO::SDIO::cmdPinInit;
+    cfg.dxPin[ 0 ] = IO::SDIO::d0PinInit;
+    cfg.dxPin[ 1 ] = IO::SDIO::d1PinInit;
+    cfg.dxPin[ 2 ] = IO::SDIO::d2PinInit;
+    cfg.dxPin[ 3 ] = IO::SDIO::d3PinInit;
 
+    RT_HARD_ASSERT( s_sd_driver.init( cfg ) == true );
+
+    /*-------------------------------------------------------------------------
+    Initialize the filesystem volume
+    -------------------------------------------------------------------------*/
+    s_fatfs_volume.device = &s_sd_driver;
     RT_HARD_ASSERT( true == FS::FatFs::attachVolume( &s_fatfs_volume ) );
 
     /*-----------------------------------------------------------------------
     Initialize the Aurora filesystem drivers
     -----------------------------------------------------------------------*/
-    bool fs_mounted = true;    // Assume mounts will succeed. Negate later if failed.
+    bool fs_mounted = true;
     auto intf       = FS::FatFs::getInterface( &s_fatfs_volume );
 
     LOG_TRACE( "Mounting filesystem\r\n" );

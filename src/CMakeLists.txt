@@ -25,6 +25,7 @@ gen_intf_lib_variants(
     thor_hld_gpio
     thor_hld_i2c
     thor_hld_interrupt
+    thor_hld_sdio
     thor_hld_serial
     thor_hld_spi
     thor_hld_system
@@ -41,6 +42,7 @@ gen_intf_lib_variants(
     thor_lld_intf_i2c
     thor_lld_intf_interrupt
     thor_lld_intf_rcc
+    thor_lld_intf_sdio
     thor_lld_intf_serial
     thor_lld_intf_spi
     thor_lld_intf_sys
@@ -93,6 +95,7 @@ gen_intf_lib_variants(
     thor_lld_stm32f4_iwdg
     thor_lld_stm32f4_power
     thor_lld_stm32f4_rcc
+    thor_lld_stm32f4_sdio
     thor_lld_stm32f4_spi
     thor_lld_stm32f4_startup
     thor_lld_stm32f4_system

@@ -20,6 +20,7 @@ Includes
 #include <Chimera/exti>
 #include <Chimera/gpio>
 #include <Chimera/i2c>
+#include <Chimera/sdio>
 #include <Chimera/serial>
 #include <Chimera/spi>
 #include <Chimera/timer>
@@ -220,6 +221,14 @@ namespace Orbit::IO
 
   namespace SDIO
   {
+    /*-------------------------------------------------------------------------
+    SDIO
+    -------------------------------------------------------------------------*/
+    static constexpr Chimera::SDIO::Channel  Channel    = Chimera::SDIO::Channel::SDIO1;
+    static constexpr Chimera::SDIO::BusWidth BusWidth   = Chimera::SDIO::BusWidth::BUS_WIDTH_1BIT;
+    static constexpr uint32_t                ClockSpeed = 4000000;
+    static constexpr uint32_t                BlockSize  = 512;
+
     /*-------------------------------------------------------------------------
     GPIO
     -------------------------------------------------------------------------*/
