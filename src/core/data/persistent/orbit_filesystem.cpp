@@ -20,7 +20,7 @@ Includes
 #include <src/core/data/persistent/orbit_database.hpp>
 #include <src/core/hw/orbit_sdio.hpp>
 
-namespace Orbit::Data::File
+namespace Orbit::Data::FileSystem
 {
   /*---------------------------------------------------------------------------
   Aliases
@@ -51,10 +51,25 @@ namespace Orbit::Data::File
     bool fs_mounted = true;
     auto intf       = FS::FatFs::getInterface( &s_fatfs_volume );
 
+    /*-------------------------------------------------------------------------
+    Try mounting a few times. I've noticed that sometimes the card doesn't get
+    detected properly on the first try for some reason.
+    -------------------------------------------------------------------------*/
     LOG_DEBUG( "SD card inserted. Mounting..." );
-    if ( s_mounted_vol = FS::mount( FileSystemMountPoint.cbegin(), intf ); s_mounted_vol < 0 )
+    size_t attempts = 0;
+    while ( attempts < 3 && s_mounted_vol < 0 )
     {
-      LOG_DEBUG( "Formatting SD card and remounting" );
+      s_mounted_vol = FS::mount( FileSystemMountPoint.cbegin(), intf );
+      Chimera::delayMilliseconds( 100 );
+      attempts++;
+    }
+
+    /*-------------------------------------------------------------------------
+    If the mount failed, try formatting the card and mounting again
+    -------------------------------------------------------------------------*/
+    if ( s_mounted_vol < 0 )
+    {
+      LOG_DEBUG( "Failed initial %d attempts. Formatting SD card and remounting", attempts );
       FS::FatFs::formatVolume( &s_fatfs_volume );
       s_mounted_vol = FS::mount( FileSystemMountPoint.cbegin(), intf );
 

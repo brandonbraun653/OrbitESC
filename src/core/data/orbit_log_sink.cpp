@@ -14,6 +14,7 @@ Includes
 #include <Aurora/logging>
 #include <Chimera/thread>
 #include <src/core/data/orbit_log_sink.hpp>
+#include <src/core/data/persistent/orbit_filesystem.hpp>
 
 namespace Orbit::Log
 {
@@ -40,6 +41,11 @@ namespace Orbit::Log
   {
     Chimera::Thread::LockGuard _lck( *this );
     Aurora::FileSystem::FileId file;
+
+    if( !Data::FileSystem::isMounted() )
+    {
+      return LG::Result::RESULT_FAIL_BAD_SINK;
+    }
 
     /*-------------------------------------------------------------------------
     Don't attempt to reopen
@@ -81,6 +87,11 @@ namespace Orbit::Log
     /*-------------------------------------------------------------------------
     Entrancy Checks
     -------------------------------------------------------------------------*/
+    if( !Data::FileSystem::isMounted() )
+    {
+      return LG::Result::RESULT_FAIL_BAD_SINK;
+    }
+
     Chimera::Thread::LockGuard _lck( *this );
     if ( !enabled )
     {
@@ -139,6 +150,11 @@ namespace Orbit::Log
     /*-------------------------------------------------------------------------
     Entrancy Checks
     -------------------------------------------------------------------------*/
+    if( !Data::FileSystem::isMounted() )
+    {
+      return LG::Result::RESULT_FAIL_BAD_SINK;
+    }
+
     Chimera::Thread::LockGuard _lck( *this );
     if( !enabled || ( level < logLevel ) )
     {

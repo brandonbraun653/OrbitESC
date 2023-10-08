@@ -12,7 +12,7 @@
 #ifndef ORBIT_FILESYSTEM_HPP
 #define ORBIT_FILESYSTEM_HPP
 
-namespace Orbit::Data::File
+namespace Orbit::Data::FileSystem
 {
   /*---------------------------------------------------------------------------
   Public Functions

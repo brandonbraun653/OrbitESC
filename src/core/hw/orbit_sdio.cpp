@@ -35,6 +35,11 @@ namespace Orbit::SDIO
    */
   static constexpr size_t CARD_MOUNT_DELAY_MS = 250;
 
+  /**
+   * @brief Value to reset the next process time to when a card event occurs.
+   */
+  static constexpr size_t CARD_RESET_PROC_TIME = 0xFFFFFFFF;
+
   /*---------------------------------------------------------------------------
   Enumerations
   ---------------------------------------------------------------------------*/
@@ -55,9 +60,8 @@ namespace Orbit::SDIO
   ---------------------------------------------------------------------------*/
 
   static Status                      s_prev_status;     /**< Current card status */
-  static Status                      s_card_action;     /**< Action to take on the card */
   static size_t                      s_last_event_time; /**< Last time an ISR event occurred */
-  static size_t                      s_scheduled_mount; /**< Time to mount the card */
+  static size_t                      s_next_proc;       /**< Time to mount the card */
   static Chimera::Function::vGeneric s_on_insert_cb;    /**< Callback for card insertion */
   static Chimera::Function::vGeneric s_on_remove_cb;    /**< Callback for card removal */
 
@@ -105,21 +109,11 @@ namespace Orbit::SDIO
     using namespace Orbit::Tasks;
 
     const size_t event_time = Chimera::millis();
-    const Status new_status = cardStatus();
 
     if ( ( event_time - s_last_event_time ) >= CARD_DEBOUNCE_MS )
     {
       s_last_event_time = event_time;
-
-      if ( new_status == Status::CARD_INSERTED )
-      {
-        s_prev_status     = new_status;
-        s_scheduled_mount = event_time + CARD_MOUNT_DELAY_MS;
-      }
-      else if ( new_status == Status::CARD_REMOVED )
-      {
-        s_prev_status = new_status;
-      }
+      s_next_proc       = event_time + CARD_MOUNT_DELAY_MS;
     }
   }
 
@@ -169,8 +163,7 @@ namespace Orbit::SDIO
     -------------------------------------------------------------------------*/
     s_prev_status     = cardStatus();
     s_last_event_time = Chimera::millis();
-    s_scheduled_mount = 0xFFFFFFFF;
-    s_card_action     = Status::CARD_NUM_OPTIONS;
+    s_next_proc       = CARD_RESET_PROC_TIME;
     s_on_insert_cb    = {};
     s_on_remove_cb    = {};
   }
@@ -181,32 +174,31 @@ namespace Orbit::SDIO
     /*-------------------------------------------------------------------------
     Nothing to do if the card status hasn't changed
     -------------------------------------------------------------------------*/
-    if ( s_card_action == Status::CARD_NUM_OPTIONS )
+    if ( Chimera::millis() < s_next_proc )
     {
       return;
     }
 
     /*-------------------------------------------------------------------------
-    Check if it's time to mount/unmount the card
+    Reset the next process time to be effectively infinity
     -------------------------------------------------------------------------*/
-    if ( ( s_card_action == Status::CARD_INSERTED ) && ( Chimera::millis() >= s_scheduled_mount ) )
-    {
-      s_card_action = Status::CARD_NUM_OPTIONS;
+    s_next_proc = CARD_RESET_PROC_TIME;
 
-      if ( s_on_insert_cb )
-      {
-        s_on_insert_cb( nullptr );
-      }
-    }
-    else if ( s_card_action == Status::CARD_REMOVED )
-    {
-      s_card_action = Status::CARD_NUM_OPTIONS;
+    /*-------------------------------------------------------------------------
+    Process the card status change
+    -------------------------------------------------------------------------*/
+    const Status new_status = cardStatus();
 
-      if ( s_on_remove_cb )
-      {
-        s_on_remove_cb( nullptr );
-      }
+    if ( ( new_status == Status::CARD_INSERTED ) && ( s_prev_status == Status::CARD_REMOVED ) && s_on_insert_cb )
+    {
+      s_on_insert_cb( nullptr );
     }
+    else if ( ( new_status == Status::CARD_REMOVED ) && ( s_prev_status == Status::CARD_INSERTED ) && s_on_remove_cb )
+    {
+      s_on_remove_cb( nullptr );
+    }
+
+    s_prev_status = new_status;
   }
 
 

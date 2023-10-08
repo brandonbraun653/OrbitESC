@@ -2788,8 +2788,8 @@
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 4132f62a-dae0-4a55-af84-ec6b581333ee)
   )
-  (text "Pretty sure this resistor is preventing DFU from working\nb/c the pullup never goes high with STM32 bootloader code."
-    (at 273.05 243.84 0)
+  (text "Pretty sure this resistor is preventing DFU from working\nb/c the pullup never goes high with STM32 bootloader code.\nI could try using a PNP transitor to invert the logic? I'm\nnot sure I want the extra parts though."
+    (at 264.16 247.65 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid c06759aa-6829-4d51-8b75-98d363e1938e)
   )
