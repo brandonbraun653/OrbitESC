@@ -14,9 +14,11 @@ Includes
 #include <Aurora/filesystem>
 #include <Aurora/logging>
 #include <Aurora/memory>
+#include <Chimera/function>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/data/orbit_data_defaults.hpp>
 #include <src/core/data/persistent/orbit_database.hpp>
+#include <src/core/hw/orbit_sdio.hpp>
 
 namespace Orbit::Data::File
 {
@@ -28,8 +30,69 @@ namespace Orbit::Data::File
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static FS::FatFs::Volume                 s_fatfs_volume;
-  static Aurora::Memory::Flash::SD::Driver s_sd_driver;
+
+  static FS::FatFs::Volume                 s_fatfs_volume; /**< FatFs specific info */
+  static FS::VolumeId                      s_mounted_vol;  /**< Volume ID of the mounted filesystem */
+  static Aurora::Memory::Flash::SD::Driver s_sd_driver;    /**< Flash translation layer to SD card */
+
+
+  /*---------------------------------------------------------------------------
+  Static Functions
+  ---------------------------------------------------------------------------*/
+
+  /**
+   * @brief Callback for when the SD card is inserted
+   *
+   * @param unused  Not used
+   * @return void
+   */
+  static void onCardInsert( void *unused )
+  {
+    bool fs_mounted = true;
+    auto intf       = FS::FatFs::getInterface( &s_fatfs_volume );
+
+    LOG_DEBUG( "SD card inserted. Mounting..." );
+    if ( s_mounted_vol = FS::mount( FileSystemMountPoint.cbegin(), intf ); s_mounted_vol < 0 )
+    {
+      LOG_DEBUG( "Formatting SD card and remounting" );
+      FS::FatFs::formatVolume( &s_fatfs_volume );
+      s_mounted_vol = FS::mount( FileSystemMountPoint.cbegin(), intf );
+
+      if ( s_mounted_vol < 0 )
+      {
+        fs_mounted = false;
+        LOG_ERROR( "Failed to mount SD card. Error: %d", s_mounted_vol );
+      }
+    }
+
+    LOG_DEBUG_IF( fs_mounted, "SD card mounted" );
+  }
+
+
+  /**
+   * @brief Callback for when the SD card is removed
+   *
+   * @param unused  Not used
+   * @return void
+   */
+  static void onCardRemove( void *unused )
+  {
+    /*-------------------------------------------------------------------------
+    If the filesystem isn't mounted, then there's nothing to do
+    -------------------------------------------------------------------------*/
+    if ( s_mounted_vol < 0 )
+    {
+      return;
+    }
+
+    /*-------------------------------------------------------------------------
+    Unmount the filesystem
+    -------------------------------------------------------------------------*/
+    LOG_DEBUG( "SD card removed" );
+    FS::unmount( s_mounted_vol );
+    s_mounted_vol = -1;
+  }
+
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -38,56 +101,48 @@ namespace Orbit::Data::File
   void init()
   {
     /*-------------------------------------------------------------------------
-    Initialize the FatFs backend
+    Initialize the filesystem FatFs backend
     -------------------------------------------------------------------------*/
     FS::FatFs::initialize();
 
     /*-------------------------------------------------------------------------
-    Initialize the driver configuration
+    Initialize the filesystem layer
     -------------------------------------------------------------------------*/
-    Chimera::SDIO::HWConfig cfg;
-    cfg.clear();
-    cfg.channel    = IO::SDIO::Channel;
-    cfg.clockSpeed = IO::SDIO::ClockSpeed;
-    cfg.blockSize  = IO::SDIO::BlockSize;
-    cfg.width      = IO::SDIO::BusWidth;
-    cfg.clkPin     = IO::SDIO::clkPinInit;
-    cfg.cmdPin     = IO::SDIO::cmdPinInit;
-    cfg.dxPin[ 0 ] = IO::SDIO::d0PinInit;
-    cfg.dxPin[ 1 ] = IO::SDIO::d1PinInit;
-    cfg.dxPin[ 2 ] = IO::SDIO::d2PinInit;
-    cfg.dxPin[ 3 ] = IO::SDIO::d3PinInit;
+    RT_HARD_ASSERT( s_sd_driver.init( IO::SDIO::Channel ) == true );
 
-    RT_HARD_ASSERT( s_sd_driver.init( cfg ) == true );
-
-    /*-------------------------------------------------------------------------
-    Initialize the filesystem volume
-    -------------------------------------------------------------------------*/
     s_fatfs_volume.device = &s_sd_driver;
     s_fatfs_volume.path   = "SD";
     RT_HARD_ASSERT( true == FS::FatFs::attachVolume( &s_fatfs_volume ) );
 
-    /*-----------------------------------------------------------------------
-    Initialize the Aurora filesystem drivers
-    -----------------------------------------------------------------------*/
-    bool fs_mounted = true;
-    auto intf       = FS::FatFs::getInterface( &s_fatfs_volume );
-
-    LOG_TRACE( "Mounting filesystem" );
     FS::initialize();
-    if ( FS::mount( FileSystemMountPoint.cbegin(), intf ) < 0 )
+
+    /*-------------------------------------------------------------------------
+    Initialize module data
+    -------------------------------------------------------------------------*/
+    s_mounted_vol = -1;
+
+    /*-------------------------------------------------------------------------
+    Bind the mount/unmount behavior to the SDIO card detect pin
+    -------------------------------------------------------------------------*/
+    auto insert_cb = Chimera::Function::vGeneric::create<onCardInsert>();
+    SDIO::onCardInsert( insert_cb );
+
+    auto remove_cb = Chimera::Function::vGeneric::create<onCardRemove>();
+    SDIO::onCardRemove( remove_cb );
+
+    /*-------------------------------------------------------------------------
+    Mount the filesystem if we have a card inserted on power up
+    -------------------------------------------------------------------------*/
+    if ( SDIO::isCardPresent() )
     {
-      LOG_TRACE( "Formatting filesystem and remounting" );
-      FS::FatFs::formatVolume( &s_fatfs_volume );
-      FS::VolumeId mnt_vol = FS::mount( FileSystemMountPoint.cbegin(), intf );
-
-      if ( mnt_vol < 0 )
-      {
-        fs_mounted = false;
-        LOG_ERROR( "Failed to mount filesystem: %d", mnt_vol );
-      }
+      onCardInsert( nullptr );
     }
-
-    LOG_TRACE_IF( fs_mounted, "Filesystem mounted" );
   }
+
+
+  bool isMounted()
+  {
+    return s_mounted_vol >= 0;
+  }
+
 }    // namespace Orbit::Data::File

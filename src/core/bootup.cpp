@@ -32,6 +32,7 @@ Includes
 #include <src/core/hw/orbit_gpio.hpp>
 #include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_led.hpp>
+#include <src/core/hw/orbit_sdio.hpp>
 #include <src/core/hw/orbit_spi.hpp>
 #include <src/core/hw/orbit_timer.hpp>
 #include <src/core/hw/orbit_usart.hpp>
@@ -95,6 +96,7 @@ namespace Orbit::Boot
     -------------------------------------------------------------------------*/
     Orbit::USART::powerUp();           // Serial debug port logging
     Orbit::SPI::powerUp();             // NOR bus driver
+    Orbit::SDIO::powerUp();            // SD card driver
     Orbit::Data::initialize();         // Prepare system data memory
     Orbit::Data::printSystemInfo();    // Print the system info to the console
 
@@ -153,9 +155,9 @@ namespace Thor::LLD::RCC
    */
   void configureProjectClocks()
   {
-    constexpr size_t hseClkIn     = 24'000'000;          // 24 MHz
-    constexpr size_t targetSysClk = 180'000'000;         // 180 MHz
-    constexpr size_t targetUSBClk = 48'000'000;          // 48 MHz
+    constexpr size_t hseClkIn     = 24'000'000;
+    constexpr size_t targetSysClk = 180'000'000;
+    constexpr size_t targetUSBClk = 48'000'000;
 
     /*-------------------------------------------------------------------------
     Notify RCC module of external clocks
@@ -231,7 +233,7 @@ namespace Thor::LLD::RCC
     /*-------------------------------------------------------------------------
     Verify the user's target clocks have been achieved
     -------------------------------------------------------------------------*/
-    //auto rcc = getCoreClockCtrl();
-    //RT_HARD_ASSERT( targetUSBClk == rcc->getClockFrequency( Chimera::Clock::Bus::PLLSAI_P ) );
+    auto rcc = getCoreClockCtrl();
+    RT_HARD_ASSERT( targetUSBClk == rcc->getClockFrequency( Chimera::Clock::Bus::PLLSAI_P ) );
   }
 }

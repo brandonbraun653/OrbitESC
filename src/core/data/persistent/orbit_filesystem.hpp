@@ -23,6 +23,14 @@ namespace Orbit::Data::File
    * @return void
    */
   void init();
+
+  /**
+   * @brief Checks if the filesystem is mounted and ready for use
+   *
+   * @return bool
+   */
+  bool isMounted();
+
 }  // namespace Orbit::Data::File
 
 #endif  /* !ORBIT_FILESYSTEM_HPP */

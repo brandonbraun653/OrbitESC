@@ -20,12 +20,14 @@ Includes
 #include <src/core/runtime/serial_runtime.hpp>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_dio.hpp>
+#include <src/core/hw/orbit_sdio.hpp>
 
 namespace Orbit::Tasks::DIO
 {
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+
   void DIOThread( void *arg )
   {
     using namespace Chimera::Thread;
@@ -48,6 +50,7 @@ namespace Orbit::Tasks::DIO
     size_t wake_up_tick = Chimera::millis();
     size_t next_sync    = wake_up_tick + Data::SysConfig.diskUpdateRateMs;
     TaskMsg tsk_msg     = TASK_MSG_NUM_OPTIONS;
+
     while( 1 )
     {
       /*-----------------------------------------------------------------------
@@ -70,6 +73,11 @@ namespace Orbit::Tasks::DIO
       Push any pending log messages
       -----------------------------------------------------------------------*/
       Log::flushCache();
+
+      /*-----------------------------------------------------------------------
+      React to any card events
+      -----------------------------------------------------------------------*/
+      SDIO::handleCardStatusChange();
 
       /*-----------------------------------------------------------------------
       Synchronize any updates to the configuration backing store
