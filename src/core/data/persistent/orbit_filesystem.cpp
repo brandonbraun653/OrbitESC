@@ -26,15 +26,6 @@ namespace Orbit::Data::File
   namespace FS = ::Aurora::FileSystem;
 
   /*---------------------------------------------------------------------------
-  Constants
-  ---------------------------------------------------------------------------*/
-  static constexpr size_t CACHE_SIZE = 256;
-  static_assert( CACHE_SIZE % sizeof( uint32_t ) == 0 );
-
-  static constexpr size_t LOOKAHEAD_SIZE = 256;
-  static_assert( LOOKAHEAD_SIZE % sizeof( uint32_t ) == 0 );
-
-  /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
   static FS::FatFs::Volume                 s_fatfs_volume;
@@ -73,6 +64,7 @@ namespace Orbit::Data::File
     Initialize the filesystem volume
     -------------------------------------------------------------------------*/
     s_fatfs_volume.device = &s_sd_driver;
+    s_fatfs_volume.path   = "SD";
     RT_HARD_ASSERT( true == FS::FatFs::attachVolume( &s_fatfs_volume ) );
 
     /*-----------------------------------------------------------------------
@@ -81,21 +73,21 @@ namespace Orbit::Data::File
     bool fs_mounted = true;
     auto intf       = FS::FatFs::getInterface( &s_fatfs_volume );
 
-    LOG_TRACE( "Mounting filesystem\r\n" );
+    LOG_TRACE( "Mounting filesystem" );
     FS::initialize();
     if ( FS::mount( FileSystemMountPoint.cbegin(), intf ) < 0 )
     {
-      LOG_TRACE( "Formatting filesystem and remounting\r\n" );
+      LOG_TRACE( "Formatting filesystem and remounting" );
       FS::FatFs::formatVolume( &s_fatfs_volume );
       FS::VolumeId mnt_vol = FS::mount( FileSystemMountPoint.cbegin(), intf );
 
       if ( mnt_vol < 0 )
       {
         fs_mounted = false;
-        LOG_ERROR( "Failed to mount filesystem: %d\r\n", mnt_vol );
+        LOG_ERROR( "Failed to mount filesystem: %d", mnt_vol );
       }
     }
 
-    LOG_TRACE_IF( fs_mounted, "Filesystem mounted\r\n" );
+    LOG_TRACE_IF( fs_mounted, "Filesystem mounted" );
   }
 }    // namespace Orbit::Data::File

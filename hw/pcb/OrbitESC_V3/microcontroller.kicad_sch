@@ -2778,7 +2778,13 @@
     (uuid fe2d68de-e340-4a5a-b2ea-5b327fd04c7e)
   )
 
-  (text "Packaging is wrong for this chip?" (at 274.955 131.445 0)
+  (text "Need to add an inline power switch to control initialization behavior."
+    (at 247.65 171.45 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid 22c3bc93-09be-47fa-b34c-afffcea7dcac)
+  )
+  (text "Packaging is wrong for this chip? Atleast compared to what I ordered."
+    (at 252.095 144.145 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 4132f62a-dae0-4a55-af84-ec6b581333ee)
   )
