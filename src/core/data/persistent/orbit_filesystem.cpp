@@ -19,6 +19,7 @@ Includes
 #include <src/core/data/orbit_data_defaults.hpp>
 #include <src/core/data/persistent/orbit_database.hpp>
 #include <src/core/hw/orbit_sdio.hpp>
+#include <src/core/system.hpp>
 
 namespace Orbit::Data::FileSystem
 {
@@ -77,6 +78,7 @@ namespace Orbit::Data::FileSystem
       {
         fs_mounted = false;
         LOG_ERROR( "Failed to mount SD card. Error: %d", s_mounted_vol );
+        System::addFaultEvent( System::Fault::FS_MOUNT_FAILED, "Failed to mount SD card" );
       }
     }
 

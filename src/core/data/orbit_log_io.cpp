@@ -18,6 +18,7 @@ Includes
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/data/orbit_log_io.hpp>
 #include <src/core/data/orbit_log_sink.hpp>
+#include <etl/circular_buffer.h>
 
 namespace Orbit::Log
 {
@@ -38,8 +39,9 @@ namespace Orbit::Log
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static FileLogger          s_file_sink;
-  static LG::SinkHandle_rPtr s_file_sink_hndl;
+  static FileLogger                          s_file_sink;
+  static LG::SinkHandle_rPtr                 s_file_sink_hndl;
+  static etl::circular_buffer<uint8_t, 1024> s_file_cache;
 
 
   /*---------------------------------------------------------------------------
@@ -50,6 +52,7 @@ namespace Orbit::Log
     auto result = LG::Result::RESULT_SUCCESS;
 
     s_file_sink.setLogFile( LogFile );
+    s_file_sink.setLogCache( &s_file_cache );
     s_file_sink.logLevel = LG::Level::LVL_WARN;
     s_file_sink.enabled  = false;
     s_file_sink.name     = "FileLog";

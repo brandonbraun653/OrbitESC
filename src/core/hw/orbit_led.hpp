@@ -63,7 +63,7 @@ namespace Orbit::LED
   static constexpr uint8_t STATUS_0_MSK   = 1u << STATUS_0_POS;
   static constexpr uint8_t STATUS_1_MSK   = 1u << STATUS_1_POS;
   static constexpr uint8_t STATUS_2_MSK   = 1u << STATUS_2_POS;
-  static constexpr uint8_t USB_ACTIVE_MSK = 1u << CAN_ACTIVE_POS;
+  static constexpr uint8_t USB_ACTIVE_MSK = 1u << USB_ACTIVE_POS;
   static constexpr uint8_t CAN_ACTIVE_MSK = 1u << CAN_ACTIVE_POS;
   static constexpr uint8_t INVALID_MSK    = 1u << INVALID_POS;
   static constexpr uint8_t ALL_LED_MSK    = 0x7F;
