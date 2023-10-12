@@ -21,6 +21,7 @@ Includes
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_dio.hpp>
 #include <src/core/hw/orbit_sdio.hpp>
+#include <src/core/data/orbit_log_io.hpp>
 
 namespace Orbit::Tasks::DIO
 {
@@ -43,6 +44,12 @@ namespace Orbit::Tasks::DIO
     -------------------------------------------------------------------------*/
     Data::SysInfo.bootCount++;
     Data::Param::write( ParamId_PARAM_BOOT_COUNT, &Data::SysInfo.bootCount, sizeof( Data::SysInfo.bootCount ) );
+
+    char msg[ 64 ];
+    memset(msg, 0, sizeof( msg ) );
+    npf_snprintf( msg, sizeof( msg ), "Orbit ESC Power Up\r\nBoot count: %u", Data::SysInfo.bootCount );
+
+    RT_HARD_ASSERT( true == Log::logTestMessage( msg ) );
 
     /*-------------------------------------------------------------------------
     Run the delayed-io thread

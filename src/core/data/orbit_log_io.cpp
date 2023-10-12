@@ -182,4 +182,19 @@ namespace Orbit::Log
     s_file_sink.enabled = true;
   }
 
+
+  bool logTestMessage( const std::string_view msg )
+  {
+    FS::AccessFlags flags   = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_RDWR;
+    FS::FileId      file    = -1;
+    size_t          written = 0;
+
+    if ( FS::fopen( TestFile.data(), flags, file ) == 0 )
+    {
+      written = FS::fwrite( msg.data(), 1, msg.size(), file );
+      FS::fclose( file );
+    }
+
+    return written == msg.size();
+  }
 }    // namespace Orbit::Log

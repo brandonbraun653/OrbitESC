@@ -58,7 +58,7 @@ namespace Orbit::Log
     /*-------------------------------------------------------------------------
     Effectively perform a "touch" operation
     -------------------------------------------------------------------------*/
-    auto flags = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_CREAT | FS::AccessFlags::O_RDWR;
+    auto flags = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_RDWR;
     if ( FS::fopen( mFileName.data(), flags, file ) == 0 )
     {
       FS::fclose( file );
