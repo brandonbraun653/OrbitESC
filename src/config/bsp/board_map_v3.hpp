@@ -226,7 +226,7 @@ namespace Orbit::IO
     -------------------------------------------------------------------------*/
     static constexpr Chimera::SDIO::Channel  Channel    = Chimera::SDIO::Channel::SDIO1;
     static constexpr Chimera::SDIO::BusWidth BusWidth   = Chimera::SDIO::BusWidth::BUS_WIDTH_1BIT;
-    static constexpr uint32_t                ClockSpeed = 4000000;
+    static constexpr uint32_t                ClockSpeed = 4'000'000;
     static constexpr uint32_t                BlockSize  = 512;
 
     /*-------------------------------------------------------------------------
