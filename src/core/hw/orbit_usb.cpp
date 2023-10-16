@@ -72,6 +72,7 @@ namespace Orbit::USB
     Initialize TinyUSB
     -------------------------------------------------------------------------*/
     RT_HARD_ASSERT( true == tusb_init() );
+    Chimera::delayMilliseconds( 5 * 1000 );
     RT_HARD_ASSERT( Chimera::Status::OK == pin->setState( Chimera::GPIO::State::HIGH ) );
   }
 }    // namespace Orbit::USB

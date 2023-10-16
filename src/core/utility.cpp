@@ -18,6 +18,8 @@ Includes
 #include <src/core/utility.hpp>
 #include <src/control/foc_math.hpp>
 
+#include "SEGGER_SYSVIEW.h"
+
 namespace Orbit::Utility
 {
   /*---------------------------------------------------------------------------
@@ -66,12 +68,12 @@ extern "C" int orbit_esc_printf( const char *format, ... )
   using namespace Orbit::Utility;
   using namespace Aurora::Logging;
 
-  if ( Chimera::System::inISR() )
-  {
-    return 0;
-  }
+  // if ( Chimera::System::inISR() )
+  // {
+  //   return 0;
+  // }
 
-  Chimera::Thread::LockGuard _lock( s_format_lock );
+  // Chimera::Thread::LockGuard _lock( s_format_lock );
 
   memset( s_log_buffer, 0, LOG_BUF_SIZE );
   va_list argptr;
@@ -81,7 +83,8 @@ extern "C" int orbit_esc_printf( const char *format, ... )
 
   if ( write_size > 0 )
   {
-    getRootSink()->log( Level::LVL_DEBUG, s_log_buffer, static_cast<size_t>( write_size ) );
+    //getRootSink()->log( Level::LVL_DEBUG, s_log_buffer, static_cast<size_t>( write_size ) );
+    SEGGER_SYSVIEW_Print( s_log_buffer );
     return write_size;
   }
   else

@@ -16,16 +16,13 @@ Includes
 #include <src/core/tasks/tsk_usb.hpp>
 #include <tusb.h>
 
-namespace Orbit::Tasks::USB
+namespace Orbit::Tasks::USB::CDC
 {
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
-  void USBThread( void *arg )
+  void USBCDCThread( void *arg )
   {
-    // TODO: remove this. Task needs to be triggered via an interrupt
-    // TODO: or some other HW signal from the USB stack.
-
     static constexpr size_t PERIOD_MS = 5;
 
     /*-------------------------------------------------------------------------
@@ -34,16 +31,33 @@ namespace Orbit::Tasks::USB
     waitInit();
 
     /*-------------------------------------------------------------------------
-    Run the USB thread
+    Run the CDC thread
     -------------------------------------------------------------------------*/
     size_t wake_up_tick = Chimera::millis();
     while ( 1 )
     {
-      /*-----------------------------------------------------------------------
-      Process hardware drivers
-      -----------------------------------------------------------------------*/
-      tud_task();
-      tud_cdc_write_flush();
+      // connected() check for DTR bit
+      // Most but not all terminal client set this when making connection
+      // if ( tud_cdc_connected() )
+      {
+        // There are data available
+        while ( tud_cdc_available() )
+        {
+          uint8_t buf[ 64 ];
+
+          // read and echo back
+          uint32_t count = tud_cdc_read( buf, sizeof( buf ) );
+          ( void )count;
+
+          // Echo back
+          // Note: Skip echo by commenting out write() and write_flush()
+          // for throughput test e.g
+          //    $ dd if=/dev/zero of=/dev/ttyACM0 count=10000
+          tud_cdc_write( buf, count );
+        }
+
+        tud_cdc_write_flush();
+      }
 
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically
@@ -52,4 +66,4 @@ namespace Orbit::Tasks::USB
       wake_up_tick = Chimera::millis();
     }
   }
-}    // namespace Orbit::Tasks::USB
+}    // namespace Orbit::Tasks::USB::CDC

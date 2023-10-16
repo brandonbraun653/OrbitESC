@@ -137,9 +137,6 @@ uint8_t const desc_fs_configuration[] = {
 
   // Interface number, string index, EP notification address and size, EP data address (out, in) and size.
   TUD_CDC_DESCRIPTOR( ITF_NUM_CDC, 4, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64 ),
-
-  // Interface number, string index, EP Out & EP In address, EP size
-  TUD_MSC_DESCRIPTOR( ITF_NUM_MSC, 5, EPNUM_MSC_OUT, EPNUM_MSC_IN, 64 ),
 };
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
@@ -177,7 +174,6 @@ char const *string_desc_arr[] = {
   "TinyUSB Device",                  // 2: Product
   NULL,                              // 3: Serials will use unique ID if possible
   "TinyUSB CDC",                     // 4: CDC Interface
-  "TinyUSB MSC",                     // 5: MSC Interface
 };
 
 static uint16_t _desc_str[ 32 + 1 ];
@@ -199,7 +195,7 @@ uint16_t const *tud_descriptor_string_cb( uint8_t index, uint16_t langid )
     case STRID_SERIAL:
       // chr_count = board_usb_get_serial( _desc_str + 1, 32 );
       chr_count = 5;
-      memcpy( &_desc_str[ 1 ], "12345", 5 );
+      memcpy( &_desc_str[ 1 ], "12", 2 );
       break;
 
     default:

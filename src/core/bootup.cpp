@@ -112,7 +112,7 @@ namespace Orbit::Boot
     Orbit::ADC::powerUp();
     Orbit::CAN::powerUp();
     Orbit::TIMER::powerUp();
-    //Orbit::USB::powerUp();
+    Orbit::USB::powerUp();
 
     /*-------------------------------------------------------------------------
     Power up remaining system components
@@ -139,6 +139,7 @@ namespace Orbit::Boot
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_COM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CTL ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_USB ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CDC ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
   }
 
 }    // namespace Orbit::Boot

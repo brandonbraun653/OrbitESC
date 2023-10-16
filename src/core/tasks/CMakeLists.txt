@@ -4,6 +4,7 @@ gen_static_lib_variants(
   TARGET
     lib_orbit_tasks
   SOURCES
+    tsk_cdc.cpp
     tsk_com.cpp
     tsk_ctl.cpp
     tsk_dio.cpp

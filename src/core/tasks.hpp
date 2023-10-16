@@ -32,6 +32,7 @@ namespace Orbit::Tasks
     TASK_CTL,  /**< Control system task */
     TASK_COM,  /**< Networking/communications processing */
     TASK_USB,  /**< USB hardware stack */
+    TASK_CDC,  /**< USB CDC driver */
 
     TASK_NUM_OPTIONS,
     TASK_UNKNOWN
