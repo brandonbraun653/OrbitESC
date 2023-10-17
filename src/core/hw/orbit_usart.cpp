@@ -16,8 +16,9 @@ Includes
 #include <Chimera/gpio>
 #include <Chimera/usart>
 #include <src/config/bsp/board_map.hpp>
-#include <src/core/hw/orbit_usart.hpp>
 #include <src/core/com/serial/serial_sink.hpp>
+#include <src/core/hw/orbit_isr_config.hpp>
+#include <src/core/hw/orbit_usart.hpp>
 
 
 namespace Orbit::USART
