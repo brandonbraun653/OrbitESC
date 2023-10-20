@@ -14,7 +14,6 @@ Includes
 #include <src/core/com/serial/serial_router.hpp>
 #include <src/core/com/serial/serial_server.hpp>
 #include <src/core/system.hpp>
-#include <src/testing/system_control.hpp>
 #include <src/control/current_control.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 

@@ -6,7 +6,6 @@ include("${COMMON_TOOL_ROOT}/cmake/utility/embedded.cmake")
 add_subdirectory(core)
 add_subdirectory(control)
 add_subdirectory(monitor)
-add_subdirectory(testing)
 
 # -----------------------------------------------------------------------------
 # Project Libraries
@@ -175,7 +174,6 @@ target_link_libraries(OrbitESC PRIVATE
   lib_orbit_monitor
   lib_orbit_runtime
   lib_orbit_tasks
-  lib_orbit_testing
 
   # Target Properties
   prj_device_target

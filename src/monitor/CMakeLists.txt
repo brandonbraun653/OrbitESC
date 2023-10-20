@@ -4,6 +4,8 @@ gen_static_lib_variants(
   TARGET
     lib_orbit_monitor
   SOURCES
+    debug/segger_modules.cpp
+    debug/segger_stubs.cpp
     orbit_current_monitor.cpp
     orbit_monitors.cpp
     orbit_voltage_monitor.cpp

@@ -53,6 +53,7 @@ gen_intf_lib(
     "${PROJECT_ROOT}/src"
     "${PROJECT_ROOT}/src/config/fatfs"
     "${PROJECT_ROOT}/src/config/flashdb"
+    "${PROJECT_ROOT}/src/config/segger"
     "${PROJECT_ROOT}/src/config/thor"
     "${PROJECT_ROOT}/src/config/tinyusb"
   INTF_LIBRARIES
