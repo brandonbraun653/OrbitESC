@@ -35,6 +35,8 @@
 #include "device/usbd.h"
 #include "device/usbd_pvt.h"
 
+#include <src/monitor/debug/segger_modules_intf.h>
+
 //--------------------------------------------------------------------+
 // USBD Configuration
 //--------------------------------------------------------------------+
@@ -493,6 +495,7 @@ void tud_task_ext(uint32_t timeout_ms, bool in_isr)
     {
       case DCD_EVENT_BUS_RESET:
         TU_LOG_USBD(": %s Speed\r\n", tu_str_speed[event.bus_reset.speed]);
+        OrbitMonitorRecordEvent_TUSB( TUSB_TSK_EVENT_BUS_RESET );
         usbd_reset(event.rhport);
         _usbd_dev.speed = event.bus_reset.speed;
       break;
@@ -500,6 +503,7 @@ void tud_task_ext(uint32_t timeout_ms, bool in_isr)
       case DCD_EVENT_UNPLUGGED:
         TU_LOG_USBD("\r\n");
         usbd_reset(event.rhport);
+        OrbitMonitorRecordEvent_TUSB( TUSB_TSK_EVENT_UNPLUGGED );
 
         // invoke callback
         if (tud_umount_cb) tud_umount_cb();
@@ -508,6 +512,7 @@ void tud_task_ext(uint32_t timeout_ms, bool in_isr)
       case DCD_EVENT_SETUP_RECEIVED:
         TU_LOG_BUF(CFG_TUD_LOG_LEVEL, &event.setup_received, 8);
         TU_LOG_USBD("\r\n");
+        OrbitMonitorRecordEvent_TUSB( TUSB_TSK_EVENT_SETUP_RECEIVED );
 
         // Mark as connected after receiving 1st setup packet.
         // But it is easier to set it every time instead of wasting time to check then set
@@ -531,6 +536,8 @@ void tud_task_ext(uint32_t timeout_ms, bool in_isr)
 
       case DCD_EVENT_XFER_COMPLETE:
       {
+        OrbitMonitorRecordEvent_TUSB( TUSB_TSK_EVENT_XFER_COMPLETE );
+
         // Invoke the class callback associated with the endpoint address
         uint8_t const ep_addr = event.xfer_complete.ep_addr;
         uint8_t const epnum   = tu_edpt_number(ep_addr);
@@ -558,6 +565,8 @@ void tud_task_ext(uint32_t timeout_ms, bool in_isr)
       break;
 
       case DCD_EVENT_SUSPEND:
+        OrbitMonitorRecordEvent_TUSB( TUSB_TSK_EVENT_SUSPEND );
+
         // NOTE: When plugging/unplugging device, the D+/D- state are unstable and
         // can accidentally meet the SUSPEND condition ( Bus Idle for 3ms ), which result in a series of event
         // e.g suspend -> resume -> unplug/plug. Skip suspend/resume if not connected
@@ -572,6 +581,8 @@ void tud_task_ext(uint32_t timeout_ms, bool in_isr)
       break;
 
       case DCD_EVENT_RESUME:
+        OrbitMonitorRecordEvent_TUSB( TUSB_TSK_EVENT_RESUME );
+
         if ( _usbd_dev.connected )
         {
           TU_LOG_USBD("\r\n");
@@ -589,6 +600,7 @@ void tud_task_ext(uint32_t timeout_ms, bool in_isr)
 
       case DCD_EVENT_SOF:
       default:
+        OrbitMonitorRecordEvent_TUSB( TUSB_TSK_EVENT_UNHANDLED );
         TU_BREAKPOINT();
       break;
     }

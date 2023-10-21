@@ -29,6 +29,7 @@
 
 #include "tusb_option.h"
 
+
 // Since TinyUSB doesn't use SOF for now, and this interrupt too often (1ms interval)
 // We disable SOF for now until needed later on
 #define USE_SOF     0
@@ -125,6 +126,8 @@ static inline void __eclic_disable_interrupt (uint32_t irq){
 #endif
 
 #include "device/dcd.h"
+#include <src/monitor/debug/segger_modules_intf.h>
+#include <src/core/hw/orbit_usb_intf.h>
 
 //--------------------------------------------------------------------+
 // MACRO TYPEDEF CONSTANT ENUM
@@ -607,12 +610,14 @@ void dcd_connect(uint8_t rhport)
   (void) rhport;
   USB_OTG_DeviceTypeDef * dev = DEVICE_BASE(rhport);
   dev->DCTL &= ~USB_OTG_DCTL_SDIS;
+  OrbitSetDPPullupState( true );
 }
 
 void dcd_disconnect(uint8_t rhport)
 {
   (void) rhport;
   USB_OTG_DeviceTypeDef * dev = DEVICE_BASE(rhport);
+  OrbitSetDPPullupState( false );
   dev->DCTL |= USB_OTG_DCTL_SDIS;
 }
 
@@ -1149,6 +1154,8 @@ void dcd_int_handler(uint8_t rhport)
 
   if(int_status & USB_OTG_GINTSTS_USBRST)
   {
+    OrbitMonitorRecordEvent_TUSB( TUSB_DCD_ISR_RESET );
+
     // USBRST is start of reset.
     usb_otg->GINTSTS = USB_OTG_GINTSTS_USBRST;
     bus_reset(rhport);
@@ -1156,6 +1163,7 @@ void dcd_int_handler(uint8_t rhport)
 
   if(int_status & USB_OTG_GINTSTS_ENUMDNE)
   {
+    OrbitMonitorRecordEvent_TUSB( TUSB_DCD_ISR_ENUMERATION_DONE );
     // ENUMDNE is the end of reset where speed of the link is detected
 
     usb_otg->GINTSTS = USB_OTG_GINTSTS_ENUMDNE;
@@ -1168,12 +1176,16 @@ void dcd_int_handler(uint8_t rhport)
 
   if(int_status & USB_OTG_GINTSTS_USBSUSP)
   {
+    OrbitMonitorRecordEvent_TUSB( TUSB_DCD_ISR_SUSPEND );
+
     usb_otg->GINTSTS = USB_OTG_GINTSTS_USBSUSP;
     dcd_event_bus_signal(rhport, DCD_EVENT_SUSPEND, true);
   }
 
   if(int_status & USB_OTG_GINTSTS_WKUINT)
   {
+    OrbitMonitorRecordEvent_TUSB( TUSB_DCD_ISR_WAKEUP_DETECTED );
+
     usb_otg->GINTSTS = USB_OTG_GINTSTS_WKUINT;
     dcd_event_bus_signal(rhport, DCD_EVENT_RESUME, true);
   }
@@ -1183,6 +1195,8 @@ void dcd_int_handler(uint8_t rhport)
 
   if(int_status & USB_OTG_GINTSTS_OTGINT)
   {
+    OrbitMonitorRecordEvent_TUSB( TUSB_DCD_ISR_OTG_INTERRUPT );
+
     // OTG INT bit is read-only
     uint32_t const otg_int = usb_otg->GOTGINT;
 
@@ -1196,6 +1210,8 @@ void dcd_int_handler(uint8_t rhport)
 
   if(int_status & USB_OTG_GINTSTS_SOF)
   {
+    OrbitMonitorRecordEvent_TUSB( TUSB_DCD_ISR_START_OF_FRAME );
+
     usb_otg->GINTSTS = USB_OTG_GINTSTS_SOF;
 
     // Disable SOF interrupt since currently only used for remote wakeup detection
@@ -1207,6 +1223,7 @@ void dcd_int_handler(uint8_t rhport)
   // RxFIFO non-empty interrupt handling.
   if(int_status & USB_OTG_GINTSTS_RXFLVL)
   {
+    OrbitMonitorRecordEvent_TUSB( TUSB_DCD_ISR_RX_FIFO_NOT_EMPTY );
     // RXFLVL bit is read-only
 
     // Mask out RXFLVL while reading data from FIFO
@@ -1233,6 +1250,8 @@ void dcd_int_handler(uint8_t rhport)
   // OUT endpoint interrupt handling.
   if(int_status & USB_OTG_GINTSTS_OEPINT)
   {
+    OrbitMonitorRecordEvent_TUSB( TUSB_DCD_ISR_OUT_ENDPOINT_INTERRUPT );
+
     // OEPINT is read-only
     handle_epout_ints(rhport, dev, out_ep);
   }
@@ -1240,6 +1259,8 @@ void dcd_int_handler(uint8_t rhport)
   // IN endpoint interrupt handling.
   if(int_status & USB_OTG_GINTSTS_IEPINT)
   {
+    OrbitMonitorRecordEvent_TUSB( TUSB_DCD_ISR_IN_ENDPOINT_INTERRUPT );
+
     // IEPINT bit read-only
     handle_epin_ints(rhport, dev, in_ep);
   }

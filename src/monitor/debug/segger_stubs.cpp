@@ -44,6 +44,35 @@ Literal Constants
 #define DEMCR ( ( volatile uint32_t * )( 0xE000EDFCuL ) )       // Debug Exception and Monitor Control Register
 #define DWT_CTRL ( ( volatile uint32_t * )( 0xE0001000uL ) )    // DWT Control Register
 
+/*-------------------------------------------------------------------------------
+Disable SysView events. Cortex-M4 + JLink can only handle about 5k events/sec
+before overflows start occurring. The mask disables enough items to get the event
+rate to ~2.5k/s while gathering data to rebuild the task switching structure. This
+should leave enough room for user profiling/debugging in the future.
+
+Reasoning for Disabled:
+SYSVIEW_EVTMASK_ALL_INTERRUPTS    | Project uses a large number of ISRs
+SYSVIEW_EVTMASK_SYSTIME_CYCLES    | Irrelevant to build system timing info
+SYSVIEW_EVTMASK_SYSTIME_US        | Irrelevant to build system timing info
+SYSVIEW_EVTMASK_TIMER_ENTER       | Irrelevant to build system timing info
+SYSVIEW_EVTMASK_TIMER_EXIT        | Irrelevant to build system timing info
+SYSVIEW_EVTMASK_TASK_STOP_EXEC    | SysView can re-build task sequences without this
+SYSVIEW_EVTMASK_TASK_START_READY  | SysView can re-build task sequences without this
+SYSVIEW_EVTMASK_TASK_STOP_READY   | SysView can re-build task sequences without this
+-------------------------------------------------------------------------------*/
+#define SEGGER_DISABLE_MASK                                                                                                  \
+  ( SYSVIEW_EVTMASK_SYSTIME_CYCLES | SYSVIEW_EVTMASK_SYSTIME_US | SYSVIEW_EVTMASK_TIMER_ENTER | SYSVIEW_EVTMASK_TIMER_EXIT | \
+    SYSVIEW_EVTMASK_TASK_STOP_EXEC | SYSVIEW_EVTMASK_TASK_START_READY | SYSVIEW_EVTMASK_TASK_STOP_READY )
+
+/**
+ * @brief Disables interrupt & task scheduler & background events.
+ *
+ * These two event sources comprise the majority of traffic on the system. We still
+ * want to be responsive to other events (like SYSVIEW_EVTMASK_INIT), so we leave
+ * those enabled.
+ */
+#define SEGGER_CFG_MINIMAL_MASK ( SYSVIEW_EVTMASK_ALL_INTERRUPTS | SYSVIEW_EVTMASK_ALL_TASKS | SYSVIEW_EVTMASK_IDLE )
+
 /*-----------------------------------------------------------------------------
 Constants
 -----------------------------------------------------------------------------*/
@@ -100,6 +129,7 @@ extern "C"
     -------------------------------------------------------------------------*/
     SEGGER_SYSVIEW_Init( SYSVIEW_TIMESTAMP_FREQ, SYSVIEW_CPU_FREQ, &SYSVIEW_X_OS_TraceAPI, _cbSendSystemDesc );
     SEGGER_SYSVIEW_SetRAMBase( SYSVIEW_RAM_BASE );
+    SEGGER_SYSVIEW_DisableEvents( SEGGER_CFG_MINIMAL_MASK );
 
     /*-------------------------------------------------------------------------
     Register all project modules
@@ -107,9 +137,11 @@ extern "C"
     Orbit::Monitor::Segger::initialize();
     Orbit::Monitor::Segger::registerModules();
 
-    /*-------------------------------------------------------------------------
-    Let system view know about our modules
-    -------------------------------------------------------------------------*/
+    for( uint8_t x = 0; x < Orbit::Monitor::Segger::SeggerModuleID::NumModules; x++ )
+    {
+      SEGGER_SYSVIEW_SendModule( x );
+    }
+
     SEGGER_SYSVIEW_SendNumModules();
     SEGGER_SYSVIEW_SendModuleDescription();
   }

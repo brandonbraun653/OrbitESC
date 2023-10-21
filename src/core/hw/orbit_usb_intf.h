@@ -1,27 +1,35 @@
 /******************************************************************************
  *  File Name:
- *    orbit_usb.hpp
+ *    orbit_usb_intf.h
  *
  *  Description:
- *    Orbit ESC USB driver interface
+ *    C interface to the USB driver
  *
  *  2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
-#ifndef ORBIT_ESC_USB_HPP
-#define ORBIT_ESC_USB_HPP
+#ifndef ORBIT_USB_INTF_HPP
+#define ORBIT_USB_INTF_HPP
 
-namespace Orbit::USB
+#ifdef __cplusplus
+extern "C"
 {
+#endif
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   /**
-   * @brief Powers up the USB driver subsystem
+   * @brief Enables/disables the D+ line pullup resistor
+   *
+   * @param state  True to enable, false to disable
+   * @return void
    */
-  void powerUp();
+  void OrbitSetDPPullupState( const bool state );
 
-}    // namespace Orbit::USB
+#ifdef __cplusplus
+}
+#endif
 
-#endif /* !ORBIT_ESC_USB_HPP */
+#endif  /* !ORBIT_USB_INTF_HPP */

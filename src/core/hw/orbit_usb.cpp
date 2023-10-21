@@ -14,9 +14,11 @@ Includes
 
 #include <Aurora/logging>
 #include <Chimera/gpio>
-#include <src/config/bsp/board_map.hpp>
 #include <Thor/lld/interface/inc/interrupt>
+#include <src/config/bsp/board_map.hpp>
 #include <src/core/hw/orbit_tusb.h>
+#include <src/core/hw/orbit_usb_intf.h>
+#include <src/monitor/debug/segger_modules_intf.h>
 
 #include <tusb.h>
 
@@ -62,7 +64,7 @@ namespace Orbit::USB
     -------------------------------------------------------------------------*/
     const IRQn_Type irq[] = { OTG_HS_EP1_OUT_IRQn, OTG_HS_EP1_IN_IRQn, OTG_HS_WKUP_IRQn, OTG_HS_IRQn };
 
-    for ( auto i = 0u; i < ARRAY_COUNT( irq ); i++ )
+    for( auto i = 0u; i < ARRAY_COUNT( irq ); i++ )
     {
       Thor::LLD::INT::setPriority( irq[ i ], Thor::LLD::INT::USB_IT_PREEMPT_PRIORITY, 0u );
       Thor::LLD::INT::enableIRQ( irq[ i ] );
@@ -72,8 +74,7 @@ namespace Orbit::USB
     Initialize TinyUSB
     -------------------------------------------------------------------------*/
     RT_HARD_ASSERT( true == tusb_init() );
-    Chimera::delayMilliseconds( 5 * 1000 );
-    RT_HARD_ASSERT( Chimera::Status::OK == pin->setState( Chimera::GPIO::State::HIGH ) );
+    OrbitMonitorRecordEvent_TUSB( TUSB_Init );
   }
 }    // namespace Orbit::USB
 
@@ -89,7 +90,7 @@ extern "C"
    */
   void tud_mount_cb( void )
   {
-    Chimera::insert_debug_breakpoint();
+    OrbitMonitorRecordEvent_TUSB( TUSB_Mount );
   }
 
 
@@ -99,7 +100,26 @@ extern "C"
    */
   void tud_umount_cb( void )
   {
-    Chimera::insert_debug_breakpoint();
+    OrbitMonitorRecordEvent_TUSB( TUSB_Unmount );
   }
 
+
+  void OrbitSetDPPullupState( const bool state )
+  {
+    using namespace Orbit;
+
+    Chimera::GPIO::Driver_rPtr pin = Chimera::GPIO::getDriver( IO::USB::dpPort, IO::USB::dpPin );
+    RT_HARD_ASSERT( pin );
+
+    if( state )
+    {
+      OrbitMonitorRecordEvent_TUSB( TUSB_DP_PULLUP_ENABLE );
+      pin->setState( Chimera::GPIO::State::HIGH );
+    }
+    else
+    {
+      OrbitMonitorRecordEvent_TUSB( TUSB_DP_PULLUP_DISABLE );
+      pin->setState( Chimera::GPIO::State::LOW );
+    }
+  }
 } /* extern "C" */

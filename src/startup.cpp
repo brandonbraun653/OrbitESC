@@ -1,12 +1,12 @@
-/********************************************************************************
+/******************************************************************************
  *  File Name:
  *    startup.cpp
  *
  *  Description:
  *    OrbitESC firmware entry point
  *
- *  2022 | Brandon Braun | brandonbraun653@gmail.com
- *******************************************************************************/
+ *  2022-2023 | Brandon Braun | brandonbraun653@gmail.com
+ *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
 Includes
@@ -19,7 +19,7 @@ Includes
 #include <Thor/lld/common/cortex-m4/debug.hpp>
 
 #if defined( SEGGER_SYS_VIEW )
-#include <src/config/segger/orbit_segger_cfg.hpp>
+#include "SEGGER_SYSVIEW.h"
 #endif /* SEGGER_SYS_VIEW */
 
 #endif  /* EMBEDDED */
@@ -62,7 +62,6 @@ int main()
   ---------------------------------------------------------------------------*/
 #if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
   SEGGER_SYSVIEW_Conf();
-  SEGGER_SYSVIEW_DisableEvents( SEGGER_DISABLE_MASK );
 #endif
 
   /*---------------------------------------------------------------------------
