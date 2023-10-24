@@ -59,7 +59,7 @@ extern "C"
 
 // Set the logging level to info an higher
 #ifndef CFG_TUSB_DEBUG
-#define CFG_TUSB_DEBUG 3
+#define CFG_TUSB_DEBUG 0
 #endif
 
 // Map printf to custom logger

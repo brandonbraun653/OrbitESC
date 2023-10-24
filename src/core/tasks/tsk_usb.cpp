@@ -48,8 +48,9 @@ namespace Orbit::Tasks::USB
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically
       -----------------------------------------------------------------------*/
-      Chimera::delayUntil( wake_up_tick + PERIOD_MS );
-      wake_up_tick = Chimera::millis();
+      // Chimera::delayUntil( wake_up_tick + PERIOD_MS );
+      // wake_up_tick = Chimera::millis();
+      Chimera::delayMilliseconds( 1 );
     }
   }
 }    // namespace Orbit::Tasks::USB

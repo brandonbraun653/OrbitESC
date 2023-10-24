@@ -64,6 +64,20 @@ enum
   TUSB_DP_PULLUP_ENABLE,
   TUSB_DP_PULLUP_DISABLE,
 
+  /*---------------------------------------------------------------------------
+  USB Device Events
+  ---------------------------------------------------------------------------*/
+  TUSB_DEVICE_REQ_VENDOR,
+  TUSB_DEVICE_REQ_CLASS,
+  TUSB_DEVICE_REQ_STANDARD,
+  TUSB_DEVICE_REQ_SET_ADDRESS,
+  TUSB_DEVICE_REQ_GET_CONFIGURATION,
+  TUSB_DEVICE_REQ_SET_CONFIGURATION,
+  TUSB_DEVICE_REQ_GET_DESCRIPTOR,
+  TUSB_DEVICE_REQ_SET_FEATURE,
+  TUSB_DEVICE_REQ_CLEAR_FEATURE,
+  TUSB_DEVICE_REQ_GET_STATUS,
+
   OrbitMonitor_TUSB_NumEvents
 };
 

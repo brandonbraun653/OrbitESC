@@ -118,7 +118,6 @@ enum
 {
   ITF_NUM_CDC = 0,
   ITF_NUM_CDC_DATA,
-  ITF_NUM_MSC,
   ITF_NUM_TOTAL
 };
 
@@ -126,10 +125,7 @@ enum
 #define EPNUM_CDC_OUT 0x02
 #define EPNUM_CDC_IN 0x82
 
-#define EPNUM_MSC_OUT 0x03
-#define EPNUM_MSC_IN 0x83
-
-#define CONFIG_TOTAL_LEN ( TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN + TUD_MSC_DESC_LEN )
+#define CONFIG_TOTAL_LEN ( TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN )
 
 uint8_t const desc_fs_configuration[] = {
   // Config number, interface count, string index, total length, attribute, power in mA
@@ -145,13 +141,7 @@ uint8_t const desc_fs_configuration[] = {
 uint8_t const *tud_descriptor_configuration_cb( uint8_t index )
 {
   ( void )index;    // for multiple configurations
-
-#if TUD_OPT_HIGH_SPEED
-  // Although we are highspeed, host may be fullspeed.
-  return ( tud_speed_get() == TUSB_SPEED_HIGH ) ? desc_hs_configuration : desc_fs_configuration;
-#else
   return desc_fs_configuration;
-#endif
 }
 
 //--------------------------------------------------------------------+

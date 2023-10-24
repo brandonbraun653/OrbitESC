@@ -635,6 +635,7 @@ static bool process_control_request(uint8_t rhport, tusb_control_request_t const
   // Vendor request
   if ( p_request->bmRequestType_bit.type == TUSB_REQ_TYPE_VENDOR )
   {
+    OrbitMonitorRecordEvent_TUSB( TUSB_DEVICE_REQ_VENDOR );
     TU_VERIFY(tud_vendor_control_xfer_cb);
 
     usbd_control_set_complete_callback(tud_vendor_control_xfer_cb);
@@ -655,6 +656,7 @@ static bool process_control_request(uint8_t rhport, tusb_control_request_t const
     case TUSB_REQ_RCPT_DEVICE:
       if ( TUSB_REQ_TYPE_CLASS == p_request->bmRequestType_bit.type )
       {
+        OrbitMonitorRecordEvent_TUSB( TUSB_DEVICE_REQ_CLASS );
         uint8_t const itf = tu_u16_low(p_request->wIndex);
         TU_VERIFY(itf < TU_ARRAY_SIZE(_usbd_dev.itf2drv));
 
@@ -667,6 +669,7 @@ static bool process_control_request(uint8_t rhport, tusb_control_request_t const
 
       if ( TUSB_REQ_TYPE_STANDARD != p_request->bmRequestType_bit.type )
       {
+        OrbitMonitorRecordEvent_TUSB( TUSB_DEVICE_REQ_STANDARD );
         // Non standard request is not supported
         TU_BREAKPOINT();
         return false;
@@ -675,6 +678,7 @@ static bool process_control_request(uint8_t rhport, tusb_control_request_t const
       switch ( p_request->bRequest )
       {
         case TUSB_REQ_SET_ADDRESS:
+          OrbitMonitorRecordEvent_TUSB( TUSB_DEVICE_REQ_SET_ADDRESS );
           // Depending on mcu, status phase could be sent either before or after changing device address,
           // or even require stack to not response with status at all
           // Therefore DCD must take full responsibility to response and include zlp status packet if needed.
@@ -686,6 +690,7 @@ static bool process_control_request(uint8_t rhport, tusb_control_request_t const
 
         case TUSB_REQ_GET_CONFIGURATION:
         {
+          OrbitMonitorRecordEvent_TUSB( TUSB_DEVICE_REQ_GET_CONFIGURATION );
           uint8_t cfg_num = _usbd_dev.cfg_num;
           tud_control_xfer(rhport, p_request, &cfg_num, 1);
         }
@@ -693,6 +698,7 @@ static bool process_control_request(uint8_t rhport, tusb_control_request_t const
 
         case TUSB_REQ_SET_CONFIGURATION:
         {
+          OrbitMonitorRecordEvent_TUSB( TUSB_DEVICE_REQ_SET_CONFIGURATION );
           uint8_t const cfg_num = (uint8_t) p_request->wValue;
 
           // Only process if new configure is different
@@ -733,14 +739,15 @@ static bool process_control_request(uint8_t rhport, tusb_control_request_t const
         break;
 
         case TUSB_REQ_GET_DESCRIPTOR:
+          OrbitMonitorRecordEvent_TUSB( TUSB_DEVICE_REQ_GET_DESCRIPTOR );
           TU_VERIFY( process_get_descriptor(rhport, p_request) );
         break;
 
         case TUSB_REQ_SET_FEATURE:
           // Only support remote wakeup for device feature
           TU_VERIFY(TUSB_REQ_FEATURE_REMOTE_WAKEUP == p_request->wValue);
-
           TU_LOG_USBD("    Enable Remote Wakeup\r\n");
+          OrbitMonitorRecordEvent_TUSB( TUSB_DEVICE_REQ_SET_FEATURE );
 
           // Host may enable remote wake up before suspending especially HID device
           _usbd_dev.remote_wakeup_en = true;
@@ -750,8 +757,8 @@ static bool process_control_request(uint8_t rhport, tusb_control_request_t const
         case TUSB_REQ_CLEAR_FEATURE:
           // Only support remote wakeup for device feature
           TU_VERIFY(TUSB_REQ_FEATURE_REMOTE_WAKEUP == p_request->wValue);
-
           TU_LOG_USBD("    Disable Remote Wakeup\r\n");
+          OrbitMonitorRecordEvent_TUSB( TUSB_DEVICE_REQ_CLEAR_FEATURE );
 
           // Host may disable remote wake up after resuming
           _usbd_dev.remote_wakeup_en = false;
@@ -760,6 +767,8 @@ static bool process_control_request(uint8_t rhport, tusb_control_request_t const
 
         case TUSB_REQ_GET_STATUS:
         {
+          OrbitMonitorRecordEvent_TUSB( TUSB_DEVICE_REQ_GET_STATUS );
+
           // Device status bit mask
           // - Bit 0: Self Powered
           // - Bit 1: Remote Wakeup enabled
