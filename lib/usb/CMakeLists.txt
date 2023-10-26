@@ -18,8 +18,7 @@ gen_intf_lib(
     ./tinyusb/src/common
     ./tinyusb/src/device
     ./tinyusb/src/host
-    ./tinyusb/src/portable/st/stm32_fsdev
-    ./tinyusb/src/portable/st/synopsys
+    ./tinyusb/src/portable/synopsys/dwc2
     ./tinyusb/src
   INTF_LIBRARIES
     project_intf_inc
@@ -67,8 +66,7 @@ gen_static_lib_variants(
     tinyusb/src/device/usbd.c
     tinyusb/src/host/hub.c
     tinyusb/src/host/usbh.c
-    tinyusb/src/portable/st/stm32_fsdev/dcd_stm32_fsdev.c
-    tinyusb/src/portable/st/synopsys/dcd_synopsys.c
+    tinyusb/src/portable/synopsys/dwc2/dcd_dwc2.c
     tinyusb/src/tusb.c
   PRV_LIBRARIES
     tiny_usb_intf_inc

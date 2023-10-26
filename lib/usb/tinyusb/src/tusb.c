@@ -36,7 +36,7 @@
 #endif
 
 #if CFG_TUH_ENABLED
-#include "host/usbh_pvt.h"
+#include "host/usbh_classdriver.h"
 #endif
 
 //--------------------------------------------------------------------+
@@ -439,10 +439,6 @@ char const* const tu_str_std_request[] =
   "Synch Frame"
 };
 
-char const* const tu_str_xfer_result[] = {
-    "OK", "FAILED", "STALLED", "TIMEOUT"
-};
-
 #endif
 
 static void dump_str_line(uint8_t const* buf, uint16_t count)
@@ -499,7 +495,7 @@ void tu_print_mem(void const *buf, uint32_t count, uint8_t indent)
       tu_printf("%04X: ", 16*i/item_per_line);
     }
 
-    tu_memcpy_s(&value, sizeof(value), buf8, size);
+    memcpy(&value, buf8, size);
     buf8 += size;
 
     tu_printf(" ");

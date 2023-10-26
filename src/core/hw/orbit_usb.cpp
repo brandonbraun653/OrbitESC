@@ -73,8 +73,11 @@ namespace Orbit::USB
     /*-------------------------------------------------------------------------
     Initialize TinyUSB
     -------------------------------------------------------------------------*/
+    OrbitSetDPPullupState( false );
     RT_HARD_ASSERT( true == tusb_init() );
     OrbitMonitorRecordEvent_TUSB( TUSB_Init );
+    Chimera::delayMilliseconds( 100 );
+    OrbitSetDPPullupState( true );
   }
 }    // namespace Orbit::USB
 
