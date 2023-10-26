@@ -484,10 +484,15 @@ void dcd_init (uint8_t rhport)
     // Select default internal VBUS Indicator and Drive for ULPI
     usb_otg->GUSBCFG &= ~(USB_OTG_GUSBCFG_ULPIEVBUSD | USB_OTG_GUSBCFG_ULPIEVBUSI);
 #else
+    usb_otg->GUSBCFG |= USB_OTG_GUSBCFG_PHYSEL;
+
     /*-------------------------------------------------------------------------
     Init sequence to work around an issue with VBus sensing. See:
     https://github.com/hathach/tinyusb/issues/126#issuecomment-631475084
     -------------------------------------------------------------------------*/
+    usb_otg->GUSBCFG |= USB_OTG_GUSBCFG_PHYLPCS;
+    usb_otg->GUSBCFG |= (0x9 << USB_OTG_GUSBCFG_TOCAL_Pos) & USB_OTG_GUSBCFG_TOCAL_Msk;
+
     usb_otg->GUSBCFG |= USB_OTG_GUSBCFG_PHYSEL | USB_OTG_GUSBCFG_FDMOD;
     osal_task_delay( 50 );
 
@@ -500,6 +505,8 @@ void dcd_init (uint8_t rhport)
     /* B-Peripheral session valid override */
     usb_otg->GOTGCTL |= USB_OTG_GOTGCTL_BVALOEN;
     usb_otg->GOTGCTL |= USB_OTG_GOTGCTL_BVALOVAL;
+
+
 #endif
 
 #if defined(USB_HS_PHYC)

@@ -49,10 +49,10 @@ namespace Orbit::Tasks::DIO
     memset(msg, 0, sizeof( msg ) );
     npf_snprintf( msg, sizeof( msg ), "Orbit ESC Power Up -- Boot count: %d\r\n", Data::SysInfo.bootCount );
 
-    if( SDIO::isCardPresent() )
-    {
-      RT_HARD_ASSERT( true == Log::logTestMessage( msg ) );
-    }
+    // if( SDIO::isCardPresent() )
+    // {
+    //   RT_HARD_ASSERT( true == Log::logTestMessage( msg ) );
+    // }
 
     /*-------------------------------------------------------------------------
     Run the delayed-io thread
