@@ -141,7 +141,8 @@
 			"common.hpp": "c",
 			"*.def": "cpp",
 			"*.inc": "cpp",
-			"tusb_option.h": "c"
+			"tusb_option.h": "c",
+			"segger_modules_intf.h": "c"
 		},
 		"peacock.color": "#f9e64f",
 		"workbench.colorCustomizations": {

@@ -78,6 +78,13 @@ enum
   TUSB_DEVICE_REQ_CLEAR_FEATURE,
   TUSB_DEVICE_REQ_GET_STATUS,
 
+  /*---------------------------------------------------------------------------
+  RX FIFO Events
+  ---------------------------------------------------------------------------*/
+  TUSB_DCD_RXFLVL_SETUP_PKT,
+  TUSB_DCD_RXFLVL_SETUP_DONE,
+  TUSB_DCD_RXFLVL_OUT_PKT,
+
   OrbitMonitor_TUSB_NumEvents
 };
 

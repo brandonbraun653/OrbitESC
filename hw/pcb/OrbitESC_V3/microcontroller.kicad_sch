@@ -2788,10 +2788,15 @@
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 4132f62a-dae0-4a55-af84-ec6b581333ee)
   )
-  (text "Pretty sure this resistor is preventing DFU from working\nb/c the pullup never goes high with STM32 bootloader code.\nI could try using a PNP transitor to invert the logic? I'm\nnot sure I want the extra parts though."
-    (at 264.16 247.65 0)
+  (text "Pretty sure this resistor is preventing DFU from working\nb/c the pullup never goes high with STM32 bootloader code.\nI could try using a PNP transitor to invert the logic? I'm\nnot sure I want the extra parts though.\n\nUpdate 10/28/2023: Turns out that this resistor is already\nembedded on the F446RE and including it under GPIO control\nis really messing with my software. Remove it."
+    (at 243.205 254 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid c06759aa-6829-4d51-8b75-98d363e1938e)
+  )
+  (text "VBus sensing can be removed. When the F4 configures PA9 as\nan alternate function, it breaks sensing. Solution is to \ndisable/override sensing in software and force device mode."
+    (at 240.665 228.6 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid ef7d36b5-1a39-4c49-aa80-310f776bf383)
   )
   (text "16MB NOR" (at 358.14 125.095 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))

@@ -1,3 +1,4 @@
+# This file should be copied into ~/.config/SEGGER
 0 SYSEvnt_Init
 1 SYSEvnt_Mount
 2 SYSEvnt_Unmount
@@ -29,3 +30,6 @@
 28 DevReq_SET_FEATURE
 29 DevReq_CLEAR_FEATURE
 30 DevReq_GET_STATUS
+31 DCDEvnt_RXFLVL_SETUP_PKT
+32 DCDEvnt_RXFLVL_SETUP_DONE
+33 DCDEvnt_RXFLVL_OUT_PKT

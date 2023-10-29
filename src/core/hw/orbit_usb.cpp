@@ -62,22 +62,14 @@ namespace Orbit::USB
     /*-------------------------------------------------------------------------
     Configure Interrupts
     -------------------------------------------------------------------------*/
-    const IRQn_Type irq[] = { OTG_HS_EP1_OUT_IRQn, OTG_HS_EP1_IN_IRQn, OTG_HS_WKUP_IRQn, OTG_HS_IRQn };
-
-    for( auto i = 0u; i < ARRAY_COUNT( irq ); i++ )
-    {
-      Thor::LLD::INT::setPriority( irq[ i ], Thor::LLD::INT::USB_IT_PREEMPT_PRIORITY, 0u );
-      Thor::LLD::INT::enableIRQ( irq[ i ] );
-    }
+    Thor::LLD::INT::setPriority( OTG_HS_IRQn, 2u, 0u );
+    Thor::LLD::INT::enableIRQ( OTG_HS_IRQn );
 
     /*-------------------------------------------------------------------------
     Initialize TinyUSB
     -------------------------------------------------------------------------*/
-    OrbitSetDPPullupState( false );
     RT_HARD_ASSERT( true == tusb_init() );
     OrbitMonitorRecordEvent_TUSB( TUSB_Init );
-    Chimera::delayMilliseconds( 100 );
-    OrbitSetDPPullupState( true );
   }
 }    // namespace Orbit::USB
 
@@ -104,25 +96,5 @@ extern "C"
   void tud_umount_cb( void )
   {
     OrbitMonitorRecordEvent_TUSB( TUSB_Unmount );
-  }
-
-
-  void OrbitSetDPPullupState( const bool state )
-  {
-    using namespace Orbit;
-
-    Chimera::GPIO::Driver_rPtr pin = Chimera::GPIO::getDriver( IO::USB::dpPort, IO::USB::dpPin );
-    RT_HARD_ASSERT( pin );
-
-    if( state )
-    {
-      OrbitMonitorRecordEvent_TUSB( TUSB_DP_PULLUP_ENABLE );
-      pin->setState( Chimera::GPIO::State::HIGH );
-    }
-    else
-    {
-      OrbitMonitorRecordEvent_TUSB( TUSB_DP_PULLUP_DISABLE );
-      pin->setState( Chimera::GPIO::State::LOW );
-    }
   }
 } /* extern "C" */

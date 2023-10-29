@@ -475,10 +475,11 @@ namespace Orbit::IO
                                                           .threaded  = false,
                                                           .validity  = true };
 
+    // TODO BMB: Scheduled for removal. Apparently the F446 has this embedded in the USB peripheral? See AN4879.
     static constexpr Chimera::GPIO::Pin     enumPin     = 12;
     static constexpr Chimera::GPIO::Port    enumPort    = Chimera::GPIO::Port::PORTB;
     static constexpr Chimera::GPIO::PinInit enumPinInit = { .alternate = Chimera::GPIO::Alternate::NONE,
-                                                            .drive     = Chimera::GPIO::Drive::OUTPUT_PUSH_PULL,
+                                                            .drive     = Chimera::GPIO::Drive::INPUT,
                                                             .pin       = enumPin,
                                                             .port      = enumPort,
                                                             .pull      = Chimera::GPIO::Pull::NO_PULL,
@@ -486,10 +487,11 @@ namespace Orbit::IO
                                                             .threaded  = false,
                                                             .validity  = true };
 
+    // TODO: Scheduled for removal.
     static constexpr Chimera::GPIO::Pin     vbusPin     = 13;
     static constexpr Chimera::GPIO::Port    vbusPort    = Chimera::GPIO::Port::PORTB;
     static constexpr Chimera::GPIO::PinInit vbusPinInit = { .alternate = Chimera::GPIO::Alternate::NONE,
-                                                            .drive     = Chimera::GPIO::Drive::INPUT,
+                                                            .drive     = Chimera::GPIO::Drive::HIZ,
                                                             .pin       = vbusPin,
                                                             .port      = vbusPort,
                                                             .pull      = Chimera::GPIO::Pull::PULL_DN,

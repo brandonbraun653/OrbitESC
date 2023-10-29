@@ -36,7 +36,6 @@ Includes
 #include <src/core/hw/orbit_spi.hpp>
 #include <src/core/hw/orbit_timer.hpp>
 #include <src/core/hw/orbit_usart.hpp>
-#include <src/core/hw/orbit_usb.hpp>
 #include <src/core/tasks.hpp>
 #include <src/monitor/orbit_monitors.hpp>
 
@@ -112,7 +111,6 @@ namespace Orbit::Boot
     Orbit::ADC::powerUp();
     Orbit::CAN::powerUp();
     Orbit::TIMER::powerUp();
-    Orbit::USB::powerUp();
 
     /*-------------------------------------------------------------------------
     Power up remaining system components
@@ -138,8 +136,8 @@ namespace Orbit::Boot
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_HWM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_COM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CTL ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
-    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_USB ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CDC ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_USB ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
   }
 
 }    // namespace Orbit::Boot
@@ -195,7 +193,6 @@ namespace Thor::LLD::RCC
     clkCfg.mux.sys   = Chimera::Clock::Bus::PLLP;
     clkCfg.mux.usb48 = Chimera::Clock::Bus::PLLSAI_P;
     clkCfg.mux.sdio  = Chimera::Clock::Bus::CK48;
-
 
     /* Divisors from the system clock */
     clkCfg.prescaler.ahb  = 1;

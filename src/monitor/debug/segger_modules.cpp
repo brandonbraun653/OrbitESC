@@ -16,12 +16,6 @@ Includes
 #include <src/monitor/debug/segger_modules_intf.h>
 #include <src/monitor/debug/segger_modules.hpp>
 
-/*-----------------------------------------------------------------------------
-Static Functions
------------------------------------------------------------------------------*/
-//static void send_desc_TUSB();
-
-
 namespace Orbit::Monitor::Segger
 {
   /*---------------------------------------------------------------------------
@@ -57,21 +51,6 @@ namespace Orbit::Monitor::Segger
 Segger Modules Interface
 -----------------------------------------------------------------------------*/
 using namespace Orbit::Monitor::Segger;
-
-
-// static void send_desc_TUSB()
-// {
-//   static const char *const desc_strings[ OrbitMonitor_TUSB_NumEvents ] = {
-//     "0 Init",
-//   };
-
-//   SEGGER_SYSVIEW_RecordModuleDescription( &OSM[ SeggerModuleID::TUSB_ID ], "T=tusb, S='TinyUSB'" );
-//   for( size_t x = 0; x < ARRAY_COUNT( desc_strings ); x++ )
-//   {
-//     SEGGER_SYSVIEW_RecordModuleDescription( &OSM[ SeggerModuleID::TUSB_ID ], desc_strings[ x ] );
-//   }
-// }
-
 
 extern "C" void OrbitMonitorRecordEvent_TUSB( const OrbitMonitor_TUSB_Events event )
 {
