@@ -36,9 +36,14 @@ namespace Orbit::Tasks::USB::CDC
     size_t wake_up_tick = Chimera::millis();
     while ( 1 )
     {
+
+      // TODO BMB: Don't wake up this thread unless the USB thread detects that
+      // TODO BMB: there is new data available. Makes things easy.
+
+
       // connected() check for DTR bit
       // Most but not all terminal client set this when making connection
-      // if ( tud_cdc_connected() )
+      if ( tud_cdc_connected() )
       {
         // There are data available
         while ( tud_cdc_available() )
@@ -53,10 +58,10 @@ namespace Orbit::Tasks::USB::CDC
           // Note: Skip echo by commenting out write() and write_flush()
           // for throughput test e.g
           //    $ dd if=/dev/zero of=/dev/ttyACM0 count=10000
-          tud_cdc_write( buf, count );
+          //tud_cdc_write( buf, count );
         }
 
-        tud_cdc_write_flush();
+        //tud_cdc_write_flush();
       }
 
       /*-----------------------------------------------------------------------
