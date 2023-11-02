@@ -20,10 +20,12 @@ gen_static_lib_variants(
     serial/serial_interface.pb.c
     serial/serial_server.cpp
     serial/serial_sink.cpp
+    serial/serial_usb.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc
     project_intf_inc
+    tiny_usb_intf_inc
   EXPORT_DIR
     "${PROJECT_BINARY_DIR}/OrbitESC"
 )

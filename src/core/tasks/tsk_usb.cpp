@@ -36,8 +36,20 @@ namespace Orbit::Tasks::USB
 
     while ( 1 )
     {
+      /*-----------------------------------------------------------------------
+      Process high priority USB interrupts
+      -----------------------------------------------------------------------*/
       tud_task();
       tud_cdc_write_flush();
+
+      /*-----------------------------------------------------------------------
+      Notify the CDC thread of any pending work
+      -----------------------------------------------------------------------*/
+      if( tud_cdc_available() )
+      {
+        Chimera::Thread::sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CDC ), TASK_MSG_CDC_WAKEUP,
+                                      Chimera::Thread::TIMEOUT_DONT_WAIT );
+      }
     }
   }
 }    // namespace Orbit::Tasks::USB

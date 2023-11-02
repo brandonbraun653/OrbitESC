@@ -3,7 +3,7 @@
  *    tsk_usb.cpp
  *
  *  Description:
- *    USB task implementation
+ *    USB CDC task implementation to support serial communication
  *
  *  2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
@@ -14,16 +14,25 @@ Includes
 #include <Chimera/thread>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_usb.hpp>
-#include <tusb.h>
+#include <src/core/com/serial/serial_usb.hpp>
+#include <etl/circular_buffer.h>
 
 namespace Orbit::Tasks::USB::CDC
 {
+  /*---------------------------------------------------------------------------
+  Static Data
+  ---------------------------------------------------------------------------*/
+  static etl::circular_buffer<uint8_t, 1024> s_tx_buffer;
+  static etl::circular_buffer<uint8_t, 1024> s_rx_buffer;
+
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   void USBCDCThread( void *arg )
   {
-    static constexpr size_t PERIOD_MS = 5;
+    using namespace Orbit::Serial;
+    using namespace Chimera::Thread;
 
     /*-------------------------------------------------------------------------
     Wait for the start signal
@@ -33,42 +42,16 @@ namespace Orbit::Tasks::USB::CDC
     /*-------------------------------------------------------------------------
     Run the CDC thread
     -------------------------------------------------------------------------*/
-    size_t wake_up_tick = Chimera::millis();
+    USBSerial *usb = getUSBSerialDriver();
+    usb->init( 0, &s_rx_buffer, &s_tx_buffer );
+
     while ( 1 )
     {
-
-      // TODO BMB: Don't wake up this thread unless the USB thread detects that
-      // TODO BMB: there is new data available. Makes things easy.
-
-
-      // connected() check for DTR bit
-      // Most but not all terminal client set this when making connection
-      if ( tud_cdc_connected() )
-      {
-        // There are data available
-        while ( tud_cdc_available() )
-        {
-          uint8_t buf[ 64 ];
-
-          // read and echo back
-          uint32_t count = tud_cdc_read( buf, sizeof( buf ) );
-          ( void )count;
-
-          // Echo back
-          // Note: Skip echo by commenting out write() and write_flush()
-          // for throughput test e.g
-          //    $ dd if=/dev/zero of=/dev/ttyACM0 count=10000
-          //tud_cdc_write( buf, count );
-        }
-
-        //tud_cdc_write_flush();
-      }
-
       /*-----------------------------------------------------------------------
-      Pseudo attempt to run this task periodically
+      Wait for the USB task to notify us there is work to do
       -----------------------------------------------------------------------*/
-      Chimera::delayUntil( wake_up_tick + PERIOD_MS );
-      wake_up_tick = Chimera::millis();
+      Chimera::Thread::this_thread::pendTaskMsg( TASK_MSG_CDC_WAKEUP, 5u * TIMEOUT_1MS );
+      usb->process();
     }
   }
 }    // namespace Orbit::Tasks::USB::CDC

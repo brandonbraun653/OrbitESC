@@ -64,13 +64,13 @@ namespace Orbit::Serial
   }
 
 
-  Chimera::Status_t DispatchServer::initialize( const Chimera::Serial::Channel  channel,
+  Chimera::Status_t DispatchServer::initialize( Chimera::Serial::Driver_rPtr device,
                                                 etl::icircular_buffer<uint8_t> &msg_buffer )
   {
     /*-------------------------------------------------------------------------
     Store the data with the class
     -------------------------------------------------------------------------*/
-    mSerial   = Chimera::Serial::getDriver( channel );
+    mSerial   = device;
     mRXBuffer = &msg_buffer;
     RT_DBG_ASSERT( mSerial && mRXBuffer );
 

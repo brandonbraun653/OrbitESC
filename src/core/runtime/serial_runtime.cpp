@@ -22,6 +22,7 @@ Includes
 #include <src/core/hw/orbit_motor.hpp>
 #include <src/core/hw/orbit_usart.hpp>
 #include <src/core/runtime/serial_runtime.hpp>
+#include <src/core/com/serial/serial_usb.hpp>
 
 
 namespace Orbit::Serial
@@ -163,7 +164,7 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Initialize the core server
     -------------------------------------------------------------------------*/
-    RT_HARD_ASSERT( s_server.initialize( IO::USART::serialChannel, s_msg_buffer ) == Chimera::Status::OK );
+    RT_HARD_ASSERT( s_server.initialize( getUSBSerialDriver(), s_msg_buffer ) == Chimera::Status::OK );
 
     /*-------------------------------------------------------------------------
     Register the routers to handle incoming messages
@@ -190,7 +191,7 @@ namespace Orbit::Serial
       auto msg = s_sys_data_queue.front();
       msg.encode();
 
-      if ( Chimera::Status::OK == msg.send( Orbit::USART::SerialDriver ) )
+      if ( Chimera::Status::OK == msg.send( getUSBSerialDriver() ) )
       {
         s_sys_data_queue.pop();
       }

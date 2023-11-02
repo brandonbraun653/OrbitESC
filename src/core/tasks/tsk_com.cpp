@@ -12,11 +12,11 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/thread>
+#include <src/core/com/com_app_tx.hpp>
+#include <src/core/runtime/can_runtime.hpp>
+#include <src/core/runtime/serial_runtime.hpp>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_com.hpp>
-#include <src/core/runtime/serial_runtime.hpp>
-#include <src/core/runtime/can_runtime.hpp>
-#include <src/core/com/com_app_tx.hpp>
 
 namespace Orbit::Tasks::COM
 {

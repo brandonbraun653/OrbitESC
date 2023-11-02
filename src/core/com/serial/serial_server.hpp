@@ -56,11 +56,11 @@ namespace Orbit::Serial
     /**
      * @brief Initialize the Serial bus dispatch server
      *
-     * @param channel     Which serial channel to listen on
+     * @param device      Which serial device to consume
      * @param msg_buffer  Message buffer to use to cache messages
      * @return Chimera::Status_t
      */
-    Chimera::Status_t initialize( const Chimera::Serial::Channel channel, etl::icircular_buffer<uint8_t> &msg_buffer );
+    Chimera::Status_t initialize( Chimera::Serial::Driver_rPtr device, etl::icircular_buffer<uint8_t> &msg_buffer );
 
     /**
      * @brief Process the server runtime

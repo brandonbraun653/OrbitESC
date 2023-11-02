@@ -46,16 +46,21 @@ namespace Orbit::Tasks
     /*-------------------------------------------------------------------------
     Delayed IO
     -------------------------------------------------------------------------*/
-    TASK_MSG_PARAM_IO_EVENT,  /**< Handle incoming ParamIO messages */
+    TASK_MSG_PARAM_IO_EVENT, /**< Handle incoming ParamIO messages */
 
     /*-------------------------------------------------------------------------
     System Control
     -------------------------------------------------------------------------*/
-    TASK_MSG_CTRL_ARM,        /**< Transition from IDLE to ARM */
-    TASK_MSG_CTRL_DISARM,     /**< Transition from ARM to IDLE */
-    TASK_MSG_CTRL_ENGAGE,     /**< Transition from ARM to ENGAGED */
-    TASK_MSG_CTRL_DISENGAGE,  /**< Transition from ENGAGED to ARM */
-    TASK_MSG_CTRL_FAULT,      /**< Transition from ENGAGED to FAULT */
+    TASK_MSG_CTRL_ARM,       /**< Transition from IDLE to ARM */
+    TASK_MSG_CTRL_DISARM,    /**< Transition from ARM to IDLE */
+    TASK_MSG_CTRL_ENGAGE,    /**< Transition from ARM to ENGAGED */
+    TASK_MSG_CTRL_DISENGAGE, /**< Transition from ENGAGED to ARM */
+    TASK_MSG_CTRL_FAULT,     /**< Transition from ENGAGED to FAULT */
+
+    /*-------------------------------------------------------------------------
+    USB CDC
+    -------------------------------------------------------------------------*/
+    TASK_MSG_CDC_WAKEUP, /**< There is work to do on the CDC class */
 
     TASK_MSG_NUM_OPTIONS
   };
