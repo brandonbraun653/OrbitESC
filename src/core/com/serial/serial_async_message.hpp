@@ -187,7 +187,7 @@ namespace Orbit::Serial::Message
       /*-----------------------------------------------------------------------
       Input Protection
       -----------------------------------------------------------------------*/
-      if ( !src || ( length > IOBuffSize ) )
+      if( !src || ( length > IOBuffSize ) )
       {
         RT_DBG_ASSERT( false );
         return false;
@@ -197,7 +197,7 @@ namespace Orbit::Serial::Message
       Unpack the COBS encoded frame
       -----------------------------------------------------------------------*/
       cobs_decode_result cobsResult = cobs_decode( io_buffer.data(), io_buffer.size(), src, length );
-      if ( cobsResult.status != COBS_DECODE_OK )
+      if( cobsResult.status != COBS_DECODE_OK )
       {
         return false;
       }
@@ -225,7 +225,7 @@ namespace Orbit::Serial::Message
       Input Protection
       -----------------------------------------------------------------------*/
       RT_DBG_ASSERT( serial );
-      if ( ( bytes_written == 0 ) || ( bytes_written > PayloadSize ) )
+      if( ( bytes_written == 0 ) || ( bytes_written > PayloadSize ) )
       {
         return Chimera::Status::FAIL;
       }
@@ -233,17 +233,20 @@ namespace Orbit::Serial::Message
       /*-----------------------------------------------------------------------
       Ship the data through the port
       -----------------------------------------------------------------------*/
-      auto timeout = block ? TIMEOUT_BLOCK : TIMEOUT_DONT_WAIT;
-
+      auto   timeout   = block ? TIMEOUT_BLOCK : TIMEOUT_DONT_WAIT;
       size_t offset    = 0;
       size_t remaining = bytes_written;
 
-      while ( offset < bytes_written )
+      while( offset < bytes_written )
       {
-        size_t act_written = serial->write( io_buffer.data() + offset, remaining, timeout );
+        const size_t n = serial->write( io_buffer.data() + offset, remaining, timeout );
+        if( n == 0 )
+        {
+          break;
+        }
 
-        offset += act_written;
-        remaining -= act_written;
+        offset += n;
+        remaining -= n;
 
         RT_DBG_ASSERT( remaining <= bytes_written );
       }

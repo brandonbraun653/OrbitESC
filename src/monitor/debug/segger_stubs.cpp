@@ -129,7 +129,7 @@ extern "C"
     -------------------------------------------------------------------------*/
     SEGGER_SYSVIEW_Init( SYSVIEW_TIMESTAMP_FREQ, SYSVIEW_CPU_FREQ, &SYSVIEW_X_OS_TraceAPI, _cbSendSystemDesc );
     SEGGER_SYSVIEW_SetRAMBase( SYSVIEW_RAM_BASE );
-    SEGGER_SYSVIEW_DisableEvents( SEGGER_CFG_MINIMAL_MASK );
+    SEGGER_SYSVIEW_DisableEvents( SEGGER_DISABLE_MASK );
 
     /*-------------------------------------------------------------------------
     Register all project modules

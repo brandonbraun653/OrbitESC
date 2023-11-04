@@ -3,7 +3,7 @@
  *    serial_usb.hpp
  *
  *  Description:
- *    Serial driver for the USB CDC interface
+ *    Serial driver for the Tiny USB CDC interface
  *
  *  2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
@@ -24,7 +24,7 @@ namespace Orbit::Serial
   /*---------------------------------------------------------------------------
   Aliases
   ---------------------------------------------------------------------------*/
-  using CircularBuffer = etl::icircular_buffer<uint8_t>*;
+  using CircularBuffer = etl::icircular_buffer<uint8_t> *;
 
   /*---------------------------------------------------------------------------
   Forward Declarations
@@ -78,14 +78,16 @@ namespace Orbit::Serial
     -------------------------------------------------------------------------*/
     Chimera::Status_t open( const Chimera::Serial::Config &config ) final override;
     Chimera::Status_t close() final override;
-    int               write( const void *const buffer, const size_t length, const size_t timeout = Chimera::Thread::TIMEOUT_DONT_WAIT ) final override;
-    int               read( void *const buffer, const size_t length, const size_t timeout = Chimera::Thread::TIMEOUT_DONT_WAIT ) final override;
+    int               write( const void *const buffer, const size_t length,
+                             const size_t timeout = Chimera::Thread::TIMEOUT_DONT_WAIT ) final override;
+    int               read( void *const buffer, const size_t length,
+                            const size_t timeout = Chimera::Thread::TIMEOUT_DONT_WAIT ) final override;
 
   private:
     size_t         mEndpoint;
     CircularBuffer mRXBuffer;
     CircularBuffer mTXBuffer;
   };
-}  // namespace Orbit::Serial
+}    // namespace Orbit::Serial
 
-#endif  /* !ORBIT_COM_SERIAL_USB_HPP */
+#endif /* !ORBIT_COM_SERIAL_USB_HPP */

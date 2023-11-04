@@ -39,7 +39,7 @@ namespace Orbit::Tasks::COM
     /*-------------------------------------------------------------------------
     Run the thread
     -------------------------------------------------------------------------*/
-    size_t wake_up_tick = Chimera::millis();
+    size_t last_wakeup = Chimera::millis();
     while( 1 )
     {
       /*-----------------------------------------------------------------------
@@ -52,14 +52,14 @@ namespace Orbit::Tasks::COM
       Publish available data to the remote host
       -----------------------------------------------------------------------*/
       Orbit::Com::publishPhaseCurrents();
-      // Orbit::Com::publishPhaseVoltages();
+      Orbit::Com::publishPhaseVoltages();
       Orbit::Com::publishStateEstimates();
 
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically
       -----------------------------------------------------------------------*/
-      Chimera::delayUntil( wake_up_tick + PERIOD_MS );
-      wake_up_tick = Chimera::millis();
+      Chimera::delayUntil( last_wakeup + PERIOD_MS );
+      last_wakeup = Chimera::millis();
     }
   }
 }  // namespace Orbit::Tasks::COM

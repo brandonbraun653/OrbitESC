@@ -3,7 +3,7 @@
  *    serial_usb.cpp
  *
  *  Description:
- *    USB Serial Driver Implementation
+ *    Tiny USB Serial Driver Implementation
  *
  *  2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
@@ -19,11 +19,13 @@ namespace Orbit::Serial
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
+
   static USBSerial s_usb_serial;
 
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+
   USBSerial *getUSBSerialDriver()
   {
     return &s_usb_serial;
@@ -33,6 +35,7 @@ namespace Orbit::Serial
   /*---------------------------------------------------------------------------
   USBSerial Implementation
   ---------------------------------------------------------------------------*/
+
   USBSerial::USBSerial() : mEndpoint( 0 ), mRXBuffer( nullptr ), mTXBuffer( nullptr )
   {
   }
@@ -64,6 +67,14 @@ namespace Orbit::Serial
 
   void USBSerial::process()
   {
+    /*-------------------------------------------------------------------------
+    Make sure the device is connected before doing anything
+    -------------------------------------------------------------------------*/
+    if( !tud_cdc_n_connected( mEndpoint ) )
+    {
+      return;
+    }
+
     Chimera::Thread::LockGuard _lock( *this );
 
     /*-------------------------------------------------------------------------
@@ -71,18 +82,34 @@ namespace Orbit::Serial
     -------------------------------------------------------------------------*/
     while( !mRXBuffer->full() )
     {
+      /*-----------------------------------------------------------------------
+      Ensure there is data available to read and a place to put it
+      -----------------------------------------------------------------------*/
       const size_t usb_bytes = tud_cdc_n_available( mEndpoint );
       const size_t buf_bytes = mRXBuffer->available();
-      if( !usb_bytes )
+      if( !usb_bytes || !buf_bytes )
       {
         break;
       }
 
+      /*-----------------------------------------------------------------------
+      Read the data from the USB driver and push it into the RX buffer. The
+      buffer isn't guaranteed to be contiguous, so read byte by byte.
+      -----------------------------------------------------------------------*/
       int read_size = static_cast<int>( std::min( usb_bytes, buf_bytes ) );
+
       while( read_size > 0 )
       {
-        mRXBuffer->push( static_cast<uint8_t>( tud_cdc_n_read_char( mEndpoint ) ) );
-        read_size--;
+        const int32_t byte = tud_cdc_n_read_char( mEndpoint );
+        if( byte >= 0 )
+        {
+          mRXBuffer->push( static_cast<uint8_t>( byte ) );
+          read_size--;
+        }
+        else
+        {
+          break;
+        }
       }
     }
 
@@ -91,19 +118,34 @@ namespace Orbit::Serial
     -------------------------------------------------------------------------*/
     while( !mTXBuffer->empty() )
     {
+      /*-----------------------------------------------------------------------
+      Ensure there is data available to write and a place to put it
+      -----------------------------------------------------------------------*/
       const size_t usb_bytes = tud_cdc_n_write_available( mEndpoint );
       const size_t buf_bytes = mTXBuffer->size();
-      if( !usb_bytes )
+      if( !usb_bytes || !buf_bytes )
       {
         break;
       }
 
+      /*-----------------------------------------------------------------------
+      Write the data from the TX buffer into the USB driver. The buffer isn't
+      guaranteed to be contiguous, so write byte by byte.
+      -----------------------------------------------------------------------*/
       int write_size = static_cast<int>( std::min( usb_bytes, buf_bytes ) );
+
       while( write_size > 0 )
       {
-        tud_cdc_n_write_char( mEndpoint, mTXBuffer->front() );
-        mTXBuffer->pop();
-        write_size--;
+        const uint32_t write_count = tud_cdc_n_write_char( mEndpoint, mTXBuffer->front() );
+        if( write_count == 1u )
+        {
+          mTXBuffer->pop();
+          write_size--;
+        }
+        else
+        {
+          break;
+        }
       }
     }
   }
@@ -123,14 +165,28 @@ namespace Orbit::Serial
 
   int USBSerial::write( const void *const buffer, const size_t length, const size_t timeout )
   {
+    /*-------------------------------------------------------------------------
+    Validate input arguments
+    -------------------------------------------------------------------------*/
     if( !buffer || !length || !mTXBuffer )
     {
       return 0;
     }
 
+    /*-------------------------------------------------------------------------
+    Make sure the device is connected before doing anything
+    -------------------------------------------------------------------------*/
+    if( !tud_cdc_n_connected( mEndpoint ) )
+    {
+      return 0;
+    }
+
+    /*-------------------------------------------------------------------------
+    Enqueue the data into the TX buffer
+    -------------------------------------------------------------------------*/
     Chimera::Thread::LockGuard _lock( *this );
 
-    const size_t buf_bytes = mTXBuffer->available();
+    const size_t buf_bytes  = mTXBuffer->available();
     const size_t write_size = std::min( length, buf_bytes );
 
     size_t bytes_written = 0;
@@ -146,11 +202,25 @@ namespace Orbit::Serial
 
   int USBSerial::read( void *const buffer, const size_t length, const size_t timeout )
   {
+    /*-------------------------------------------------------------------------
+    Validate input arguments
+    -------------------------------------------------------------------------*/
     if( !buffer || !length || !mRXBuffer )
     {
       return 0;
     }
 
+    /*-------------------------------------------------------------------------
+    Make sure the device is connected before doing anything
+    -------------------------------------------------------------------------*/
+    if( !tud_cdc_n_connected( mEndpoint ) )
+    {
+      return 0;
+    }
+
+    /*-------------------------------------------------------------------------
+    Read data into the user buffer
+    -------------------------------------------------------------------------*/
     Chimera::Thread::LockGuard _lock( *this );
 
     const size_t buf_bytes = mRXBuffer->size();
