@@ -14,7 +14,9 @@ Includes
 
 #include <Aurora/logging>
 #include <Chimera/gpio>
+#include <Chimera/function>
 #include <Thor/lld/interface/inc/interrupt>
+#include <etl/vector.h>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/hw/orbit_tusb.h>
 #include <src/core/hw/orbit_usb_intf.h>
@@ -25,10 +27,24 @@ Includes
 namespace Orbit::USB
 {
   /*---------------------------------------------------------------------------
+  Static Data
+  ---------------------------------------------------------------------------*/
+
+  static etl::vector<Chimera::Function::Opaque, 2> s_connect_callbacks;
+  static etl::vector<Chimera::Function::Opaque, 2> s_disconnect_callbacks;
+
+  /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+
   void powerUp()
   {
+    /*-------------------------------------------------------------------------
+    Initialize Module Data
+    -------------------------------------------------------------------------*/
+    s_connect_callbacks.clear();
+    s_disconnect_callbacks.clear();
+
     /*-------------------------------------------------------------------------
     Configure GPIO
     -------------------------------------------------------------------------*/
@@ -71,6 +87,30 @@ namespace Orbit::USB
     RT_HARD_ASSERT( true == tusb_init() );
     OrbitMonitorRecordEvent_TUSB( TUSB_Init );
   }
+
+
+  bool onConnect( Chimera::Function::Opaque &&callback )
+  {
+    if( s_connect_callbacks.full() )
+    {
+      return false;
+    }
+
+    s_connect_callbacks.push_back( std::move( callback ) );
+    return true;
+  }
+
+
+  bool onDisconnect( Chimera::Function::Opaque &&callback )
+  {
+    if( s_disconnect_callbacks.full() )
+    {
+      return false;
+    }
+
+    s_disconnect_callbacks.push_back( std::move( callback ) );
+    return true;
+  }
 }    // namespace Orbit::USB
 
 
@@ -86,6 +126,14 @@ extern "C"
   void tud_mount_cb( void )
   {
     OrbitMonitorRecordEvent_TUSB( TUSB_Mount );
+
+    /*-------------------------------------------------------------------------
+    Invoke the user callbacks
+    -------------------------------------------------------------------------*/
+    for( auto &cb : Orbit::USB::s_connect_callbacks )
+    {
+      cb();
+    }
   }
 
 
@@ -96,5 +144,13 @@ extern "C"
   void tud_umount_cb( void )
   {
     OrbitMonitorRecordEvent_TUSB( TUSB_Unmount );
+
+    /*-------------------------------------------------------------------------
+    Invoke the user callbacks
+    -------------------------------------------------------------------------*/
+    for( auto &cb : Orbit::USB::s_disconnect_callbacks )
+    {
+      cb();
+    }
   }
 } /* extern "C" */
