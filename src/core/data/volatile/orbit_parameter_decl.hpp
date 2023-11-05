@@ -322,7 +322,19 @@ namespace Orbit::Data::Param
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
+
+  /**
+   * @brief Total number of paramaters supported
+   */
   static constexpr size_t NUM_PARAMS = Internal::_unsorted_parameters.size();
+
+  /**
+   * @brief Maximum string size that can be stored for a parameter.
+   *
+   * This is used to allocate memory on the stack for temporary storage
+   * when reading/writing parameters.
+   */
+  static constexpr size_t MAX_STRING_SIZE = 256;
 
   /*---------------------------------------------------------------------------
   Aliases

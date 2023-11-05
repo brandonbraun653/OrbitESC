@@ -33,6 +33,21 @@ namespace Orbit::Data
   Information   SysInfo;
   Configuration SysConfig;
 
+  /*---------------------------------------------------------------------------
+  Static Functions
+  ---------------------------------------------------------------------------*/
+
+  /**
+   * @brief Ensure that fixed system identity data is stored in persistent memory
+   * @return void
+   */
+  static void init_system_identity()
+  {
+    Param::write( ParamId_PARAM_BOARD_NAME, DFLT_BOARD_NAME.cbegin(), DFLT_BOARD_NAME.size() );
+    Param::write( ParamId_PARAM_DESCRIPTION, DFLT_DESCRIPTION.cbegin(), DFLT_DESCRIPTION.size() );
+    Param::write( ParamId_PARAM_SW_VERSION, DFLT_FIRMWARE_VERSION.cbegin(), DFLT_FIRMWARE_VERSION.size() );
+    Param::write( ParamId_PARAM_HW_VERSION, &DFLT_HARDWARE_VERSION, sizeof( DFLT_HARDWARE_VERSION ) );
+  }
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -42,14 +57,19 @@ namespace Orbit::Data
     /*-------------------------------------------------------------------------
     Initialize persistent data storage
     -------------------------------------------------------------------------*/
-    FileSystem::init();               // Attach and load the file system
-    Persistent::db_init();
+    FileSystem::init();     // Attach and load the file system
+    Persistent::db_init();  // Initialize the persistent database built on the filesystem
 
     /*-------------------------------------------------------------------------
     Initialize volatile data storage
     -------------------------------------------------------------------------*/
     Param::init();  // Initialize the parameter system
     Param::load();  // Load the parameters from persistent storage
+
+    /*-------------------------------------------------------------------------
+    Initialize various parameters
+    -------------------------------------------------------------------------*/
+    init_system_identity();
 
     return true;
   }

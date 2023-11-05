@@ -12,6 +12,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <src/core/com/serial/serial_usb.hpp>
+#include <src/core/com/serial/serial_config.hpp>
 #include <tusb.h>
 
 namespace Orbit::Serial
@@ -31,6 +32,11 @@ namespace Orbit::Serial
     return &s_usb_serial;
   }
 
+
+  Chimera::Serial::Driver_rPtr Config::getCommandPort()
+  {
+    return &s_usb_serial;
+  }
 
   /*---------------------------------------------------------------------------
   USBSerial Implementation
@@ -67,14 +73,6 @@ namespace Orbit::Serial
 
   void USBSerial::process()
   {
-    /*-------------------------------------------------------------------------
-    Make sure the device is connected before doing anything
-    -------------------------------------------------------------------------*/
-    if( !tud_cdc_n_connected( mEndpoint ) )
-    {
-      return;
-    }
-
     Chimera::Thread::LockGuard _lock( *this );
 
     /*-------------------------------------------------------------------------
@@ -87,6 +85,7 @@ namespace Orbit::Serial
       -----------------------------------------------------------------------*/
       const size_t usb_bytes = tud_cdc_n_available( mEndpoint );
       const size_t buf_bytes = mRXBuffer->available();
+
       if( !usb_bytes || !buf_bytes )
       {
         break;
@@ -123,6 +122,7 @@ namespace Orbit::Serial
       -----------------------------------------------------------------------*/
       const size_t usb_bytes = tud_cdc_n_write_available( mEndpoint );
       const size_t buf_bytes = mTXBuffer->size();
+
       if( !usb_bytes || !buf_bytes )
       {
         break;
@@ -206,14 +206,6 @@ namespace Orbit::Serial
     Validate input arguments
     -------------------------------------------------------------------------*/
     if( !buffer || !length || !mRXBuffer )
-    {
-      return 0;
-    }
-
-    /*-------------------------------------------------------------------------
-    Make sure the device is connected before doing anything
-    -------------------------------------------------------------------------*/
-    if( !tud_cdc_n_connected( mEndpoint ) )
     {
       return 0;
     }

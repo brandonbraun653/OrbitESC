@@ -11,10 +11,9 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-
 #include <Aurora/logging>
-#include <Chimera/gpio>
 #include <Chimera/function>
+#include <Chimera/gpio>
 #include <Thor/lld/interface/inc/interrupt>
 #include <etl/vector.h>
 #include <src/config/bsp/board_map.hpp>

@@ -110,9 +110,8 @@ class SerialPipe(Observer):
 
     def _rx_decoder(self):
         """
-        Thread to handle reception of data from the connected endpoint, encoded
-        with COBS framing. Will parse valid COBS packets into the appropriate
-        protocol buffer message type.
+        Thread to handle reception of data from the connected endpoint, encoded with COBS framing.
+        Will parse valid COBS packets into the appropriate protocol buffer message type.
 
         Returns:
             None
@@ -146,8 +145,8 @@ class SerialPipe(Observer):
                         decoded_frame = cobs.decode(encoded_frame)
                         frame_list.append(decoded_frame)
                     except cobs.DecodeError:
-                        # Data frame misaligned most likely
-                        logger.warning("Partial COBS frame received")
+                        # Nothing much to do here if this fails. Just move on to the next frame.
+                        logger.trace("Failed to decode COBS frame. Likely partially received message.")
                 except ValueError:
                     # Frame delimiter byte was not found
                     frames_available = False
@@ -162,7 +161,7 @@ class SerialPipe(Observer):
                         logger.warning(f"Unsupported message ID: {base_msg.header.msgId}")
                         continue
                 except g_proto_msg.DecodeError:
-                    logger.error("Frame did not contain the expected header. Unable to parse.")
+                    logger.trace("Frame did not contain the expected header. Unable to parse.")
                     continue
 
                 # Now do the full decode since the claimed type is supported

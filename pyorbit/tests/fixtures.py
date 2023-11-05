@@ -1,11 +1,14 @@
 import pytest
 from pyorbit.serial.client import SerialClient
 from pyorbit.motor_control import MotorControl
+from pyorbit.utility.usb import get_esc_usb_path
+
+_test_device_serial = "DEADBEEF"
 
 
 @pytest.fixture
 def serial_client() -> SerialClient:
-    client = SerialClient(port="/dev/ttyACM1", baudrate=2000000)
+    client = SerialClient(port=get_esc_usb_path(_test_device_serial), baudrate=2000000)
     yield client
     client.close()
 

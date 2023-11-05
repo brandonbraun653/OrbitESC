@@ -14,6 +14,7 @@ Includes
 #include <Aurora/logging>
 #include <Chimera/assert>
 #include <Chimera/serial>
+#include <src/core/com/serial/serial_config.hpp>
 #include <src/core/com/serial/serial_server.hpp>
 #include <src/core/hw/orbit_usart.hpp>
 
@@ -22,6 +23,7 @@ namespace Orbit::Serial
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+
   Chimera::Status_t sendAckNack( const bool ack_or_nack, const Header &header, const StatusCode code )
   {
     /*-------------------------------------------------------------------------
@@ -43,7 +45,7 @@ namespace Orbit::Serial
 
     if ( reply.encode( payload ) )
     {
-      return reply.send( Orbit::USART::SerialDriver );
+      return reply.send( Config::getCommandPort() );
     }
     else
     {
