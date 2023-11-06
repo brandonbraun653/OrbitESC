@@ -7,8 +7,8 @@ artifacts/**
 
 # PyCharm project directory
 .idea/**
-.conda
 *__pycache__
+.venv
 
 # KiCAD Project Files
 hw/sim/CurrentSense/CurrentSense-backups/

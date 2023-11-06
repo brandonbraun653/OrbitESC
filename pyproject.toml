@@ -1,10 +1,13 @@
 [tool.poetry]
-name = "orbitesc"
+name = "OrbitESC"
 version = "0.1.0"
 description = "Brushless motor controller development environment"
 authors = ["Brandon Braun <brandonbraun653@protonmail.com>"]
 license = "MIT"
 readme = "README.md"
+packages = [
+    { include = "pyorbit", from = "./" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
