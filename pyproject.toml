@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "orbitesc"
+version = "0.1.0"
+description = "Brushless motor controller development environment"
+authors = ["Brandon Braun <brandonbraun653@protonmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+cobs = "^1.2.1"
+grpcio = "^1.59.2"
+grpcio-tools = "^1.59.2"
+protobuf = "^4.25.0"
+python-can = "^4.2.2"
+jupyter = "^1.0.0"
+numpy = "^1.23.4"
+pyserial = "^3.5"
+pytest = "^7.1.2"
+loguru = "^0.7.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
