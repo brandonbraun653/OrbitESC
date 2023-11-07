@@ -12,15 +12,18 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.10"
 cobs = "^1.2.1"
-grpcio = "^1.59.2"
-grpcio-tools = "^1.59.2"
-protobuf = "^4.25.0"
+grpcio = "1.47.0"
+grpcio-tools = "1.47.0"
+protobuf = "3.19.1"
 python-can = "^4.2.2"
 jupyter = "^1.0.0"
 numpy = "^1.23.4"
 pyserial = "^3.5"
 pytest = "^7.1.2"
+pyqt5 = "==5.15.2"
 loguru = "^0.7.2"
+nanopb = "^0.4.7"
+pyqtgraph = "^0.13.3"
 
 
 [build-system]

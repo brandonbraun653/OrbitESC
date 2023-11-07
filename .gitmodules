@@ -10,9 +10,6 @@
 [submodule "lib/CommonTools"]
 	path = lib/CommonTools
 	url = https://github.com/brandonbraun653/CommonTools.git
-[submodule "lib/Conda"]
-	path = lib/Conda
-	url = https://github.com/brandonbraun653/Conda.git
 [submodule "lib/Thor"]
 	path = lib/Thor
 	url = https://github.com/brandonbraun653/Thor.git

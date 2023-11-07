@@ -3,22 +3,11 @@
 # Expects to be called from this directory
 cd ../
 _cwd=$(pwd)
-_conda=$(which conda)
-
-# Figure out where Anaconda was installed on this machine
-if [ ! -f "$_conda" ]
-then
-    echo "Conda application not found! -> $_conda"
-    exit 1
-fi
-
-_conda_install_dir=$(readlink -f "$(dirname "$_conda")/..")
 
 # Ensure the current shell can run conda activate
 # https://stackoverflow.com/a/65183109/8341975
 echo "Activating project environment"
-source "$_conda_install_dir"/etc/profile.d/conda.sh
-conda activate "$_cwd"/.conda
+source "$_cwd"/.venv/bin/activate
 
 # Build the C bindings
 echo "Building Nanopb C-Bindings"
