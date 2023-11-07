@@ -7,7 +7,7 @@ artifacts/**
 
 # PyCharm project directory
 .idea/**
-*__pycache__
+**__pycache__
 .venv
 
 # KiCAD Project Files
