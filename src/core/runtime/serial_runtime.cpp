@@ -59,6 +59,8 @@ namespace Orbit::Serial
   {
     using namespace Orbit::Data;
 
+    LOG_TRACE( "GET request for param: %d", msg.payload.id );
+
     /*-------------------------------------------------------------------------
     Ensure the parameter ID is valid
     -------------------------------------------------------------------------*/
@@ -102,6 +104,8 @@ namespace Orbit::Serial
     {
       LOG_ERROR( "Failed to send response to GET request" );
     }
+
+    LOG_TRACE( "GET request complete" );
   }
 
 
@@ -112,6 +116,7 @@ namespace Orbit::Serial
   static void handle_put( const Message::ParamIO &msg )
   {
     using namespace Orbit::Data;
+    LOG_TRACE( "PUT request for param: %d", msg.payload.id );
 
     /*-------------------------------------------------------------------------
     Ensure the parameter ID is valid
@@ -134,6 +139,8 @@ namespace Orbit::Serial
     {
       sendAckNack( false, msg.payload.header, StatusCode_REQUEST_FAILED );
     }
+
+    LOG_TRACE( "PUT request complete" );
   }
 
 
@@ -143,6 +150,7 @@ namespace Orbit::Serial
    */
   static void handle_load( const Message::ParamIO &msg )
   {
+    LOG_TRACE( "LOAD param request" );
     sendAckNack( Data::Param::load(), msg.payload.header );
   }
 
@@ -153,6 +161,7 @@ namespace Orbit::Serial
    */
   static void handle_sync( const Message::ParamIO &msg )
   {
+    LOG_TRACE( "SYNC param request" );
     sendAckNack( Data::Param::flush(), msg.payload.header );
   }
 

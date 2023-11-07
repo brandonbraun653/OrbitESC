@@ -47,7 +47,7 @@ namespace Orbit::Tasks::DIO
 
     char msg[ 64 ];
     memset(msg, 0, sizeof( msg ) );
-    npf_snprintf( msg, sizeof( msg ), "Orbit ESC Power Up -- Boot count: %d\r\n", Data::SysInfo.bootCount );
+    npf_snprintf( msg, sizeof( msg ), "Orbit ESC Power Up -- Boot count: %lu\r\n", Data::SysInfo.bootCount );
 
     // if( SDIO::isCardPresent() )
     // {

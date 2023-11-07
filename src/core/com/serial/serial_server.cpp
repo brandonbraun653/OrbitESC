@@ -26,6 +26,8 @@ namespace Orbit::Serial
 
   Chimera::Status_t sendAckNack( const bool ack_or_nack, const Header &header, const StatusCode code )
   {
+    LOG_TRACE_IF( ack_or_nack == false, "NACK: %d", code );
+
     /*-------------------------------------------------------------------------
     Populate the core message type
     -------------------------------------------------------------------------*/

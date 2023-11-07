@@ -26,19 +26,13 @@ Includes
 namespace Orbit::USART
 {
   /*---------------------------------------------------------------------------
-  Public Data
-  ---------------------------------------------------------------------------*/
-  Chimera::Serial::Driver_rPtr SerialDriver;
-
-  /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
   static etl::bip_buffer_spsc_atomic<uint8_t, 1024> sTxBuffer;
-  static etl::bip_buffer_spsc_atomic<uint8_t, 256>  sRxBuffer;
-
-  // Logger Sink Handles
-  static Orbit::Serial::EncodedLogSink    s_serial_sink;
-  static Aurora::Logging::SinkHandle_rPtr s_serial_handle;
+  static etl::bip_buffer_spsc_atomic<uint8_t, 16>   sRxBuffer;
+  static Chimera::Serial::Driver_rPtr               s_serial_driver;
+  static Aurora::Logging::SerialSink                s_serial_sink;
+  static Aurora::Logging::SinkHandle_rPtr           s_serial_handle;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -49,17 +43,6 @@ namespace Orbit::USART
     using namespace Chimera::Hardware;
 
     Chimera::GPIO::Driver_rPtr pin = nullptr;
-
-    /*-------------------------------------------------------------------------
-    Configure the CP2104 reset line to be disabled
-    -------------------------------------------------------------------------*/
-#if defined( ORBIT_ESC_V1 )
-    pin = Chimera::GPIO::getDriver( IO::USART::resetPort, IO::USART::resetPin );
-
-    RT_HARD_ASSERT( pin );
-    RT_HARD_ASSERT( Chimera::Status::OK == pin->init( IO::USART::resetPinInit ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == pin->setState( Chimera::GPIO::State::HIGH ) );
-#endif /* ORBIT_ESC_V1 */
 
     /*-------------------------------------------------------------------------
     Configure the peripheral IO pins
@@ -86,9 +69,9 @@ namespace Orbit::USART
     comConfig.txBuffer = dynamic_cast<Chimera::Serial::BipBuffer *>( &sTxBuffer );
     comConfig.rxBuffer = dynamic_cast<Chimera::Serial::BipBuffer *>( &sRxBuffer );
 
-    SerialDriver = Chimera::Serial::getDriver( IO::USART::serialChannel );
-    RT_HARD_ASSERT( SerialDriver );
-    RT_HARD_ASSERT( Chimera::Status::OK == SerialDriver->open( comConfig ) );
+    s_serial_driver = Chimera::Serial::getDriver( IO::USART::serialChannel );
+    RT_HARD_ASSERT( s_serial_driver );
+    RT_HARD_ASSERT( Chimera::Status::OK == s_serial_driver->open( comConfig ) );
 
     /*-------------------------------------------------------------------------
     Start the logging framework
@@ -108,6 +91,11 @@ namespace Orbit::USART
     }
 
     RT_HARD_ASSERT( Aurora::Logging::Result::RESULT_SUCCESS == Aurora::Logging::setRootSink( s_serial_handle ) );
+
+    /*-------------------------------------------------------------------------
+    Clear some space on the terminal
+    -------------------------------------------------------------------------*/
+    s_serial_driver->write( "\r\n\n", 3 );
   }
 
 }    // namespace Orbit::USART
@@ -117,6 +105,6 @@ namespace Orbit::Serial::Config
 {
   Chimera::Serial::Driver_rPtr getDebugPort()
   {
-    return ::Orbit::USART::SerialDriver;
+    return ::Orbit::USART::s_serial_driver;
   }
 }    // namespace Orbit::Serial::Config
