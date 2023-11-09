@@ -122,6 +122,7 @@ class ParameterObserver(MessageObserver):
         msg.param_id = param
 
         # Push the request onto the wire
+        logger.debug(f"Requesting parameter {repr(param)}")
         self._com_pipe.put(msg.serialize())
 
         # Listen for return messages
@@ -131,7 +132,7 @@ class ParameterObserver(MessageObserver):
             nack_messages = self._com_pipe.get_subscription_data(nack_sub_id, block=False)  # type: List[AckNackMessage]
             data_messages = self._com_pipe.get_subscription_data(data_sub_id, block=False)  # type: List[ParamIOMessage]
 
-            if nack_messages or data_messages or ((time.time() - start_time) > 3.0):
+            if nack_messages or data_messages or ((time.time() - start_time) > 5.0):
                 self._com_pipe.get_subscription_data(nack_sub_id, block=False, terminate=True)
                 self._com_pipe.get_subscription_data(data_sub_id, block=False, terminate=True)
                 break
@@ -144,6 +145,7 @@ class ParameterObserver(MessageObserver):
 
         # Deserialize the data returned
         if data_messages:
+            logger.debug(f"Transaction completed in {time.time() - start_time:.2f} seconds for {repr(param)}")
             rsp = data_messages[0]
 
             try:

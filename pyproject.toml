@@ -24,6 +24,8 @@ pyqt5 = "==5.15.2"
 loguru = "^0.7.2"
 nanopb = "^0.4.7"
 pyqtgraph = "^0.13.3"
+pyudev = "^0.24.1"
+pytest-profiling = "^1.7.0"
 
 
 [build-system]

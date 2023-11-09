@@ -49,6 +49,7 @@ class SerialPipe(Observer):
         self._serial.port = port
         self._serial.baudrate = baudrate
         self._serial.open()
+        logger.trace(f"Opened serial port {port} at {baudrate} baud")
 
         # Spawn the IO threads for enabling communication
         self._kill_event.clear()
@@ -96,7 +97,13 @@ class SerialPipe(Observer):
         Returns:
             None
         """
+        logger.trace(f"Starting OrbitESC internal Serial message encoder thread")
         while not self._kill_event.is_set():
+            # Allow other threads time to execute
+            time.sleep(0.001)
+            if not self._serial.is_open:
+                continue
+
             # Pull the latest data off the queue
             try:
                 raw_frame = self._tx_msgs.get(block=True, timeout=0.1)  # type: bytes
@@ -108,6 +115,10 @@ class SerialPipe(Observer):
             logger.trace(f"Write {len(encoded_frame)} bytes: {repr(encoded_frame)}")
             self._serial.write(encoded_frame)
 
+            # TODO BMB: Need to set a throughput rate limit in here
+
+        logger.trace("Terminating OrbitESC internal Serial message encoder")
+
     def _rx_decoder(self):
         """
         Thread to handle reception of data from the connected endpoint, encoded with COBS framing.
@@ -116,6 +127,7 @@ class SerialPipe(Observer):
         Returns:
             None
         """
+        logger.trace("Starting OrbitESC internal Serial message decoder thread")
         rx_byte_buffer = bytearray()
 
         while not self._kill_event.is_set():
@@ -128,7 +140,9 @@ class SerialPipe(Observer):
             new_data = self._serial.read_all()
             if new_data:
                 rx_byte_buffer.extend(new_data)
-                logger.trace(f"Received {new_data}")
+                logger.trace(f"Received {len(new_data)} bytes: {new_data}")
+            elif not len(rx_byte_buffer):
+                continue
 
             # Parse the data in the cache to extract all waiting COBS frames
             frames_available = True
@@ -176,13 +190,15 @@ class SerialPipe(Observer):
                 self._rx_msgs.put(full_msg)
                 logger.trace(f"Received message type {full_msg.name}. UUID: {full_msg.uuid}")
 
+        logger.trace("Terminating OrbitESC internal Serial message decoder")
+
     def _rx_dispatcher(self):
         """
         Takes new messages and dispatches them to all observers
         Returns:
             None
         """
-        logger.trace("Starting OrbitESC internal Serial message dispatcher")
+        logger.trace("Starting OrbitESC internal Serial message dispatcher thread")
 
         while not self._kill_event.is_set():
             self.prune_expired_observers()

@@ -13,3 +13,6 @@ artifacts/**
 # KiCAD Project Files
 hw/sim/CurrentSense/CurrentSense-backups/
 hw/sim/HalfBridgeDriver/HalfBridgeDriver-backups/
+
+# Testing and Profiling Outputs
+pyorbit/tests/prof
