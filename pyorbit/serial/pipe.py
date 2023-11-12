@@ -7,9 +7,11 @@
 #
 #   12/12/2022 | Brandon Braun | brandonbraun653@gmail.com
 # **********************************************************************************************************************
-
+import copy
 import queue
 import time
+from typing import List, Optional, Union, Any
+
 import pyorbit.nanopb.serial_interface_pb2 as proto
 import google.protobuf.message as g_proto_msg
 from cobs import cobs
@@ -17,25 +19,32 @@ from loguru import logger
 from serial import Serial
 from threading import Thread, Event
 from queue import Queue
-from pyorbit.observer import Observer
-from pyorbit.serial.messages import MessageTypeMap
+from pyorbit.observer import Observer, MessageObserver
+from pyorbit.serial.messages import MessageTypeMap, BaseMessage
 
 
-class SerialPipe(Observer):
-    """ Message server for RTX-ing encoded messages over a serial connection """
+class SerialPipeObserver(Observer):
+    """ Message server for RTX-ing COBS encoded protocol buffer messages over a serial connection """
 
     def __init__(self):
         super().__init__()
-
         self._serial = Serial(timeout=5)
         self._kill_event = Event()
-        self._rx_thread = Thread()
-        self._tx_thread = Thread()
-        self._dispatch_thread = Thread()
-        self._rx_msgs = Queue()
-        self._tx_msgs = Queue()
 
-    def open(self, port: str, baudrate: int):
+        # TX resources
+        self._tx_thread = Thread()
+        self._tx_msgs: Queue[bytes] = Queue()
+
+        # RX resources
+        self._rx_thread = Thread()
+        self._rx_msgs = Queue()
+        self._rx_frames: List[bytes] = []
+        self._rx_byte_buffer = bytearray()
+
+        # Dispatch resources
+        self._dispatch_thread = Thread()
+
+    def open(self, port: str, baudrate: int) -> None:
         """
         Opens a serial port for communication
         Args:
@@ -45,19 +54,24 @@ class SerialPipe(Observer):
         Returns:
             None
         """
+        # Clear memory
+        self._rx_msgs = Queue()
+        self._rx_frames = []
+
         # Open the serial port with the desired configuration
         self._serial.port = port
         self._serial.baudrate = baudrate
+        self._serial.exclusive = True
         self._serial.open()
         logger.trace(f"Opened serial port {port} at {baudrate} baud")
 
         # Spawn the IO threads for enabling communication
         self._kill_event.clear()
-        self._rx_thread = Thread(target=self._rx_decoder, name="RXDecoder")
+        self._rx_thread = Thread(target=self._rx_decoder_thread, name="RXDecoder")
         self._rx_thread.start()
-        self._tx_thread = Thread(target=self._tx_encoder, name="TXEncoder")
+        self._tx_thread = Thread(target=self._tx_encoder_thread, name="TXEncoder")
         self._tx_thread.start()
-        self._dispatch_thread = Thread(target=self._rx_dispatcher, name="RXDispatch")
+        self._dispatch_thread = Thread(target=self._rx_dispatcher_thread, name="RXDispatch")
         self._dispatch_thread.start()
 
     def close(self) -> None:
@@ -77,7 +91,7 @@ class SerialPipe(Observer):
             self._serial.flush()
             self._serial.close()
 
-    def put(self, data: bytes) -> None:
+    def write(self, data: bytes) -> None:
         """
         Enqueues a new message for transmission
         Args:
@@ -88,10 +102,45 @@ class SerialPipe(Observer):
         """
         self._tx_msgs.put(data, block=True)
 
-    def _teardown(self):
-        self._serial.close()
+    def write_and_wait(self, msg: BaseMessage, timeout: Union[int, float]) -> Optional[BaseMessage]:
+        """
+        Writes a message to the serial pipe and waits for a response
+        Args:
+            msg: Message to send
+            timeout: Time to wait for a response
 
-    def _tx_encoder(self):
+        Returns:
+            Response message
+        """
+        # Thread local storage for the result and signaling mechanism
+        result = None
+        event = Event()
+
+        def _uuid_matcher_observer(_msg: BaseMessage) -> None:
+            """ Observer that matches on UUID """
+            nonlocal result
+            nonlocal msg
+
+            if not isinstance(_msg, BaseMessage):
+                return
+            elif msg.uuid == _msg.uuid:
+                result = copy.copy(_msg)
+                event.set()
+
+        # Register the observer to listen to all messages
+        observer = MessageObserver(_uuid_matcher_observer, None)
+        sub_id = self.subscribe_observer(observer)
+
+        # Send the message and wait for the response
+        self.write(msg.serialize())
+        event.wait(timeout=timeout)
+
+        # Clean up the observer. At this point we've either timed out, or the expected
+        # message arrived, and we can return it.
+        self.unsubscribe(sub_id)
+        return result
+
+    def _tx_encoder_thread(self) -> None:
         """
         Encodes queued TX packets with COBS framing and sends it on the wire
         Returns:
@@ -99,27 +148,20 @@ class SerialPipe(Observer):
         """
         logger.trace(f"Starting OrbitESC internal Serial message encoder thread")
         while not self._kill_event.is_set():
-            # Allow other threads time to execute
-            time.sleep(0.001)
-            if not self._serial.is_open:
-                continue
-
             # Pull the latest data off the queue
             try:
-                raw_frame = self._tx_msgs.get(block=True, timeout=0.1)  # type: bytes
+                raw_frame = self._tx_msgs.get(block=True, timeout=0.1)
             except queue.Empty:
                 continue
 
             # Encode the frame w/termination byte, then transmit
             encoded_frame = cobs.encode(raw_frame) + b'\x00'
-            logger.trace(f"Write {len(encoded_frame)} bytes: {repr(encoded_frame)}")
             self._serial.write(encoded_frame)
-
-            # TODO BMB: Need to set a throughput rate limit in here
+            logger.trace(f"Write {len(encoded_frame)} bytes: {repr(encoded_frame)}")
 
         logger.trace("Terminating OrbitESC internal Serial message encoder")
 
-    def _rx_decoder(self):
+    def _rx_decoder_thread(self) -> None:
         """
         Thread to handle reception of data from the connected endpoint, encoded with COBS framing.
         Will parse valid COBS packets into the appropriate protocol buffer message type.
@@ -128,78 +170,35 @@ class SerialPipe(Observer):
             None
         """
         logger.trace("Starting OrbitESC internal Serial message decoder thread")
-        rx_byte_buffer = bytearray()
-
         while not self._kill_event.is_set():
             # Allow other threads time to execute
-            time.sleep(0.01)
-            if not self._serial.is_open:
-                continue
+            time.sleep(0.001)
 
             # Fill the cache with the raw data from the bus
-            new_data = self._serial.read_all()
-            if new_data:
-                rx_byte_buffer.extend(new_data)
+            if new_data := self._serial.read_all():
+                self._rx_byte_buffer.extend(new_data)
                 logger.trace(f"Received {len(new_data)} bytes: {new_data}")
-            elif not len(rx_byte_buffer):
+            elif not len(self._rx_byte_buffer):
                 continue
 
             # Parse the data in the cache to extract all waiting COBS frames
-            frames_available = True
-            frame_list = []
-            while frames_available:
-                try:
-                    # Search for the frame delimiter and extract an entire frame if it exists
-                    end_of_frame_idx = rx_byte_buffer.index(b'\x00')
-                    encoded_frame = rx_byte_buffer[:end_of_frame_idx]
-                    rx_byte_buffer = rx_byte_buffer[end_of_frame_idx+1:]
-
-                    # Decode the message and store it in our RX buffer
-                    try:
-                        decoded_frame = cobs.decode(encoded_frame)
-                        frame_list.append(decoded_frame)
-                    except cobs.DecodeError:
-                        # Nothing much to do here if this fails. Just move on to the next frame.
-                        logger.trace("Failed to decode COBS frame. Likely partially received message.")
-                except ValueError:
-                    # Frame delimiter byte was not found
-                    frames_available = False
+            self._rx_decode_available_cobs_frames()
 
             # Parse each decoded frame into a higher level message type
-            for frame in frame_list:
-                # Peek the header of the message
-                try:
-                    base_msg = proto.BaseMessage()
-                    base_msg.ParseFromString(frame)
-                    if base_msg.header.msgId not in MessageTypeMap.keys():
-                        logger.warning(f"Unsupported message ID: {base_msg.header.msgId}")
-                        continue
-                except g_proto_msg.DecodeError:
-                    logger.trace("Frame did not contain the expected header. Unable to parse.")
-                    continue
-
-                # Now do the full decode since the claimed type is supported
-                full_msg = MessageTypeMap[base_msg.header.msgId]()
-                try:
-                    full_msg.deserialize(frame)
-                except g_proto_msg.DecodeError:
-                    logger.error(f"Failed to decode {full_msg.name} type")
-                    continue
-
-                # Now push the completed message onto the queue for someone else to handle
-                self._rx_msgs.put(full_msg)
-                logger.trace(f"Received message type {full_msg.name}. UUID: {full_msg.uuid}")
+            for frame in self._rx_frames:
+                if full_msg := self._decode_pb_frame(frame):
+                    self._rx_msgs.put(full_msg)
+                    logger.trace(f"Received message type {full_msg.name}. UUID: {full_msg.uuid}")
 
         logger.trace("Terminating OrbitESC internal Serial message decoder")
 
-    def _rx_dispatcher(self):
+    def _rx_dispatcher_thread(self) -> None:
         """
         Takes new messages and dispatches them to all observers
         Returns:
             None
         """
         logger.trace("Starting OrbitESC internal Serial message dispatcher thread")
-
         while not self._kill_event.is_set():
             self.prune_expired_observers()
             try:
@@ -209,3 +208,75 @@ class SerialPipe(Observer):
                 continue
 
         logger.trace("Terminating OrbitESC internal Serial message dispatcher")
+
+    def _rx_decode_available_cobs_frames(self) -> None:
+        """
+        Parses the current RX buffer for any available COBS frames and decodes them into
+        protocol buffer messages.
+
+        Returns:
+            None
+        """
+        try:
+            while True:
+                # Search for the frame delimiter and extract an entire frame if it exists
+                eof_idx = self._rx_byte_buffer.index(b'\x00')
+                cobs_frame = self._rx_byte_buffer[:eof_idx]
+
+                # Remove the frame from the buffer by slicing it out
+                self._rx_byte_buffer = self._rx_byte_buffer[eof_idx + 1:]
+
+                # Decode the message and store it in our RX buffer
+                if decoded_frame := self._decode_cobs_frame(cobs_frame):
+                    self._rx_frames.append(decoded_frame)
+
+        except ValueError:
+            # No more frames available
+            pass
+
+    @staticmethod
+    def _decode_cobs_frame(frame: bytes) -> Optional[bytes]:
+        """
+        Decodes a COBS encoded frame into the original message
+        Args:
+            frame: COBS encoded frame
+
+        Returns:
+            Decoded message
+        """
+        try:
+            return cobs.decode(frame)
+        except cobs.DecodeError:
+            # Nothing much to do here if this fails. Just move on to the next frame.
+            logger.trace("Failed to decode COBS frame. Likely partially received message.")
+            return None
+
+    @staticmethod
+    def _decode_pb_frame(frame: bytes) -> Optional[proto.BaseMessage]:
+        """
+        Decodes a COBS encoded frame into a protocol buffer message
+        Args:
+            frame: COBS encoded frame
+
+        Returns:
+            Decoded protocol buffer message
+        """
+        # Peek the header of the message
+        try:
+            base_msg = proto.BaseMessage()
+            base_msg.ParseFromString(frame)
+            if base_msg.header.msgId not in MessageTypeMap.keys():
+                logger.warning(f"Unsupported message ID: {base_msg.header.msgId}")
+                return None
+        except g_proto_msg.DecodeError:
+            logger.trace("Frame did not contain the expected header. Unable to parse.")
+            return None
+
+        # Now do the full decode since the claimed type is supported
+        full_msg = MessageTypeMap[base_msg.header.msgId]()
+        try:
+            full_msg.deserialize(frame)
+            return full_msg
+        except g_proto_msg.DecodeError:
+            logger.error(f"Failed to decode {full_msg.name} type")
+            return None

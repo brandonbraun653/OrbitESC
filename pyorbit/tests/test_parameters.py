@@ -1,6 +1,4 @@
 import math
-import time
-
 from pyorbit.tests.fixtures import *
 from pyorbit.serial.client import SerialClient
 from pyorbit.serial.parameters import ParameterId

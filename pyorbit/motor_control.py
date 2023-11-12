@@ -53,7 +53,7 @@ class MotorControl:
             True if the command was successful, False otherwise
         """
         sub_id = self._serial.com_pipe.subscribe(msg=AckNackMessage, qty=1, timeout=5.0)
-        self._serial.com_pipe.put(MotorControlMessage(cmd, data).serialize())
+        self._serial.com_pipe.write(MotorControlMessage(cmd, data).serialize())
         responses = self._serial.com_pipe.get_subscription_data(sub_id, terminate=True)  # type: List[AckNackMessage]
 
         if not responses:

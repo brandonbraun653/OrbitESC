@@ -2,14 +2,6 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "gdb",
-      "request": "launch",
-      "name": "Simulator",
-      "target": "OrbitESC",
-      "cwd": "${workspaceRoot}/artifacts/last_build_version",
-      "valuesFormatting": "parseText"
-    },
-    {
       "name": "J-Link OrbitESC V3",
       "cwd": "${workspaceRoot}",
       "executable": "./build/artifacts/last_build_version/OrbitESC",

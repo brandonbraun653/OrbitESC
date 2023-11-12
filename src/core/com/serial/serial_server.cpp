@@ -101,7 +101,7 @@ namespace Orbit::Serial
     Ship the system tick message as needed
     -------------------------------------------------------------------------*/
     size_t current_tick = Chimera::millis();
-    if ( ( current_tick - mLastTick ) >= 1000 )
+    if ( ( current_tick - mLastTick ) >= 100 )
     {
       Message::SysTick tick;
       tick.reset();

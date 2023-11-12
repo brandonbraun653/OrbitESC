@@ -15,7 +15,7 @@ import time
 from functools import wraps
 from loguru import logger
 from typing import Any, Callable
-from pyorbit.serial.pipe import SerialPipe
+from pyorbit.serial.pipe import SerialPipeObserver
 from pyorbit.exceptions import NotOnlineException
 from pyorbit.serial.messages import *
 from pyorbit.observer import MessageObserver
@@ -61,7 +61,7 @@ class SerialClient:
             port: Serial port endpoint to connect with
             baudrate: Desired communication baudrate
         """
-        self._transport = SerialPipe()
+        self._transport = SerialPipeObserver()
         self._transport.open(port=port, baudrate=baudrate)
         self._online = False
         self._time_last_online = 0
@@ -82,7 +82,7 @@ class SerialClient:
         atexit.register(self._teardown)
 
     @property
-    def com_pipe(self) -> SerialPipe:
+    def com_pipe(self) -> SerialPipeObserver:
         return self._transport
 
     @property
@@ -99,7 +99,7 @@ class SerialClient:
             True if the device was ping-able, False otherwise
         """
         sub_id = self.com_pipe.subscribe(msg=PingMessage, qty=1, timeout=5.0)
-        self.com_pipe.put(PingMessage().serialize())
+        self.com_pipe.write(PingMessage().serialize())
         responses = self.com_pipe.get_subscription_data(sub_id, terminate=True)
         if not responses:
             logger.warning("Node did not respond to ping")
@@ -111,7 +111,7 @@ class SerialClient:
             True if the device was reset, False otherwise
         """
         sub_id = self.com_pipe.subscribe(msg=AckNackMessage, qty=1, timeout=5.0)
-        self.com_pipe.put(SystemResetMessage().serialize())
+        self.com_pipe.write(SystemResetMessage().serialize())
         responses = self.com_pipe.get_subscription_data(sub_id, terminate=True)
         if not responses:
             logger.warning("Node did not respond to system reset command")
@@ -133,7 +133,7 @@ class SerialClient:
         """
         # Send the switch command
         sub_id = self.com_pipe.subscribe(msg=AckNackMessage, qty=1, timeout=5.0)
-        self.com_pipe.put(SwitchModeMessage(mode=mode).serialize())
+        self.com_pipe.write(SwitchModeMessage(mode=mode).serialize())
         responses = self.com_pipe.get_subscription_data(sub_id, terminate=True)
         if not responses or responses[0].ack is False:
             logger.warning("Node did not respond/rejected set mode command")
@@ -160,7 +160,7 @@ class SerialClient:
             The default scaler is 1.0, which means the LED will blink at the default pre-programmed rate.
         """
         sub_id = self.com_pipe.subscribe(msg=AckNackMessage, qty=1, timeout=5.0)
-        self.com_pipe.put(SetActivityLedBlinkScalerMessage(scaler=scaler).serialize())
+        self.com_pipe.write(SetActivityLedBlinkScalerMessage(scaler=scaler).serialize())
         responses = self.com_pipe.get_subscription_data(sub_id, terminate=True)
         if not responses:
             logger.warning("Node did not respond to set activity LED blink scaler command")
@@ -177,7 +177,7 @@ class SerialClient:
         Returns:
             None
         """
-        self.com_pipe.put(data)
+        self.com_pipe.write(data)
 
     def close(self) -> None:
         return self._teardown()

@@ -16,7 +16,7 @@ from loguru import logger
 from typing import Any, Dict, List, Callable
 
 from pyorbit.serial.parameters import ParameterTypeMap
-from pyorbit.serial.pipe import SerialPipe
+from pyorbit.serial.pipe import SerialPipeObserver
 from pyorbit.serial.messages import *
 from pyorbit.observer import MessageObserver
 from threading import Thread, Lock
@@ -99,7 +99,7 @@ class ConsoleObserver(MessageObserver):
 class ParameterObserver(MessageObserver):
     """ Simple observer for interacting with the parameter registry off the OrbitESC debug port """
 
-    def __init__(self, pipe: SerialPipe):
+    def __init__(self, pipe: SerialPipeObserver):
         super().__init__(func=self._observer_func, msg_type=ParamIOMessage)
         self._com_pipe = pipe
 
@@ -112,10 +112,6 @@ class ParameterObserver(MessageObserver):
         Returns:
             Deserialized value
         """
-        # Subscribe to the messages expected to be received
-        nack_sub_id = self._com_pipe.subscribe(AckNackMessage, qty=1, timeout=3.0)
-        data_sub_id = self._com_pipe.subscribe(ParamIOMessage, qty=1, timeout=3.0)
-
         # Format and publish the request
         msg = ParamIOMessage()
         msg.sub_id = MessageSubId.ParamIO_Get
@@ -123,31 +119,18 @@ class ParameterObserver(MessageObserver):
 
         # Push the request onto the wire
         logger.debug(f"Requesting parameter {repr(param)}")
-        self._com_pipe.put(msg.serialize())
-
-        # Listen for return messages
         start_time = time.time()
-        while True:
-            time.sleep(0.01)
-            nack_messages = self._com_pipe.get_subscription_data(nack_sub_id, block=False)  # type: List[AckNackMessage]
-            data_messages = self._com_pipe.get_subscription_data(data_sub_id, block=False)  # type: List[ParamIOMessage]
-
-            if nack_messages or data_messages or ((time.time() - start_time) > 5.0):
-                self._com_pipe.get_subscription_data(nack_sub_id, block=False, terminate=True)
-                self._com_pipe.get_subscription_data(data_sub_id, block=False, terminate=True)
-                break
+        rsp = self._com_pipe.write_and_wait(msg, 3.0)
 
         # Server denied the request for some reason
-        if nack_messages:
+        if isinstance(rsp, AckNackMessage):
             logger.error(f"GET parameter {repr(param)} failed with status code: "
-                         f"{repr(StatusCode(nack_messages[0].status_code))}")
+                         f"{repr(StatusCode(rsp.status_code))}")
             return None
 
         # Deserialize the data returned
-        if data_messages:
+        if isinstance(rsp, ParamIOMessage):
             logger.debug(f"Transaction completed in {time.time() - start_time:.2f} seconds for {repr(param)}")
-            rsp = data_messages[0]
-
             try:
                 if rsp.param_type == ParameterType.STRING:
                     return rsp.data.decode('utf-8')
@@ -203,29 +186,17 @@ class ParameterObserver(MessageObserver):
             logger.error(f"Don't know how to serialize parameter type {msg.param_type}")
             return False
 
-        # Subscribe to the messages expected to be received
-        response_sub_id = self._com_pipe.subscribe(AckNackMessage, qty=1, timeout=3.0)
-
         # Push the request onto the wire
-        self._com_pipe.put(msg.serialize())
-
-        # Listen for return messages
-        start_time = time.time()
-        while True:
-            time.sleep(0.01)
-            response = self._com_pipe.get_subscription_data(response_sub_id, block=False)  # type: List[AckNackMessage]
-
-            if response or ((time.time() - start_time) > 3.0):
-                self._com_pipe.get_subscription_data(response_sub_id, block=False, terminate=True)
-                break
+        rsp = self._com_pipe.write_and_wait(msg, 3.0)
 
         # Parse the result
-        if not response:
-            logger.error("No response from server")
+        if not rsp:
+            logger.error("No valid response from server")
             return False
-        elif not response[0].ack:
-            logger.error(
-                f"SET parameter {repr(param)} failed with status code: {repr(StatusCode(response[0].status_code))}")
+
+        assert isinstance(rsp, AckNackMessage), f"Expected AckNackMessage but got {type(rsp)}"
+        if not rsp.ack:
+            logger.error(f"SET parameter {repr(param)} failed with status code: {repr(StatusCode(rsp.status_code))}")
             return False
         else:
             return True
@@ -241,7 +212,7 @@ class ParameterObserver(MessageObserver):
         msg = ParamIOMessage()
         msg.sub_id = MessageSubId.ParamIO_Load
 
-        self._com_pipe.put(msg.serialize())
+        self._com_pipe.write(msg.serialize())
         messages = self._com_pipe.get_subscription_data(sub_id, terminate=True)
         for rsp in messages:  # type: AckNackMessage
             if rsp.uuid != msg.uuid:
@@ -260,7 +231,7 @@ class ParameterObserver(MessageObserver):
         msg = ParamIOMessage()
         msg.sub_id = MessageSubId.ParamIO_Sync
 
-        self._com_pipe.put(msg.serialize())
+        self._com_pipe.write(msg.serialize())
         messages = self._com_pipe.get_subscription_data(sub_id, terminate=True)
         for rsp in messages:  # type: AckNackMessage
             if rsp.uuid != msg.uuid:

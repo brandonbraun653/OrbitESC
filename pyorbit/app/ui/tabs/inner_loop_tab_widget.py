@@ -323,7 +323,7 @@ class InnerLoopTabWidget(QtWidgets.QWidget):
         #     pass
         # elif state == Qt.CheckState.Unchecked:
         #     pass
-        get_serial_client().com_pipe.put(ManualCurrentControlToggleMessage().serialize())
+        get_serial_client().com_pipe.write(ManualCurrentControlToggleMessage().serialize())
 
     def reset_widgets_to_inactive_state(self) -> None:
         # Reset the manual override checkbox

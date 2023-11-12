@@ -17,20 +17,10 @@ from threading import Event, RLock
 from typing import Any, Callable, Dict, List, Union
 
 
-class MessageObserver:
-    """ Custom observer handle for reacting to a received message """
+class ObserverUniqueId:
+    """ Unique ID for an observer type """
 
-    def __init__(self, func: Callable[[Union[Any, None]], None], msg_type: Any, timeout: Union[float, int] = 0):
-        """
-        Args:
-            func: Function to invoke upon receiving a message with the configured arbitration id
-            msg_type: Message type to register against
-            timeout: How long the observer should stay active (zero == Indefinite)
-        """
-        self.observer_function = func
-        self.msg_type = msg_type
-        self.timeout = timeout
-        self.start_time = time.time()
+    def __init__(self):
         self._uuid = uuid.UUID(int=0)
 
     @property
@@ -42,7 +32,24 @@ class MessageObserver:
         self._uuid = val
 
 
-class MessageQueue:
+class MessageObserver(ObserverUniqueId):
+    """ Custom observer handle for reacting to a received message """
+
+    def __init__(self, func: Callable[[Union[Any, None]], None], msg_type: Any, timeout: Union[float, int] = 0):
+        """
+        Args:
+            func: Function to invoke upon receiving a message with the configured arbitration id
+            msg_type: Message type to register against. Use None to accept all messages.
+            timeout: How long the observer should stay active (zero == Indefinite)
+        """
+        super().__init__()
+        self.observer_function = func
+        self.msg_type = msg_type if isinstance(msg_type, type) else type(msg_type)
+        self.timeout = timeout
+        self.start_time = time.time()
+
+
+class MessageQueue(ObserverUniqueId):
     """ Listener utility for holding messages as they arrive """
 
     def __init__(self, msg: Any, qty: int = 0, timeout: Union[float, int] = 0, verbose: bool = False):
@@ -61,12 +68,12 @@ class MessageQueue:
             instantiated_msg = msg
 
         # All good. Initialize the rest of the class.
+        super().__init__()
         self._msg_type = instantiated_msg.__class__
         self._qty = qty
         self._timeout = timeout
         self._verbose = verbose
         self._msg_queue = queue.Queue(maxsize=qty)
-        self._uuid = uuid.UUID(int=0)
         self._event = Event()
         self._filled = False
         self._observer_instance = MessageObserver(func=self._message_observer, msg_type=self._msg_type,
@@ -75,7 +82,7 @@ class MessageQueue:
     def __del__(self):
         self.notify_expiry()
         time.sleep(0.1)
-        logger.trace(f"Subscription {str(self._uuid)}: Terminated") if self._verbose else None
+        logger.trace(f"Subscription {str(self.unique_id)}: Terminated") if self._verbose else None
 
     @property
     def persistent(self) -> bool:
@@ -103,14 +110,6 @@ class MessageQueue:
         return self._msg_queue.full()
 
     @property
-    def unique_id(self) -> uuid.UUID:
-        return self._uuid
-
-    @unique_id.setter
-    def unique_id(self, val: uuid.UUID) -> None:
-        self._uuid = val
-
-    @property
     def listen_to_type(self):
         return self._msg_type
 
@@ -125,7 +124,7 @@ class MessageQueue:
             flush: If true, empties the queue of data
 
         Returns:
-            All available CAN messages
+            All available messages
         """
         if self._msg_queue.empty():
             return []
@@ -133,7 +132,7 @@ class MessageQueue:
         if flush:
             return [self._msg_queue.get() for _ in range(self._msg_queue.qsize())]
         else:
-            return list(self._msg_queue)
+            return list(self._msg_queue.queue)
 
     def notify_expiry(self) -> None:
         """
@@ -199,8 +198,8 @@ class ObserverManager:
 
     def __init__(self):
         self._lock = RLock()
-        self._dispatch_map = {}  # type: Dict[Any, List[MessageObserver]]
-        self._registry = {}  # type: Dict[uuid.UUID, MessageObserver]
+        self._dispatch_map: Dict[Any, List[MessageObserver]] = {}
+        self._registry: Dict[uuid.UUID, MessageObserver] = {}
 
     def add_observer(self, msg_type: Any, observer: MessageObserver) -> uuid.UUID:
         """
@@ -267,6 +266,11 @@ class ObserverManager:
 
         with self._lock:
             try:
+                # Dispatch the message to listeners of all types
+                for cb in self._dispatch_map[type(None)]:
+                    cb.observer_function(message)
+
+                # Dispatch the message to all registered observers for this class type
                 for cb in self._dispatch_map[message.__class__]:
                     cb.observer_function(message)
             except KeyError:
@@ -298,7 +302,7 @@ class Observer:
     def __init__(self):
         self._data_lock = RLock()
         self._observers = ObserverManager()
-        self._subscriptions = {}  # type: Dict[uuid.UUID, MessageQueue]
+        self._subscriptions: Dict[uuid.UUID, MessageQueue] = {}
 
     def subscribe(self, msg: Any, qty: int = 0, timeout: Union[int, float, None] = None) -> uuid.UUID:
         """
@@ -357,7 +361,7 @@ class Observer:
             unique_id: ID returned from the subscription
             block: Wait for the subscription's data quantity to arrive or timeout to expire
             flush: Optionally flush the data from the subscription queue
-            terminate: Unsubscribe from the associated CAN message
+            terminate: Unsubscribe from the associated message
 
         Returns:
             List of messages enqueued for the subscription
@@ -398,5 +402,7 @@ class Observer:
     def accept(self, message: Union[Any, None]) -> None:
         """
         See ObserverManager.accept()
+        Returns:
+            None
         """
         self._observers.accept(message)
