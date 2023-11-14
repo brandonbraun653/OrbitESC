@@ -1,10 +1,16 @@
 from __future__ import annotations
 from enum import IntEnum
-from typing import List
+from typing import List, NewType, Union, Dict
 from pyorbit.nanopb import serial_interface_pb2 as proto
 
 
-class ParameterType(IntEnum):
+# Encapsulate the Python parameter type in a new type, so we can use it in type hints
+ParameterType = NewType('ParameterValue', Union[bool, int, float, str, bytes])
+
+
+class ParameterEncoding(IntEnum):
+    """ Enum for the parameter encoding when talking to the remote device """
+
     Unknown = proto.UNKNOWN
     BOOL = proto.BOOL
     UINT8 = proto.UINT8
@@ -15,8 +21,51 @@ class ParameterType(IntEnum):
     BYTES = proto.BYTES
     STRING = proto.STRING
 
+    @classmethod
+    def py_types(cls) -> Dict[ParameterEncoding, ParameterType]:
+        """
+        Returns:
+            A dictionary mapping parameter ids to their python type.
+        """
+        return {
+            cls.BOOL: bool,
+            cls.UINT8: int,
+            cls.UINT16: int,
+            cls.UINT32: int,
+            cls.FLOAT: float,
+            cls.BYTES: bytes,
+            cls.STRING: str,
+        }
+
+    @classmethod
+    def as_proto_type(cls, value: ParameterType) -> ParameterEncoding:
+        """
+        Returns:
+            The nanopb type of the parameter.
+        """
+        if isinstance(value, bool):
+            return cls.BOOL
+        elif isinstance(value, int):
+            return cls.UINT32
+        elif isinstance(value, float):
+            return cls.FLOAT
+        elif isinstance(value, bytes):
+            return cls.BYTES
+        elif isinstance(value, str):
+            return cls.STRING
+        else:
+            raise ValueError(f"Invalid parameter type: {type(value)}")
+
+    def as_py_type(self) -> ParameterType:
+        """
+        Returns:
+            The python type of the parameter.
+        """
+        return ParameterEncoding.py_types()[self]
+
 
 class ParameterId(IntEnum):
+    """ All available parameters """
 
     @classmethod
     def values(cls) -> List[ParameterId]:
@@ -75,43 +124,3 @@ class ParameterId(IntEnum):
     StreamPhaseCurrents = proto.PARAM_STREAM_PHASE_CURRENTS
     StreamPWMCommands = proto.PARAM_STREAM_PWM_COMMANDS
     StreamStateEstimates = proto.PARAM_STREAM_STATE_ESTIMATES
-
-
-ParameterTypeMap = {
-    ParameterId.SerialNumber: ParameterType.STRING,
-    ParameterId.CanNodeId: ParameterType.UINT8,
-
-    # Motor Control Parameters
-    ParameterId.StatorPWMFrequency: ParameterType.FLOAT,
-    ParameterId.SpeedControlFrequency: ParameterType.FLOAT,
-    ParameterId.TargetIdleRPM: ParameterType.FLOAT,
-    ParameterId.SpeedControlKp: ParameterType.FLOAT,
-    ParameterId.SpeedControlKi: ParameterType.FLOAT,
-    ParameterId.SpeedControlKd: ParameterType.FLOAT,
-    ParameterId.CurrentControlQKp: ParameterType.FLOAT,
-    ParameterId.CurrentControlQKi: ParameterType.FLOAT,
-    ParameterId.CurrentControlQKd: ParameterType.FLOAT,
-    ParameterId.CurrentControlDKp: ParameterType.FLOAT,
-    ParameterId.CurrentControlDKi: ParameterType.FLOAT,
-    ParameterId.CurrentControlDKd: ParameterType.FLOAT,
-    ParameterId.RampControlFirstOrderTerm: ParameterType.FLOAT,
-    ParameterId.RampControlSecondOrderTerm: ParameterType.FLOAT,
-    ParameterId.RampControlRampTime: ParameterType.FLOAT,
-    ParameterId.SlidingModeControlGain: ParameterType.FLOAT,
-    ParameterId.SlidingModeControlMaxError: ParameterType.FLOAT,
-
-    # Motor Description Parameters
-    ParameterId.RotorPoles: ParameterType.UINT8,
-    ParameterId.StatorSlots: ParameterType.UINT8,
-    ParameterId.StatorResistance: ParameterType.FLOAT,
-    ParameterId.StatorInductance: ParameterType.FLOAT,
-
-    # Monitor Thresholds
-    ParameterId.PeakCurrentThreshold: ParameterType.FLOAT,
-    ParameterId.PeakVoltageThreshold: ParameterType.FLOAT,
-
-    # System Behavior
-    ParameterId.StreamPhaseCurrents: ParameterType.BOOL,
-    ParameterId.StreamPWMCommands: ParameterType.BOOL,
-    ParameterId.StreamStateEstimates: ParameterType.BOOL,
-}

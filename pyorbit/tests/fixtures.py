@@ -12,7 +12,7 @@ _test_device_serial = "DEADBEEF"
 @pytest.fixture
 def serial_client() -> SerialClient:
     logger.remove()
-    logger.add(sys.stderr, level="TRACE")
+    logger.add(sys.stderr, level="WARNING")
     client = SerialClient(port=get_esc_usb_path(_test_device_serial), baudrate=2000000)
     yield client
     client.close()

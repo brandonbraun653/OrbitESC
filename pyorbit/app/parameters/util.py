@@ -1,18 +1,18 @@
-from typing import Optional, Union
+from typing import Optional, Union, List, Dict
 from loguru import logger
 from PyQt5 import QtWidgets, QtCore
 
 from pyorbit.app.parameters.abstract import AbstractParameter
-from pyorbit.serial.parameters import ParameterId
+from pyorbit.serial.parameters import ParameterId, ParameterEncoding
 
-parameter_widget_lookup_cache = {}     # type: dict[str, AbstractParameter]
-parameter_id_lookup_cache = {}         # type: dict[ParameterId, AbstractParameter]
-parameter_listing_cache = []           # type: list[AbstractParameter]
+parameter_widget_lookup_cache: Dict[str, AbstractParameter] = {}
+parameter_id_lookup_cache: Dict[ParameterId, AbstractParameter] = {}
+parameter_listing_cache: List[AbstractParameter] = []
 
 
 def discover_parameters() -> None:
     """
-    Discovers all the parameters in the application and caches them.
+    Discovers all the parameters in the application and caches an instance of each them.
     Returns:
         None
     """
@@ -29,6 +29,35 @@ def discover_parameters() -> None:
             except TypeError:
                 if obj.__name__ != "AbstractParameter":
                     logger.warning(f"Could not instantiate parameter {obj.__name__}")
+
+
+def valid_parameter_ids() -> List[ParameterId]:
+    """
+    Returns:
+        A list of all valid parameter ids.
+    """
+    if not parameter_listing_cache:
+        discover_parameters()
+
+    return [parameter.parameter_id for parameter in parameter_listing_cache]
+
+
+def parameter_encoding(pid: ParameterId) -> Optional[ParameterEncoding]:
+    """
+    Returns the encoding of the given parameter id.
+    Args:
+        pid: The parameter id to lookup.
+
+    Returns:
+        The encoding of the parameter or None if it doesn't exist.
+    """
+    if not parameter_listing_cache:
+        discover_parameters()
+
+    if pid in parameter_id_lookup_cache.keys():
+        return parameter_id_lookup_cache[pid].value_encoding
+    else:
+        return None
 
 
 def lookup_parameter(widget: QtCore.QObject) -> Optional[AbstractParameter]:
@@ -71,8 +100,7 @@ def update_parameter(source_widget: QtCore.QObject, value: Union[float, int, str
     Returns:
         None
     """
-    param = lookup_parameter(source_widget)
-    if param:
+    if param := lookup_parameter(source_widget):
         param.value = value
     else:
         logger.warning(f"Could not find parameter for widget {source_widget.objectName()}")

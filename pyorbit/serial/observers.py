@@ -13,9 +13,8 @@ from __future__ import annotations
 import time
 from functools import cmp_to_key
 from loguru import logger
-from typing import Any, Dict, List, Callable
-
-from pyorbit.serial.parameters import ParameterTypeMap
+from typing import Dict, List, Callable, Optional
+from pyorbit.serial.parameters import ParameterType
 from pyorbit.serial.pipe import SerialPipeObserver
 from pyorbit.serial.messages import *
 from pyorbit.observer import MessageObserver
@@ -103,7 +102,7 @@ class ParameterObserver(MessageObserver):
         super().__init__(func=self._observer_func, msg_type=ParamIOMessage)
         self._com_pipe = pipe
 
-    def get(self, param: ParameterId) -> Any:
+    def get(self, param: ParameterId) -> Optional[ParameterType]:
         """
         Requests the current value of a parameter
         Args:
@@ -118,7 +117,7 @@ class ParameterObserver(MessageObserver):
         msg.param_id = param
 
         # Push the request onto the wire
-        logger.debug(f"Requesting parameter {repr(param)}")
+        logger.trace(f"Requesting parameter {repr(param)}")
         start_time = time.time()
         rsp = self._com_pipe.write_and_wait(msg, 3.0)
 
@@ -130,16 +129,16 @@ class ParameterObserver(MessageObserver):
 
         # Deserialize the data returned
         if isinstance(rsp, ParamIOMessage):
-            logger.debug(f"Transaction completed in {time.time() - start_time:.2f} seconds for {repr(param)}")
+            logger.trace(f"Transaction completed in {time.time() - start_time:.2f} seconds for {repr(param)}")
             try:
-                if rsp.param_type == ParameterType.STRING:
+                if rsp.param_type == ParameterEncoding.STRING:
                     return rsp.data.decode('utf-8')
-                elif rsp.param_type == ParameterType.FLOAT or rsp.param_type == ParameterType.DOUBLE:
+                elif rsp.param_type == ParameterEncoding.FLOAT or rsp.param_type == ParameterEncoding.DOUBLE:
                     return float(struct.unpack("<f", rsp.data)[0])
-                elif rsp.param_type == ParameterType.UINT8 or rsp.param_type == ParameterType.UINT16 or \
-                        rsp.param_type == ParameterType.UINT32:
+                elif rsp.param_type == ParameterEncoding.UINT8 or rsp.param_type == ParameterEncoding.UINT16 or \
+                        rsp.param_type == ParameterEncoding.UINT32:
                     return int.from_bytes(rsp.data, byteorder='little')
-                elif rsp.param_type == ParameterType.BOOL:
+                elif rsp.param_type == ParameterEncoding.BOOL:
                     assert len(rsp.data) == 1, f"Expected length 1 for bool type but got {len(rsp.data)}"
                     assert rsp.data[0] == 0 or rsp.data[0] == 1, f"Expected 0 or 1 for bool type but got {rsp.data[0]}"
                     return bool(rsp.data[0])
@@ -153,7 +152,7 @@ class ParameterObserver(MessageObserver):
         logger.error("No response from server")
         return None
 
-    def set(self, param: ParameterId, value: Any) -> bool:
+    def set(self, param: ParameterId, value: ParameterType) -> bool:
         """
         Sets the value of a parameter
         Args:
@@ -163,24 +162,26 @@ class ParameterObserver(MessageObserver):
         Returns:
             True if the operation succeeds, False if not
         """
+        from pyorbit.app.parameters.util import parameter_encoding
+
         # Build the base of the message
         msg = ParamIOMessage()
         msg.sub_id = MessageSubId.ParamIO_Set
         msg.param_id = param
-        msg.param_type = ParameterTypeMap[param]
+        msg.param_type = parameter_encoding(param)
 
         # Serialize the data to be sent
-        if msg.param_type == ParameterType.STRING:
+        if msg.param_type == ParameterEncoding.STRING:
             msg.data = str(value).encode('utf-8')
-        elif msg.param_type == ParameterType.FLOAT:
+        elif msg.param_type == ParameterEncoding.FLOAT:
             msg.data = struct.pack('<f', float(value))
-        elif msg.param_type == ParameterType.DOUBLE:
+        elif msg.param_type == ParameterEncoding.DOUBLE:
             msg.data = struct.pack('<d', float(value))
-        elif msg.param_type == ParameterType.UINT8 or msg.param_type == ParameterType.BOOL:
+        elif msg.param_type == ParameterEncoding.UINT8 or msg.param_type == ParameterEncoding.BOOL:
             msg.data = struct.pack('<B', int(value))
-        elif msg.param_type == ParameterType.UINT16:
+        elif msg.param_type == ParameterEncoding.UINT16:
             msg.data = struct.pack('<H', int(value))
-        elif msg.param_type == ParameterType.UINT32:
+        elif msg.param_type == ParameterEncoding.UINT32:
             msg.data = struct.pack('<I', int(value))
         else:
             logger.error(f"Don't know how to serialize parameter type {msg.param_type}")

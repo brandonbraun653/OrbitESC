@@ -16,7 +16,7 @@ from enum import IntEnum
 
 import pyorbit.nanopb.serial_interface_pb2 as proto
 from google.protobuf.message import Message
-from pyorbit.serial.parameters import ParameterType, ParameterId
+from pyorbit.serial.parameters import ParameterEncoding, ParameterId
 from pyorbit.utils import Singleton
 from threading import RLock
 
@@ -221,11 +221,11 @@ class ParamIOMessage(BaseMessage):
         self._pb_msg.id = pid.value
 
     @property
-    def param_type(self) -> ParameterType:
-        return ParameterType(self._pb_msg.type)
+    def param_type(self) -> ParameterEncoding:
+        return ParameterEncoding(self._pb_msg.type)
 
     @param_type.setter
-    def param_type(self, pt: ParameterType):
+    def param_type(self, pt: ParameterEncoding):
         self._pb_msg.type = pt.value
 
     @property
@@ -321,7 +321,7 @@ class SetActivityLedBlinkScalerMessage(BaseMessage):
         self._pb_msg.header.subId = MessageSubId.ParamIO_Set.value
         self._pb_msg.header.uuid = self._id_gen.next_uuid
         self._pb_msg.id = ParameterId.ActivityLedScaler.value
-        self._pb_msg.type = ParameterType.FLOAT.value
+        self._pb_msg.type = ParameterEncoding.FLOAT.value
         self._pb_msg.data = struct.pack('<f', scaler)
 
 

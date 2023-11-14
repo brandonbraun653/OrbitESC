@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets
 from pyorbit.app.parameters.abstract import AbstractParameter
-from pyorbit.serial.parameters import ParameterId
+from pyorbit.serial.parameters import ParameterId, ParameterEncoding
 
 
 class QAxisKp(AbstractParameter):
@@ -8,6 +8,10 @@ class QAxisKp(AbstractParameter):
 
     def __init__(self):
         super().__init__()
+
+    @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -29,6 +33,10 @@ class QAxisKi(AbstractParameter):
         super().__init__()
 
     @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
+
+    @property
     def parameter_id(self) -> ParameterId:
         return ParameterId.CurrentControlQKi
 
@@ -46,6 +54,10 @@ class DAxisKp(AbstractParameter):
 
     def __init__(self):
         super().__init__()
+
+    @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -67,6 +79,10 @@ class DAxisKi(AbstractParameter):
         super().__init__()
 
     @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
+
+    @property
     def parameter_id(self) -> ParameterId:
         return ParameterId.CurrentControlDKi
 
@@ -84,6 +100,10 @@ class SpeedControlKp(AbstractParameter):
 
     def __init__(self):
         super().__init__()
+
+    @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -105,6 +125,10 @@ class SpeedControlKi(AbstractParameter):
         super().__init__()
 
     @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
+
+    @property
     def parameter_id(self) -> ParameterId:
         return ParameterId.SpeedControlKi
 
@@ -122,6 +146,10 @@ class SpeedControlKd(AbstractParameter):
 
     def __init__(self):
         super().__init__()
+
+    @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -143,6 +171,10 @@ class RampFirstOrderTerm(AbstractParameter):
         super().__init__()
 
     @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
+
+    @property
     def parameter_id(self) -> ParameterId:
         return ParameterId.RampControlFirstOrderTerm
 
@@ -160,6 +192,10 @@ class RampSecondOrderTerm(AbstractParameter):
 
     def __init__(self):
         super().__init__()
+
+    @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -181,6 +217,10 @@ class RampTimeConstant(AbstractParameter):
         super().__init__()
 
     @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
+
+    @property
     def parameter_id(self) -> ParameterId:
         return ParameterId.RampControlRampTime
 
@@ -198,6 +238,10 @@ class TargetIdleRPM(AbstractParameter):
 
     def __init__(self):
         super().__init__()
+
+    @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -219,6 +263,10 @@ class CurrentControlFrequency(AbstractParameter):
         super().__init__()
 
     @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
+
+    @property
     def parameter_id(self) -> ParameterId:
         return ParameterId.StatorPWMFrequency
 
@@ -236,6 +284,10 @@ class SpeedControlFrequency(AbstractParameter):
 
     def __init__(self):
         super().__init__()
+
+    @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -257,6 +309,10 @@ class PeakCurrentLimit(AbstractParameter):
         super().__init__()
 
     @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
+
+    @property
     def parameter_id(self) -> ParameterId:
         return ParameterId.PeakCurrentThreshold
 
@@ -276,6 +332,10 @@ class PeakVoltageLimit(AbstractParameter):
         super().__init__()
 
     @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
+
+    @property
     def parameter_id(self) -> ParameterId:
         return ParameterId.PeakVoltageThreshold
 
@@ -293,6 +353,10 @@ class BoardName(AbstractParameter):
 
     def __init__(self):
         super().__init__()
+
+    @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.STRING
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -318,6 +382,10 @@ class Description(AbstractParameter):
         super().__init__()
 
     @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.STRING
+
+    @property
     def parameter_id(self) -> ParameterId:
         return ParameterId.Description
 
@@ -339,6 +407,10 @@ class HWVersion(AbstractParameter):
 
     def __init__(self):
         super().__init__()
+        
+    @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.UINT8
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -362,6 +434,10 @@ class SWVersion(AbstractParameter):
 
     def __init__(self):
         super().__init__()
+        
+    @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.STRING
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -385,6 +461,10 @@ class DeviceID(AbstractParameter):
 
     def __init__(self):
         super().__init__()
+        
+    @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.UINT32
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -408,6 +488,10 @@ class SerialNumber(AbstractParameter):
 
     def __init__(self):
         super().__init__()
+        
+    @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.STRING
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -427,6 +511,10 @@ class HeartbeatLEDRate(AbstractParameter):
 
     def __init__(self):
         super().__init__()
+        
+    @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -446,6 +534,10 @@ class DiskSyncRate(AbstractParameter):
 
     def __init__(self):
         super().__init__()
+        
+    @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -460,23 +552,27 @@ class DiskSyncRate(AbstractParameter):
         return QtWidgets.QDoubleSpinBox
 
 
-class PhaseCurrentStreaming(AbstractParameter):
-    """ Class for representing the phase current streaming parameter """
-
-    def __init__(self):
-        super().__init__()
-
-    @property
-    def parameter_id(self) -> ParameterId:
-        return ParameterId.StreamPhaseCurrents
-
-    @property
-    def object_name(self) -> str:
-        return "systemTab_PhaseCurrentStreamingCheckBox"
-
-    @property
-    def widget_type(self) -> type:
-        return QtWidgets.QCheckBox
+# class PhaseCurrentStreaming(AbstractParameter):
+#     """ Class for representing the phase current streaming parameter """
+#
+#     def __init__(self):
+#         super().__init__()
+#
+#     @property
+#     def value_encoding(self) -> ParameterEncoding:
+#         return ParameterEncoding.BOOL
+#
+#     @property
+#     def parameter_id(self) -> ParameterId:
+#         return ParameterId.StreamPhaseCurrents
+#
+#     @property
+#     def object_name(self) -> str:
+#         return "systemTab_PhaseCurrentStreamingCheckBox"
+#
+#     @property
+#     def widget_type(self) -> type:
+#         return QtWidgets.QCheckBox
 
 
 class RotorPoles(AbstractParameter):
@@ -484,6 +580,10 @@ class RotorPoles(AbstractParameter):
 
     def __init__(self):
         super().__init__()
+
+    @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.UINT8
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -505,6 +605,10 @@ class StatorSlots(AbstractParameter):
         super().__init__()
 
     @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.UINT8
+
+    @property
     def parameter_id(self) -> ParameterId:
         return ParameterId.StatorSlots
 
@@ -522,6 +626,10 @@ class PhaseResistance(AbstractParameter):
 
     def __init__(self):
         super().__init__()
+
+    @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -543,6 +651,10 @@ class PhaseInductance(AbstractParameter):
         super().__init__()
 
     @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
+
+    @property
     def parameter_id(self) -> ParameterId:
         return ParameterId.StatorInductance
 
@@ -560,6 +672,10 @@ class BootCount(AbstractParameter):
 
     def __init__(self):
         super().__init__()
+
+    @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.UINT32
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -585,6 +701,10 @@ class SlidingModeControlGain(AbstractParameter):
         super().__init__()
 
     @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
+
+    @property
     def parameter_id(self) -> ParameterId:
         return ParameterId.SlidingModeControlGain
 
@@ -604,6 +724,10 @@ class SlidingModeControlMaximumError(AbstractParameter):
         super().__init__()
 
     @property
+    def value_encoding(self) -> ParameterEncoding:
+        return ParameterEncoding.FLOAT
+
+    @property
     def parameter_id(self) -> ParameterId:
         return ParameterId.SlidingModeControlMaxError
 
@@ -614,4 +738,3 @@ class SlidingModeControlMaximumError(AbstractParameter):
     @property
     def widget_type(self) -> type:
         return QtWidgets.QDoubleSpinBox
-

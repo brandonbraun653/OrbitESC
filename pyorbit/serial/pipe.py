@@ -123,7 +123,7 @@ class SerialPipeObserver(Observer):
 
             if not isinstance(_msg, BaseMessage):
                 return
-            elif msg.uuid == _msg.uuid:
+            elif not event.is_set() and (msg.uuid == _msg.uuid):
                 result = copy.copy(_msg)
                 event.set()
 

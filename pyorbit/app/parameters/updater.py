@@ -27,10 +27,12 @@ class ParameterUpdater(QtCore.QObject):
         Returns:
             None
         """
+        from pyorbit.app.parameters.util import valid_parameter_ids
+
         window = QApplication.activeWindow()
         self._client = window.serial_client
 
-        self.refreshRequest.emit(ParameterId.values())
+        self.refreshRequest.emit(valid_parameter_ids())
 
     @QtCore.pyqtSlot()
     def on_serial_disconnect(self) -> None:
