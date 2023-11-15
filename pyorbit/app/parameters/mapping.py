@@ -552,27 +552,27 @@ class DiskSyncRate(AbstractParameter):
         return QtWidgets.QDoubleSpinBox
 
 
-# class PhaseCurrentStreaming(AbstractParameter):
-#     """ Class for representing the phase current streaming parameter """
-#
-#     def __init__(self):
-#         super().__init__()
-#
-#     @property
-#     def value_encoding(self) -> ParameterEncoding:
-#         return ParameterEncoding.BOOL
-#
-#     @property
-#     def parameter_id(self) -> ParameterId:
-#         return ParameterId.StreamPhaseCurrents
-#
-#     @property
-#     def object_name(self) -> str:
-#         return "systemTab_PhaseCurrentStreamingCheckBox"
-#
-#     @property
-#     def widget_type(self) -> type:
-#         return QtWidgets.QCheckBox
+class PhaseCurrentStreaming(AbstractParameter):
+    """ Class for representing the phase current streaming parameter """
+
+    def __init__(self):
+        super().__init__()
+
+    @property
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.BOOL
+
+    @property
+    def parameter_id(self) -> ParameterId:
+        return ParameterId.StreamPhaseCurrents
+
+    @property
+    def object_name(self) -> str:
+        return "systemTab_PhaseCurrentStreamingCheckBox"
+
+    @property
+    def widget_type(self) -> type:
+        return QtWidgets.QCheckBox
 
 
 class RotorPoles(AbstractParameter):
