@@ -4,8 +4,8 @@ from typing import Optional
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication
 from loguru import logger
-from pyorbit.serial.client import SerialClient
-from pyorbit.serial.parameters import ParameterId, ParameterType, ParameterEncoding
+from pyorbit.serial.client import OrbitClient
+from pyorbit.serial.parameters import ParameterId, ParameterType, MessageEncoding
 
 
 class AbstractParameter(metaclass=ABCMeta):
@@ -35,7 +35,7 @@ class AbstractParameter(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def value_encoding(self) -> ParameterEncoding:
+    def value_encoding(self) -> MessageEncoding:
         """ The encoding of the parameter value """
         pass
 
@@ -83,7 +83,7 @@ class AbstractParameter(metaclass=ABCMeta):
         """
         return False
 
-    def apply(self, serial: SerialClient) -> None:
+    def apply(self, serial: OrbitClient) -> None:
         """
         Applies the parameter value to the target node.
         Args:
@@ -118,7 +118,7 @@ class AbstractParameter(metaclass=ABCMeta):
         if self.dirty:
             logger.warning(f"Failed to apply parameter {self.parameter_id} with value {self.value}")
 
-    def refresh(self, serial: SerialClient) -> None:
+    def refresh(self, serial: OrbitClient) -> None:
         """
         Refreshes the parameter value from the target node.
         Args:
@@ -127,12 +127,13 @@ class AbstractParameter(metaclass=ABCMeta):
         Returns:
             None
         """
-        logger.info(f"Refreshing parameter {self.parameter_id}")
         programmed_value = serial.parameter.get(self.parameter_id)
         if programmed_value is not None:
             # Update the caches to the new state, clearing the dirty flag
             self._esc_value = programmed_value
             self._new_value = programmed_value
+
+            logger.info(f"Refreshed parameter {self.parameter_id.name} with value {programmed_value}")
 
             # Find the widget that displays the parameter value and update it
             window = QApplication.activeWindow()
@@ -146,6 +147,3 @@ class AbstractParameter(metaclass=ABCMeta):
                 success = True
             else:
                 logger.error(f"Unhandled widget type {widget} for parameter {self.parameter_id}")
-
-            if success:
-                logger.debug(f"Successfully refreshed parameter {self.parameter_id} with value {self.value}")

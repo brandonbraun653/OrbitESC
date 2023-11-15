@@ -2,7 +2,7 @@ import pyorbit.nanopb.serial_interface_pb2 as proto
 from enum import Enum
 from loguru import logger
 from typing import Callable, List
-from pyorbit.serial.client import SerialClient
+from pyorbit.serial.client import OrbitClient
 from pyorbit.serial.messages import AckNackMessage, MotorControlMessage
 
 
@@ -14,7 +14,7 @@ class MotorControl:
         Disabled = proto.DISABLE_OUTPUT_STAGE
         Enabled = proto.ENABLE_OUTPUT_STAGE
 
-    def __init__(self, serial_client: SerialClient):
+    def __init__(self, serial_client: OrbitClient):
         self._serial = serial_client
 
     def close(self):

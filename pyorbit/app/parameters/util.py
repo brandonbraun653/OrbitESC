@@ -3,7 +3,7 @@ from loguru import logger
 from PyQt5 import QtWidgets, QtCore
 
 from pyorbit.app.parameters.abstract import AbstractParameter
-from pyorbit.serial.parameters import ParameterId, ParameterEncoding
+from pyorbit.serial.parameters import ParameterId, MessageEncoding
 
 parameter_widget_lookup_cache: Dict[str, AbstractParameter] = {}
 parameter_id_lookup_cache: Dict[ParameterId, AbstractParameter] = {}
@@ -42,7 +42,7 @@ def valid_parameter_ids() -> List[ParameterId]:
     return [parameter.parameter_id for parameter in parameter_listing_cache]
 
 
-def parameter_encoding(pid: ParameterId) -> Optional[ParameterEncoding]:
+def parameter_encoding(pid: ParameterId) -> Optional[MessageEncoding]:
     """
     Returns the encoding of the given parameter id.
     Args:

@@ -10,13 +10,10 @@
 
 from __future__ import annotations
 import ctypes
-import struct
+import pyorbit.nanopb.serial_interface_pb2 as proto
 from typing import Union
 from enum import IntEnum
-
-import pyorbit.nanopb.serial_interface_pb2 as proto
 from google.protobuf.message import Message
-from pyorbit.serial.parameters import ParameterEncoding, ParameterId
 from pyorbit.utils import Singleton
 from threading import RLock
 
@@ -79,7 +76,7 @@ class UUIDGenerator(metaclass=Singleton):
     @property
     def next_uuid(self) -> int:
         with self._lock:
-            self._uuid = (self._uuid + 1) % 256
+            self._uuid = (self._uuid + 1) % 65536
             return self._uuid
 
 
@@ -204,39 +201,6 @@ class ConsoleMessage(BaseMessage):
         return self._pb_msg.data
 
 
-class ParamIOMessage(BaseMessage):
-
-    def __init__(self):
-        super().__init__()
-        self._pb_msg = proto.ParamIOMessage()
-        self._pb_msg.header.msgId = MessageId.ParamIO.value
-        self._pb_msg.header.uuid = self._id_gen.next_uuid
-
-    @property
-    def param_id(self) -> ParameterId:
-        return ParameterId(self._pb_msg.id)
-
-    @param_id.setter
-    def param_id(self, pid: ParameterId):
-        self._pb_msg.id = pid.value
-
-    @property
-    def param_type(self) -> ParameterEncoding:
-        return ParameterEncoding(self._pb_msg.type)
-
-    @param_type.setter
-    def param_type(self, pt: ParameterEncoding):
-        self._pb_msg.type = pt.value
-
-    @property
-    def data(self) -> bytes:
-        return self._pb_msg.data
-
-    @data.setter
-    def data(self, d: bytes):
-        self._pb_msg.data = d
-
-
 class SystemResetMessage(BaseMessage):
 
     def __init__(self):
@@ -310,19 +274,6 @@ class ManualCurrentControlSetPointMessage(BaseMessage):
         set_point.id_ref = id_ref
         set_point.iq_ref = iq_ref
         self._pb_msg.data = bytes(set_point)
-
-
-class SetActivityLedBlinkScalerMessage(BaseMessage):
-
-    def __init__(self, scaler: float):
-        super().__init__()
-        self._pb_msg = proto.ParamIOMessage()
-        self._pb_msg.header.msgId = MessageId.ParamIO.value
-        self._pb_msg.header.subId = MessageSubId.ParamIO_Set.value
-        self._pb_msg.header.uuid = self._id_gen.next_uuid
-        self._pb_msg.id = ParameterId.ActivityLedScaler.value
-        self._pb_msg.type = ParameterEncoding.FLOAT.value
-        self._pb_msg.data = struct.pack('<f', scaler)
 
 
 class SwitchModeMessage(BaseMessage):
@@ -400,14 +351,3 @@ class SystemDataMessage(BaseMessage):
         if msg_type is None:
             return None
         return msg_type.from_buffer_copy(self.data)
-
-
-# Maps message IDs to message class types
-MessageTypeMap = {
-    MessageId.AckNack: AckNackMessage,
-    MessageId.PingCmd: PingMessage,
-    MessageId.SystemTick: SystemTickMessage,
-    MessageId.Terminal: ConsoleMessage,
-    MessageId.ParamIO: ParamIOMessage,
-    MessageId.SystemData: SystemDataMessage,
-}

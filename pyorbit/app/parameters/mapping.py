@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets
 from pyorbit.app.parameters.abstract import AbstractParameter
-from pyorbit.serial.parameters import ParameterId, ParameterEncoding
+from pyorbit.serial.parameters import ParameterId, MessageEncoding
 
 
 class QAxisKp(AbstractParameter):
@@ -10,8 +10,8 @@ class QAxisKp(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -33,8 +33,8 @@ class QAxisKi(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -56,8 +56,8 @@ class DAxisKp(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -79,8 +79,8 @@ class DAxisKi(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -102,8 +102,8 @@ class SpeedControlKp(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -125,8 +125,8 @@ class SpeedControlKi(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -148,8 +148,8 @@ class SpeedControlKd(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -171,8 +171,8 @@ class RampFirstOrderTerm(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -194,8 +194,8 @@ class RampSecondOrderTerm(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -217,8 +217,8 @@ class RampTimeConstant(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -240,8 +240,8 @@ class TargetIdleRPM(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -263,8 +263,8 @@ class CurrentControlFrequency(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -286,8 +286,8 @@ class SpeedControlFrequency(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -309,8 +309,8 @@ class PeakCurrentLimit(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -332,8 +332,8 @@ class PeakVoltageLimit(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -355,8 +355,8 @@ class BoardName(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.STRING
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.STRING
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -382,8 +382,8 @@ class Description(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.STRING
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.STRING
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -409,8 +409,8 @@ class HWVersion(AbstractParameter):
         super().__init__()
         
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.UINT8
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.UINT8
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -436,8 +436,8 @@ class SWVersion(AbstractParameter):
         super().__init__()
         
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.STRING
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.STRING
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -463,8 +463,8 @@ class DeviceID(AbstractParameter):
         super().__init__()
         
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.UINT32
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.UINT32
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -490,8 +490,8 @@ class SerialNumber(AbstractParameter):
         super().__init__()
         
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.STRING
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.STRING
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -513,8 +513,8 @@ class HeartbeatLEDRate(AbstractParameter):
         super().__init__()
         
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -536,8 +536,8 @@ class DiskSyncRate(AbstractParameter):
         super().__init__()
         
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -582,8 +582,8 @@ class RotorPoles(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.UINT8
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.UINT8
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -605,8 +605,8 @@ class StatorSlots(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.UINT8
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.UINT8
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -628,8 +628,8 @@ class PhaseResistance(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -651,8 +651,8 @@ class PhaseInductance(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -674,8 +674,8 @@ class BootCount(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.UINT32
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.UINT32
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -701,8 +701,8 @@ class SlidingModeControlGain(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:
@@ -724,8 +724,8 @@ class SlidingModeControlMaximumError(AbstractParameter):
         super().__init__()
 
     @property
-    def value_encoding(self) -> ParameterEncoding:
-        return ParameterEncoding.FLOAT
+    def value_encoding(self) -> MessageEncoding:
+        return MessageEncoding.FLOAT
 
     @property
     def parameter_id(self) -> ParameterId:

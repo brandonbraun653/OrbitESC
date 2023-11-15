@@ -2,7 +2,7 @@ import math
 import time
 import numpy as np
 from pyorbit.tests.fixtures import *
-from pyorbit.serial.client import SerialClient
+from pyorbit.serial.client import OrbitClient
 from pyorbit.serial.messages import Mode
 from pyorbit.serial.parameters import ParameterId
 
@@ -10,7 +10,7 @@ from pyorbit.serial.parameters import ParameterId
 @pytest.mark.usefixtures("serial_client")
 class TestSystemControlCommands:
 
-    def test_system_reset(self, serial_client: SerialClient):
+    def test_system_reset(self, serial_client: OrbitClient):
         boot_count_prev = serial_client.parameter.get(ParameterId.BootCount)
         time.sleep(1.0)
         result = serial_client.system_reset()
@@ -19,7 +19,7 @@ class TestSystemControlCommands:
         boot_count_new = serial_client.parameter.get(ParameterId.BootCount)
         assert (boot_count_new - boot_count_prev) == 1
 
-    def test_activity_led_rate_change(self, serial_client: SerialClient):
+    def test_activity_led_rate_change(self, serial_client: OrbitClient):
         test_values = np.arange(0.1, 3.0, 0.25)
         for value in test_values:
             serial_client.set_activity_led_blink_scaler(value)
@@ -29,7 +29,7 @@ class TestSystemControlCommands:
 
         serial_client.set_activity_led_blink_scaler(1.0)
 
-    def test_switch_modes(self, serial_client: SerialClient):
+    def test_switch_modes(self, serial_client: OrbitClient):
         test_values = [Mode.Normal, Mode.Test, Mode.Config]
         for value in test_values:
             assert serial_client.set_mode(value)

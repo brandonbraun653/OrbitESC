@@ -15,11 +15,13 @@ import time
 from functools import wraps
 from loguru import logger
 from typing import Any, Callable
-from pyorbit.serial.pipe import SerialPipeObserver
+from pyorbit.serial.pipe import SerialPipePublisher
 from pyorbit.exceptions import NotOnlineException
 from pyorbit.serial.messages import *
-from pyorbit.observer import MessageObserver
-from pyorbit.serial.observers import ConsoleObserver, ParameterObserver
+from pyorbit.observers import MessageObserver
+from pyorbit.serial.observers import ConsoleObserver
+from pyorbit.serial.parameters import SetActivityLedBlinkScalerMessage
+from pyorbit.serial.controllers import ParameterController
 from threading import Event, Thread
 
 
@@ -39,9 +41,9 @@ def online_checker(method: Callable) -> Any:
     """
 
     @wraps(method)
-    def _impl(self: SerialClient, *method_args, **method_kwargs):
+    def _impl(self: OrbitClient, *method_args, **method_kwargs):
         # Ensure this decorator is only used on OrbitESC classes
-        assert isinstance(self, SerialClient)
+        assert isinstance(self, OrbitClient)
         if not self.is_online:
             raise NotOnlineException()
 
@@ -52,7 +54,7 @@ def online_checker(method: Callable) -> Any:
     return _impl
 
 
-class SerialClient:
+class OrbitClient:
     """ High level serial client to connect with the debug server running on OrbitESC """
 
     def __init__(self, port: str, baudrate: int):
@@ -61,7 +63,7 @@ class SerialClient:
             port: Serial port endpoint to connect with
             baudrate: Desired communication baudrate
         """
-        self._transport = SerialPipeObserver()
+        self._transport = SerialPipePublisher()
         self._transport.open(port=port, baudrate=baudrate)
         self._online = False
         self._time_last_online = 0
@@ -74,15 +76,14 @@ class SerialClient:
         self._thread.start()
 
         # Register known observers
-        self._param_observer = ParameterObserver(pipe=self.com_pipe)
+        self._param_observer = ParameterController(pipe=self.com_pipe)
         self.com_pipe.subscribe_observer(MessageObserver(func=self._observer_esc_tick, msg_type=SystemTickMessage))
         self.com_pipe.subscribe_observer(ConsoleObserver(on_msg_rx=lambda x: logger.info(x.strip('\n'))))
-        self.com_pipe.subscribe_observer(self._param_observer)
 
         atexit.register(self._teardown)
 
     @property
-    def com_pipe(self) -> SerialPipeObserver:
+    def com_pipe(self) -> SerialPipePublisher:
         return self._transport
 
     @property
@@ -90,7 +91,7 @@ class SerialClient:
         return self._online
 
     @property
-    def parameter(self) -> ParameterObserver:
+    def parameter(self) -> ParameterController:
         return self._param_observer
 
     def ping(self) -> bool:

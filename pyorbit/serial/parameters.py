@@ -1,14 +1,18 @@
 from __future__ import annotations
+
+import struct
 from enum import IntEnum
 from typing import List, NewType, Union, Dict
-from pyorbit.nanopb import serial_interface_pb2 as proto
 
+from pyorbit.nanopb import serial_interface_pb2 as proto
+from pyorbit.serial.messages import MessageSubId, AckNackMessage, BaseMessage, MessageId, PingMessage, \
+    SystemTickMessage, ConsoleMessage, SystemDataMessage
 
 # Encapsulate the Python parameter type in a new type, so we can use it in type hints
 ParameterType = NewType('ParameterValue', Union[bool, int, float, str, bytes])
 
 
-class ParameterEncoding(IntEnum):
+class MessageEncoding(IntEnum):
     """ Enum for the parameter encoding when talking to the remote device """
 
     Unknown = proto.UNKNOWN
@@ -22,7 +26,7 @@ class ParameterEncoding(IntEnum):
     STRING = proto.STRING
 
     @classmethod
-    def py_types(cls) -> Dict[ParameterEncoding, ParameterType]:
+    def py_types(cls) -> Dict[MessageEncoding, ParameterType]:
         """
         Returns:
             A dictionary mapping parameter ids to their python type.
@@ -38,7 +42,7 @@ class ParameterEncoding(IntEnum):
         }
 
     @classmethod
-    def as_proto_type(cls, value: ParameterType) -> ParameterEncoding:
+    def as_proto_type(cls, value: ParameterType) -> MessageEncoding:
         """
         Returns:
             The nanopb type of the parameter.
@@ -61,7 +65,7 @@ class ParameterEncoding(IntEnum):
         Returns:
             The python type of the parameter.
         """
-        return ParameterEncoding.py_types()[self]
+        return MessageEncoding.py_types()[self]
 
 
 class ParameterId(IntEnum):
@@ -124,3 +128,59 @@ class ParameterId(IntEnum):
     StreamPhaseCurrents = proto.PARAM_STREAM_PHASE_CURRENTS
     StreamPWMCommands = proto.PARAM_STREAM_PWM_COMMANDS
     StreamStateEstimates = proto.PARAM_STREAM_STATE_ESTIMATES
+
+
+class ParamIOMessage(BaseMessage):
+
+    def __init__(self):
+        super().__init__()
+        self._pb_msg = proto.ParamIOMessage()
+        self._pb_msg.header.msgId = MessageId.ParamIO.value
+        self._pb_msg.header.uuid = self._id_gen.next_uuid
+
+    @property
+    def param_id(self) -> ParameterId:
+        return ParameterId(self._pb_msg.id)
+
+    @param_id.setter
+    def param_id(self, pid: ParameterId):
+        self._pb_msg.id = pid.value
+
+    @property
+    def param_type(self) -> MessageEncoding:
+        return MessageEncoding(self._pb_msg.type)
+
+    @param_type.setter
+    def param_type(self, pt: MessageEncoding):
+        self._pb_msg.type = pt.value
+
+    @property
+    def data(self) -> bytes:
+        return self._pb_msg.data
+
+    @data.setter
+    def data(self, d: bytes):
+        self._pb_msg.data = d
+
+
+MessageTypeMap = {
+    MessageId.AckNack: AckNackMessage,
+    MessageId.PingCmd: PingMessage,
+    MessageId.SystemTick: SystemTickMessage,
+    MessageId.Terminal: ConsoleMessage,
+    MessageId.ParamIO: ParamIOMessage,
+    MessageId.SystemData: SystemDataMessage,
+}
+
+
+class SetActivityLedBlinkScalerMessage(BaseMessage):
+
+    def __init__(self, scaler: float):
+        super().__init__()
+        self._pb_msg = proto.ParamIOMessage()
+        self._pb_msg.header.msgId = MessageId.ParamIO.value
+        self._pb_msg.header.subId = MessageSubId.ParamIO_Set.value
+        self._pb_msg.header.uuid = self._id_gen.next_uuid
+        self._pb_msg.id = ParameterId.ActivityLedScaler.value
+        self._pb_msg.type = proto.FLOAT
+        self._pb_msg.data = struct.pack('<f', scaler)

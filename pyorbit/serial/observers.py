@@ -10,15 +10,15 @@
 
 from __future__ import annotations
 
+import copy
 import time
 from functools import cmp_to_key
 from loguru import logger
 from typing import Dict, List, Callable, Optional
-from pyorbit.serial.parameters import ParameterType
-from pyorbit.serial.pipe import SerialPipeObserver
 from pyorbit.serial.messages import *
-from pyorbit.observer import MessageObserver
-from threading import Thread, Lock
+from pyorbit.observers import MessageObserver
+from threading import Thread, Lock, Event
+from pyorbit.serial.messages import BaseMessage
 
 
 class ConsoleObserver(MessageObserver):
@@ -28,7 +28,7 @@ class ConsoleObserver(MessageObserver):
         def __init__(self):
             self.start_time = time.time()
             self.total_frames = 0
-            self.frames = []  # type: List[ConsoleMessage]
+            self.frames: List[ConsoleMessage] = []
 
         def message(self) -> str:
             self.frames = sorted(self.frames, key=cmp_to_key(lambda x1, x2: x1.frame_number - x2.frame_number))
@@ -95,151 +95,38 @@ class ConsoleObserver(MessageObserver):
                     self._in_progress_frames.pop(uuid)
 
 
-class ParameterObserver(MessageObserver):
-    """ Simple observer for interacting with the parameter registry off the OrbitESC debug port """
+class ResponseObserver(MessageObserver):
+    """ Observer for listening to the response of a specific message """
 
-    def __init__(self, pipe: SerialPipeObserver):
-        super().__init__(func=self._observer_func, msg_type=ParamIOMessage)
-        self._com_pipe = pipe
+    def __init__(self, txn_uuid: int, timeout: Union[int, float]):
+        # Register the observer to listen to all messages
+        super().__init__(func=self._uuid_matcher_observer, msg_type=type(None), timeout=timeout)
+        self._result: Optional[BaseMessage] = None
+        self._event = Event()
+        self._timeout = timeout
+        self._txn_uuid = txn_uuid
 
-    def get(self, param: ParameterId) -> Optional[ParameterType]:
+    def wait(self) -> Optional[BaseMessage]:
         """
-        Requests the current value of a parameter
+        Waits for the response to the message we're observing
+        Returns:
+            Response message
+        """
+        self._event.wait(timeout=self._timeout)
+        return self._result
+
+    def _uuid_matcher_observer(self, _msg: BaseMessage) -> None:
+        """
+        Callback for the observer. Will only accept messages with the same UUID as
+        the message we're waiting for.
         Args:
-            param: Which parameter to get
+            _msg: Message being observed
 
         Returns:
-            Deserialized value
+            None
         """
-        # Format and publish the request
-        msg = ParamIOMessage()
-        msg.sub_id = MessageSubId.ParamIO_Get
-        msg.param_id = param
-
-        # Push the request onto the wire
-        logger.trace(f"Requesting parameter {repr(param)}")
-        start_time = time.time()
-        rsp = self._com_pipe.write_and_wait(msg, 3.0)
-
-        # Server denied the request for some reason
-        if isinstance(rsp, AckNackMessage):
-            logger.error(f"GET parameter {repr(param)} failed with status code: "
-                         f"{repr(StatusCode(rsp.status_code))}")
-            return None
-
-        # Deserialize the data returned
-        if isinstance(rsp, ParamIOMessage):
-            logger.trace(f"Transaction completed in {time.time() - start_time:.2f} seconds for {repr(param)}")
-            try:
-                if rsp.param_type == ParameterEncoding.STRING:
-                    return rsp.data.decode('utf-8')
-                elif rsp.param_type == ParameterEncoding.FLOAT or rsp.param_type == ParameterEncoding.DOUBLE:
-                    return float(struct.unpack("<f", rsp.data)[0])
-                elif rsp.param_type == ParameterEncoding.UINT8 or rsp.param_type == ParameterEncoding.UINT16 or \
-                        rsp.param_type == ParameterEncoding.UINT32:
-                    return int.from_bytes(rsp.data, byteorder='little')
-                elif rsp.param_type == ParameterEncoding.BOOL:
-                    assert len(rsp.data) == 1, f"Expected length 1 for bool type but got {len(rsp.data)}"
-                    assert rsp.data[0] == 0 or rsp.data[0] == 1, f"Expected 0 or 1 for bool type but got {rsp.data[0]}"
-                    return bool(rsp.data[0])
-                else:
-                    logger.warning(f"Don't know how to decode parameter type {rsp.param_type}")
-                    return rsp.data
-            except ValueError:
-                logger.error(f"Failed to decode response: {msg}")
-                return None
-
-        logger.error("No response from server")
-        return None
-
-    def set(self, param: ParameterId, value: ParameterType) -> bool:
-        """
-        Sets the value of a parameter
-        Args:
-            param: Which parameter to set
-            value: Value being assigned
-
-        Returns:
-            True if the operation succeeds, False if not
-        """
-        from pyorbit.app.parameters.util import parameter_encoding
-
-        # Build the base of the message
-        msg = ParamIOMessage()
-        msg.sub_id = MessageSubId.ParamIO_Set
-        msg.param_id = param
-        msg.param_type = parameter_encoding(param)
-
-        # Serialize the data to be sent
-        if msg.param_type == ParameterEncoding.STRING:
-            msg.data = str(value).encode('utf-8')
-        elif msg.param_type == ParameterEncoding.FLOAT:
-            msg.data = struct.pack('<f', float(value))
-        elif msg.param_type == ParameterEncoding.DOUBLE:
-            msg.data = struct.pack('<d', float(value))
-        elif msg.param_type == ParameterEncoding.UINT8 or msg.param_type == ParameterEncoding.BOOL:
-            msg.data = struct.pack('<B', int(value))
-        elif msg.param_type == ParameterEncoding.UINT16:
-            msg.data = struct.pack('<H', int(value))
-        elif msg.param_type == ParameterEncoding.UINT32:
-            msg.data = struct.pack('<I', int(value))
-        else:
-            logger.error(f"Don't know how to serialize parameter type {msg.param_type}")
-            return False
-
-        # Push the request onto the wire
-        rsp = self._com_pipe.write_and_wait(msg, 3.0)
-
-        # Parse the result
-        if not rsp:
-            logger.error("No valid response from server")
-            return False
-
-        assert isinstance(rsp, AckNackMessage), f"Expected AckNackMessage but got {type(rsp)}"
-        if not rsp.ack:
-            logger.error(f"SET parameter {repr(param)} failed with status code: {repr(StatusCode(rsp.status_code))}")
-            return False
-        else:
-            return True
-
-    def load(self) -> bool:
-        """
-        Requests a complete reload from disk of all supported parameters
-        Returns:
-            True if the operation succeeds, False if not
-        """
-        sub_id = self._com_pipe.subscribe(AckNackMessage, qty=1, timeout=5.0)
-
-        msg = ParamIOMessage()
-        msg.sub_id = MessageSubId.ParamIO_Load
-
-        self._com_pipe.write(msg.serialize())
-        messages = self._com_pipe.get_subscription_data(sub_id, terminate=True)
-        for rsp in messages:  # type: AckNackMessage
-            if rsp.uuid != msg.uuid:
-                continue
-            else:
-                return rsp.ack
-
-    def store(self) -> bool:
-        """
-        Requests a complete serialize to disk of all supported parameters
-        Returns:
-            True if the operation succeeds, False if not
-        """
-        sub_id = self._com_pipe.subscribe(AckNackMessage, qty=1, timeout=5.0)
-
-        msg = ParamIOMessage()
-        msg.sub_id = MessageSubId.ParamIO_Sync
-
-        self._com_pipe.write(msg.serialize())
-        messages = self._com_pipe.get_subscription_data(sub_id, terminate=True)
-        for rsp in messages:  # type: AckNackMessage
-            if rsp.uuid != msg.uuid:
-                continue
-            else:
-                return rsp.ack
-
-    def _observer_func(self, msg: ParamIOMessage) -> None:
-        """ Stub function required for integration with the MessageObserver class """
-        pass
+        if not isinstance(_msg, BaseMessage):
+            return
+        elif not self._event.is_set() and (self._txn_uuid == _msg.uuid):
+            self._result = copy.copy(_msg)
+            self._event.set()

@@ -2,7 +2,7 @@ from typing import List, Optional
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication
 from loguru import logger
-from pyorbit.serial.client import SerialClient
+from pyorbit.serial.client import OrbitClient
 from pyorbit.serial.parameters import ParameterId
 
 
@@ -16,7 +16,7 @@ class ParameterUpdater(QtCore.QObject):
 
     def __init__(self):
         super().__init__()
-        self._client = None  # type: Optional[SerialClient]
+        self._client = None  # type: Optional[OrbitClient]
         self.refreshRequest.connect(self.refresh)
         self.applyRequest.connect(self.apply)
 

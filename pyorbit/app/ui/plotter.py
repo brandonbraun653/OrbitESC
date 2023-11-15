@@ -16,7 +16,7 @@ from pyqtgraph import PlotWidget, PlotDataItem
 from pyorbit.app.main import AppSettings, Settings
 from pyorbit.serial.messages import SystemDataMessage
 from pyorbit.serial.parameters import ParameterId
-from pyorbit.observer import MessageObserver
+from pyorbit.observers import MessageObserver
 
 
 @dataclass

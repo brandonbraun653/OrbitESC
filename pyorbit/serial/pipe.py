@@ -7,10 +7,9 @@
 #
 #   12/12/2022 | Brandon Braun | brandonbraun653@gmail.com
 # **********************************************************************************************************************
-import copy
 import queue
 import time
-from typing import List, Optional, Union, Any
+from typing import List, Optional, Union
 
 import pyorbit.nanopb.serial_interface_pb2 as proto
 import google.protobuf.message as g_proto_msg
@@ -19,12 +18,17 @@ from loguru import logger
 from serial import Serial
 from threading import Thread, Event
 from queue import Queue
-from pyorbit.observer import Observer, MessageObserver
-from pyorbit.serial.messages import MessageTypeMap, BaseMessage
+from pyorbit.publisher import Publisher
+from pyorbit.serial.messages import BaseMessage
+from pyorbit.serial.observers import ResponseObserver
+from pyorbit.serial.parameters import MessageTypeMap
 
 
-class SerialPipeObserver(Observer):
-    """ Message server for RTX-ing COBS encoded protocol buffer messages over a serial connection """
+class SerialPipePublisher(Publisher):
+    """
+    Message server for RTX-ing COBS encoded protocol buffer messages over a serial connection. Implements
+    the Publisher interface for message dispatching to observers.
+    """
 
     def __init__(self):
         super().__init__()
@@ -112,39 +116,16 @@ class SerialPipeObserver(Observer):
         Returns:
             Response message
         """
-
-        class MessagePromise(MessageObserver):
-
-            def __init__(self, timeout: Union[int, float]):
-                super().__init__(self._uuid_matcher_observer, None, timeout)
-                self.result: Optional[BaseMessage] = None
-                self.event = Event()
-
-            def _uuid_matcher_observer(self, _msg: BaseMessage) -> None:
-                """ Observer that matches on UUID """
-                if not isinstance(_msg, BaseMessage):
-                    return
-                elif not self.event.is_set() and (msg.uuid == _msg.uuid):
-                    self.result = copy.copy(_msg)
-                    self.event.set()
-                    logger.info(f"Received response to {msg.name} message. UUID: {msg.uuid}")
-
-        # Thread local storage for the result and signaling mechanism
-        logger.info(f"Waiting for response to {msg.name} message. UUID: {msg.uuid}")
-
-        # Register the observer to listen to all messages
-        observer = MessagePromise(timeout)
+        observer = ResponseObserver(txn_uuid=msg.uuid, timeout=timeout)
         sub_id = self.subscribe_observer(observer)
 
         # Send the message and wait for the response
         self.write(msg.serialize())
-        observer.event.wait(timeout=timeout)
+        result = observer.wait()
 
-        # Clean up the observer. At this point we've either timed out, or the expected
-        # message arrived, and we can return it.
+        # Clean up the observer
         self.unsubscribe(sub_id)
-        logger.info(f"Response to {msg.name} message {'' if observer.result else 'not '}received. UUID: {msg.uuid}")
-        return observer.result
+        return result
 
     def _tx_encoder_thread(self) -> None:
         """
