@@ -112,33 +112,39 @@ class SerialPipeObserver(Observer):
         Returns:
             Response message
         """
+
+        class MessagePromise(MessageObserver):
+
+            def __init__(self, timeout: Union[int, float]):
+                super().__init__(self._uuid_matcher_observer, None, timeout)
+                self.result: Optional[BaseMessage] = None
+                self.event = Event()
+
+            def _uuid_matcher_observer(self, _msg: BaseMessage) -> None:
+                """ Observer that matches on UUID """
+                if not isinstance(_msg, BaseMessage):
+                    return
+                elif not self.event.is_set() and (msg.uuid == _msg.uuid):
+                    self.result = copy.copy(_msg)
+                    self.event.set()
+                    logger.info(f"Received response to {msg.name} message. UUID: {msg.uuid}")
+
         # Thread local storage for the result and signaling mechanism
-        result = None
-        event = Event()
-
-        def _uuid_matcher_observer(_msg: BaseMessage) -> None:
-            """ Observer that matches on UUID """
-            nonlocal result
-            nonlocal msg
-
-            if not isinstance(_msg, BaseMessage):
-                return
-            elif not event.is_set() and (msg.uuid == _msg.uuid):
-                result = copy.copy(_msg)
-                event.set()
+        logger.info(f"Waiting for response to {msg.name} message. UUID: {msg.uuid}")
 
         # Register the observer to listen to all messages
-        observer = MessageObserver(_uuid_matcher_observer, None)
+        observer = MessagePromise(timeout)
         sub_id = self.subscribe_observer(observer)
 
         # Send the message and wait for the response
         self.write(msg.serialize())
-        event.wait(timeout=timeout)
+        observer.event.wait(timeout=timeout)
 
         # Clean up the observer. At this point we've either timed out, or the expected
         # message arrived, and we can return it.
         self.unsubscribe(sub_id)
-        return result
+        logger.info(f"Response to {msg.name} message {'' if observer.result else 'not '}received. UUID: {msg.uuid}")
+        return observer.result
 
     def _tx_encoder_thread(self) -> None:
         """

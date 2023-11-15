@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QApplication
-from pyorbit.serial.parameters import ParameterId
+from pyorbit.app.parameters.util import valid_parameter_ids
 from pyorbit.serial.utility import has_serial_client
 
 
@@ -37,7 +37,7 @@ class ParameterTabWidget(QtWidgets.QTabWidget):
             None
         """
         window = QApplication.activeWindow()
-        window.parameter_updater.applyRequest.emit(ParameterId.values())
+        window.parameter_updater.applyRequest.emit(valid_parameter_ids())
 
     @QtCore.pyqtSlot()
     @has_serial_client
@@ -48,7 +48,7 @@ class ParameterTabWidget(QtWidgets.QTabWidget):
             None
         """
         window = QApplication.activeWindow()
-        window.parameter_updater.refreshRequest.emit(ParameterId.values())
+        window.parameter_updater.refreshRequest.emit(valid_parameter_ids())
 
     @QtCore.pyqtSlot()
     def parameter_save_clicked(self) -> None:
