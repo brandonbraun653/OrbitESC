@@ -20,6 +20,18 @@ Includes
 #include <src/core/runtime/serial_runtime.hpp>
 #include <src/control/foc_data.hpp>
 
+/*-----------------------------------------------------------------------------
+Local Macros
+-----------------------------------------------------------------------------*/
+
+/**
+ * @brief Convert a frequency in Hz to a period in microseconds
+ */
+static constexpr uint32_t hz_to_us( const uint32_t x )
+{
+  return static_cast<uint32_t>( 1000000.0f / static_cast<float>( x ) );
+}
+
 namespace Orbit::Com
 {
   /*---------------------------------------------------------------------------
@@ -30,7 +42,7 @@ namespace Orbit::Com
     /*-------------------------------------------------------------------------
     Local Constants
     -------------------------------------------------------------------------*/
-    static constexpr uint32_t publish_delta_us = 4 * 1000; /* 250Hz */
+    static constexpr uint32_t publish_delta_us = hz_to_us( 250 );
 
     /*-------------------------------------------------------------------------
     Local Variables
@@ -79,7 +91,7 @@ namespace Orbit::Com
     /*-------------------------------------------------------------------------
     Local Constants
     -------------------------------------------------------------------------*/
-    static constexpr uint32_t publish_delta_us = 25 * 1000; /* 40Hz */
+    static constexpr uint32_t publish_delta_us = hz_to_us( 40 );
 
     /*-------------------------------------------------------------------------
     Local Variables
@@ -128,7 +140,7 @@ namespace Orbit::Com
     /*-------------------------------------------------------------------------
     Local Constants
     -------------------------------------------------------------------------*/
-    static constexpr uint32_t publish_delta_us = 4 * 1000; /* 100Hz */
+    static constexpr uint32_t publish_delta_us = hz_to_us( 100 );
 
     /*-------------------------------------------------------------------------
     Local Variables
@@ -171,4 +183,52 @@ namespace Orbit::Com
 
     Serial::publishDataMessage( sysDataMsg );
   }
+
+
+  void publishSystemADCMeasurements()
+  {
+    /*-------------------------------------------------------------------------
+    Local Constants
+    -------------------------------------------------------------------------*/
+    static constexpr uint32_t publish_delta_us = hz_to_us( 10 );
+
+    /*-------------------------------------------------------------------------
+    Local Variables
+    -------------------------------------------------------------------------*/
+    static uint32_t last_publish = 0;
+    const uint32_t  time_us      = Chimera::micros();
+
+    /*-------------------------------------------------------------------------
+    Wait until it's time to publish the next message
+    -------------------------------------------------------------------------*/
+    if ( !Data::SysConfig.streamPwmCommands || ( ( time_us - last_publish ) < publish_delta_us ) )
+    {
+      return;
+    }
+
+    last_publish = time_us;
+
+    /*-------------------------------------------------------------------------
+    Populate the message
+    -------------------------------------------------------------------------*/
+    SystemDataMessage_ADCSystemMeasurments msg;
+    msg.timestamp = time_us;
+
+    /*-------------------------------------------------------------------------
+    Pack the message data and publish it
+    -------------------------------------------------------------------------*/
+    Serial::Message::SysData sysDataMsg;
+    sysDataMsg.reset();
+    sysDataMsg.payload.header.msgId = MsgId_MSG_SYS_DATA;
+    sysDataMsg.payload.header.subId = 0;
+    sysDataMsg.payload.header.uuid  = Serial::Message::getNextUUID();
+    sysDataMsg.payload.id           = SystemDataId_ADC_SYSTEM_VOLTAGES;
+    sysDataMsg.payload.has_data     = true;
+    sysDataMsg.payload.data.size    = sizeof( msg );
+    memcpy( &sysDataMsg.payload.data.bytes, &msg, sizeof( msg ) );
+
+    Serial::publishDataMessage( sysDataMsg );
+
+  }
+
 }    // namespace Orbit::Com

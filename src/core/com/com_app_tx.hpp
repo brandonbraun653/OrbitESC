@@ -12,30 +12,18 @@
 #ifndef ORBIT_COM_APP_TX_HPP
 #define ORBIT_COM_APP_TX_HPP
 
-/*-----------------------------------------------------------------------------
-Includes
------------------------------------------------------------------------------*/
-
-
 namespace Orbit::Com
 {
-  /**
-   * @brief Captures the latest phase current samples and enqueues it for transmission
-   * @return void
-   */
+  /*---------------------------------------------------------------------------
+  Public Functions
+
+  These functions are used to publish data to the remote host. They are called
+  from the main application loop and should not be called from an interrupt.
+  ---------------------------------------------------------------------------*/
   void publishPhaseCurrents();
-
-  /**
-   * @brief Captures the latest phase voltage samples and enqueues it for transmission
-   * @return void
-   */
   void publishPhaseVoltages();
-
-  /**
-   * @brief Captures the latest state estimates and enqueues it for transmission
-   * @return void
-   */
   void publishStateEstimates();
+  void publishSystemADCMeasurements();
 
 }    // namespace Orbit::Com
 

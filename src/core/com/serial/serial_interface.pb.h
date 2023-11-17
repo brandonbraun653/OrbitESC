@@ -124,7 +124,8 @@ typedef enum _SystemDataId {
     SystemDataId_SYS_DATA_INVALID = 0, /* Invalid data ID */
     SystemDataId_ADC_PHASE_CURRENTS = 1, /* ADC readings of the phase currents */
     SystemDataId_PWM_COMMANDS = 2, /* PWM commands being sent to the motor */
-    SystemDataId_STATE_ESTIMATES = 3 /* State estimates of the motor */
+    SystemDataId_STATE_ESTIMATES = 3, /* State estimates of the motor */
+    SystemDataId_ADC_SYSTEM_VOLTAGES = 4 /* Measurements of less-critical system voltages */
 } SystemDataId;
 
 /* Struct definitions */
@@ -208,7 +209,7 @@ typedef struct _SwitchModeMessage {
     BootMode mode;
 } SwitchModeMessage;
 
-typedef PB_BYTES_ARRAY_T(24) SystemDataMessage_data_t;
+typedef PB_BYTES_ARRAY_T(32) SystemDataMessage_data_t;
 /* Message type for streaming out raw data from the system in real time */
 typedef struct _SystemDataMessage {
     Header header;
@@ -217,7 +218,7 @@ typedef struct _SystemDataMessage {
     SystemDataMessage_data_t data;
 } SystemDataMessage;
 
-/* Message type for ADC phase currents */
+/* Message type for SystemDataId::ADC_PHASE_CURRENTS */
 typedef struct _SystemDataMessage_ADCPhaseCurrents {
     uint32_t timestamp; /* System time of measurement in microseconds */
     float ia; /* Phase A current in Amps */
@@ -225,7 +226,16 @@ typedef struct _SystemDataMessage_ADCPhaseCurrents {
     float ic; /* Phase C current in Amps */
 } SystemDataMessage_ADCPhaseCurrents;
 
-/* Message type for the PWM commands sent to the power stage */
+/* Message type for SystemDataId::ADC_SYSTEM_VOLTAGES */
+typedef struct _SystemDataMessage_ADCSystemMeasurments {
+    uint32_t timestamp; /* System time of measurement in microseconds */
+    float v_mcu; /* Logic level supply voltage in Volts */
+    float v_dc_link; /* DC link voltage in Volts */
+    float v_temp; /* Temperature sensor voltage in Volts */
+    float v_isense; /* Current sense amplifier voltage reference in Volts */
+} SystemDataMessage_ADCSystemMeasurments;
+
+/* Message type for SystemDataId::PWM_COMMANDS */
 typedef struct _SystemDataMessage_PWMCommands {
     uint32_t timestamp; /* System time of measurement in microseconds */
     float va; /* Phase A voltage command in Volts */
@@ -233,7 +243,7 @@ typedef struct _SystemDataMessage_PWMCommands {
     float vc; /* Phase C voltage command in Volts */
 } SystemDataMessage_PWMCommands;
 
-/* Message type for the state estimates of the motor */
+/* Message type for SystemDataId::STATE_ESTIMATES */
 typedef struct _SystemDataMessage_StateEstimates {
     uint32_t timestamp; /* System time of measurement in microseconds */
     float theta_est; /* Physical angle of the rotor in radians */
@@ -275,8 +285,8 @@ extern "C" {
 #define _MotorCtrlCmd_ARRAYSIZE ((MotorCtrlCmd)(MotorCtrlCmd_EMERGENCY_STOP+1))
 
 #define _SystemDataId_MIN SystemDataId_SYS_DATA_INVALID
-#define _SystemDataId_MAX SystemDataId_STATE_ESTIMATES
-#define _SystemDataId_ARRAYSIZE ((SystemDataId)(SystemDataId_STATE_ESTIMATES+1))
+#define _SystemDataId_MAX SystemDataId_ADC_SYSTEM_VOLTAGES
+#define _SystemDataId_ARRAYSIZE ((SystemDataId)(SystemDataId_ADC_SYSTEM_VOLTAGES+1))
 
 
 
@@ -300,6 +310,7 @@ extern "C" {
 
 
 
+
 /* Initializer values for message structs */
 #define Header_init_default                      {0, 0, 0}
 #define BaseMessage_init_default                 {Header_init_default}
@@ -314,6 +325,7 @@ extern "C" {
 #define SwitchModeMessage_init_default           {Header_init_default, _BootMode_MIN}
 #define SystemDataMessage_init_default           {Header_init_default, _SystemDataId_MIN, false, {0, {0}}}
 #define SystemDataMessage_ADCPhaseCurrents_init_default {0, 0, 0, 0}
+#define SystemDataMessage_ADCSystemMeasurments_init_default {0, 0, 0, 0, 0}
 #define SystemDataMessage_PWMCommands_init_default {0, 0, 0, 0}
 #define SystemDataMessage_StateEstimates_init_default {0, 0, 0}
 #define Header_init_zero                         {0, 0, 0}
@@ -329,6 +341,7 @@ extern "C" {
 #define SwitchModeMessage_init_zero              {Header_init_zero, _BootMode_MIN}
 #define SystemDataMessage_init_zero              {Header_init_zero, _SystemDataId_MIN, false, {0, {0}}}
 #define SystemDataMessage_ADCPhaseCurrents_init_zero {0, 0, 0, 0}
+#define SystemDataMessage_ADCSystemMeasurments_init_zero {0, 0, 0, 0, 0}
 #define SystemDataMessage_PWMCommands_init_zero  {0, 0, 0, 0}
 #define SystemDataMessage_StateEstimates_init_zero {0, 0, 0}
 
@@ -372,6 +385,11 @@ extern "C" {
 #define SystemDataMessage_ADCPhaseCurrents_ia_tag 2
 #define SystemDataMessage_ADCPhaseCurrents_ib_tag 3
 #define SystemDataMessage_ADCPhaseCurrents_ic_tag 4
+#define SystemDataMessage_ADCSystemMeasurments_timestamp_tag 1
+#define SystemDataMessage_ADCSystemMeasurments_v_mcu_tag 2
+#define SystemDataMessage_ADCSystemMeasurments_v_dc_link_tag 3
+#define SystemDataMessage_ADCSystemMeasurments_v_temp_tag 4
+#define SystemDataMessage_ADCSystemMeasurments_v_isense_tag 5
 #define SystemDataMessage_PWMCommands_timestamp_tag 1
 #define SystemDataMessage_PWMCommands_va_tag     2
 #define SystemDataMessage_PWMCommands_vb_tag     3
@@ -482,6 +500,15 @@ X(a, STATIC,   REQUIRED, FLOAT,    ic,                4)
 #define SystemDataMessage_ADCPhaseCurrents_CALLBACK NULL
 #define SystemDataMessage_ADCPhaseCurrents_DEFAULT NULL
 
+#define SystemDataMessage_ADCSystemMeasurments_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, UINT32,   timestamp,         1) \
+X(a, STATIC,   REQUIRED, FLOAT,    v_mcu,             2) \
+X(a, STATIC,   REQUIRED, FLOAT,    v_dc_link,         3) \
+X(a, STATIC,   REQUIRED, FLOAT,    v_temp,            4) \
+X(a, STATIC,   REQUIRED, FLOAT,    v_isense,          5)
+#define SystemDataMessage_ADCSystemMeasurments_CALLBACK NULL
+#define SystemDataMessage_ADCSystemMeasurments_DEFAULT NULL
+
 #define SystemDataMessage_PWMCommands_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, UINT32,   timestamp,         1) \
 X(a, STATIC,   REQUIRED, FLOAT,    va,                2) \
@@ -510,6 +537,7 @@ extern const pb_msgdesc_t SystemControlMessage_ManualICtrlSetPoint_msg;
 extern const pb_msgdesc_t SwitchModeMessage_msg;
 extern const pb_msgdesc_t SystemDataMessage_msg;
 extern const pb_msgdesc_t SystemDataMessage_ADCPhaseCurrents_msg;
+extern const pb_msgdesc_t SystemDataMessage_ADCSystemMeasurments_msg;
 extern const pb_msgdesc_t SystemDataMessage_PWMCommands_msg;
 extern const pb_msgdesc_t SystemDataMessage_StateEstimates_msg;
 
@@ -527,6 +555,7 @@ extern const pb_msgdesc_t SystemDataMessage_StateEstimates_msg;
 #define SwitchModeMessage_fields &SwitchModeMessage_msg
 #define SystemDataMessage_fields &SystemDataMessage_msg
 #define SystemDataMessage_ADCPhaseCurrents_fields &SystemDataMessage_ADCPhaseCurrents_msg
+#define SystemDataMessage_ADCSystemMeasurments_fields &SystemDataMessage_ADCSystemMeasurments_msg
 #define SystemDataMessage_PWMCommands_fields &SystemDataMessage_PWMCommands_msg
 #define SystemDataMessage_StateEstimates_fields &SystemDataMessage_StateEstimates_msg
 
@@ -541,9 +570,10 @@ extern const pb_msgdesc_t SystemDataMessage_StateEstimates_msg;
 #define SystemControlMessage_ManualICtrlSetPoint_size 15
 #define SystemControlMessage_size                80
 #define SystemDataMessage_ADCPhaseCurrents_size  21
+#define SystemDataMessage_ADCSystemMeasurments_size 26
 #define SystemDataMessage_PWMCommands_size       21
 #define SystemDataMessage_StateEstimates_size    16
-#define SystemDataMessage_size                   40
+#define SystemDataMessage_size                   48
 #define SystemInfoMessage_size                   69
 #define SystemTick_size                          18
 

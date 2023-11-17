@@ -45,6 +45,9 @@ PB_BIND(SystemDataMessage, SystemDataMessage, AUTO)
 PB_BIND(SystemDataMessage_ADCPhaseCurrents, SystemDataMessage_ADCPhaseCurrents, AUTO)
 
 
+PB_BIND(SystemDataMessage_ADCSystemMeasurments, SystemDataMessage_ADCSystemMeasurments, AUTO)
+
+
 PB_BIND(SystemDataMessage_PWMCommands, SystemDataMessage_PWMCommands, AUTO)
 
 

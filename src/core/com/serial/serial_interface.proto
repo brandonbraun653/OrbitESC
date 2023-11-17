@@ -121,10 +121,11 @@ enum MotorCtrlCmd {
 }
 
 enum SystemDataId {
-  SYS_DATA_INVALID = 0; // Invalid data ID
-  ADC_PHASE_CURRENTS = 1; // ADC readings of the phase currents
-  PWM_COMMANDS = 2; // PWM commands being sent to the motor
-  STATE_ESTIMATES = 3; // State estimates of the motor
+  SYS_DATA_INVALID = 0;     // Invalid data ID
+  ADC_PHASE_CURRENTS = 1;   // ADC readings of the phase currents
+  PWM_COMMANDS = 2;         // PWM commands being sent to the motor
+  STATE_ESTIMATES = 3;      // State estimates of the motor
+  ADC_SYSTEM_VOLTAGES = 4;  // Measurements of less-critical system voltages
 }
 
 // Instrumentation message header common to all types. Each functional message type **must**
@@ -199,8 +200,11 @@ message SwitchModeMessage {
 
 // Message type for streaming out raw data from the system in real time
 message SystemDataMessage {
+  required Header header = 1;
+  required SystemDataId id = 2 [(nanopb).int_size = IS_8];
+  optional bytes data = 3 [(nanopb).max_size = 32 ];
 
-  // Message type for ADC phase currents
+  // Message type for SystemDataId::ADC_PHASE_CURRENTS
   message ADCPhaseCurrents {
     required uint32 timestamp = 1;  // System time of measurement in microseconds
     required float ia = 2;          // Phase A current in Amps
@@ -208,7 +212,16 @@ message SystemDataMessage {
     required float ic = 4;          // Phase C current in Amps
   }
 
-  // Message type for the PWM commands sent to the power stage
+  // Message type for SystemDataId::ADC_SYSTEM_VOLTAGES
+  message ADCSystemMeasurments {
+    required uint32 timestamp = 1;  // System time of measurement in microseconds
+    required float v_mcu = 2;       // Logic level supply voltage in Volts
+    required float v_dc_link = 3;   // DC link voltage in Volts
+    required float v_temp = 4;      // Temperature sensor voltage in Volts
+    required float v_isense = 5;    // Current sense amplifier voltage reference in Volts
+  }
+
+  // Message type for SystemDataId::PWM_COMMANDS
   message PWMCommands {
     required uint32 timestamp = 1;  // System time of measurement in microseconds
     required float va = 2;          // Phase A voltage command in Volts
@@ -216,15 +229,11 @@ message SystemDataMessage {
     required float vc = 4;          // Phase C voltage command in Volts
   }
 
-  // Message type for the state estimates of the motor
+  // Message type for SystemDataId::STATE_ESTIMATES
   message StateEstimates {
     required uint32 timestamp = 1;  // System time of measurement in microseconds
-    required float theta_est = 2;  // Physical angle of the rotor in radians
-    required float omega_est = 3;  // Physical angular velocity of the rotor in radians per second
+    required float theta_est = 2;   // Physical angle of the rotor in radians
+    required float omega_est = 3;   // Physical angular velocity of the rotor in radians per second
   }
-
-  required Header header = 1;
-  required SystemDataId id = 2 [(nanopb).int_size = IS_8];
-  optional bytes data = 3 [(nanopb).max_size = 24 ];
 }
 
