@@ -25,6 +25,7 @@ Includes
 #include <etl/circular_buffer.h>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/bootup.hpp>
+#include <src/core/com/com_scheduler.hpp>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/data/orbit_log_io.hpp>
 #include <src/core/hw/orbit_adc.hpp>
@@ -38,6 +39,7 @@ Includes
 #include <src/core/hw/orbit_usart.hpp>
 #include <src/core/tasks.hpp>
 #include <src/monitor/orbit_monitors.hpp>
+#include <src/monitor/orbit_metrics.hpp>
 
 
 namespace Orbit::Boot
@@ -118,6 +120,8 @@ namespace Orbit::Boot
     Orbit::GPIO::powerUp();
     Orbit::LED::powerUp();
     Orbit::Instrumentation::powerUp();
+    Orbit::COM::Scheduler::initialize();
+    Orbit::Monitor::initMetrics();
   }
 
 

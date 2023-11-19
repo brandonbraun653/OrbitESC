@@ -7,6 +7,7 @@ gen_static_lib_variants(
     debug/segger_modules.cpp
     debug/segger_stubs.cpp
     orbit_current_monitor.cpp
+    orbit_metrics.cpp
     orbit_monitors.cpp
     orbit_voltage_monitor.cpp
   PRV_LIBRARIES

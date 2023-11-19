@@ -58,8 +58,6 @@
             "${workspaceFolder}/lib/usb/tinyusb/src/common",
             "${workspaceFolder}/lib/usb/tinyusb/src/device",
             "${workspaceFolder}/lib/usb/tinyusb/src/host",
-            "${workspaceFolder}/lib/usb/tinyusb/src/portable/st/stm32_fsdev",
-            "${workspaceFolder}/lib/usb/tinyusb/src/portable/st/synopsys",
             "${workspaceFolder}/src",
             "${workspaceFolder}/src/config/aurora",
             "${workspaceFolder}/src/config/bsp",

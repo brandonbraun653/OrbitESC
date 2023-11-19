@@ -213,10 +213,27 @@ namespace Orbit::IO
     /*-----------------------------------------------------------------------------
     GPIO
     -----------------------------------------------------------------------------*/
-    static constexpr Chimera::GPIO::Pin  pinTX  = 12;
-    static constexpr Chimera::GPIO::Port portTX = Chimera::GPIO::Port::PORTA;
-    static constexpr Chimera::GPIO::Pin  pinRX  = 11;
-    static constexpr Chimera::GPIO::Port portRX = Chimera::GPIO::Port::PORTA;
+    static constexpr Chimera::GPIO::Pin     pinTX     = 12;
+    static constexpr Chimera::GPIO::Port    portTX    = Chimera::GPIO::Port::PORTA;
+    static constexpr Chimera::GPIO::PinInit txPinInit = { .alternate = Chimera::GPIO::Alternate::CAN1_TX,
+                                                          .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
+                                                          .pin       = pinTX,
+                                                          .port      = portTX,
+                                                          .pull      = Chimera::GPIO::Pull::PULL_UP,
+                                                          .state     = Chimera::GPIO::State::HIGH,
+                                                          .threaded  = false,
+                                                          .validity  = true };
+
+    static constexpr Chimera::GPIO::Pin     pinRX     = 11;
+    static constexpr Chimera::GPIO::Port    portRX    = Chimera::GPIO::Port::PORTA;
+    static constexpr Chimera::GPIO::PinInit rxPinInit = { .alternate = Chimera::GPIO::Alternate::CAN1_RX,
+                                                          .drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL,
+                                                          .pin       = pinRX,
+                                                          .port      = portRX,
+                                                          .pull      = Chimera::GPIO::Pull::PULL_UP,
+                                                          .state     = Chimera::GPIO::State::HIGH,
+                                                          .threaded  = false,
+                                                          .validity  = true };
   }    // namespace CAN
 
   namespace SDIO

@@ -13,6 +13,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/thread>
 #include <src/core/com/com_app_tx.hpp>
+#include <src/core/com/com_scheduler.hpp>
 #include <src/core/runtime/can_runtime.hpp>
 #include <src/core/runtime/serial_runtime.hpp>
 #include <src/core/tasks.hpp>
@@ -20,6 +21,8 @@ Includes
 
 namespace Orbit::Tasks::COM
 {
+  const char test_msg[] = "Hello World!\r\n";
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
@@ -36,6 +39,18 @@ namespace Orbit::Tasks::COM
     Orbit::CAN::initRuntime();
     Orbit::Serial::initRuntime();
 
+    Orbit::COM::Scheduler::Task tsk;
+    tsk.ttl = Orbit::COM::Scheduler::TTL_INFINITE;
+    tsk.priority = Orbit::COM::Scheduler::Priority::NORMAL;
+    tsk.callback = nullptr;
+    tsk.period = 1000;
+    tsk.endpoint = Orbit::COM::Scheduler::Endpoint::UART;
+    tsk.data = (void*)test_msg;
+    tsk.size = sizeof(test_msg);
+
+    auto id = Orbit::COM::Scheduler::add( tsk );
+    Orbit::COM::Scheduler::enable( id );
+
     /*-------------------------------------------------------------------------
     Run the thread
     -------------------------------------------------------------------------*/
@@ -51,9 +66,10 @@ namespace Orbit::Tasks::COM
       /*-----------------------------------------------------------------------
       Publish available data to the remote host
       -----------------------------------------------------------------------*/
-      Orbit::Com::publishPhaseCurrents();
-      Orbit::Com::publishPhaseVoltages();
-      Orbit::Com::publishStateEstimates();
+      Orbit::COM::Scheduler::process();
+      // Orbit::Com::publishPhaseCurrents();
+      // Orbit::Com::publishPhaseVoltages();
+      // Orbit::Com::publishStateEstimates();
 
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically
