@@ -11,6 +11,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Aurora/utility>
 #include <Chimera/thread>
 #include <src/core/com/com_app_tx.hpp>
 #include <src/core/com/com_scheduler.hpp>
@@ -21,7 +22,15 @@ Includes
 
 namespace Orbit::Tasks::COM
 {
-  const char test_msg[] = "Hello World!\r\n";
+  std::array<char, 32> test_msg;
+
+  static void msg_callback( Orbit::COM::Scheduler::Task *tsk )
+  {
+    test_msg.fill( 0 );
+    npf_snprintf( test_msg.data(), test_msg.size(), "%d: Hello World!\r\n", Chimera::millis() );
+
+    tsk->size = strlen( test_msg.data() );
+  }
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -40,16 +49,18 @@ namespace Orbit::Tasks::COM
     Orbit::Serial::initRuntime();
 
     Orbit::COM::Scheduler::Task tsk;
-    tsk.ttl = Orbit::COM::Scheduler::TTL_INFINITE;
-    tsk.priority = Orbit::COM::Scheduler::Priority::NORMAL;
-    tsk.callback = nullptr;
-    tsk.period = 1000;
+    tsk.updater = msg_callback;
+    tsk.data     = test_msg.data();
     tsk.endpoint = Orbit::COM::Scheduler::Endpoint::UART;
-    tsk.data = (void*)test_msg;
-    tsk.size = sizeof(test_msg);
+    tsk.period   = 5;
+    tsk.priority = Orbit::COM::Scheduler::Priority::NORMAL;
+    tsk.size     = strlen( test_msg.data() );
+    tsk.ttl      = Orbit::COM::Scheduler::TTL_INFINITE;
 
     auto id = Orbit::COM::Scheduler::add( tsk );
     Orbit::COM::Scheduler::enable( id );
+
+    Orbit::COM::initPeriodicData();
 
     /*-------------------------------------------------------------------------
     Run the thread
@@ -67,9 +78,6 @@ namespace Orbit::Tasks::COM
       Publish available data to the remote host
       -----------------------------------------------------------------------*/
       Orbit::COM::Scheduler::process();
-      // Orbit::Com::publishPhaseCurrents();
-      // Orbit::Com::publishPhaseVoltages();
-      // Orbit::Com::publishStateEstimates();
 
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically

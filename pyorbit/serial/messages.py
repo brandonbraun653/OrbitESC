@@ -96,6 +96,7 @@ class BaseMessage:
 
     @property
     def uuid(self) -> int:
+        self._assign_uuid_if_empty()
         return self._pb_msg.header.uuid
 
     @property
@@ -130,7 +131,19 @@ class BaseMessage:
         Returns:
             Serialized message
         """
+        self._assign_uuid_if_empty()
         return self.pb_message.SerializeToString()
+
+    def _assign_uuid_if_empty(self):
+        """
+        ProtoBuf don't support default values for fields, but they do set them to 0 by default. We can
+        use this to our advantage as a way to determine if the UUID has been set yet.
+
+        Returns:
+            None
+        """
+        if self._pb_msg and self._pb_msg.header.uuid == 0:
+            self._pb_msg.header.uuid = self._id_gen.next_uuid
 
 
 class AckNackMessage(BaseMessage):
@@ -165,7 +178,6 @@ class PingMessage(BaseMessage):
         self._pb_msg = proto.PingMessage()
         self._pb_msg.header.msgId = MessageId.PingCmd.value
         self._pb_msg.header.subId = 0
-        self._pb_msg.header.uuid = self._id_gen.next_uuid
 
 
 class SystemTickMessage(BaseMessage):
@@ -208,7 +220,19 @@ class SystemResetMessage(BaseMessage):
         self._pb_msg = proto.SystemControlMessage()
         self._pb_msg.header.msgId = MessageId.SystemCtrl.value
         self._pb_msg.header.subId = MessageSubId.SystemControl_Reset.value
-        self._pb_msg.header.uuid = self._id_gen.next_uuid
+        
+
+class StreamPhaseCurrentsMessage(BaseMessage):
+
+    def __init__(self, enable: bool):
+        super().__init__()
+        self._pb_msg = proto.SystemControlMessage()
+        self._pb_msg.header.msgId = MessageId.SystemCtrl.value
+        
+        if enable:
+            self._pb_msg.header.subId = proto.SUB_MSG_ENABLE_STREAM_PHASE_CURRENTS
+        else:
+            self._pb_msg.header.subId = proto.SUB_MSG_DISABLE_STREAM_PHASE_CURRENTS
 
 
 class MotorControlMessage(BaseMessage):
@@ -224,7 +248,7 @@ class MotorControlMessage(BaseMessage):
         self._pb_msg = proto.SystemControlMessage()
         self._pb_msg.header.msgId = MessageId.SystemCtrl.value
         self._pb_msg.header.subId = MessageSubId.SystemControl_Motor.value
-        self._pb_msg.header.uuid = self._id_gen.next_uuid
+        
         self._pb_msg.motorCmd = cmd
         self._pb_msg.data = data if data else b''
 
@@ -257,7 +281,6 @@ class ManualCurrentControlToggleMessage(BaseMessage):
         self._pb_msg = proto.SystemControlMessage()
         self._pb_msg.header.msgId = MessageId.SystemCtrl.value
         self._pb_msg.header.subId = MessageSubId.SystemControl_ManualInnerLoop.value
-        self._pb_msg.header.uuid = self._id_gen.next_uuid
 
 
 class ManualCurrentControlSetPointMessage(BaseMessage):
@@ -267,7 +290,6 @@ class ManualCurrentControlSetPointMessage(BaseMessage):
         self._pb_msg = proto.SystemControlMessage()
         self._pb_msg.header.msgId = MessageId.SystemCtrl.value
         self._pb_msg.header.subId = MessageSubId.SystemControl_ManualInnerLoopRef.value
-        self._pb_msg.header.uuid = self._id_gen.next_uuid
 
         set_point = proto.SystemControlMessage.ManualICtrlSetPoint()
         set_point.rotor_theta_rad = theta
@@ -283,7 +305,7 @@ class SwitchModeMessage(BaseMessage):
         self._pb_msg = proto.SwitchModeMessage()
         self._pb_msg.header.msgId = MessageId.SwitchMode.value
         self._pb_msg.header.subId = 0
-        self._pb_msg.header.uuid = self._id_gen.next_uuid
+        
         self._pb_msg.mode = mode.value
 
 
@@ -323,7 +345,6 @@ class SystemDataMessage(BaseMessage):
         self._pb_msg = proto.SystemDataMessage()
         self._pb_msg.header.msgId = MessageId.SystemData.value
         self._pb_msg.header.subId = 0
-        self._pb_msg.header.uuid = self._id_gen.next_uuid
 
     @property
     def data_id(self) -> SystemDataId:

@@ -20,7 +20,7 @@ from pyorbit.exceptions import NotOnlineException
 from pyorbit.serial.messages import *
 from pyorbit.observers import MessageObserver
 from pyorbit.serial.observers import ConsoleObserver
-from pyorbit.serial.parameters import SetActivityLedBlinkScalerMessage
+from pyorbit.serial.parameters import SetActivityLedBlinkScalerMessage, ParameterId
 from pyorbit.serial.controllers import ParameterController
 from threading import Event, Thread
 
@@ -106,23 +106,26 @@ class OrbitClient:
             logger.warning("Node did not respond to ping")
         return bool(responses)
 
-    def system_reset(self) -> bool:
+    def stream_phase_currents(self, enable: bool) -> bool:
         """
-        Returns:
-            True if the device was reset, False otherwise
-        """
-        sub_id = self.com_pipe.subscribe(msg=AckNackMessage, qty=1, timeout=5.0)
-        self.com_pipe.write(SystemResetMessage().serialize())
-        responses = self.com_pipe.get_subscription_data(sub_id, terminate=True)
-        if not responses:
-            logger.warning("Node did not respond to system reset command")
-            return False
-        else:
-            # Reset the clients knowledge of the node's availability
-            if responses[0].ack:
-                self._online = False
+        Enable or disable the streaming of phase current data from the ESC
+        Args:
+            enable: True to enable, False to disable
 
-            return responses[0].ack
+        Returns:
+            True if the command was successful, False otherwise
+        """
+        rsp = self.com_pipe.write_and_wait(StreamPhaseCurrentsMessage(enable=enable), timeout=3.0)
+        return self.com_pipe.process_ack_nack_response(rsp, f"Failed to {'enable' if enable else 'disable'} "
+                                                            f"phase current streaming")
+
+    def system_reset(self) -> None:
+        """
+        Requests a full system reset from the ESC
+        Returns:
+            None
+        """
+        self.com_pipe.write(SystemResetMessage().serialize())
 
     def set_mode(self, mode: Mode) -> bool:
         """

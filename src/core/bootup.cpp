@@ -28,6 +28,7 @@ Includes
 #include <src/core/com/com_scheduler.hpp>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/data/orbit_log_io.hpp>
+#include <src/core/events/event_stream.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_can.hpp>
 #include <src/core/hw/orbit_gpio.hpp>
@@ -38,8 +39,8 @@ Includes
 #include <src/core/hw/orbit_timer.hpp>
 #include <src/core/hw/orbit_usart.hpp>
 #include <src/core/tasks.hpp>
-#include <src/monitor/orbit_monitors.hpp>
 #include <src/monitor/orbit_metrics.hpp>
+#include <src/monitor/orbit_monitors.hpp>
 
 
 namespace Orbit::Boot
@@ -122,6 +123,7 @@ namespace Orbit::Boot
     Orbit::Instrumentation::powerUp();
     Orbit::COM::Scheduler::initialize();
     Orbit::Monitor::initMetrics();
+    Orbit::Event::initialize();
   }
 
 

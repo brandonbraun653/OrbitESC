@@ -12,19 +12,41 @@
 #ifndef ORBIT_COM_APP_TX_HPP
 #define ORBIT_COM_APP_TX_HPP
 
-namespace Orbit::Com
+namespace Orbit::COM
 {
   /*---------------------------------------------------------------------------
-  Public Functions
-
-  These functions are used to publish data to the remote host. They are called
-  from the main application loop and should not be called from an interrupt.
+  Enumerations
   ---------------------------------------------------------------------------*/
-  void publishPhaseCurrents();
-  void publishPhaseVoltages();
-  void publishStateEstimates();
-  void publishSystemADCMeasurements();
 
-}    // namespace Orbit::Com
+  enum StreamId : uint8_t
+  {
+    STREAM_ID_PHASE_CURRENTS,
+    STREAM_ID_PHASE_VOLTAGES,
+    STREAM_ID_SYSTEM_VOLTAGES,
+    STREAM_ID_STATE_ESTIMATES,
+
+    STREAM_ID_NUM_OPTIONS
+  };
+
+  /*---------------------------------------------------------------------------
+  Public Functions
+  ---------------------------------------------------------------------------*/
+
+  /**
+   * @brief Register periodic data to be transmitted
+   * @return void
+   */
+  void initPeriodicData();
+
+  /**
+   * @brief Enable/disable a data stream for transmission
+   *
+   * @param id    Which stream to enable/disable
+   * @param enable  True to enable, false to disable
+   * @return void
+   */
+  void enableStream( const StreamId id, const bool enable );
+
+}    // namespace Orbit::COM
 
 #endif /* !ORBIT_COM_APP_TX_HPP */

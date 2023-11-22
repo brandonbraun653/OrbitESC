@@ -19,7 +19,7 @@ from serial import Serial
 from threading import Thread, Event
 from queue import Queue
 from pyorbit.publisher import Publisher
-from pyorbit.serial.messages import BaseMessage
+from pyorbit.serial.messages import BaseMessage, AckNackMessage, StatusCode
 from pyorbit.serial.observers import ResponseObserver
 from pyorbit.serial.parameters import MessageTypeMap
 
@@ -126,6 +126,27 @@ class SerialPipePublisher(Publisher):
         # Clean up the observer
         self.unsubscribe(sub_id)
         return result
+
+    @staticmethod
+    def process_ack_nack_response(msg: BaseMessage, error_string: str = None) -> bool:
+        """
+        Processes an AckNackMessage response from the ESC
+        Args:
+            msg: Response message instance
+            error_string: Optional error string to print if the response was a NACK
+
+        Returns:
+            True if the response was an ACK, False otherwise
+        """
+        if not msg or not isinstance(msg, AckNackMessage):
+            logger.error(f"No valid response from server {'. Got type ' + str(type(msg)) if msg else ''}")
+            return False
+
+        if not msg.ack:
+            logger.error(f"NACK: {repr(StatusCode(msg.status_code))} ' -- {error_string if error_string else ''}")
+            return False
+        else:
+            return True
 
     def _tx_encoder_thread(self) -> None:
         """

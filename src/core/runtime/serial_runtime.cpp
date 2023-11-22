@@ -74,33 +74,30 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Prepare the response
     -------------------------------------------------------------------------*/
-    ParamIOMessage response;
-    response.header   = msg.payload.header;
-    response.id       = msg.payload.id;
-    response.type     = Param::type( id );
-    response.has_type = true;
-    response.has_data = true;
-    memset( response.data.bytes, 0, sizeof( response.data.bytes ) );
+    Message::ParamIO reply;
+    reply.payload.header   = msg.payload.header;
+    reply.payload.id       = msg.payload.id;
+    reply.payload.type     = Param::type( id );
+    reply.payload.has_type = true;
+    reply.payload.has_data = true;
+    memset( reply.payload.data.bytes, 0, sizeof( reply.payload.data.bytes ) );
 
     /*-------------------------------------------------------------------------
     Copy out the serialized data
     -------------------------------------------------------------------------*/
-    const ssize_t read_size = Param::read( id, response.data.bytes, sizeof( response.data.bytes ) );
+    const ssize_t read_size = Param::read( id, reply.payload.data.bytes, sizeof( reply.payload.data.bytes ) );
     if ( read_size < 0 )
     {
       sendAckNack( false, msg.payload.header, StatusCode_REQUEST_FAILED );
       return;
     }
 
-    response.data.size = static_cast<pb_size_t>( read_size );
+    reply.payload.data.size = static_cast<pb_size_t>( read_size );
 
     /*-------------------------------------------------------------------------
     Ship the response on the wire
     -------------------------------------------------------------------------*/
-    Message::ParamIO reply;
-    reply.reset();
-    reply.encode( response );
-    if ( reply.send( Config::getCommandPort() ) != Chimera::Status::OK )
+    if( !Message::encode( &reply.state ) || ( Message::send( &reply.state, Config::getCommandPort() ) != Chimera::Status::OK ) )
     {
       LOG_ERROR( "Failed to send response to GET request" );
     }
@@ -199,9 +196,9 @@ namespace Orbit::Serial
     while( !s_sys_data_queue.empty() )
     {
       auto msg = s_sys_data_queue.front();
-      msg.encode();
+      Message::encode( &msg.state );
 
-      if ( Chimera::Status::OK == msg.send( Config::getCommandPort() ) )
+      if ( Chimera::Status::OK == Message::send( &msg.state, Config::getCommandPort() ) )
       {
         s_sys_data_queue.pop();
       }

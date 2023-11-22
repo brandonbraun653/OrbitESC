@@ -290,30 +290,6 @@ namespace Orbit::Data::Param
               .maxSize   = sizeof( SysConfig.peakVoltageThreshold ),
               .validator = nullptr },
 
-        /*-----------------------------------------------------------------------
-        System Configuration Parameters
-        -----------------------------------------------------------------------*/
-        Node{ .id        = ParamId_PARAM_STREAM_PHASE_CURRENTS,
-              .type      = ParamType_BOOL,
-              .key       = "stream_phase_currents",
-              .address   = &SysConfig.streamPhaseCurrents,
-              .maxSize   = sizeof( SysConfig.streamPhaseCurrents ),
-              .validator = nullptr },
-
-        Node{ .id        = ParamId_PARAM_STREAM_PWM_COMMANDS,
-              .type      = ParamType_BOOL,
-              .key       = "stream_pwm_commands",
-              .address   = &SysConfig.streamPwmCommands,
-              .maxSize   = sizeof( SysConfig.streamPwmCommands ),
-              .validator = nullptr },
-
-        Node{ .id        = ParamId_PARAM_STREAM_STATE_ESTIMATES,
-              .type      = ParamType_BOOL,
-              .key       = "stream_state_estimates",
-              .address   = &SysConfig.streamStateEstimates,
-              .maxSize   = sizeof( SysConfig.streamStateEstimates ),
-              .validator = nullptr },
-
         /***** Add new entries above here *****/
     } );
   }    // namespace Internal

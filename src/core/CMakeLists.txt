@@ -2,6 +2,7 @@ include("${COMMON_TOOL_ROOT}/cmake/utility/embedded.cmake")
 
 add_subdirectory(com)
 add_subdirectory(data)
+add_subdirectory(events)
 add_subdirectory(hw)
 add_subdirectory(runtime)
 add_subdirectory(tasks)

@@ -18,9 +18,24 @@ Includes
 #include <src/core/hw/orbit_led.hpp>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_hwm.hpp>
+#include <src/core/data/orbit_data.hpp>
 
 namespace Orbit::Tasks::HWM
 {
+  /*---------------------------------------------------------------------------
+  Private Functions
+  ---------------------------------------------------------------------------*/
+
+  static void update_system_voltages()
+  {
+    using namespace Orbit::Data;
+
+    SysInfo.v_mcu = 0.0f;
+    SysInfo.v_dc_link = 0.0f;
+    SysInfo.v_temp = 0.0f;
+    SysInfo.v_isense = 0.0f;
+  }
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
@@ -57,6 +72,7 @@ namespace Orbit::Tasks::HWM
       Process hardware drivers
       -----------------------------------------------------------------------*/
       Orbit::LED::sendUpdate();
+      update_system_voltages();
 
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically

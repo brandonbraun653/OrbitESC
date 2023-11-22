@@ -13,9 +13,9 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <src/core/com/serial/serial_router.hpp>
 #include <src/core/com/serial/serial_server.hpp>
-#include <src/core/system.hpp>
 #include <src/control/current_control.hpp>
 #include <src/core/hw/orbit_motor.hpp>
+#include <src/core/events/event_stream.hpp>
 
 namespace Orbit::Serial::Router
 {
@@ -26,9 +26,10 @@ namespace Orbit::Serial::Router
   {
   }
 
+
   void SysCtrlRouter::on_receive( const Message::SysCtrl &msg )
   {
-    bool should_ack = false;
+    bool should_ack = true;
 
     switch ( msg.payload.header.subId )
     {
@@ -37,9 +38,17 @@ namespace Orbit::Serial::Router
       -----------------------------------------------------------------------*/
       case SubId_SUB_MSG_SYS_CTRL_RESET:
         sendAckNack( true, msg.payload.header );
-        Chimera::delayMilliseconds( 50 );
-        Orbit::System::setMode( Orbit::System::getMode() );
+        Orbit::Event::gControlBus.receive( Event::SystemReset() );
         return;
+
+      case SubId_SUB_MSG_DISABLE_STREAM_PHASE_CURRENTS:
+      case SubId_SUB_MSG_ENABLE_STREAM_PHASE_CURRENTS: {
+        Event::StreamPhaseCurrents event;
+        event.enable = ( msg.payload.header.subId == SubId_SUB_MSG_ENABLE_STREAM_PHASE_CURRENTS );
+
+        Orbit::Event::gControlBus.receive( event );
+        break;
+      }
 
       /*-----------------------------------------------------------------------
       Handle motor control messages

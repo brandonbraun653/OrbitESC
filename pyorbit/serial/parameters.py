@@ -124,11 +124,6 @@ class ParameterId(IntEnum):
     PeakCurrentThreshold = proto.PARAM_PEAK_CURRENT_THRESHOLD
     PeakVoltageThreshold = proto.PARAM_PEAK_VOLTAGE_THRESHOLD
 
-    # System Behavior
-    StreamPhaseCurrents = proto.PARAM_STREAM_PHASE_CURRENTS
-    StreamPWMCommands = proto.PARAM_STREAM_PWM_COMMANDS
-    StreamStateEstimates = proto.PARAM_STREAM_STATE_ESTIMATES
-
 
 class ParamIOMessage(BaseMessage):
 

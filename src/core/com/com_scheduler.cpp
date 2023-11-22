@@ -29,12 +29,12 @@ namespace Orbit::COM::Scheduler
   Private Data
   ---------------------------------------------------------------------------*/
   static etl::array<Task, MAX_TASKS>     sTaskList; /**< Backing memory for tasks */
-  static etl::list<Task*, MAX_TASKS>     sRunQueue; /**< All tasks scheduled to run */
+  static etl::list<Task *, MAX_TASKS>    sRunQueue; /**< All tasks scheduled to run */
   static Chimera::Thread::RecursiveMutex sLock;     /**< Mutex for thread safety */
   static TaskId                          sNextId;   /**< Next task ID to assign */
   static Chimera::Serial::Driver_rPtr    sSerial;   /**< UART endpoint */
   static Chimera::CAN::Driver_rPtr       sCAN;      /**< CAN bus endpoint */
-  static Orbit::Serial::USBSerial *      sUSB;      /**< USB endpoint */
+  static Orbit::Serial::USBSerial       *sUSB;      /**< USB endpoint */
 
   /*---------------------------------------------------------------------------
   Private Functions
@@ -166,16 +166,37 @@ namespace Orbit::COM::Scheduler
 
     for( auto &task : sRunQueue )
     {
+      /*-----------------------------------------------------------------------
+      Check to see if the task is ready to run
+      -----------------------------------------------------------------------*/
       if( currentTick >= task->nextRun )
       {
         /*---------------------------------------------------------------------
         Schedule the next run time
         ---------------------------------------------------------------------*/
         task->nextRun += task->period;
-        if( task->nextRun < currentTick )
+        if( ( task->nextRun < currentTick ) && ( task->period > 0 ) )
         {
           task->nextRun = currentTick + task->period;
           LOG_WARN( "Com Scheduler: Task %d period skipped", task->uuid );
+        }
+
+        /*---------------------------------------------------------------------
+        Invoke the user callback if registered. Typically this will be used to
+        update the data in the task.
+        ---------------------------------------------------------------------*/
+        if( task->updater )
+        {
+          task->updater( task );
+          RT_DBG_ASSERT( task->data );
+        }
+
+        /*-----------------------------------------------------------------------
+        Ensure the task is valid
+        -----------------------------------------------------------------------*/
+        if( !task->data || !task->size || !task->period )
+        {
+          continue;
         }
 
         /*---------------------------------------------------------------------
@@ -215,7 +236,7 @@ namespace Orbit::COM::Scheduler
   }
 
 
-  TaskId add( Task &task )
+  TaskId add( Task &task, const bool enable )
   {
     Chimera::Thread::LockGuard lck( sLock );
 
@@ -231,9 +252,15 @@ namespace Orbit::COM::Scheduler
     /*-------------------------------------------------------------------------
     Success! Copy the task into the list.
     -------------------------------------------------------------------------*/
-    *newTask = task;
-    newTask->uuid = sNextId++;
+    *newTask         = task;
+    newTask->uuid    = sNextId++;
     newTask->nextRun = Chimera::millis() + newTask->period;
+
+    if( enable )
+    {
+      sRunQueue.push_back( newTask );
+      sRunQueue.sort( task_sort_compare );
+    }
 
     return newTask->uuid;
   }
@@ -279,7 +306,7 @@ namespace Orbit::COM::Scheduler
     /*-------------------------------------------------------------------------
     Update the task, keeping the same ID
     -------------------------------------------------------------------------*/
-    *oldTask = task;
+    *oldTask      = task;
     oldTask->uuid = id;
   }
 

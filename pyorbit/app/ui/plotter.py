@@ -44,10 +44,6 @@ class AbstractDataPlot(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def stream_parameter(self) -> ParameterId:
-        pass
-
-    @abc.abstractmethod
     def is_visible(self) -> bool:
         pass
 
@@ -120,9 +116,6 @@ class MotorSpeedPositionPlot(AbstractDataPlot):
 
     def attributes(self) -> List[PlotAttributes]:
         return self._attributes
-
-    def stream_parameter(self) -> ParameterId:
-        return ParameterId.StreamStateEstimates
 
     def is_visible(self) -> bool:
         window = QApplication.activeWindow()
@@ -204,7 +197,7 @@ class LiveDataPlotter(PlotWidget):
 
             # Try to request a live stream of the data
             logger.info(f"Enabling live stream of {self._data_plot.name()}")
-            if window.serial_client.parameter.set(self._data_plot.stream_parameter(), True):
+            if window.serial_client.stream_phase_currents(True):
                 self._plot_refresh_timer.start(LiveDataPlotter.PLOT_REFRESH_RATE_MS)
                 AppSettings.setValue(Settings.PLOT_LIVE_DATA, True)
             else:
@@ -216,7 +209,7 @@ class LiveDataPlotter(PlotWidget):
                 return
 
             logger.info(f"Disabling live stream of {self._data_plot.name()}")
-            if window.serial_client.parameter.set(self._data_plot.stream_parameter(), False):
+            if window.serial_client.stream_phase_currents(False):
                 self._plot_refresh_timer.stop()
                 AppSettings.setValue(Settings.PLOT_LIVE_DATA, False)
             else:

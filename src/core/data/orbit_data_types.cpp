@@ -116,12 +116,15 @@ namespace Orbit::Data
   {
     bootCount = 0;
     bootMode  = System::Mode::NORMAL;
+    v_dc_link = 0.0f;
+    v_isense  = 0.0f;
+    v_mcu     = 0.0f;
+    v_temp    = 0.0f;
   }
 
   void Information::setDefaults()
   {
-    bootCount = 0;
-    bootMode  = System::Mode::NORMAL;
+    clear();
   }
 
   /*---------------------------------------------------------------------------
@@ -143,11 +146,6 @@ namespace Orbit::Data
     /* Monitor Thresholds */
     peakCurrentThreshold = 0.0f;
     peakVoltageThreshold = 0.0f;
-
-    /* System Behavior */
-    streamPhaseCurrents  = false;
-    streamPwmCommands    = false;
-    streamStateEstimates = false;
   }
 
   void Configuration::setDefaults()
@@ -166,10 +164,5 @@ namespace Orbit::Data
     /* Monitor Thresholds */
     peakCurrentThreshold = DFLT_PEAK_PHASE_CURRENT;
     peakVoltageThreshold = DFLT_PEAK_VOLTAGE;
-
-    /* System Behavior */
-    streamPhaseCurrents  = false;
-    streamPwmCommands    = false;
-    streamStateEstimates = false;
   }
 }    // namespace Orbit::Data

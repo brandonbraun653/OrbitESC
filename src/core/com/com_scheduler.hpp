@@ -90,7 +90,20 @@ namespace Orbit::COM::Scheduler
     uint32_t nextRun;                  /**< Next time the task should run in milliseconds */
     void    *data;                     /**< Data to write. Must be persistent! (aka no stack memory) */
     uint32_t size;                     /**< Size of the data to write */
-    void ( *callback )( Task *const ); /**< (Optional) Function to call when the task runs */
+    void ( *updater )( Task *const );  /**< (Optional) Function to call when the task runs */
+
+    void clear()
+    {
+      endpoint = Endpoint::NUM_OPTIONS;
+      uuid     = INVALID_TASK_ID;
+      priority = Priority::NUM_OPTIONS;
+      period   = 0;
+      ttl      = TTL_INFINITE;
+      nextRun  = 0;
+      data     = nullptr;
+      size     = 0;
+      updater  = nullptr;
+    }
   };
 
   /*---------------------------------------------------------------------------
@@ -120,9 +133,10 @@ namespace Orbit::COM::Scheduler
    * This will not enable the task for execution. It must be enabled manually.
    *
    * @param task      Task to register
+   * @param enable    Enable the task for execution immediately
    * @return TaskId   Assigned unique ID of the task, or INVALID_TASK_ID if failed
    */
-  TaskId add( Task &task );
+  TaskId add( Task &task, const bool enable = false );
 
   /**
    * @brief Gets a reference to a task for inspection
