@@ -230,15 +230,6 @@ typedef struct _SystemDataMessage_ADCPhaseCurrents {
     float ic; /* Phase C current in Amps */
 } SystemDataMessage_ADCPhaseCurrents;
 
-/* Message type for SystemDataId::ADC_SYSTEM_VOLTAGES */
-typedef struct _SystemDataMessage_ADCSystemMeasurements {
-    uint32_t timestamp; /* System time of measurement in microseconds */
-    float v_mcu; /* Logic level supply voltage in Volts */
-    float v_dc_link; /* DC link voltage in Volts */
-    float v_temp; /* Temperature sensor voltage in Volts */
-    float v_isense; /* Current sense amplifier voltage reference in Volts */
-} SystemDataMessage_ADCSystemMeasurements;
-
 /* Message type for SystemDataId::PWM_COMMANDS */
 typedef struct _SystemDataMessage_ADCPhaseVoltages {
     uint32_t timestamp; /* System time of measurement in microseconds */
@@ -246,6 +237,15 @@ typedef struct _SystemDataMessage_ADCPhaseVoltages {
     float vb; /* Phase B voltage command in Volts */
     float vc; /* Phase C voltage command in Volts */
 } SystemDataMessage_ADCPhaseVoltages;
+
+/* Message type for SystemDataId::ADC_SYSTEM_VOLTAGES */
+typedef struct _SystemDataMessage_ADCSystemVoltages {
+    uint32_t timestamp; /* System time of measurement in microseconds */
+    float v_mcu; /* Logic level supply voltage in Volts */
+    float v_dc_link; /* DC link voltage in Volts */
+    float v_temp; /* Temperature sensor voltage in Volts */
+    float v_isense; /* Current sense amplifier voltage reference in Volts */
+} SystemDataMessage_ADCSystemVoltages;
 
 /* Message type for SystemDataId::STATE_ESTIMATES */
 typedef struct _SystemDataMessage_StateEstimates {
@@ -329,8 +329,8 @@ extern "C" {
 #define SwitchModeMessage_init_default           {Header_init_default, _BootMode_MIN}
 #define SystemDataMessage_init_default           {Header_init_default, _SystemDataId_MIN, false, {0, {0}}}
 #define SystemDataMessage_ADCPhaseCurrents_init_default {0, 0, 0, 0}
-#define SystemDataMessage_ADCSystemMeasurements_init_default {0, 0, 0, 0, 0}
 #define SystemDataMessage_ADCPhaseVoltages_init_default {0, 0, 0, 0}
+#define SystemDataMessage_ADCSystemVoltages_init_default {0, 0, 0, 0, 0}
 #define SystemDataMessage_StateEstimates_init_default {0, 0, 0}
 #define Header_init_zero                         {0, 0, 0}
 #define BaseMessage_init_zero                    {Header_init_zero}
@@ -345,8 +345,8 @@ extern "C" {
 #define SwitchModeMessage_init_zero              {Header_init_zero, _BootMode_MIN}
 #define SystemDataMessage_init_zero              {Header_init_zero, _SystemDataId_MIN, false, {0, {0}}}
 #define SystemDataMessage_ADCPhaseCurrents_init_zero {0, 0, 0, 0}
-#define SystemDataMessage_ADCSystemMeasurements_init_zero {0, 0, 0, 0, 0}
 #define SystemDataMessage_ADCPhaseVoltages_init_zero {0, 0, 0, 0}
+#define SystemDataMessage_ADCSystemVoltages_init_zero {0, 0, 0, 0, 0}
 #define SystemDataMessage_StateEstimates_init_zero {0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
@@ -389,15 +389,15 @@ extern "C" {
 #define SystemDataMessage_ADCPhaseCurrents_ia_tag 2
 #define SystemDataMessage_ADCPhaseCurrents_ib_tag 3
 #define SystemDataMessage_ADCPhaseCurrents_ic_tag 4
-#define SystemDataMessage_ADCSystemMeasurements_timestamp_tag 1
-#define SystemDataMessage_ADCSystemMeasurements_v_mcu_tag 2
-#define SystemDataMessage_ADCSystemMeasurements_v_dc_link_tag 3
-#define SystemDataMessage_ADCSystemMeasurements_v_temp_tag 4
-#define SystemDataMessage_ADCSystemMeasurements_v_isense_tag 5
 #define SystemDataMessage_ADCPhaseVoltages_timestamp_tag 1
 #define SystemDataMessage_ADCPhaseVoltages_va_tag 2
 #define SystemDataMessage_ADCPhaseVoltages_vb_tag 3
 #define SystemDataMessage_ADCPhaseVoltages_vc_tag 4
+#define SystemDataMessage_ADCSystemVoltages_timestamp_tag 1
+#define SystemDataMessage_ADCSystemVoltages_v_mcu_tag 2
+#define SystemDataMessage_ADCSystemVoltages_v_dc_link_tag 3
+#define SystemDataMessage_ADCSystemVoltages_v_temp_tag 4
+#define SystemDataMessage_ADCSystemVoltages_v_isense_tag 5
 #define SystemDataMessage_StateEstimates_timestamp_tag 1
 #define SystemDataMessage_StateEstimates_theta_est_tag 2
 #define SystemDataMessage_StateEstimates_omega_est_tag 3
@@ -504,15 +504,6 @@ X(a, STATIC,   REQUIRED, FLOAT,    ic,                4)
 #define SystemDataMessage_ADCPhaseCurrents_CALLBACK NULL
 #define SystemDataMessage_ADCPhaseCurrents_DEFAULT NULL
 
-#define SystemDataMessage_ADCSystemMeasurements_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, UINT32,   timestamp,         1) \
-X(a, STATIC,   REQUIRED, FLOAT,    v_mcu,             2) \
-X(a, STATIC,   REQUIRED, FLOAT,    v_dc_link,         3) \
-X(a, STATIC,   REQUIRED, FLOAT,    v_temp,            4) \
-X(a, STATIC,   REQUIRED, FLOAT,    v_isense,          5)
-#define SystemDataMessage_ADCSystemMeasurements_CALLBACK NULL
-#define SystemDataMessage_ADCSystemMeasurements_DEFAULT NULL
-
 #define SystemDataMessage_ADCPhaseVoltages_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, UINT32,   timestamp,         1) \
 X(a, STATIC,   REQUIRED, FLOAT,    va,                2) \
@@ -520,6 +511,15 @@ X(a, STATIC,   REQUIRED, FLOAT,    vb,                3) \
 X(a, STATIC,   REQUIRED, FLOAT,    vc,                4)
 #define SystemDataMessage_ADCPhaseVoltages_CALLBACK NULL
 #define SystemDataMessage_ADCPhaseVoltages_DEFAULT NULL
+
+#define SystemDataMessage_ADCSystemVoltages_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, UINT32,   timestamp,         1) \
+X(a, STATIC,   REQUIRED, FLOAT,    v_mcu,             2) \
+X(a, STATIC,   REQUIRED, FLOAT,    v_dc_link,         3) \
+X(a, STATIC,   REQUIRED, FLOAT,    v_temp,            4) \
+X(a, STATIC,   REQUIRED, FLOAT,    v_isense,          5)
+#define SystemDataMessage_ADCSystemVoltages_CALLBACK NULL
+#define SystemDataMessage_ADCSystemVoltages_DEFAULT NULL
 
 #define SystemDataMessage_StateEstimates_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, UINT32,   timestamp,         1) \
@@ -541,8 +541,8 @@ extern const pb_msgdesc_t SystemControlMessage_ManualICtrlSetPoint_msg;
 extern const pb_msgdesc_t SwitchModeMessage_msg;
 extern const pb_msgdesc_t SystemDataMessage_msg;
 extern const pb_msgdesc_t SystemDataMessage_ADCPhaseCurrents_msg;
-extern const pb_msgdesc_t SystemDataMessage_ADCSystemMeasurements_msg;
 extern const pb_msgdesc_t SystemDataMessage_ADCPhaseVoltages_msg;
+extern const pb_msgdesc_t SystemDataMessage_ADCSystemVoltages_msg;
 extern const pb_msgdesc_t SystemDataMessage_StateEstimates_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
@@ -559,8 +559,8 @@ extern const pb_msgdesc_t SystemDataMessage_StateEstimates_msg;
 #define SwitchModeMessage_fields &SwitchModeMessage_msg
 #define SystemDataMessage_fields &SystemDataMessage_msg
 #define SystemDataMessage_ADCPhaseCurrents_fields &SystemDataMessage_ADCPhaseCurrents_msg
-#define SystemDataMessage_ADCSystemMeasurements_fields &SystemDataMessage_ADCSystemMeasurements_msg
 #define SystemDataMessage_ADCPhaseVoltages_fields &SystemDataMessage_ADCPhaseVoltages_msg
+#define SystemDataMessage_ADCSystemVoltages_fields &SystemDataMessage_ADCSystemVoltages_msg
 #define SystemDataMessage_StateEstimates_fields &SystemDataMessage_StateEstimates_msg
 
 /* Maximum encoded size of messages (where known) */
@@ -575,7 +575,7 @@ extern const pb_msgdesc_t SystemDataMessage_StateEstimates_msg;
 #define SystemControlMessage_size                80
 #define SystemDataMessage_ADCPhaseCurrents_size  21
 #define SystemDataMessage_ADCPhaseVoltages_size  21
-#define SystemDataMessage_ADCSystemMeasurements_size 26
+#define SystemDataMessage_ADCSystemVoltages_size 26
 #define SystemDataMessage_StateEstimates_size    16
 #define SystemDataMessage_size                   48
 #define SystemInfoMessage_size                   69

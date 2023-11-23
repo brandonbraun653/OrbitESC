@@ -18,7 +18,6 @@ Includes
 #include <etl/vector.h>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/hw/orbit_tusb.h>
-#include <src/core/hw/orbit_usb_intf.h>
 #include <src/monitor/debug/segger_modules_intf.h>
 
 #include <tusb.h>

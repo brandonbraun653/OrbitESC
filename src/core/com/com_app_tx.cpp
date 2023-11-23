@@ -18,6 +18,7 @@ Includes
 #include <src/core/com/com_scheduler.hpp>
 #include <src/core/com/serial/serial_async_message.hpp>
 #include <src/core/data/orbit_data.hpp>
+#include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 #include <src/core/runtime/serial_runtime.hpp>
 
@@ -100,16 +101,16 @@ namespace Orbit::COM
     s_system_voltages.payload.header.uuid  = Serial::Message::getNextUUID();
     s_system_voltages.payload.id           = SystemDataId_ADC_SYSTEM_VOLTAGES;
     s_system_voltages.payload.has_data     = true;
-    s_system_voltages.payload.data.size    = sizeof( SystemDataMessage_ADCSystemMeasurements );
+    s_system_voltages.payload.data.size    = sizeof( SystemDataMessage_ADCSystemVoltages );
 
-    auto data = reinterpret_cast<SystemDataMessage_ADCSystemMeasurements *>( s_system_voltages.payload.data.bytes );
+    auto data = reinterpret_cast<SystemDataMessage_ADCSystemVoltages *>( s_system_voltages.payload.data.bytes );
     memset( data, 0, sizeof( s_system_voltages.payload.data.bytes ) );
 
     data->timestamp = Chimera::micros();
-    data->v_mcu     = 0.0f;
-    data->v_dc_link = 0.0f;
-    data->v_temp    = 0.0f;
-    data->v_isense  = 0.0f;
+    data->v_mcu     = Instrumentation::getMCUVoltage();
+    data->v_dc_link = Instrumentation::getSupplyVoltage();
+    data->v_temp    = Instrumentation::getTemperatureCelcius();
+    data->v_isense  = Instrumentation::getCurrentSenseReferenceVoltage();
 
     /*-------------------------------------------------------------------------
     Update the task data
@@ -206,7 +207,7 @@ namespace Orbit::COM
     -------------------------------------------------------------------------*/
     tsk.clear();
     tsk.updater  = update_system_voltages;
-    tsk.period   = hz_to_ms( 10 );
+    tsk.period   = hz_to_ms( 5 );
     tsk.endpoint = Scheduler::Endpoint::USB;
     tsk.priority = Scheduler::Priority::LOW;
     tsk.ttl      = Scheduler::TTL_INFINITE;

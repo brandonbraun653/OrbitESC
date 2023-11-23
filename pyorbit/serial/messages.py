@@ -63,7 +63,8 @@ class Mode(IntEnum):
 class SystemDataId(IntEnum):
     SYS_DATA_INVALID = proto.SYS_DATA_INVALID
     ADC_PHASE_CURRENTS = proto.ADC_PHASE_CURRENTS
-    PWM_COMMANDS = proto.PWM_COMMANDS
+    ADC_PHASE_VOLTAGES = proto.ADC_PHASE_VOLTAGES
+    ADC_SYSTEM_VOLTAGES = proto.ADC_SYSTEM_VOLTAGES
     STATE_ESTIMATES = proto.STATE_ESTIMATES
 
 
@@ -319,12 +320,21 @@ class SystemDataMessage(BaseMessage):
             ('phase_c', ctypes.c_float),
         ]
 
-    class PWMCommands(ctypes.Structure):
+    class ADCPhaseVoltages(ctypes.Structure):
         _fields_ = [
             ('timestamp', ctypes.c_uint32),
-            ('phase_a', ctypes.c_float),
-            ('phase_b', ctypes.c_float),
-            ('phase_c', ctypes.c_float),
+            ('va', ctypes.c_float),
+            ('vb', ctypes.c_float),
+            ('vc', ctypes.c_float),
+        ]
+
+    class ADCSystemVoltages(ctypes.Structure):
+        _fields_ = [
+            ('timestamp', ctypes.c_uint32),
+            ('v_mcu', ctypes.c_float),
+            ('v_dc_link', ctypes.c_float),
+            ('v_temp', ctypes.c_float),
+            ('v_isense', ctypes.c_float)
         ]
 
     class StateEstimates(ctypes.Structure):
@@ -336,7 +346,8 @@ class SystemDataMessage(BaseMessage):
 
     _id_to_type = {
         SystemDataId.ADC_PHASE_CURRENTS: ADCPhaseCurrents,
-        SystemDataId.PWM_COMMANDS: PWMCommands,
+        SystemDataId.ADC_PHASE_VOLTAGES: ADCPhaseVoltages,
+        SystemDataId.ADC_SYSTEM_VOLTAGES: ADCSystemVoltages,
         SystemDataId.STATE_ESTIMATES: StateEstimates,
     }
 

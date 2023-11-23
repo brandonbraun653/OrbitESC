@@ -45,10 +45,10 @@ PB_BIND(SystemDataMessage, SystemDataMessage, AUTO)
 PB_BIND(SystemDataMessage_ADCPhaseCurrents, SystemDataMessage_ADCPhaseCurrents, AUTO)
 
 
-PB_BIND(SystemDataMessage_ADCSystemMeasurements, SystemDataMessage_ADCSystemMeasurements, AUTO)
-
-
 PB_BIND(SystemDataMessage_ADCPhaseVoltages, SystemDataMessage_ADCPhaseVoltages, AUTO)
+
+
+PB_BIND(SystemDataMessage_ADCSystemVoltages, SystemDataMessage_ADCSystemVoltages, AUTO)
 
 
 PB_BIND(SystemDataMessage_StateEstimates, SystemDataMessage_StateEstimates, AUTO)
