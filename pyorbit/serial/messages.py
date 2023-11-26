@@ -315,9 +315,9 @@ class SystemDataMessage(BaseMessage):
     class ADCPhaseCurrents(ctypes.Structure):
         _fields_ = [
             ('timestamp', ctypes.c_uint32),
-            ('phase_a', ctypes.c_float),
-            ('phase_b', ctypes.c_float),
-            ('phase_c', ctypes.c_float),
+            ('ia', ctypes.c_float),
+            ('ib', ctypes.c_float),
+            ('ic', ctypes.c_float),
         ]
 
     class ADCPhaseVoltages(ctypes.Structure):
@@ -373,7 +373,7 @@ class SystemDataMessage(BaseMessage):
     def data(self, data: bytes):
         self._pb_msg.data = data
 
-    def convert_to_message_type(self) -> Union[None, ADCPhaseCurrents]:
+    def convert_to_message_type(self) -> Union[None, ctypes.Structure]:
         """
         Converts the data field to the appropriate message type based on the data_id field.
         Returns:

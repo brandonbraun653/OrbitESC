@@ -13,6 +13,8 @@ from __future__ import annotations
 import copy
 import time
 from functools import cmp_to_key
+from queue import Queue
+
 from loguru import logger
 from typing import Dict, List, Callable, Optional
 from pyorbit.serial.messages import *
@@ -95,7 +97,7 @@ class ConsoleObserver(MessageObserver):
                     self._in_progress_frames.pop(uuid)
 
 
-class ResponseObserver(MessageObserver):
+class TransactionResponseObserver(MessageObserver):
     """ Observer for listening to the response of a specific message """
 
     def __init__(self, txn_uuid: int, timeout: Union[int, float]):
@@ -129,4 +131,54 @@ class ResponseObserver(MessageObserver):
             return
         elif not self._event.is_set() and (self._txn_uuid == _msg.uuid):
             self._result = copy.copy(_msg)
+            self._event.set()
+
+
+class PredicateObserver(MessageObserver):
+    """ Observer that accepts messages based on a user defined predicate """
+
+    def __init__(self, func: Callable[[BaseMessage], bool], qty: int = 1, timeout: Union[int, float] = 1.0):
+        """
+        Args:
+            func: Predicate function that accepts a message and returns True if it should be accepted
+            qty: Number of messages to accept before terminating
+            timeout: How long to wait for the quantity limits to be satisfied
+        """
+        assert qty > 0, "Must observe at least one message"
+        assert timeout > 0, "Timeout must be greater than zero"
+
+        super().__init__(func=self._predicate_matcher_observer, msg_type=type(None), timeout=timeout)
+        self._event = Event()
+        self._msg_queue = Queue(qty)
+        self._timeout = timeout
+        self._predicate = func
+
+    def wait(self) -> Optional[List[BaseMessage]]:
+        """
+        Waits for the response(s) to the message predicate we're observing
+        Returns:
+            Response message(s)
+        """
+        self._event.wait(timeout=self._timeout)
+        return list(self._msg_queue.queue)
+
+    def _predicate_matcher_observer(self, msg: BaseMessage) -> None:
+        """
+        Callback for the observer. Will only accept messages that pass the user defined
+        predicate.
+        Args:
+            msg: Message being observed
+
+        Returns:
+            None
+        """
+        if not isinstance(msg, BaseMessage):
+            return
+
+        # Accept the message if we can
+        if not self._event.is_set() and not self._msg_queue.full() and self._predicate(msg):
+            self._msg_queue.put(copy.copy(msg))
+
+        # Notify the listener if we're done
+        if self._msg_queue.full() and not self._event.is_set():
             self._event.set()

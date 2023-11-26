@@ -22,19 +22,10 @@ Includes
 
 namespace Orbit::Tasks::COM
 {
-  std::array<char, 32> test_msg;
-
-  static void msg_callback( Orbit::COM::Scheduler::Task *tsk )
-  {
-    test_msg.fill( 0 );
-    npf_snprintf( test_msg.data(), test_msg.size(), "%d: Hello World!\r\n", Chimera::millis() );
-
-    tsk->size = strlen( test_msg.data() );
-  }
-
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+
   void COMThread( void *arg ){
 
     /*-------------------------------------------------------------------------
@@ -47,19 +38,6 @@ namespace Orbit::Tasks::COM
     -------------------------------------------------------------------------*/
     Orbit::CAN::initRuntime();
     Orbit::Serial::initRuntime();
-
-    Orbit::COM::Scheduler::Task tsk;
-    tsk.updater = msg_callback;
-    tsk.data     = test_msg.data();
-    tsk.endpoint = Orbit::COM::Scheduler::Endpoint::UART;
-    tsk.period   = 5;
-    tsk.priority = Orbit::COM::Scheduler::Priority::NORMAL;
-    tsk.size     = strlen( test_msg.data() );
-    tsk.ttl      = Orbit::COM::Scheduler::TTL_INFINITE;
-
-    auto id = Orbit::COM::Scheduler::add( tsk );
-    Orbit::COM::Scheduler::enable( id );
-
     Orbit::COM::initPeriodicData();
 
     /*-------------------------------------------------------------------------

@@ -9,7 +9,7 @@
 # **********************************************************************************************************************
 import queue
 import time
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Callable
 
 import pyorbit.nanopb.serial_interface_pb2 as proto
 import google.protobuf.message as g_proto_msg
@@ -20,7 +20,7 @@ from threading import Thread, Event
 from queue import Queue
 from pyorbit.publisher import Publisher
 from pyorbit.serial.messages import BaseMessage, AckNackMessage, StatusCode
-from pyorbit.serial.observers import ResponseObserver
+from pyorbit.serial.observers import TransactionResponseObserver, PredicateObserver
 from pyorbit.serial.parameters import MessageTypeMap
 
 
@@ -42,7 +42,6 @@ class SerialPipePublisher(Publisher):
         # RX resources
         self._rx_thread = Thread()
         self._rx_msgs = Queue()
-        self._rx_frames: List[bytes] = []
         self._rx_byte_buffer = bytearray()
 
         # Dispatch resources
@@ -60,7 +59,6 @@ class SerialPipePublisher(Publisher):
         """
         # Clear memory
         self._rx_msgs = Queue()
-        self._rx_frames = []
 
         # Open the serial port with the desired configuration
         self._serial.port = port
@@ -116,7 +114,7 @@ class SerialPipePublisher(Publisher):
         Returns:
             Response message
         """
-        observer = ResponseObserver(txn_uuid=msg.uuid, timeout=timeout)
+        observer = TransactionResponseObserver(txn_uuid=msg.uuid, timeout=timeout)
         sub_id = self.subscribe_observer(observer)
 
         # Send the message and wait for the response
@@ -126,6 +124,26 @@ class SerialPipePublisher(Publisher):
         # Clean up the observer
         self.unsubscribe(sub_id)
         return result
+
+    def filter(self, predicate: Callable[[BaseMessage], bool], qty: int = 1, timeout: Union[int, float] = 1.0) -> List[
+               BaseMessage]:
+        """
+        Filters incoming the incoming message stream based on a user defined predicate, then returns the
+        messages that fulfilled the predicate.
+
+        Args:
+            predicate: User defined predicate function
+            qty: Number of messages to accept before terminating
+            timeout: Time to wait for the predicate to be fulfilled
+
+        Returns:
+            List of messages that fulfilled the predicate
+        """
+        observer = PredicateObserver(func=predicate, qty=qty, timeout=timeout)
+        sub_id = self.subscribe_observer(observer)
+        results = observer.wait()
+        self.unsubscribe(sub_id)
+        return results
 
     @staticmethod
     def process_ack_nack_response(msg: BaseMessage, error_string: str = None) -> bool:
@@ -185,18 +203,12 @@ class SerialPipePublisher(Publisher):
             # Fill the cache with the raw data from the bus
             if new_data := self._serial.read_all():
                 self._rx_byte_buffer.extend(new_data)
-                logger.trace(f"Received {len(new_data)} bytes: {new_data}")
+                logger.trace(f"Received {len(new_data)} bytes")
             elif not len(self._rx_byte_buffer):
                 continue
 
             # Parse the data in the cache to extract all waiting COBS frames
             self._rx_decode_available_cobs_frames()
-
-            # Parse each decoded frame into a higher level message type
-            for frame in self._rx_frames:
-                if full_msg := self._decode_pb_frame(frame):
-                    self._rx_msgs.put(full_msg)
-                    logger.trace(f"Received message type {full_msg.name}. UUID: {full_msg.uuid}")
 
         logger.trace("Terminating OrbitESC internal Serial message decoder")
 
@@ -234,9 +246,11 @@ class SerialPipePublisher(Publisher):
                 # Remove the frame from the buffer by slicing it out
                 self._rx_byte_buffer = self._rx_byte_buffer[eof_idx + 1:]
 
-                # Decode the message and store it in our RX buffer
-                if decoded_frame := self._decode_cobs_frame(cobs_frame):
-                    self._rx_frames.append(decoded_frame)
+                # Decode the message into a higher level message type
+                if pb_frame := self._decode_cobs_frame(cobs_frame):
+                    if full_msg := self._decode_pb_frame(pb_frame):
+                        self._rx_msgs.put(full_msg)
+                        logger.trace(f"Received message type {full_msg.name}. UUID: {full_msg.uuid}")
 
         except ValueError:
             # No more frames available

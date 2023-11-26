@@ -113,7 +113,7 @@ namespace Orbit::Instrumentation
     constexpr float NTC_NOM_RES  = 10000.0f;    // NTC
     constexpr float NTC_BETA     = 3413.0f;     // Beta value @25-75C
     constexpr float NTC_NOM_TEMP = 25.0f;       // Nominal temperature
-    constexpr float R2           = 10000.0f;
+    constexpr float R2           = 10000.0f;    // Resistor divider
 
     /*-------------------------------------------------------------------------
     Get the ADC reading
@@ -138,6 +138,15 @@ namespace Orbit::Instrumentation
   }
 
 
+  float getTemperatureVoltage()
+  {
+    /*-------------------------------------------------------------------------
+    Return the raw ADC voltage without any conversion
+    -------------------------------------------------------------------------*/
+    return counts_to_voltage( s_adc_samples[ CHANNEL_TEMP ] );
+  }
+
+
   float getSupplyVoltage()
   {
     /*-------------------------------------------------------------------------
@@ -159,7 +168,7 @@ namespace Orbit::Instrumentation
     Resistor Divider
     -------------------------------------------------------------------------*/
     constexpr float R1 = 10000.0f;
-    constexpr float R2 = 1500.0f;
+    constexpr float R2 = 10000.0f;
 
     /*-------------------------------------------------------------------------
     Get the ADC reading

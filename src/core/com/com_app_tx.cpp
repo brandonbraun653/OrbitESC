@@ -43,6 +43,7 @@ namespace Orbit::COM
   static Serial::Message::SysData s_phase_currents;
   static Serial::Message::SysData s_phase_voltages;
   static Serial::Message::SysData s_system_voltages;
+  static Serial::Message::SysTick s_system_tick;
 
   /*---------------------------------------------------------------------------
   Private Functions
@@ -109,7 +110,7 @@ namespace Orbit::COM
     data->timestamp = Chimera::micros();
     data->v_mcu     = Instrumentation::getMCUVoltage();
     data->v_dc_link = Instrumentation::getSupplyVoltage();
-    data->v_temp    = Instrumentation::getTemperatureCelcius();
+    data->v_temp    = Instrumentation::getTemperatureVoltage();
     data->v_isense  = Instrumentation::getCurrentSenseReferenceVoltage();
 
     /*-------------------------------------------------------------------------
@@ -159,6 +160,33 @@ namespace Orbit::COM
     }
   }
 
+
+  /**
+   * @brief Update the system tick periodic data
+   *
+   * @param task  The task to update
+   * @return void
+   */
+  static void update_system_tick( Scheduler::Task *task )
+  {
+    /*-------------------------------------------------------------------------
+    Pack the message data
+    -------------------------------------------------------------------------*/
+    s_system_tick.payload.header.msgId = MsgId_MSG_SYS_TICK;
+    s_system_tick.payload.header.subId = 0;
+    s_system_tick.payload.header.uuid  = Serial::Message::getNextUUID();
+    s_system_tick.payload.tick         = Chimera::millis();
+
+    /*-------------------------------------------------------------------------
+    Update the task data
+    -------------------------------------------------------------------------*/
+    if( Serial::Message::encode( &s_system_tick.state ) == Chimera::Status::OK )
+    {
+      task->data = s_system_tick.state.IOBuffer;
+      task->size = s_system_tick.state.EncodedSize;
+    }
+  }
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
@@ -184,7 +212,7 @@ namespace Orbit::COM
     tsk.data     = s_phase_currents.state.IOBuffer;
     tsk.size     = 0;
 
-    s_stream_ids[ STREAM_ID_PHASE_CURRENTS ] = Scheduler::add( tsk, true );
+    s_stream_ids[ STREAM_ID_PHASE_CURRENTS ] = Scheduler::add( tsk );
     RT_DBG_ASSERT( s_stream_ids[ STREAM_ID_PHASE_CURRENTS ] != Scheduler::INVALID_TASK_ID );
 
     /*-------------------------------------------------------------------------
@@ -199,7 +227,7 @@ namespace Orbit::COM
     tsk.data     = s_phase_voltages.state.IOBuffer;
     tsk.size     = 0;
 
-    s_stream_ids[ STREAM_ID_PHASE_VOLTAGES ] = Scheduler::add( tsk, true );
+    s_stream_ids[ STREAM_ID_PHASE_VOLTAGES ] = Scheduler::add( tsk );
     RT_DBG_ASSERT( s_stream_ids[ STREAM_ID_PHASE_VOLTAGES ] != Scheduler::INVALID_TASK_ID );
 
     /*-------------------------------------------------------------------------
@@ -217,7 +245,20 @@ namespace Orbit::COM
     s_stream_ids[ STREAM_ID_SYSTEM_VOLTAGES ] = Scheduler::add( tsk, true );
     RT_DBG_ASSERT( s_stream_ids[ STREAM_ID_SYSTEM_VOLTAGES ] != Scheduler::INVALID_TASK_ID );
 
-    Scheduler::enable( s_stream_ids[ STREAM_ID_PHASE_CURRENTS ] );
+    /*-------------------------------------------------------------------------
+    Register the system tick publishing task
+    -------------------------------------------------------------------------*/
+    tsk.clear();
+    tsk.updater  = update_system_tick;
+    tsk.period   = hz_to_ms( 10 );
+    tsk.endpoint = Scheduler::Endpoint::USB;
+    tsk.priority = Scheduler::Priority::LOW;
+    tsk.ttl      = Scheduler::TTL_INFINITE;
+    tsk.data     = s_system_tick.state.IOBuffer;
+    tsk.size     = 0;
+
+    s_stream_ids[ STREAM_ID_SYSTEM_TICK ] = Scheduler::add( tsk, true );
+    RT_DBG_ASSERT( s_stream_ids[ STREAM_ID_SYSTEM_TICK ] != Scheduler::INVALID_TASK_ID );
   }
 
 

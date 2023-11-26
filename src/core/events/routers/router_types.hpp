@@ -35,7 +35,7 @@ namespace Orbit::Event
   Classes
   ---------------------------------------------------------------------------*/
 
-  class CoreControlRouter : public etl::message_router<CoreControlRouter, SystemReset>
+  class CoreControlRouter : public etl::message_router<CoreControlRouter, SystemReset, StreamPhaseCurrents>
   {
   public:
     CoreControlRouter();

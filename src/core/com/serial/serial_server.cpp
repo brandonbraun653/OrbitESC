@@ -52,7 +52,7 @@ namespace Orbit::Serial
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  DispatchServer::DispatchServer() : mSerial( nullptr ), mRXBuffer( nullptr ), mLastTick( 0 ), mLastValidMsg( 0 )
+  DispatchServer::DispatchServer() : mSerial( nullptr ), mRXBuffer( nullptr ), mLastValidMsg( 0 )
   {
   }
 
@@ -76,8 +76,7 @@ namespace Orbit::Serial
     Initialize memory
     -------------------------------------------------------------------------*/
     mRXBuffer->clear();
-    mLastTick     = Chimera::millis();
-    mLastValidMsg = mLastTick;
+    mLastValidMsg = Chimera::millis();
 
     return Chimera::Status::OK;
   }
@@ -90,22 +89,6 @@ namespace Orbit::Serial
     -------------------------------------------------------------------------*/
     this->dispatchMessages();
     this->accumulateMessages();
-
-    /*-------------------------------------------------------------------------
-    Ship the system tick message as needed
-    -------------------------------------------------------------------------*/
-    size_t current_tick = Chimera::millis();
-    if( ( current_tick - mLastTick ) >= 100 )
-    {
-      Message::SysTick tick;
-      tick.payload.header.msgId = Message::MSG_SYS_TICK;
-      tick.payload.tick         = current_tick;
-
-      Message::encode( &tick.state );
-      Message::send( &tick.state, mSerial );
-
-      mLastTick = current_tick;
-    }
   }
 
 

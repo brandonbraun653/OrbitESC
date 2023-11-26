@@ -72,7 +72,6 @@ namespace Orbit::Serial
 
     Chimera::Serial::Driver_rPtr    mSerial;       /**< Serial port to communicate with */
     etl::icircular_buffer<uint8_t> *mRXBuffer;     /**< Input ring buffer for accumulating messages */
-    size_t                          mLastTick;     /**< Last time tick was TX'd */
     size_t                          mLastValidMsg; /**< Last time a valid message was received and decoded */
 
     void dispatchMessages();

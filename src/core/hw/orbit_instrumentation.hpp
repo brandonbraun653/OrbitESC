@@ -62,6 +62,12 @@ namespace Orbit::Instrumentation
   float getTemperatureCelcius();
 
   /**
+   * @brief Gets the voltage of the temperature sensor in volts
+   * @return float
+   */
+  float getTemperatureVoltage();
+
+  /**
    * @brief Gets the current supply voltage in volts
    * @return float
    */
