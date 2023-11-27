@@ -12,6 +12,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/thread>
+#include <src/core/hw/orbit_led.hpp>
 #include <src/core/hw/orbit_usb.hpp>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_usb.hpp>
@@ -33,6 +34,7 @@ namespace Orbit::Tasks::USB
     Run the USB thread
     -------------------------------------------------------------------------*/
     Orbit::USB::powerUp();
+    Orbit::LED::attachUSBActiveListener();
 
     while ( 1 )
     {

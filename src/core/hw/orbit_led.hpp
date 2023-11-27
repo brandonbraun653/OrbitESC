@@ -121,6 +121,22 @@ namespace Orbit::LED
    */
   void toggleChannel( const Channel channel );
 
+  /**
+   * @brief Process the state of active LEDs
+   * @return void
+   */
+  void process();
+
+  /**
+   * @brief Registers callbacks with the USB subsystem to indicate when USB is active.
+   *
+   * This is a delayed operation that must be called after the USB driver has been
+   * initialized.
+   *
+   * @return void
+   */
+  void attachUSBActiveListener();
+
 }    // namespace Orbit::LED
 
 #endif /* !ORBIT_LED_DRIVER_HPP */

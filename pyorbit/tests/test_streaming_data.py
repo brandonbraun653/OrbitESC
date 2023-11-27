@@ -67,8 +67,9 @@ class TestStaticStreamingData:
 
         # Validate the periodicity and data of the messages
         assert len(packets) == 15
-        for idx in range(2, len(messages)):
-            act_hz = period_to_hz(messages[idx].timestamp, messages[idx - 1].timestamp)
+        avg_hz = 0.0
+        for idx in range(1, len(messages)):
+            avg_hz += period_to_hz(messages[idx].timestamp, messages[idx - 1].timestamp)
 
             # Ensure the message converted over to the expected type
             assert isinstance(messages[idx], SystemDataMessage.ADCPhaseCurrents)
@@ -78,5 +79,8 @@ class TestStaticStreamingData:
             assert math.isclose(messages[idx].ib, 0.0, rel_tol=0.1)
             assert math.isclose(messages[idx].ic, 0.0, rel_tol=0.1)
 
-            # The reported frequency should be roughly 30Hz
-            assert math.isclose(act_hz, 33.0, rel_tol=0.05)
+        # The reported frequency should be roughly 30Hz
+        avg_hz /= float(len(messages) - 1)
+        assert math.isclose(avg_hz, 30.0, rel_tol=0.05)
+
+

@@ -17,6 +17,8 @@ Includes
 #include <Chimera/thread>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/hw/orbit_led.hpp>
+#include <src/core/hw/orbit_usb.hpp>
+#include <src/core/data/orbit_data.hpp>
 
 
 namespace Orbit::LED
@@ -27,11 +29,23 @@ namespace Orbit::LED
   static_assert( NUM_LEDS < 8, "Invalid number of LEDs" );
 
   /*---------------------------------------------------------------------------
+  Constants
+  ---------------------------------------------------------------------------*/
+  static constexpr float IDLE_FLASH_DELAY       = 100.0f;
+  static constexpr float IDLE_HOLD_DELAY        = 450.0f;
+  static constexpr float USB_ACTIVE_FLASH_DELAY = 50.0f;
+  static constexpr float USB_ACTIVE_HOLD_DELAY  = 225.0f;
+
+  /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static Chimera::Thread::Mutex s_data_lock;     /* Threading protection */
-  static uint8_t                s_led_state;     /* Cached LED state */
-  static uint8_t                s_prv_led_state; /* Last LED state */
+
+  static Chimera::Thread::Mutex s_data_lock;       /* Threading protection */
+  static uint8_t                s_led_state;       /* Cached LED state */
+  static uint8_t                s_prv_led_state;   /* Last LED state */
+  static float                  s_flash_delay;     /* LED flashing active delay */
+  static float                  s_hold_delay;      /* LED flashing inactive delay */
+  static uint32_t               s_next_flash_time; /* Next time a flashing action is taken */
 
 #if defined( ORBIT_ESC_V3 )
   static Chimera::GPIO::Driver_rPtr s_led_pins[ NUM_LEDS ]; /* LED pins */
@@ -104,7 +118,7 @@ namespace Orbit::LED
     RT_HARD_ASSERT( s_led_pins[ FAULT_POS ]->init( IO::Digital::ledFaultPinInit ) == Chimera::Status::OK );
 
     /*-------------------------------------------------------------------------
-    Armed LED 
+    Armed LED
     -------------------------------------------------------------------------*/
     s_led_pins[ ARMED_POS ] = Chimera::GPIO::getDriver( IO::Digital::ledArmedPort, IO::Digital::ledArmedPin );
     RT_HARD_ASSERT( s_led_pins[ ARMED_POS ] );
@@ -118,7 +132,7 @@ namespace Orbit::LED
     RT_HARD_ASSERT( s_led_pins[ HEARTBEAT_POS ]->init( IO::Digital::ledHeartbeatPinInit ) == Chimera::Status::OK );
 
     /*-------------------------------------------------------------------------
-    CAN Active LED  
+    CAN Active LED
     -------------------------------------------------------------------------*/
     s_led_pins[ CAN_ACTIVE_POS ] = Chimera::GPIO::getDriver( IO::Digital::ledCANActivePort, IO::Digital::ledCANActivePin );
     RT_HARD_ASSERT( s_led_pins[ CAN_ACTIVE_POS ] );
@@ -138,14 +152,14 @@ namespace Orbit::LED
     constexpr Chimera::GPIO::State LED_ON  = Chimera::GPIO::State::HIGH;
     constexpr Chimera::GPIO::State LED_OFF = Chimera::GPIO::State::LOW;
 
-    for ( size_t x = 0; x < ARRAY_COUNT( s_led_pins ); x++ )
+    for( size_t x = 0; x < ARRAY_COUNT( s_led_pins ); x++ )
     {
-      if ( !s_led_pins[ x ] )
+      if( !s_led_pins[ x ] )
       {
         continue;
       }
 
-      if ( s_led_state & ( 1 << x ) )
+      if( s_led_state & ( 1 << x ) )
       {
         s_led_pins[ x ]->setState( LED_ON );
       }
@@ -157,9 +171,24 @@ namespace Orbit::LED
   }
 #endif /* ORBIT_ESC_V3 */
 
+
+  static void usb_connect()
+  {
+    s_flash_delay = USB_ACTIVE_FLASH_DELAY;
+    s_hold_delay  = USB_ACTIVE_HOLD_DELAY;
+  }
+
+
+  static void usb_disconnect()
+  {
+    s_flash_delay = IDLE_FLASH_DELAY;
+    s_hold_delay  = IDLE_HOLD_DELAY;
+  }
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+
   void powerUp()
   {
     /*-------------------------------------------------------------------------
@@ -175,8 +204,11 @@ namespace Orbit::LED
     Reset the module data
     -------------------------------------------------------------------------*/
     s_data_lock.unlock();
-    s_led_state     = 0x00;
-    s_prv_led_state = 0xFF;
+    s_led_state       = 0x00;
+    s_prv_led_state   = 0xFF;
+    s_flash_delay     = IDLE_FLASH_DELAY;
+    s_hold_delay      = IDLE_HOLD_DELAY;
+    s_next_flash_time = 0;
 
     /*-------------------------------------------------------------------------
     Update the LED output to idle
@@ -190,7 +222,7 @@ namespace Orbit::LED
     /*-------------------------------------------------------------------------
     Only send the update if the data has changed
     -------------------------------------------------------------------------*/
-    if ( s_led_state == s_prv_led_state )
+    if( s_led_state == s_prv_led_state )
     {
       return;
     }
@@ -209,7 +241,7 @@ namespace Orbit::LED
   void setChannel( const Channel channel )
   {
     Chimera::Thread::LockGuard _lck( s_data_lock );
-    if ( channel < Channel::NUM_OPTIONS )
+    if( channel < Channel::NUM_OPTIONS )
     {
       s_led_state |= ( channel & ALL_LED_MSK );
     }
@@ -219,7 +251,7 @@ namespace Orbit::LED
   void clearChannel( const Channel channel )
   {
     Chimera::Thread::LockGuard _lck( s_data_lock );
-    if ( channel < Channel::NUM_OPTIONS )
+    if( channel < Channel::NUM_OPTIONS )
     {
       s_led_state &= ~channel;
     }
@@ -229,9 +261,53 @@ namespace Orbit::LED
   void toggleChannel( const Channel channel )
   {
     Chimera::Thread::LockGuard _lck( s_data_lock );
-    if ( channel < Channel::NUM_OPTIONS )
+    if( channel < Channel::NUM_OPTIONS )
     {
       s_led_state ^= channel;
     }
+  }
+
+
+  void process()
+  {
+    static uint32_t toggle_count = 0;
+
+    /*-------------------------------------------------------------------------
+    Compute some timing values
+    -------------------------------------------------------------------------*/
+    const uint32_t currentTime = Chimera::millis();
+    const uint32_t flash_delay = static_cast<uint32_t>( s_flash_delay * Data::SysConfig.activityLedScaler );
+    const uint32_t hold_delay  = static_cast<uint32_t>( s_hold_delay * Data::SysConfig.activityLedScaler );
+
+    /*-------------------------------------------------------------------------
+    Flash the heartbeat LED
+    -------------------------------------------------------------------------*/
+    if( currentTime >= s_next_flash_time )
+    {
+      if( toggle_count < 4 )    // On, Off, On, Off: Constant rate
+      {
+        LED::toggleChannel( LED::Channel::HEARTBEAT );
+        s_next_flash_time = currentTime + flash_delay;
+        toggle_count++;
+      }
+      else    // Off: Hold for a bit
+      {
+        s_next_flash_time = currentTime + hold_delay;
+        toggle_count      = 0;
+        LED::clearChannel( LED::Channel::HEARTBEAT );
+      }
+    }
+  }
+
+
+  void attachUSBActiveListener()
+  {
+    using namespace Chimera::Function;
+
+    /*-------------------------------------------------------------------------
+    Register USB connection status callbacks
+    -------------------------------------------------------------------------*/
+    RT_HARD_ASSERT( Orbit::USB::onConnect( Opaque::create<usb_connect>() ) );
+    RT_HARD_ASSERT( Orbit::USB::onDisconnect( Opaque::create<usb_disconnect>() ) );
   }
 }    // namespace Orbit::LED

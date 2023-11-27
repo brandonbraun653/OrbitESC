@@ -14,7 +14,6 @@ Includes
 #include <Aurora/utility>
 #include <Chimera/thread>
 #include <src/core/com/com_app_tx.hpp>
-#include <src/core/com/com_scheduler.hpp>
 #include <src/core/runtime/can_runtime.hpp>
 #include <src/core/runtime/serial_runtime.hpp>
 #include <src/core/tasks.hpp>
@@ -51,11 +50,6 @@ namespace Orbit::Tasks::COM
       -----------------------------------------------------------------------*/
       Orbit::CAN::processCANBus();
       Orbit::Serial::processSerial();
-
-      /*-----------------------------------------------------------------------
-      Publish available data to the remote host
-      -----------------------------------------------------------------------*/
-      Orbit::COM::Scheduler::process();
 
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically
