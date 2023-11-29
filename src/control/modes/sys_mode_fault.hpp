@@ -23,7 +23,7 @@ namespace Orbit::Control::State
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
-  class Fault : public etl::fsm_state<FOC, Fault, ModeId::FAULT, MsgEmergencyHalt, MsgArm, MsgFault>
+  class Fault : public etl::fsm_state<FOC::StateMachine, Fault, ModeId::FAULT, MsgEmergencyHalt, MsgArm, MsgFault>
   {
   public:
     void on_exit_state() final override;

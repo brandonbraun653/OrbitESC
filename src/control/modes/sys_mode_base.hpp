@@ -5,7 +5,7 @@
  *  Description:
  *    System mode controller
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -18,6 +18,7 @@ Includes
 #include <Aurora/logging>
 #include <etl/fsm.h>
 #include <etl/message.h>
+#include <etl/string_view.h>
 #include <limits>
 #include <src/control/foc_data.hpp>
 
@@ -102,17 +103,17 @@ namespace Orbit::Control
    * @brief Gets a stringified name of the event
    *
    * @param event   Which event to get the name of
-   * @return const std::string_view&
+   * @return const etl::string_view&
    */
-  const std::string_view &getMessageString( const EventId_t event );
+  const etl::string_view &getMessageString( const EventId_t event );
 
   /**
    * @brief Gets a stringified name of the mode
    *
    * @param state   Which mode to look up
-   * @return const std::string_view&
+   * @return const etl::string_view&
    */
-  const std::string_view &getModeString( const ModeId_t mode );
+  const etl::string_view &getModeString( const ModeId_t mode );
 
 }    // namespace Orbit::Control
 

@@ -24,6 +24,26 @@ Includes
 namespace Orbit::Control::FOC
 {
   /*---------------------------------------------------------------------------
+  Public Classes
+  ---------------------------------------------------------------------------*/
+
+  /**
+   * @brief State machine for the FOC controller.
+   *
+   * This class forms the shared context for all of the state controllers. It
+   * is responsible for managing the state transitions and dispatching messages.
+   *
+   * All state controllers use CRTP to inherit from this class. This allows the
+   * state controllers to access the shared context and handle messages.
+   */
+  class StateMachine : public etl::fsm
+  {
+  public:
+    StateMachine();
+    void logUnhandledMessage( const etl::imessage &msg );
+  };
+
+  /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
 

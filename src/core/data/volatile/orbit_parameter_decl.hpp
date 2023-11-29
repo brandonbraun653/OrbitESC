@@ -18,7 +18,7 @@ Includes
 #include <array>
 #include <algorithm>
 #include <cstddef>
-#include <src/core/com/serial/serial_interface.pb.h>
+#include <src/core/com/proto/serial_interface.pb.h>
 #include <src/core/data/volatile/orbit_parameter_type.hpp>
 #include <src/core/data/volatile/orbit_parameter_validators.hpp>
 #include <src/core/data/orbit_data.hpp>

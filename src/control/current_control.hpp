@@ -44,6 +44,12 @@ namespace Orbit::Control::Field
   void powerUp();
 
   /**
+   * @brief Powers off the FOC controller hardware and algorithms
+   * @return void
+   */
+  void powerDn();
+
+  /**
    * @brief Set a control mode for the FOC controller
    * @return True if the mode entered successfully
    */

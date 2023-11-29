@@ -42,9 +42,24 @@ namespace Orbit::Control::FOC
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static etl::fsm s_ctrl_fsm( MOTOR_STATE_ROUTER_ID );
+  static StateMachine s_ctrl_fsm;
   static SuperState                       mState;            /**< Entire FOC subsystem state */
   static std::array<etl::ifsm_state *, ModeId::NUM_STATES> mFSMStateArray; /**< Storage for the FSM state controllers */
+
+
+  /*---------------------------------------------------------------------------
+  StateMachine Implementation
+  ---------------------------------------------------------------------------*/
+  StateMachine::StateMachine() : fsm( MOTOR_STATE_ROUTER_ID )
+  {
+  }
+
+  void StateMachine::logUnhandledMessage( const etl::imessage &msg )
+  {
+    LOG_WARN( "%s message not handled from state %s",
+              getMessageString( msg.get_message_id() ).data(),
+              getModeString( get_state_id() ).data() );
+  }
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -175,13 +190,6 @@ namespace Orbit::Control::FOC
   ModeId_t currentMode()
   {
     return s_ctrl_fsm.get_state_id();
-  }
-
-
-  void logUnhandledMessage( const etl::imessage &msg )
-  {
-    // LOG_WARN( "%s message not handled from state %s\r\n", getMessageString( msg.get_message_id() ).data(),
-    //           getModeString( get_state_id() ).data() );
   }
 
 

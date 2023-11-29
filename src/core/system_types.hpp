@@ -16,7 +16,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <cstdint>
-#include <src/core/com/serial/serial_interface.pb.h>
+#include <src/core/com/proto/serial_interface.pb.h>
 
 namespace Orbit::System
 {

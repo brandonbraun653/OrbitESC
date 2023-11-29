@@ -114,6 +114,11 @@ namespace Orbit::Control::Field
   }
 
 
+  void powerDn()
+  {
+  }
+
+
   bool setControlMode( const Mode mode )
   {
     /*-------------------------------------------------------------------------

@@ -23,7 +23,7 @@ namespace Orbit::Control::State
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
-  class Idle : public etl::fsm_state<FOC, Idle, ModeId::IDLE, MsgEmergencyHalt, MsgArm, MsgFault>
+  class Idle : public etl::fsm_state<FOC::StateMachine, Idle, ModeId::IDLE, MsgEmergencyHalt, MsgArm, MsgFault>
   {
   public:
     void on_exit_state() final override;

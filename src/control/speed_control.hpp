@@ -43,6 +43,12 @@ namespace Orbit::Control::Speed
   void powerUp();
 
   /**
+   * @brief Powers off the speed controller hardware and algorithms
+   * @return void
+   */
+  void powerDn();
+
+  /**
    * @brief Set a control mode for the speed controller
    * @return True if the mode entered successfully
    */

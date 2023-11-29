@@ -180,6 +180,10 @@ namespace Orbit::Control::Speed
     s_speed_ctrl_timer.enable();
   }
 
+  void powerDn()
+  {
+  }
+
 
   bool setControlMode( const Mode mode )
   {

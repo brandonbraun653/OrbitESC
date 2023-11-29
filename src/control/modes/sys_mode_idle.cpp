@@ -5,14 +5,16 @@
  *  Description:
  *    Idle state
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/system>
+#include <src/control/current_control.hpp>
 #include <src/control/modes/sys_mode_idle.hpp>
+#include <src/control/speed_control.hpp>
 #include <src/core/hw/orbit_led.hpp>
 #include <src/monitor/orbit_monitors.hpp>
 
@@ -34,6 +36,12 @@ namespace Orbit::Control::State
 
   etl::fsm_state_id_t Idle::on_enter_state()
   {
+    /*-------------------------------------------------------------------------
+    Power down the motor control drivers
+    -------------------------------------------------------------------------*/
+    Control::Field::powerDn();
+    Control::Speed::powerDn();
+
     // /*-------------------------------------------------------------------------
     // Disable the drive signals going to the motor
     // -------------------------------------------------------------------------*/

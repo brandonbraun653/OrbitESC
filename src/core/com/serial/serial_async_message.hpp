@@ -24,7 +24,7 @@ Includes
 #include <etl/array.h>
 #include <etl/message.h>
 #include <etl/vector.h>
-#include <src/core/com/serial/serial_interface.pb.h>
+#include <src/core/com/proto/serial_interface.pb.h>
 
 namespace Orbit::Serial::Message
 {

@@ -11,10 +11,10 @@ source "$_cwd"/.venv/bin/activate
 
 # Build the C bindings
 echo "Building Nanopb C-Bindings"
-python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py src/core/com/serial/serial_interface.proto
+python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py src/core/com/proto/serial_interface.proto
 
 # Build the Python bindings
-SRC_DIR=$_cwd/src/core/com/serial
+SRC_DIR=$_cwd/src/core/com/proto
 NPB_DIR=$_cwd/lib/Aurora/lib/nanopb/nanopb/generator/proto
 DST_DIR=$_cwd/pyorbit/nanopb
 
