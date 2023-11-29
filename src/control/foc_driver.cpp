@@ -111,7 +111,6 @@ namespace Orbit::Control::FOC
     // s_ctrl_fsm.start();
 
     // mInitialized = true;
-    return 0;
   }
 
 

@@ -22,7 +22,6 @@ Includes
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_ctl.hpp>
 #include <src/monitor/orbit_monitors.hpp>
-#include <src/core/hw/orbit_instrumentation.hpp>
 
 namespace Orbit::Tasks::CTL
 {
@@ -47,28 +46,27 @@ namespace Orbit::Tasks::CTL
       switch( tsk_msg )
       {
         case TASK_MSG_CTRL_ARM:
-
-          if( Orbit::Instrumentation::getSupplyVoltage() > 10.0f )
-          {
-            Control::Field::powerUp();
-            Control::Speed::powerUp();
-          }
-
-          // todo FILL THIS OUT
-          // Control::FOCDriver.sendSystemEvent( Control::EventId::ARM );
+          Control::FOC::sendSystemEvent( Control::EventId::ARM );
           break;
 
         case TASK_MSG_CTRL_DISARM:
+          Control::FOC::sendSystemEvent( Control::EventId::DISARM );
           break;
 
         case TASK_MSG_CTRL_ENGAGE:
+          Control::FOC::sendSystemEvent( Control::EventId::ENGAGE );
           break;
 
         case TASK_MSG_CTRL_DISENGAGE:
+          Control::FOC::sendSystemEvent( Control::EventId::DISENGAGE );
           break;
 
         case TASK_MSG_CTRL_FAULT:
+          Control::FOC::sendSystemEvent( Control::EventId::FAULT );
+          break;
 
+        case TASK_MSG_CTRL_EMERGENCY_HALT:
+          Control::FOC::sendSystemEvent( Control::EventId::EMERGENCY_HALT );
           break;
 
         default:

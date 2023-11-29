@@ -5,7 +5,7 @@
  *  Description:
  *    Armed state
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -13,6 +13,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/system>
 #include <src/control/modes/sys_mode_armed.hpp>
+#include <src/core/hw/orbit_instrumentation.hpp>
 
 namespace Orbit::Control::State
 {
@@ -37,6 +38,14 @@ namespace Orbit::Control::State
     // driver.mTimerDriver.setForwardCommState( 0 );
     // driver.mTimerDriver.setPhaseDutyCycle( 0.0f, 0.0f, 0.0f );
     // driver.mTimerDriver.enableOutput();
+
+    if( Orbit::Instrumentation::getSupplyVoltage() < 10.0f )
+    {
+      LOG_WARN( "Cannot arm. Supply voltage is too low." );
+    }
+
+    Control::Field::powerUp();
+    Control::Speed::powerUp();
 
     // LOG_TRACE_IF( DEBUG_MODULE && !Chimera::System::inISR(), "Entered ARMED state\r\n" );
     return ModeId::ARMED;

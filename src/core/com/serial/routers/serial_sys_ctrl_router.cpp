@@ -78,7 +78,7 @@ namespace Orbit::Serial::Router
         break;
 
       case SubId_SUB_MSG_SYS_CTRL_EMERGENCY_STOP:
-        // todo panic right here
+        should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_EMERGENCY_HALT, TIMEOUT_BLOCK );
         break;
 
       /*-----------------------------------------------------------------------

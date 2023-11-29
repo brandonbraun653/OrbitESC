@@ -56,6 +56,7 @@ namespace Orbit::Tasks
     TASK_MSG_CTRL_ENGAGE,    /**< Transition from ARM to ENGAGED */
     TASK_MSG_CTRL_DISENGAGE, /**< Transition from ENGAGED to ARM */
     TASK_MSG_CTRL_FAULT,     /**< Transition from ENGAGED to FAULT */
+    TASK_MSG_CTRL_EMERGENCY_HALT, /**< Emergency halt event */
 
     /*-------------------------------------------------------------------------
     USB CDC
