@@ -42,7 +42,13 @@ typedef enum _SubId {
     SubId_SUB_MSG_ENABLE_STREAM_PHASE_VOLTAGES = 10, /* Enable streaming of phase voltage commands */
     SubId_SUB_MSG_DISABLE_STREAM_PHASE_VOLTAGES = 11, /* Disable streaming of phase voltage commands */
     SubId_SUB_MSG_ENABLE_STREAM_STATE_ESTIMATES = 12, /* Enable streaming of state estimates */
-    SubId_SUB_MSG_DISABLE_STREAM_STATE_ESTIMATES = 13 /* Disable streaming of state estimates */
+    SubId_SUB_MSG_DISABLE_STREAM_STATE_ESTIMATES = 13, /* Disable streaming of state estimates */
+    SubId_SUB_MSG_SYS_CTRL_ARM = 14, /* Arm the motor control system */
+    SubId_SUB_MSG_SYS_CTRL_DISARM = 15, /* Disarm the motor control system */
+    SubId_SUB_MSG_SYS_CTRL_ENGAGE = 16, /* Engage the motor control system */
+    SubId_SUB_MSG_SYS_CTRL_DISENGAGE = 17, /* Disengage the motor control system */
+    SubId_SUB_MSG_SYS_CTRL_FAULT = 18, /* Panic the motor control system */
+    SubId_SUB_MSG_SYS_CTRL_EMERGENCY_STOP = 19 /* Emergency stop the motor control system */
 } SubId;
 
 typedef enum _ParamId {
@@ -265,8 +271,8 @@ extern "C" {
 #define _MsgId_ARRAYSIZE ((MsgId)(MsgId_MSG_SYS_DATA+1))
 
 #define _SubId_MIN SubId_SUB_MSG_NONE
-#define _SubId_MAX SubId_SUB_MSG_DISABLE_STREAM_STATE_ESTIMATES
-#define _SubId_ARRAYSIZE ((SubId)(SubId_SUB_MSG_DISABLE_STREAM_STATE_ESTIMATES+1))
+#define _SubId_MAX SubId_SUB_MSG_SYS_CTRL_EMERGENCY_STOP
+#define _SubId_ARRAYSIZE ((SubId)(SubId_SUB_MSG_SYS_CTRL_EMERGENCY_STOP+1))
 
 #define _ParamId_MIN ParamId_PARAM_INVALID
 #define _ParamId_MAX ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD

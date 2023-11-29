@@ -24,6 +24,7 @@ Includes
 #include <Thor/lld/stm32f4x/rcc/hw_rcc_prv.hpp>
 #include <etl/circular_buffer.h>
 #include <src/config/bsp/board_map.hpp>
+#include <src/control/foc_driver.hpp>
 #include <src/core/bootup.hpp>
 #include <src/core/com/com_scheduler.hpp>
 #include <src/core/data/orbit_data.hpp>
@@ -124,6 +125,7 @@ namespace Orbit::Boot
     Orbit::COM::Scheduler::initialize();
     Orbit::Monitor::initMetrics();
     Orbit::Event::initialize();
+    Orbit::Control::FOC::initialize();
   }
 
 

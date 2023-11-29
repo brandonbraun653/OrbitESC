@@ -5,7 +5,7 @@
  *  Description:
  *    Field Oriented Control (FOC) Driver
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -37,26 +37,20 @@ Includes
 #endif /* EMBEDDED */
 
 
-namespace Orbit::Control
+namespace Orbit::Control::FOC
 {
   /*---------------------------------------------------------------------------
-  Public Data
+  Static Data
   ---------------------------------------------------------------------------*/
-  //FOC FOCDriver;
+  static etl::fsm s_ctrl_fsm( MOTOR_STATE_ROUTER_ID );
+  static SuperState                       mState;            /**< Entire FOC subsystem state */
+  static std::array<etl::ifsm_state *, ModeId::NUM_STATES> mFSMStateArray; /**< Storage for the FSM state controllers */
 
   /*---------------------------------------------------------------------------
-  Classes
+  Public Functions
   ---------------------------------------------------------------------------*/
-  FOC::FOC() : mInitialized( false ), fsm( MOTOR_STATE_ROUTER_ID )
-  {
-  }
 
-  FOC::~FOC()
-  {
-  }
-
-
-  int FOC::initialize( const FOCConfig &cfg, const MotorParameters &motorParams )
+  void initialize()
   {
     /*-------------------------------------------------------------------------
     Validate the configuration
@@ -113,57 +107,49 @@ namespace Orbit::Control
     // mFSMStateArray[ ModeId::ENGAGED ] = new State::Engaged();
 
     // /* Initialize the FSM. First state will be ModeId::IDLE. */
-    // this->set_states( mFSMStateArray.data(), mFSMStateArray.size() );
-    // this->start();
+    // s_ctrl_fsm.set_states( mFSMStateArray.data(), mFSMStateArray.size() );
+    // s_ctrl_fsm.start();
 
     // mInitialized = true;
     return 0;
   }
 
 
-  void FOC::run()
+  void run()
   {
     mState.motorCtl.isrCtlActive = true;
   }
 
 
-  int FOC::sendSystemEvent( const EventId_t event )
+  int sendSystemEvent( const EventId_t event )
   {
-    /*-------------------------------------------------------------------------
-    Make sure the state machine controller is ready
-    -------------------------------------------------------------------------*/
-    if( !mInitialized )
-    {
-      return -1;
-    }
-
     /*-------------------------------------------------------------------------
     Send the correct message into the state machine
     -------------------------------------------------------------------------*/
     switch( event )
     {
       case EventId::EMERGENCY_HALT:
-        this->receive( MsgEmergencyHalt() );
+        s_ctrl_fsm.receive( MsgEmergencyHalt() );
         break;
 
       case EventId::ARM:
-        this->receive( MsgArm() );
+        s_ctrl_fsm.receive( MsgArm() );
         break;
 
       case EventId::DISARM:
-        this->receive( MsgDisarm() );
+        s_ctrl_fsm.receive( MsgDisarm() );
         break;
 
       case EventId::ENGAGE:
-        this->receive( MsgEngage() );
+        s_ctrl_fsm.receive( MsgEngage() );
         break;
 
       case EventId::DISENGAGE:
-        this->receive( MsgDisengage() );
+        s_ctrl_fsm.receive( MsgDisengage() );
         break;
 
       case EventId::FAULT:
-        this->receive( MsgFault() );
+        s_ctrl_fsm.receive( MsgFault() );
         break;
 
       default:
@@ -175,39 +161,32 @@ namespace Orbit::Control
   }
 
 
-  int FOC::setSpeedRef( const float ref )
+  int setSpeedRef( const float ref )
   {
     return 0;
   }
 
 
-  const SuperState &FOC::dbgGetState() const
+  const SuperState &dbgGetState()
   {
     return mState;
   }
 
 
-  ModeId_t FOC::currentMode() const
+  ModeId_t currentMode()
   {
-    if( mInitialized )
-    {
-      return this->get_state_id();
-    }
-    else
-    {
-      return ModeId::NUM_STATES;
-    }
+    return s_ctrl_fsm.get_state_id();
   }
 
 
-  void FOC::logUnhandledMessage( const etl::imessage &msg )
+  void logUnhandledMessage( const etl::imessage &msg )
   {
-    LOG_WARN( "%s message not handled from state %s\r\n", getMessageString( msg.get_message_id() ).data(),
-              getModeString( get_state_id() ).data() );
+    // LOG_WARN( "%s message not handled from state %s\r\n", getMessageString( msg.get_message_id() ).data(),
+    //           getModeString( get_state_id() ).data() );
   }
 
 
-  void FOC::driveTestSignal( const uint8_t commCycle, const float dutyCycle )
+  void driveTestSignal( const uint8_t commCycle, const float dutyCycle )
   {
     /*-------------------------------------------------------------------------
     Ensure we're in the ARMED state before attempting anything. This guarantees
@@ -227,7 +206,7 @@ namespace Orbit::Control
    *
    * @param dt  The time in seconds since the last call to this function
    */
-  void FOC::stepEMFObserver( const float dt )
+  void stepEMFObserver( const float dt )
   {
     // /*-------------------------------------------------------------------------
     // Alias equation variables to make everything easier to read
@@ -263,16 +242,5 @@ namespace Orbit::Control
     // mState.emfObserver.z1 = mState.emfObserver.z1_dot;
     // mState.emfObserver.z2 = mState.emfObserver.z2_dot;
   }
-
-
-  void FOC::stepIControl( const float dt )
-  {
-  }
-
-
-  void FOC::stepEstimator( const float dt )
-  {
-  }
-
 
 }    // namespace Orbit::Control

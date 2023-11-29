@@ -16,6 +16,7 @@ Includes
 #include <src/control/current_control.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 #include <src/core/events/event_stream.hpp>
+#include <src/core/tasks.hpp>
 
 namespace Orbit::Serial::Router
 {
@@ -29,6 +30,9 @@ namespace Orbit::Serial::Router
 
   void SysCtrlRouter::on_receive( const Message::SysCtrl &msg )
   {
+    using namespace Orbit::Tasks;
+    using namespace Chimera::Thread;
+
     bool should_ack = true;
 
     switch ( msg.payload.header.subId )
@@ -49,6 +53,33 @@ namespace Orbit::Serial::Router
         Orbit::Event::gControlBus.receive( event );
         break;
       }
+
+      /*-----------------------------------------------------------------------
+      Handle control system mode changes
+      -----------------------------------------------------------------------*/
+      case SubId_SUB_MSG_SYS_CTRL_ARM:
+        should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_ARM, TIMEOUT_BLOCK );
+        break;
+
+      case SubId_SUB_MSG_SYS_CTRL_DISARM:
+        should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_DISARM, TIMEOUT_BLOCK );
+        break;
+
+      case SubId_SUB_MSG_SYS_CTRL_ENGAGE:
+        should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_ENGAGE, TIMEOUT_BLOCK );
+        break;
+
+      case SubId_SUB_MSG_SYS_CTRL_DISENGAGE:
+        should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_DISENGAGE, TIMEOUT_BLOCK );
+        break;
+
+      case SubId_SUB_MSG_SYS_CTRL_FAULT:
+        should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_FAULT, TIMEOUT_BLOCK );
+        break;
+
+      case SubId_SUB_MSG_SYS_CTRL_EMERGENCY_STOP:
+        // todo panic right here
+        break;
 
       /*-----------------------------------------------------------------------
       Handle motor control messages

@@ -37,6 +37,12 @@ enum SubId {
   SUB_MSG_DISABLE_STREAM_PHASE_VOLTAGES = 11; // Disable streaming of phase voltage commands
   SUB_MSG_ENABLE_STREAM_STATE_ESTIMATES = 12; // Enable streaming of state estimates
   SUB_MSG_DISABLE_STREAM_STATE_ESTIMATES = 13; // Disable streaming of state estimates
+  SUB_MSG_SYS_CTRL_ARM = 14; // Arm the motor control system
+  SUB_MSG_SYS_CTRL_DISARM = 15; // Disarm the motor control system
+  SUB_MSG_SYS_CTRL_ENGAGE = 16; // Engage the motor control system
+  SUB_MSG_SYS_CTRL_DISENGAGE = 17; // Disengage the motor control system
+  SUB_MSG_SYS_CTRL_FAULT = 18; // Panic the motor control system
+  SUB_MSG_SYS_CTRL_EMERGENCY_STOP = 19; // Emergency stop the motor control system
 }
 
 enum ParamId {
