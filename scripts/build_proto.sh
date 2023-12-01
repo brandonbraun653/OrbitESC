@@ -9,14 +9,19 @@ _cwd=$(pwd)
 echo "Activating project environment"
 source "$_cwd"/.venv/bin/activate
 
-# Build the C bindings
-echo "Building Nanopb C-Bindings"
-python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py src/core/com/proto/serial_interface.proto
-
-# Build the Python bindings
 SRC_DIR=$_cwd/src/core/com/proto
 NPB_DIR=$_cwd/lib/Aurora/lib/nanopb/nanopb/generator/proto
 DST_DIR=$_cwd/pyorbit/nanopb
 
+# Build the C bindings
+echo "Building Nanopb C-Bindings"
+python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py --proto-path="$SRC_DIR" motor_control.proto
+python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py --proto-path="$SRC_DIR" serial_interface.proto
+python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py --proto-path="$SRC_DIR" system_control.proto
+python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py --proto-path="$SRC_DIR" system_data.proto
+
+
+# Build the Python bindings
+
 echo "Building Python Bindings"
-protoc -I="$SRC_DIR" -I="$NPB_DIR" --python_out="$DST_DIR" "$SRC_DIR"/serial_interface.proto
+protoc -I="$SRC_DIR" -I="$NPB_DIR" -I"$SRC_DIR"/serial_interface.proto --python_out="$DST_DIR" "$SRC_DIR"/*.proto

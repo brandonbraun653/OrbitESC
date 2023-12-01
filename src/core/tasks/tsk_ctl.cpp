@@ -101,6 +101,11 @@ namespace Orbit::Tasks::CTL
       process_task_messages();
 
       /*-----------------------------------------------------------------------
+      Process the FOC layer
+      -----------------------------------------------------------------------*/
+      Control::FOC::process();
+
+      /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically
       -----------------------------------------------------------------------*/
       Chimera::delayUntil( wake_up_tick + PERIOD_MS );

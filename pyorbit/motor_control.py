@@ -3,7 +3,8 @@ from enum import Enum
 from loguru import logger
 from typing import Callable, List
 from pyorbit.serial.client import OrbitClient
-from pyorbit.serial.messages import AckNackMessage, MotorControlMessage
+from pyorbit.serial.messages import AckNackMessage
+from pyorbit.serial.intf.system_control import MotorControlMessage
 
 
 class MotorControl:

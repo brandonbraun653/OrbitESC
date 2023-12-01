@@ -105,10 +105,10 @@ namespace Orbit::Control::Field
                                      Data::SysControl.currentCtrl_D_Kd, foc_ireg_state.dt );
 
     // TODO: Move this elsewhere
-    Orbit::Motor::enableDriveOutput();
-    Orbit::Motor::svmUpdate( 1.0f, 1.0f, 1.0f ); // Have to call this to kick initial PWM update
-    foc_ireg_state.iqRef = 0.0f;
-    foc_ireg_state.idRef = 0.001f; // Torque command
+    // Orbit::Motor::enableDriveOutput();
+    // Orbit::Motor::svmUpdate( 1.0f, 1.0f, 1.0f ); // Have to call this to kick initial PWM update
+    // foc_ireg_state.iqRef = 0.0f;
+    // foc_ireg_state.idRef = 0.001f; // Torque command
 
     setControlMode( Mode::DISABLED );
   }

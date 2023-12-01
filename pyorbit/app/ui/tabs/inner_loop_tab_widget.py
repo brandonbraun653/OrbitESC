@@ -3,7 +3,7 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QCheckBox, QDial, QDoubleSpinBox, QLCDNumber, QSlider
 from pyorbit.app.connections.serial import SerialConnectionManagerSingleton, get_serial_client
-from pyorbit.serial.messages import ManualCurrentControlToggleMessage
+from pyorbit.serial.intf.system_control import ManualCurrentControlToggleMessage
 
 
 class InnerLoopTabWidget(QtWidgets.QWidget):

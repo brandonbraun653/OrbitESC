@@ -5,8 +5,9 @@ from enum import IntEnum
 from typing import List, NewType, Union, Dict
 
 from pyorbit.nanopb import serial_interface_pb2 as proto
-from pyorbit.serial.messages import MessageSubId, AckNackMessage, BaseMessage, MessageId, PingMessage, \
+from pyorbit.serial.messages import MessageSubId, AckNackMessage, BaseMessage, PingMessage, \
     SystemTickMessage, ConsoleMessage, SystemDataMessage
+from pyorbit.serial.serial_interface import MessageId
 
 # Encapsulate the Python parameter type in a new type, so we can use it in type hints
 ParameterType = NewType('ParameterValue', Union[bool, int, float, str, bytes])

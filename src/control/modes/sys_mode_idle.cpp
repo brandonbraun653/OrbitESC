@@ -30,12 +30,14 @@ namespace Orbit::Control::State
   ---------------------------------------------------------------------------*/
   void Idle::on_exit_state()
   {
-    LOG_TRACE_IF( DEBUG_MODULE && !Chimera::System::inISR(), "Exiting Idle state\r\n" );
+    LOG_INFO( "Exiting Idle state" );
   }
 
 
   etl::fsm_state_id_t Idle::on_enter_state()
   {
+    LOG_INFO( "Entering IDLE state" );
+
     /*-------------------------------------------------------------------------
     Power down the motor control drivers
     -------------------------------------------------------------------------*/
@@ -62,7 +64,6 @@ namespace Orbit::Control::State
     // -------------------------------------------------------------------------*/
     // LED::clearChannel( LED::Channel::FAULT );
 
-    // LOG_TRACE_IF( DEBUG_MODULE && !Chimera::System::inISR(), "Entered Idle state\r\n" );
     return ModeId::IDLE;
   }
 

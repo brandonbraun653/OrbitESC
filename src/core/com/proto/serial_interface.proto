@@ -14,7 +14,7 @@ enum MsgId {
 }
 
 enum SubId {
-  option allow_alias = true;
+  // option allow_alias = true;
   SUB_MSG_NONE = 0; // Invalid sub-message ID
 
   // Parameter IO messages
@@ -22,27 +22,6 @@ enum SubId {
   SUB_MSG_PARAM_IO_SET  = 2;  // Commit a new value of a parameter
   SUB_MSG_PARAM_IO_SYNC = 3;  // Synchronize all parameters to disk
   SUB_MSG_PARAM_IO_LOAD = 4;  // Load all parameters from disk
-
-  // System control messages
-  SUB_MSG_SYS_CTRL_RESET   = 1; // Reset the system
-  SUB_MSG_SYS_CTRL_MOTOR   = 2; // Inject manual motor control commands
-  SUB_MSG_SYS_CTRL_CAL_ADC = 3; // Calibrate the ADC
-  SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP = 4; // Manual inner loop control enable/disable
-  SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP_REF = 5; // New references to use for manual inner loop control
-  SUB_MSG_ENABLE_STREAM_PHASE_CURRENTS = 6; // Enable streaming of phase currents
-  SUB_MSG_DISABLE_STREAM_PHASE_CURRENTS = 7; // Disable streaming of phase currents
-  SUB_MSG_ENABLE_STREAM_SYSTEM_VOLTAGES = 8; // Enable streaming of system voltages
-  SUB_MSG_DISABLE_STREAM_SYSTEM_VOLTAGES = 9; // Disable streaming of system voltages
-  SUB_MSG_ENABLE_STREAM_PHASE_VOLTAGES = 10; // Enable streaming of phase voltage commands
-  SUB_MSG_DISABLE_STREAM_PHASE_VOLTAGES = 11; // Disable streaming of phase voltage commands
-  SUB_MSG_ENABLE_STREAM_STATE_ESTIMATES = 12; // Enable streaming of state estimates
-  SUB_MSG_DISABLE_STREAM_STATE_ESTIMATES = 13; // Disable streaming of state estimates
-  SUB_MSG_SYS_CTRL_ARM = 14; // Arm the motor control system
-  SUB_MSG_SYS_CTRL_DISARM = 15; // Disarm the motor control system
-  SUB_MSG_SYS_CTRL_ENGAGE = 16; // Engage the motor control system
-  SUB_MSG_SYS_CTRL_DISENGAGE = 17; // Disengage the motor control system
-  SUB_MSG_SYS_CTRL_FAULT = 18; // Panic the motor control system
-  SUB_MSG_SYS_CTRL_EMERGENCY_STOP = 19; // Emergency stop the motor control system
 }
 
 enum ParamId {
@@ -137,6 +116,7 @@ enum SystemDataId {
   ADC_SYSTEM_VOLTAGES = 4;  // Measurements of less-critical system voltages
 }
 
+
 // Instrumentation message header common to all types. Each functional message type **must**
 // have this first in their list of declarations.
 message Header {
@@ -205,44 +185,5 @@ message SystemControlMessage {
 message SwitchModeMessage {
   required Header header = 1;
   required BootMode mode = 2 [(nanopb).int_size = IS_8];
-}
-
-// Message type for streaming out raw data from the system in real time
-message SystemDataMessage {
-  required Header header = 1;
-  required SystemDataId id = 2 [(nanopb).int_size = IS_8];
-  optional bytes data = 3 [(nanopb).max_size = 32 ];
-
-  // Message type for SystemDataId::ADC_PHASE_CURRENTS
-  message ADCPhaseCurrents {
-    required uint32 timestamp = 1;  // System time of measurement in microseconds
-    required float ia = 2;          // Phase A current in Amps
-    required float ib = 3;          // Phase B current in Amps
-    required float ic = 4;          // Phase C current in Amps
-  }
-
-  // Message type for SystemDataId::PWM_COMMANDS
-  message ADCPhaseVoltages {
-    required uint32 timestamp = 1;  // System time of measurement in microseconds
-    required float va = 2;          // Phase A voltage command in Volts
-    required float vb = 3;          // Phase B voltage command in Volts
-    required float vc = 4;          // Phase C voltage command in Volts
-  }
-
-  // Message type for SystemDataId::ADC_SYSTEM_VOLTAGES
-  message ADCSystemVoltages {
-    required uint32 timestamp = 1;  // System time of measurement in microseconds
-    required float v_mcu = 2;       // Logic level supply voltage in Volts
-    required float v_dc_link = 3;   // DC link voltage in Volts
-    required float v_temp = 4;      // Temperature sensor voltage in Volts
-    required float v_isense = 5;    // Current sense amplifier voltage reference in Volts
-  }
-
-  // Message type for SystemDataId::STATE_ESTIMATES
-  message StateEstimates {
-    required uint32 timestamp = 1;  // System time of measurement in microseconds
-    required float theta_est = 2;   // Physical angle of the rotor in radians
-    required float omega_est = 3;   // Physical angular velocity of the rotor in radians per second
-  }
 }
 

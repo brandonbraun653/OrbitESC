@@ -1,0 +1,11 @@
+syntax = "proto2";
+import "nanopb.proto";
+
+
+enum MotorCtrlState {
+  MOTOR_CTRL_STATE_INVALID = 0; // Invalid motor control state
+  MOTOR_CTRL_STATE_IDLE = 1;    // Motor control is idle
+  MOTOR_CTRL_STATE_ARMED = 2;   // Motor control is armed
+  MOTOR_CTRL_STATE_ENGAGED = 3; // Motor control is engaged
+  MOTOR_CTRL_STATE_FAULT = 4;   // Motor control is in a fault state
+}
