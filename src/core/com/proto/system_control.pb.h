@@ -4,6 +4,7 @@
 #ifndef PB_SYSTEM_CONTROL_PB_H_INCLUDED
 #define PB_SYSTEM_CONTROL_PB_H_INCLUDED
 #include <pb.h>
+#include "serial_interface.pb.h"
 
 #if PB_PROTO_HEADER_VERSION != 40
 #error Regenerate this file with the current version of nanopb generator.
@@ -32,6 +33,15 @@ typedef enum _SystemControlSubId {
     SystemControlSubId_SUB_MSG_SYS_CTRL_EMERGENCY_STOP = 19 /* Emergency stop the motor control system */
 } SystemControlSubId;
 
+/* Struct definitions */
+typedef PB_BYTES_ARRAY_T(64) SystemControlMessage_data_t;
+typedef struct _SystemControlMessage {
+    Header header;
+    bool has_data;
+    SystemControlMessage_data_t data;
+} SystemControlMessage;
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,8 +52,48 @@ extern "C" {
 #define _SystemControlSubId_ARRAYSIZE ((SystemControlSubId)(SystemControlSubId_SUB_MSG_SYS_CTRL_EMERGENCY_STOP+1))
 
 
+
+/* Initializer values for message structs */
+#define SystemControlMessage_init_default        {Header_init_default, false, {0, {0}}}
+#define SystemControlMessage_init_zero           {Header_init_zero, false, {0, {0}}}
+
+/* Field tags (for use in manual encoding/decoding) */
+#define SystemControlMessage_header_tag          1
+#define SystemControlMessage_data_tag            2
+
+/* Struct field encoding specification for nanopb */
+#define SystemControlMessage_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
+X(a, STATIC,   OPTIONAL, BYTES,    data,              2)
+#define SystemControlMessage_CALLBACK NULL
+#define SystemControlMessage_DEFAULT NULL
+#define SystemControlMessage_header_MSGTYPE Header
+
+extern const pb_msgdesc_t SystemControlMessage_msg;
+
+/* Defines for backwards compatibility with code written before nanopb-0.4.0 */
+#define SystemControlMessage_fields &SystemControlMessage_msg
+
+/* Maximum encoded size of messages (where known) */
+#define SystemControlMessage_size                76
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
+
+#ifdef __cplusplus
+/* Message descriptors for nanopb */
+namespace nanopb {
+template <>
+struct MessageDescriptor<SystemControlMessage> {
+    static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 2;
+    static inline const pb_msgdesc_t* fields() {
+        return &SystemControlMessage_msg;
+    }
+};
+}  // namespace nanopb
+
+#endif  /* __cplusplus */
+
 
 #endif

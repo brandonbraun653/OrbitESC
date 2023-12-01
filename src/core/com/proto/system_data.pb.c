@@ -6,19 +6,29 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
+PB_BIND(SystemTickMessage, SystemTickMessage, AUTO)
+
+
+PB_BIND(ConsoleMessage, ConsoleMessage, AUTO)
+
+
+PB_BIND(SystemInfoMessage, SystemInfoMessage, AUTO)
+
+
 PB_BIND(SystemDataMessage, SystemDataMessage, AUTO)
 
 
-PB_BIND(SystemDataMessage_ADCPhaseCurrents, SystemDataMessage_ADCPhaseCurrents, AUTO)
+PB_BIND(ADCPhaseCurrentsPayload, ADCPhaseCurrentsPayload, AUTO)
 
 
-PB_BIND(SystemDataMessage_ADCPhaseVoltages, SystemDataMessage_ADCPhaseVoltages, AUTO)
+PB_BIND(ADCPhaseVoltagesPayload, ADCPhaseVoltagesPayload, AUTO)
 
 
-PB_BIND(SystemDataMessage_ADCSystemVoltages, SystemDataMessage_ADCSystemVoltages, AUTO)
+PB_BIND(ADCSystemVoltagesPayload, ADCSystemVoltagesPayload, AUTO)
 
 
-PB_BIND(SystemDataMessage_StateEstimates, SystemDataMessage_StateEstimates, AUTO)
+PB_BIND(StateEstimatesPayload, StateEstimatesPayload, AUTO)
+
 
 
 

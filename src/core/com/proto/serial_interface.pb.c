@@ -18,32 +18,6 @@ PB_BIND(AckNackMessage, AckNackMessage, AUTO)
 PB_BIND(PingMessage, PingMessage, AUTO)
 
 
-PB_BIND(SystemTick, SystemTick, AUTO)
-
-
-PB_BIND(ConsoleMessage, ConsoleMessage, AUTO)
-
-
-PB_BIND(SystemInfoMessage, SystemInfoMessage, AUTO)
-
-
-PB_BIND(ParamIOMessage, ParamIOMessage, AUTO)
-
-
-PB_BIND(SystemControlMessage, SystemControlMessage, AUTO)
-
-
-PB_BIND(SystemControlMessage_ManualICtrlSetPoint, SystemControlMessage_ManualICtrlSetPoint, AUTO)
-
-
-PB_BIND(SwitchModeMessage, SwitchModeMessage, AUTO)
-
-
-
-
-
-
-
 
 
 

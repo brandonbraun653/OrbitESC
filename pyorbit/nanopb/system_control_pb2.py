@@ -13,6 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 import nanopb_pb2 as nanopb__pb2
+import serial_interface_pb2 as serial__interface__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
@@ -21,9 +22,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto2',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x14system_control.proto\x1a\x0cnanopb.proto*\xcb\x05\n\x12SystemControlSubId\x12\x1a\n\x16SUB_MSG_SYS_CTRL_RESET\x10\x01\x12\x1a\n\x16SUB_MSG_SYS_CTRL_MOTOR\x10\x02\x12\x1c\n\x18SUB_MSG_SYS_CTRL_CAL_ADC\x10\x03\x12&\n\"SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP\x10\x04\x12*\n&SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP_REF\x10\x05\x12(\n$SUB_MSG_ENABLE_STREAM_PHASE_CURRENTS\x10\x06\x12)\n%SUB_MSG_DISABLE_STREAM_PHASE_CURRENTS\x10\x07\x12)\n%SUB_MSG_ENABLE_STREAM_SYSTEM_VOLTAGES\x10\x08\x12*\n&SUB_MSG_DISABLE_STREAM_SYSTEM_VOLTAGES\x10\t\x12(\n$SUB_MSG_ENABLE_STREAM_PHASE_VOLTAGES\x10\n\x12)\n%SUB_MSG_DISABLE_STREAM_PHASE_VOLTAGES\x10\x0b\x12)\n%SUB_MSG_ENABLE_STREAM_STATE_ESTIMATES\x10\x0c\x12*\n&SUB_MSG_DISABLE_STREAM_STATE_ESTIMATES\x10\r\x12\x18\n\x14SUB_MSG_SYS_CTRL_ARM\x10\x0e\x12\x1b\n\x17SUB_MSG_SYS_CTRL_DISARM\x10\x0f\x12\x1b\n\x17SUB_MSG_SYS_CTRL_ENGAGE\x10\x10\x12\x1e\n\x1aSUB_MSG_SYS_CTRL_DISENGAGE\x10\x11\x12\x1a\n\x16SUB_MSG_SYS_CTRL_FAULT\x10\x12\x12#\n\x1fSUB_MSG_SYS_CTRL_EMERGENCY_STOP\x10\x13'
+  serialized_pb=b'\n\x14system_control.proto\x1a\x0cnanopb.proto\x1a\x16serial_interface.proto\"D\n\x14SystemControlMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x13\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x42\x05\x92?\x02\x08@*\xcb\x05\n\x12SystemControlSubId\x12\x1a\n\x16SUB_MSG_SYS_CTRL_RESET\x10\x01\x12\x1a\n\x16SUB_MSG_SYS_CTRL_MOTOR\x10\x02\x12\x1c\n\x18SUB_MSG_SYS_CTRL_CAL_ADC\x10\x03\x12&\n\"SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP\x10\x04\x12*\n&SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP_REF\x10\x05\x12(\n$SUB_MSG_ENABLE_STREAM_PHASE_CURRENTS\x10\x06\x12)\n%SUB_MSG_DISABLE_STREAM_PHASE_CURRENTS\x10\x07\x12)\n%SUB_MSG_ENABLE_STREAM_SYSTEM_VOLTAGES\x10\x08\x12*\n&SUB_MSG_DISABLE_STREAM_SYSTEM_VOLTAGES\x10\t\x12(\n$SUB_MSG_ENABLE_STREAM_PHASE_VOLTAGES\x10\n\x12)\n%SUB_MSG_DISABLE_STREAM_PHASE_VOLTAGES\x10\x0b\x12)\n%SUB_MSG_ENABLE_STREAM_STATE_ESTIMATES\x10\x0c\x12*\n&SUB_MSG_DISABLE_STREAM_STATE_ESTIMATES\x10\r\x12\x18\n\x14SUB_MSG_SYS_CTRL_ARM\x10\x0e\x12\x1b\n\x17SUB_MSG_SYS_CTRL_DISARM\x10\x0f\x12\x1b\n\x17SUB_MSG_SYS_CTRL_ENGAGE\x10\x10\x12\x1e\n\x1aSUB_MSG_SYS_CTRL_DISENGAGE\x10\x11\x12\x1a\n\x16SUB_MSG_SYS_CTRL_FAULT\x10\x12\x12#\n\x1fSUB_MSG_SYS_CTRL_EMERGENCY_STOP\x10\x13'
   ,
-  dependencies=[nanopb__pb2.DESCRIPTOR,])
+  dependencies=[nanopb__pb2.DESCRIPTOR,serial__interface__pb2.DESCRIPTOR,])
 
 _SYSTEMCONTROLSUBID = _descriptor.EnumDescriptor(
   name='SystemControlSubId',
@@ -130,8 +131,8 @@ _SYSTEMCONTROLSUBID = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=39,
-  serialized_end=754,
+  serialized_start=133,
+  serialized_end=848,
 )
 _sym_db.RegisterEnumDescriptor(_SYSTEMCONTROLSUBID)
 
@@ -157,8 +158,57 @@ SUB_MSG_SYS_CTRL_FAULT = 18
 SUB_MSG_SYS_CTRL_EMERGENCY_STOP = 19
 
 
+
+_SYSTEMCONTROLMESSAGE = _descriptor.Descriptor(
+  name='SystemControlMessage',
+  full_name='SystemControlMessage',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='header', full_name='SystemControlMessage.header', index=0,
+      number=1, type=11, cpp_type=10, label=2,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='data', full_name='SystemControlMessage.data', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"",
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\222?\002\010@', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=62,
+  serialized_end=130,
+)
+
+_SYSTEMCONTROLMESSAGE.fields_by_name['header'].message_type = serial__interface__pb2._HEADER
+DESCRIPTOR.message_types_by_name['SystemControlMessage'] = _SYSTEMCONTROLMESSAGE
 DESCRIPTOR.enum_types_by_name['SystemControlSubId'] = _SYSTEMCONTROLSUBID
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
+SystemControlMessage = _reflection.GeneratedProtocolMessageType('SystemControlMessage', (_message.Message,), {
+  'DESCRIPTOR' : _SYSTEMCONTROLMESSAGE,
+  '__module__' : 'system_control_pb2'
+  # @@protoc_insertion_point(class_scope:SystemControlMessage)
+  })
+_sym_db.RegisterMessage(SystemControlMessage)
 
+
+_SYSTEMCONTROLMESSAGE.fields_by_name['data']._options = None
 # @@protoc_insertion_point(module_scope)

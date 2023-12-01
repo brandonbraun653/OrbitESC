@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto2',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x16serial_interface.proto\x1a\x0cnanopb.proto\"I\n\x06Header\x12\x14\n\x05msgId\x18\x01 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x05subId\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x13\n\x04uuid\x18\x03 \x02(\rB\x05\x92?\x02\x38\x10\"&\n\x0b\x42\x61seMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\"|\n\x0e\x41\x63kNackMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x13\n\x0b\x61\x63knowledge\x18\x02 \x02(\x08\x12\'\n\x0bstatus_code\x18\x03 \x02(\x0e\x32\x0b.StatusCodeB\x05\x92?\x02\x38\x08\x12\x13\n\x04\x64\x61ta\x18\x04 \x01(\x0c\x42\x05\x92?\x02\x08@\"&\n\x0bPingMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\"3\n\nSystemTick\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x0c\n\x04tick\x18\x02 \x02(\r\"w\n\x0e\x43onsoleMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x19\n\nthis_frame\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x1b\n\x0ctotal_frames\x18\x03 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x04\x64\x61ta\x18\x04 \x02(\x0c\x42\x06\x92?\x03\x08\x80\x01\"\xa2\x01\n\x11SystemInfoMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x12\n\nsystemTick\x18\x02 \x02(\r\x12\x1d\n\tswVersion\x18\x03 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12\x1f\n\x0b\x64\x65scription\x18\x04 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12 \n\x0cserialNumber\x18\x05 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\"|\n\x0eParamIOMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x1b\n\x02id\x18\x02 \x01(\x0e\x32\x08.ParamIdB\x05\x92?\x02\x38\x10\x12\x1f\n\x04type\x18\x03 \x01(\x0e\x32\n.ParamTypeB\x05\x92?\x02\x38\x08\x12\x13\n\x04\x64\x61ta\x18\x04 \x01(\x0c\x42\x05\x92?\x02\x08@\"\xbc\x01\n\x14SystemControlMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12&\n\x08motorCmd\x18\x02 \x01(\x0e\x32\r.MotorCtrlCmdB\x05\x92?\x02\x38\x08\x12\x13\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x42\x05\x92?\x02\x08@\x1aN\n\x13ManualICtrlSetPoint\x12\x17\n\x0frotor_theta_rad\x18\x01 \x02(\x02\x12\x0e\n\x06id_ref\x18\x02 \x02(\x02\x12\x0e\n\x06iq_ref\x18\x03 \x02(\x02\"L\n\x11SwitchModeMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x1e\n\x04mode\x18\x02 \x02(\x0e\x32\t.BootModeB\x05\x92?\x02\x38\x08*\xac\x01\n\x05MsgId\x12\x10\n\x0cMSG_ACK_NACK\x10\x00\x12\x10\n\x0cMSG_PING_CMD\x10\x01\x12\x10\n\x0cMSG_TERMINAL\x10\x02\x12\x10\n\x0cMSG_SYS_TICK\x10\x03\x12\x10\n\x0cMSG_SYS_INFO\x10\x04\x12\x10\n\x0cMSG_PARAM_IO\x10\x05\x12\x10\n\x0cMSG_SYS_CTRL\x10\x06\x12\x13\n\x0fMSG_SWITCH_MODE\x10\x07\x12\x10\n\x0cMSG_SYS_DATA\x10\x08*\x83\x01\n\x05SubId\x12\x10\n\x0cSUB_MSG_NONE\x10\x00\x12\x18\n\x14SUB_MSG_PARAM_IO_GET\x10\x01\x12\x18\n\x14SUB_MSG_PARAM_IO_SET\x10\x02\x12\x19\n\x15SUB_MSG_PARAM_IO_SYNC\x10\x03\x12\x19\n\x15SUB_MSG_PARAM_IO_LOAD\x10\x04*\xfa\x07\n\x07ParamId\x12\x1a\n\rPARAM_INVALID\x10\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01\x12\x14\n\x10PARAM_BOOT_COUNT\x10\x00\x12\x14\n\x10PARAM_HW_VERSION\x10\x01\x12\x14\n\x10PARAM_SW_VERSION\x10\x02\x12\x13\n\x0fPARAM_DEVICE_ID\x10\x03\x12\x14\n\x10PARAM_BOARD_NAME\x10\x04\x12\x15\n\x11PARAM_DESCRIPTION\x10\x05\x12\x17\n\x13PARAM_SERIAL_NUMBER\x10\n\x12\x1d\n\x19PARAM_DISK_UPDATE_RATE_MS\x10\x0b\x12\x1d\n\x19PARAM_ACTIVITY_LED_SCALER\x10\x0c\x12\x13\n\x0fPARAM_BOOT_MODE\x10\r\x12\x15\n\x11PARAM_CAN_NODE_ID\x10\x0e\x12\x19\n\x15PARAM_STATOR_PWM_FREQ\x10\x14\x12\x19\n\x15PARAM_SPEED_CTRL_FREQ\x10\x15\x12\x19\n\x15PARAM_TARGET_IDLE_RPM\x10\x16\x12\x17\n\x13PARAM_SPEED_CTRL_KP\x10\x17\x12\x17\n\x13PARAM_SPEED_CTRL_KI\x10\x18\x12\x17\n\x13PARAM_SPEED_CTRL_KD\x10\x19\x12 \n\x1cPARAM_CURRENT_CTRL_Q_AXIS_KP\x10\x1a\x12 \n\x1cPARAM_CURRENT_CTRL_Q_AXIS_KI\x10\x1b\x12 \n\x1cPARAM_CURRENT_CTRL_Q_AXIS_KD\x10\x1c\x12 \n\x1cPARAM_CURRENT_CTRL_D_AXIS_KP\x10\x1d\x12 \n\x1cPARAM_CURRENT_CTRL_D_AXIS_KI\x10\x1e\x12 \n\x1cPARAM_CURRENT_CTRL_D_AXIS_KD\x10\x1f\x12$\n PARAM_RAMP_CTRL_FIRST_ORDER_TERM\x10\"\x12%\n!PARAM_RAMP_CTRL_SECOND_ORDER_TERM\x10#\x12!\n\x1dPARAM_RAMP_CTRL_RAMP_TIME_SEC\x10$\x12!\n\x1dPARAM_CURRENT_OBSERVER_KSLIDE\x10%\x12$\n PARAM_CURRENT_OBSERVER_MAX_ERROR\x10&\x12\x15\n\x11PARAM_ROTOR_POLES\x10\x32\x12\x16\n\x12PARAM_STATOR_SLOTS\x10\x33\x12\x1b\n\x17PARAM_STATOR_RESISTANCE\x10\x34\x12\x1b\n\x17PARAM_STATOR_INDUCTANCE\x10\x35\x12 \n\x1cPARAM_PEAK_CURRENT_THRESHOLD\x10<\x12 \n\x1cPARAM_PEAK_VOLTAGE_THRESHOLD\x10=*s\n\tParamType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x08\n\x04\x42OOL\x10\x01\x12\t\n\x05UINT8\x10\x02\x12\n\n\x06UINT16\x10\x03\x12\n\n\x06UINT32\x10\x04\x12\t\n\x05\x46LOAT\x10\x05\x12\n\n\x06\x44OUBLE\x10\x06\x12\t\n\x05\x42YTES\x10\x07\x12\n\n\x06STRING\x10\x08*y\n\nStatusCode\x12\x0c\n\x08NO_ERROR\x10\x00\x12\x11\n\rUNKNOWN_ERROR\x10\x01\x12\x11\n\rINVALID_PARAM\x10\x02\x12\x10\n\x0cINVALID_TYPE\x10\x03\x12\x11\n\rINVALID_VALUE\x10\x04\x12\x12\n\x0eREQUEST_FAILED\x10\x05*J\n\x08\x42ootMode\x12\x14\n\x10\x42OOT_MODE_NORMAL\x10\x00\x12\x12\n\x0e\x42OOT_MODE_TEST\x10\x01\x12\x14\n\x10\x42OOT_MODE_CONFIG\x10\x02*U\n\x0cMotorCtrlCmd\x12\x17\n\x13\x45NABLE_OUTPUT_STAGE\x10\x00\x12\x18\n\x14\x44ISABLE_OUTPUT_STAGE\x10\x01\x12\x12\n\x0e\x45MERGENCY_STOP\x10\x02*\x82\x01\n\x0cSystemDataId\x12\x14\n\x10SYS_DATA_INVALID\x10\x00\x12\x16\n\x12\x41\x44\x43_PHASE_CURRENTS\x10\x01\x12\x16\n\x12\x41\x44\x43_PHASE_VOLTAGES\x10\x02\x12\x13\n\x0fSTATE_ESTIMATES\x10\x03\x12\x17\n\x13\x41\x44\x43_SYSTEM_VOLTAGES\x10\x04'
+  serialized_pb=b'\n\x16serial_interface.proto\x1a\x0cnanopb.proto\"Y\n\x06Header\x12\x1c\n\x05msgId\x18\x01 \x02(\x0e\x32\x06.MsgIdB\x05\x92?\x02\x38\x08\x12\x1c\n\x05subId\x18\x02 \x02(\x0e\x32\x06.SubIdB\x05\x92?\x02\x38\x08\x12\x13\n\x04uuid\x18\x03 \x02(\rB\x05\x92?\x02\x38\x10\"&\n\x0b\x42\x61seMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\"|\n\x0e\x41\x63kNackMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x13\n\x0b\x61\x63knowledge\x18\x02 \x02(\x08\x12\'\n\x0bstatus_code\x18\x03 \x02(\x0e\x32\x0b.StatusCodeB\x05\x92?\x02\x38\x08\x12\x13\n\x04\x64\x61ta\x18\x04 \x01(\x0c\x42\x05\x92?\x02\x08@\"&\n\x0bPingMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header*\xac\x01\n\x05MsgId\x12\x10\n\x0cMSG_ACK_NACK\x10\x00\x12\x10\n\x0cMSG_PING_CMD\x10\x01\x12\x10\n\x0cMSG_TERMINAL\x10\x02\x12\x10\n\x0cMSG_SYS_TICK\x10\x03\x12\x10\n\x0cMSG_SYS_INFO\x10\x04\x12\x10\n\x0cMSG_PARAM_IO\x10\x05\x12\x10\n\x0cMSG_SYS_CTRL\x10\x06\x12\x13\n\x0fMSG_SWITCH_MODE\x10\x07\x12\x10\n\x0cMSG_SYS_DATA\x10\x08*\x83\x01\n\x05SubId\x12\x10\n\x0cSUB_MSG_NONE\x10\x00\x12\x18\n\x14SUB_MSG_PARAM_IO_GET\x10\x01\x12\x18\n\x14SUB_MSG_PARAM_IO_SET\x10\x02\x12\x19\n\x15SUB_MSG_PARAM_IO_SYNC\x10\x03\x12\x19\n\x15SUB_MSG_PARAM_IO_LOAD\x10\x04*y\n\nStatusCode\x12\x0c\n\x08NO_ERROR\x10\x00\x12\x11\n\rUNKNOWN_ERROR\x10\x01\x12\x11\n\rINVALID_PARAM\x10\x02\x12\x10\n\x0cINVALID_TYPE\x10\x03\x12\x11\n\rINVALID_VALUE\x10\x04\x12\x12\n\x0eREQUEST_FAILED\x10\x05'
   ,
   dependencies=[nanopb__pb2.DESCRIPTOR,])
 
@@ -80,8 +80,8 @@ _MSGID = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1056,
-  serialized_end=1228,
+  serialized_start=338,
+  serialized_end=510,
 )
 _sym_db.RegisterEnumDescriptor(_MSGID)
 
@@ -121,264 +121,12 @@ _SUBID = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1231,
-  serialized_end=1362,
+  serialized_start=513,
+  serialized_end=644,
 )
 _sym_db.RegisterEnumDescriptor(_SUBID)
 
 SubId = enum_type_wrapper.EnumTypeWrapper(_SUBID)
-_PARAMID = _descriptor.EnumDescriptor(
-  name='ParamId',
-  full_name='ParamId',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_INVALID', index=0, number=-1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_BOOT_COUNT', index=1, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_HW_VERSION', index=2, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_SW_VERSION', index=3, number=2,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_DEVICE_ID', index=4, number=3,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_BOARD_NAME', index=5, number=4,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_DESCRIPTION', index=6, number=5,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_SERIAL_NUMBER', index=7, number=10,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_DISK_UPDATE_RATE_MS', index=8, number=11,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_ACTIVITY_LED_SCALER', index=9, number=12,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_BOOT_MODE', index=10, number=13,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_CAN_NODE_ID', index=11, number=14,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_STATOR_PWM_FREQ', index=12, number=20,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_SPEED_CTRL_FREQ', index=13, number=21,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_TARGET_IDLE_RPM', index=14, number=22,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_SPEED_CTRL_KP', index=15, number=23,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_SPEED_CTRL_KI', index=16, number=24,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_SPEED_CTRL_KD', index=17, number=25,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_CURRENT_CTRL_Q_AXIS_KP', index=18, number=26,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_CURRENT_CTRL_Q_AXIS_KI', index=19, number=27,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_CURRENT_CTRL_Q_AXIS_KD', index=20, number=28,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_CURRENT_CTRL_D_AXIS_KP', index=21, number=29,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_CURRENT_CTRL_D_AXIS_KI', index=22, number=30,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_CURRENT_CTRL_D_AXIS_KD', index=23, number=31,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_RAMP_CTRL_FIRST_ORDER_TERM', index=24, number=34,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_RAMP_CTRL_SECOND_ORDER_TERM', index=25, number=35,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_RAMP_CTRL_RAMP_TIME_SEC', index=26, number=36,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_CURRENT_OBSERVER_KSLIDE', index=27, number=37,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_CURRENT_OBSERVER_MAX_ERROR', index=28, number=38,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_ROTOR_POLES', index=29, number=50,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_STATOR_SLOTS', index=30, number=51,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_STATOR_RESISTANCE', index=31, number=52,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_STATOR_INDUCTANCE', index=32, number=53,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_PEAK_CURRENT_THRESHOLD', index=33, number=60,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='PARAM_PEAK_VOLTAGE_THRESHOLD', index=34, number=61,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=1365,
-  serialized_end=2383,
-)
-_sym_db.RegisterEnumDescriptor(_PARAMID)
-
-ParamId = enum_type_wrapper.EnumTypeWrapper(_PARAMID)
-_PARAMTYPE = _descriptor.EnumDescriptor(
-  name='ParamType',
-  full_name='ParamType',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='UNKNOWN', index=0, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='BOOL', index=1, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='UINT8', index=2, number=2,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='UINT16', index=3, number=3,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='UINT32', index=4, number=4,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='FLOAT', index=5, number=5,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='DOUBLE', index=6, number=6,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='BYTES', index=7, number=7,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='STRING', index=8, number=8,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=2385,
-  serialized_end=2500,
-)
-_sym_db.RegisterEnumDescriptor(_PARAMTYPE)
-
-ParamType = enum_type_wrapper.EnumTypeWrapper(_PARAMTYPE)
 _STATUSCODE = _descriptor.EnumDescriptor(
   name='StatusCode',
   full_name='StatusCode',
@@ -419,115 +167,12 @@ _STATUSCODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2502,
-  serialized_end=2623,
+  serialized_start=646,
+  serialized_end=767,
 )
 _sym_db.RegisterEnumDescriptor(_STATUSCODE)
 
 StatusCode = enum_type_wrapper.EnumTypeWrapper(_STATUSCODE)
-_BOOTMODE = _descriptor.EnumDescriptor(
-  name='BootMode',
-  full_name='BootMode',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='BOOT_MODE_NORMAL', index=0, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='BOOT_MODE_TEST', index=1, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='BOOT_MODE_CONFIG', index=2, number=2,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=2625,
-  serialized_end=2699,
-)
-_sym_db.RegisterEnumDescriptor(_BOOTMODE)
-
-BootMode = enum_type_wrapper.EnumTypeWrapper(_BOOTMODE)
-_MOTORCTRLCMD = _descriptor.EnumDescriptor(
-  name='MotorCtrlCmd',
-  full_name='MotorCtrlCmd',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='ENABLE_OUTPUT_STAGE', index=0, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='DISABLE_OUTPUT_STAGE', index=1, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='EMERGENCY_STOP', index=2, number=2,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=2701,
-  serialized_end=2786,
-)
-_sym_db.RegisterEnumDescriptor(_MOTORCTRLCMD)
-
-MotorCtrlCmd = enum_type_wrapper.EnumTypeWrapper(_MOTORCTRLCMD)
-_SYSTEMDATAID = _descriptor.EnumDescriptor(
-  name='SystemDataId',
-  full_name='SystemDataId',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='SYS_DATA_INVALID', index=0, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='ADC_PHASE_CURRENTS', index=1, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='ADC_PHASE_VOLTAGES', index=2, number=2,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='STATE_ESTIMATES', index=3, number=3,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='ADC_SYSTEM_VOLTAGES', index=4, number=4,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=2789,
-  serialized_end=2919,
-)
-_sym_db.RegisterEnumDescriptor(_SYSTEMDATAID)
-
-SystemDataId = enum_type_wrapper.EnumTypeWrapper(_SYSTEMDATAID)
 MSG_ACK_NACK = 0
 MSG_PING_CMD = 1
 MSG_TERMINAL = 2
@@ -542,67 +187,12 @@ SUB_MSG_PARAM_IO_GET = 1
 SUB_MSG_PARAM_IO_SET = 2
 SUB_MSG_PARAM_IO_SYNC = 3
 SUB_MSG_PARAM_IO_LOAD = 4
-PARAM_INVALID = -1
-PARAM_BOOT_COUNT = 0
-PARAM_HW_VERSION = 1
-PARAM_SW_VERSION = 2
-PARAM_DEVICE_ID = 3
-PARAM_BOARD_NAME = 4
-PARAM_DESCRIPTION = 5
-PARAM_SERIAL_NUMBER = 10
-PARAM_DISK_UPDATE_RATE_MS = 11
-PARAM_ACTIVITY_LED_SCALER = 12
-PARAM_BOOT_MODE = 13
-PARAM_CAN_NODE_ID = 14
-PARAM_STATOR_PWM_FREQ = 20
-PARAM_SPEED_CTRL_FREQ = 21
-PARAM_TARGET_IDLE_RPM = 22
-PARAM_SPEED_CTRL_KP = 23
-PARAM_SPEED_CTRL_KI = 24
-PARAM_SPEED_CTRL_KD = 25
-PARAM_CURRENT_CTRL_Q_AXIS_KP = 26
-PARAM_CURRENT_CTRL_Q_AXIS_KI = 27
-PARAM_CURRENT_CTRL_Q_AXIS_KD = 28
-PARAM_CURRENT_CTRL_D_AXIS_KP = 29
-PARAM_CURRENT_CTRL_D_AXIS_KI = 30
-PARAM_CURRENT_CTRL_D_AXIS_KD = 31
-PARAM_RAMP_CTRL_FIRST_ORDER_TERM = 34
-PARAM_RAMP_CTRL_SECOND_ORDER_TERM = 35
-PARAM_RAMP_CTRL_RAMP_TIME_SEC = 36
-PARAM_CURRENT_OBSERVER_KSLIDE = 37
-PARAM_CURRENT_OBSERVER_MAX_ERROR = 38
-PARAM_ROTOR_POLES = 50
-PARAM_STATOR_SLOTS = 51
-PARAM_STATOR_RESISTANCE = 52
-PARAM_STATOR_INDUCTANCE = 53
-PARAM_PEAK_CURRENT_THRESHOLD = 60
-PARAM_PEAK_VOLTAGE_THRESHOLD = 61
-UNKNOWN = 0
-BOOL = 1
-UINT8 = 2
-UINT16 = 3
-UINT32 = 4
-FLOAT = 5
-DOUBLE = 6
-BYTES = 7
-STRING = 8
 NO_ERROR = 0
 UNKNOWN_ERROR = 1
 INVALID_PARAM = 2
 INVALID_TYPE = 3
 INVALID_VALUE = 4
 REQUEST_FAILED = 5
-BOOT_MODE_NORMAL = 0
-BOOT_MODE_TEST = 1
-BOOT_MODE_CONFIG = 2
-ENABLE_OUTPUT_STAGE = 0
-DISABLE_OUTPUT_STAGE = 1
-EMERGENCY_STOP = 2
-SYS_DATA_INVALID = 0
-ADC_PHASE_CURRENTS = 1
-ADC_PHASE_VOLTAGES = 2
-STATE_ESTIMATES = 3
-ADC_SYSTEM_VOLTAGES = 4
 
 
 
@@ -616,14 +206,14 @@ _HEADER = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='msgId', full_name='Header.msgId', index=0,
-      number=1, type=13, cpp_type=3, label=2,
+      number=1, type=14, cpp_type=8, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=b'\222?\0028\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
       name='subId', full_name='Header.subId', index=1,
-      number=2, type=13, cpp_type=3, label=2,
+      number=2, type=14, cpp_type=8, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -648,7 +238,7 @@ _HEADER = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=40,
-  serialized_end=113,
+  serialized_end=129,
 )
 
 
@@ -679,8 +269,8 @@ _BASEMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=115,
-  serialized_end=153,
+  serialized_start=131,
+  serialized_end=169,
 )
 
 
@@ -732,8 +322,8 @@ _ACKNACKMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=155,
-  serialized_end=279,
+  serialized_start=171,
+  serialized_end=295,
 )
 
 
@@ -764,378 +354,23 @@ _PINGMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=281,
-  serialized_end=319,
+  serialized_start=297,
+  serialized_end=335,
 )
 
-
-_SYSTEMTICK = _descriptor.Descriptor(
-  name='SystemTick',
-  full_name='SystemTick',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='header', full_name='SystemTick.header', index=0,
-      number=1, type=11, cpp_type=10, label=2,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='tick', full_name='SystemTick.tick', index=1,
-      number=2, type=13, cpp_type=3, label=2,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=321,
-  serialized_end=372,
-)
-
-
-_CONSOLEMESSAGE = _descriptor.Descriptor(
-  name='ConsoleMessage',
-  full_name='ConsoleMessage',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='header', full_name='ConsoleMessage.header', index=0,
-      number=1, type=11, cpp_type=10, label=2,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='this_frame', full_name='ConsoleMessage.this_frame', index=1,
-      number=2, type=13, cpp_type=3, label=2,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=b'\222?\0028\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='total_frames', full_name='ConsoleMessage.total_frames', index=2,
-      number=3, type=13, cpp_type=3, label=2,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=b'\222?\0028\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='data', full_name='ConsoleMessage.data', index=3,
-      number=4, type=12, cpp_type=9, label=2,
-      has_default_value=False, default_value=b"",
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=b'\222?\003\010\200\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=374,
-  serialized_end=493,
-)
-
-
-_SYSTEMINFOMESSAGE = _descriptor.Descriptor(
-  name='SystemInfoMessage',
-  full_name='SystemInfoMessage',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='header', full_name='SystemInfoMessage.header', index=0,
-      number=1, type=11, cpp_type=10, label=2,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='systemTick', full_name='SystemInfoMessage.systemTick', index=1,
-      number=2, type=13, cpp_type=3, label=2,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='swVersion', full_name='SystemInfoMessage.swVersion', index=2,
-      number=3, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=b'\222?\002\010\020\222?\002x\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='description', full_name='SystemInfoMessage.description', index=3,
-      number=4, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=b'\222?\002\010\020\222?\002x\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='serialNumber', full_name='SystemInfoMessage.serialNumber', index=4,
-      number=5, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=b'\222?\002\010\020\222?\002x\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=496,
-  serialized_end=658,
-)
-
-
-_PARAMIOMESSAGE = _descriptor.Descriptor(
-  name='ParamIOMessage',
-  full_name='ParamIOMessage',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='header', full_name='ParamIOMessage.header', index=0,
-      number=1, type=11, cpp_type=10, label=2,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='id', full_name='ParamIOMessage.id', index=1,
-      number=2, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=-1,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=b'\222?\0028\020', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='type', full_name='ParamIOMessage.type', index=2,
-      number=3, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=b'\222?\0028\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='data', full_name='ParamIOMessage.data', index=3,
-      number=4, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"",
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=b'\222?\002\010@', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=660,
-  serialized_end=784,
-)
-
-
-_SYSTEMCONTROLMESSAGE_MANUALICTRLSETPOINT = _descriptor.Descriptor(
-  name='ManualICtrlSetPoint',
-  full_name='SystemControlMessage.ManualICtrlSetPoint',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='rotor_theta_rad', full_name='SystemControlMessage.ManualICtrlSetPoint.rotor_theta_rad', index=0,
-      number=1, type=2, cpp_type=6, label=2,
-      has_default_value=False, default_value=float(0),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='id_ref', full_name='SystemControlMessage.ManualICtrlSetPoint.id_ref', index=1,
-      number=2, type=2, cpp_type=6, label=2,
-      has_default_value=False, default_value=float(0),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='iq_ref', full_name='SystemControlMessage.ManualICtrlSetPoint.iq_ref', index=2,
-      number=3, type=2, cpp_type=6, label=2,
-      has_default_value=False, default_value=float(0),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=897,
-  serialized_end=975,
-)
-
-_SYSTEMCONTROLMESSAGE = _descriptor.Descriptor(
-  name='SystemControlMessage',
-  full_name='SystemControlMessage',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='header', full_name='SystemControlMessage.header', index=0,
-      number=1, type=11, cpp_type=10, label=2,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='motorCmd', full_name='SystemControlMessage.motorCmd', index=1,
-      number=2, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=b'\222?\0028\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='data', full_name='SystemControlMessage.data', index=2,
-      number=3, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"",
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=b'\222?\002\010@', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[_SYSTEMCONTROLMESSAGE_MANUALICTRLSETPOINT, ],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=787,
-  serialized_end=975,
-)
-
-
-_SWITCHMODEMESSAGE = _descriptor.Descriptor(
-  name='SwitchModeMessage',
-  full_name='SwitchModeMessage',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='header', full_name='SwitchModeMessage.header', index=0,
-      number=1, type=11, cpp_type=10, label=2,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='mode', full_name='SwitchModeMessage.mode', index=1,
-      number=2, type=14, cpp_type=8, label=2,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=b'\222?\0028\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=977,
-  serialized_end=1053,
-)
-
+_HEADER.fields_by_name['msgId'].enum_type = _MSGID
+_HEADER.fields_by_name['subId'].enum_type = _SUBID
 _BASEMESSAGE.fields_by_name['header'].message_type = _HEADER
 _ACKNACKMESSAGE.fields_by_name['header'].message_type = _HEADER
 _ACKNACKMESSAGE.fields_by_name['status_code'].enum_type = _STATUSCODE
 _PINGMESSAGE.fields_by_name['header'].message_type = _HEADER
-_SYSTEMTICK.fields_by_name['header'].message_type = _HEADER
-_CONSOLEMESSAGE.fields_by_name['header'].message_type = _HEADER
-_SYSTEMINFOMESSAGE.fields_by_name['header'].message_type = _HEADER
-_PARAMIOMESSAGE.fields_by_name['header'].message_type = _HEADER
-_PARAMIOMESSAGE.fields_by_name['id'].enum_type = _PARAMID
-_PARAMIOMESSAGE.fields_by_name['type'].enum_type = _PARAMTYPE
-_SYSTEMCONTROLMESSAGE_MANUALICTRLSETPOINT.containing_type = _SYSTEMCONTROLMESSAGE
-_SYSTEMCONTROLMESSAGE.fields_by_name['header'].message_type = _HEADER
-_SYSTEMCONTROLMESSAGE.fields_by_name['motorCmd'].enum_type = _MOTORCTRLCMD
-_SWITCHMODEMESSAGE.fields_by_name['header'].message_type = _HEADER
-_SWITCHMODEMESSAGE.fields_by_name['mode'].enum_type = _BOOTMODE
 DESCRIPTOR.message_types_by_name['Header'] = _HEADER
 DESCRIPTOR.message_types_by_name['BaseMessage'] = _BASEMESSAGE
 DESCRIPTOR.message_types_by_name['AckNackMessage'] = _ACKNACKMESSAGE
 DESCRIPTOR.message_types_by_name['PingMessage'] = _PINGMESSAGE
-DESCRIPTOR.message_types_by_name['SystemTick'] = _SYSTEMTICK
-DESCRIPTOR.message_types_by_name['ConsoleMessage'] = _CONSOLEMESSAGE
-DESCRIPTOR.message_types_by_name['SystemInfoMessage'] = _SYSTEMINFOMESSAGE
-DESCRIPTOR.message_types_by_name['ParamIOMessage'] = _PARAMIOMESSAGE
-DESCRIPTOR.message_types_by_name['SystemControlMessage'] = _SYSTEMCONTROLMESSAGE
-DESCRIPTOR.message_types_by_name['SwitchModeMessage'] = _SWITCHMODEMESSAGE
 DESCRIPTOR.enum_types_by_name['MsgId'] = _MSGID
 DESCRIPTOR.enum_types_by_name['SubId'] = _SUBID
-DESCRIPTOR.enum_types_by_name['ParamId'] = _PARAMID
-DESCRIPTOR.enum_types_by_name['ParamType'] = _PARAMTYPE
 DESCRIPTOR.enum_types_by_name['StatusCode'] = _STATUSCODE
-DESCRIPTOR.enum_types_by_name['BootMode'] = _BOOTMODE
-DESCRIPTOR.enum_types_by_name['MotorCtrlCmd'] = _MOTORCTRLCMD
-DESCRIPTOR.enum_types_by_name['SystemDataId'] = _SYSTEMDATAID
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Header = _reflection.GeneratedProtocolMessageType('Header', (_message.Message,), {
@@ -1166,72 +401,10 @@ PingMessage = _reflection.GeneratedProtocolMessageType('PingMessage', (_message.
   })
 _sym_db.RegisterMessage(PingMessage)
 
-SystemTick = _reflection.GeneratedProtocolMessageType('SystemTick', (_message.Message,), {
-  'DESCRIPTOR' : _SYSTEMTICK,
-  '__module__' : 'serial_interface_pb2'
-  # @@protoc_insertion_point(class_scope:SystemTick)
-  })
-_sym_db.RegisterMessage(SystemTick)
-
-ConsoleMessage = _reflection.GeneratedProtocolMessageType('ConsoleMessage', (_message.Message,), {
-  'DESCRIPTOR' : _CONSOLEMESSAGE,
-  '__module__' : 'serial_interface_pb2'
-  # @@protoc_insertion_point(class_scope:ConsoleMessage)
-  })
-_sym_db.RegisterMessage(ConsoleMessage)
-
-SystemInfoMessage = _reflection.GeneratedProtocolMessageType('SystemInfoMessage', (_message.Message,), {
-  'DESCRIPTOR' : _SYSTEMINFOMESSAGE,
-  '__module__' : 'serial_interface_pb2'
-  # @@protoc_insertion_point(class_scope:SystemInfoMessage)
-  })
-_sym_db.RegisterMessage(SystemInfoMessage)
-
-ParamIOMessage = _reflection.GeneratedProtocolMessageType('ParamIOMessage', (_message.Message,), {
-  'DESCRIPTOR' : _PARAMIOMESSAGE,
-  '__module__' : 'serial_interface_pb2'
-  # @@protoc_insertion_point(class_scope:ParamIOMessage)
-  })
-_sym_db.RegisterMessage(ParamIOMessage)
-
-SystemControlMessage = _reflection.GeneratedProtocolMessageType('SystemControlMessage', (_message.Message,), {
-
-  'ManualICtrlSetPoint' : _reflection.GeneratedProtocolMessageType('ManualICtrlSetPoint', (_message.Message,), {
-    'DESCRIPTOR' : _SYSTEMCONTROLMESSAGE_MANUALICTRLSETPOINT,
-    '__module__' : 'serial_interface_pb2'
-    # @@protoc_insertion_point(class_scope:SystemControlMessage.ManualICtrlSetPoint)
-    })
-  ,
-  'DESCRIPTOR' : _SYSTEMCONTROLMESSAGE,
-  '__module__' : 'serial_interface_pb2'
-  # @@protoc_insertion_point(class_scope:SystemControlMessage)
-  })
-_sym_db.RegisterMessage(SystemControlMessage)
-_sym_db.RegisterMessage(SystemControlMessage.ManualICtrlSetPoint)
-
-SwitchModeMessage = _reflection.GeneratedProtocolMessageType('SwitchModeMessage', (_message.Message,), {
-  'DESCRIPTOR' : _SWITCHMODEMESSAGE,
-  '__module__' : 'serial_interface_pb2'
-  # @@protoc_insertion_point(class_scope:SwitchModeMessage)
-  })
-_sym_db.RegisterMessage(SwitchModeMessage)
-
 
 _HEADER.fields_by_name['msgId']._options = None
 _HEADER.fields_by_name['subId']._options = None
 _HEADER.fields_by_name['uuid']._options = None
 _ACKNACKMESSAGE.fields_by_name['status_code']._options = None
 _ACKNACKMESSAGE.fields_by_name['data']._options = None
-_CONSOLEMESSAGE.fields_by_name['this_frame']._options = None
-_CONSOLEMESSAGE.fields_by_name['total_frames']._options = None
-_CONSOLEMESSAGE.fields_by_name['data']._options = None
-_SYSTEMINFOMESSAGE.fields_by_name['swVersion']._options = None
-_SYSTEMINFOMESSAGE.fields_by_name['description']._options = None
-_SYSTEMINFOMESSAGE.fields_by_name['serialNumber']._options = None
-_PARAMIOMESSAGE.fields_by_name['id']._options = None
-_PARAMIOMESSAGE.fields_by_name['type']._options = None
-_PARAMIOMESSAGE.fields_by_name['data']._options = None
-_SYSTEMCONTROLMESSAGE.fields_by_name['motorCmd']._options = None
-_SYSTEMCONTROLMESSAGE.fields_by_name['data']._options = None
-_SWITCHMODEMESSAGE.fields_by_name['mode']._options = None
 # @@protoc_insertion_point(module_scope)

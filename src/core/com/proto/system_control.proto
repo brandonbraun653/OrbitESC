@@ -1,5 +1,6 @@
 syntax = "proto2";
 import "nanopb.proto";
+import "serial_interface.proto";
 
 enum SystemControlSubId {
   SUB_MSG_SYS_CTRL_RESET   = 1; // Reset the system
@@ -21,4 +22,10 @@ enum SystemControlSubId {
   SUB_MSG_SYS_CTRL_DISENGAGE = 17; // Disengage the motor control system
   SUB_MSG_SYS_CTRL_FAULT = 18; // Panic the motor control system
   SUB_MSG_SYS_CTRL_EMERGENCY_STOP = 19; // Emergency stop the motor control system
+}
+
+
+message SystemControlMessage {
+  required Header header = 1;
+  optional bytes data = 2 [(nanopb).max_size = 64 ];
 }
