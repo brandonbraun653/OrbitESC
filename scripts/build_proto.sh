@@ -15,10 +15,10 @@ DST_DIR=$_cwd/pyorbit/nanopb
 
 # Build the C bindings
 echo "Building Nanopb C-Bindings"
-python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py --proto-path="$SRC_DIR" motor_control.proto
-python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py --proto-path="$SRC_DIR" serial_interface.proto
-python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py --proto-path="$SRC_DIR" system_control.proto
-python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py --proto-path="$SRC_DIR" system_data.proto
+python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py --output-dir="$SRC_DIR" --proto-path="$SRC_DIR" motor_control.proto
+python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py --output-dir="$SRC_DIR" --proto-path="$SRC_DIR" serial_interface.proto
+python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py --output-dir="$SRC_DIR" --proto-path="$SRC_DIR" system_control.proto
+python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py --output-dir="$SRC_DIR" --proto-path="$SRC_DIR" system_data.proto
 
 
 # Build the Python bindings
