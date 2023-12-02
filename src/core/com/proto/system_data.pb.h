@@ -236,11 +236,11 @@ extern const pb_msgdesc_t StateEstimatesPayload_msg;
 #define ADCPhaseCurrentsPayload_size             15
 #define ADCPhaseVoltagesPayload_size             15
 #define ADCSystemVoltagesPayload_size            20
-#define ConsoleMessage_size                      147
+#define ConsoleMessage_size                      149
 #define StateEstimatesPayload_size               10
-#define SystemDataMessage_size                   52
-#define SystemInfoMessage_size                   67
-#define SystemTickMessage_size                   16
+#define SystemDataMessage_size                   54
+#define SystemInfoMessage_size                   69
+#define SystemTickMessage_size                   18
 
 #ifdef __cplusplus
 } /* extern "C" */

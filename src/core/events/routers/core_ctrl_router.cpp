@@ -31,7 +31,7 @@ namespace Orbit::Event
   void CoreControlRouter::on_receive( const SystemReset &msg )
   {
     Chimera::delayMilliseconds( 50 );
-    Orbit::System::setMode( Orbit::System::getMode() );
+    Orbit::System::doSafeShutdown();
   }
 
 

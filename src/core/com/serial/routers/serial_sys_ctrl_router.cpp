@@ -40,15 +40,15 @@ namespace Orbit::Serial::Router
       /*-----------------------------------------------------------------------
       Do a system reset. Send the ACK first so the host knows it was received.
       -----------------------------------------------------------------------*/
-      case SubId_SUB_MSG_SYS_CTRL_RESET:
+      case SystemControlSubId_RESET:
         sendAckNack( true, msg.payload.header );
         Orbit::Event::gControlBus.receive( Event::SystemReset() );
         return;
 
-      case SubId_SUB_MSG_DISABLE_STREAM_PHASE_CURRENTS:
-      case SubId_SUB_MSG_ENABLE_STREAM_PHASE_CURRENTS: {
+      case SystemControlSubId_DISABLE_STREAM_PHASE_CURRENTS:
+      case SystemControlSubId_ENABLE_STREAM_PHASE_CURRENTS: {
         Event::StreamPhaseCurrents event;
-        event.enable = ( msg.payload.header.subId == SubId_SUB_MSG_ENABLE_STREAM_PHASE_CURRENTS );
+        event.enable = ( msg.payload.header.subId == SystemControlSubId_ENABLE_STREAM_PHASE_CURRENTS );
 
         Orbit::Event::gControlBus.receive( event );
         break;
@@ -57,83 +57,28 @@ namespace Orbit::Serial::Router
       /*-----------------------------------------------------------------------
       Handle control system mode changes
       -----------------------------------------------------------------------*/
-      case SubId_SUB_MSG_SYS_CTRL_ARM:
+      case SystemControlSubId_ARM:
         should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_ARM, TIMEOUT_BLOCK );
         break;
 
-      case SubId_SUB_MSG_SYS_CTRL_DISARM:
+      case SystemControlSubId_DISARM:
         should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_DISARM, TIMEOUT_BLOCK );
         break;
 
-      case SubId_SUB_MSG_SYS_CTRL_ENGAGE:
+      case SystemControlSubId_ENGAGE:
         should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_ENGAGE, TIMEOUT_BLOCK );
         break;
 
-      case SubId_SUB_MSG_SYS_CTRL_DISENGAGE:
+      case SystemControlSubId_DISENGAGE:
         should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_DISENGAGE, TIMEOUT_BLOCK );
         break;
 
-      case SubId_SUB_MSG_SYS_CTRL_FAULT:
+      case SystemControlSubId_FAULT:
         should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_FAULT, TIMEOUT_BLOCK );
         break;
 
-      case SubId_SUB_MSG_SYS_CTRL_EMERGENCY_STOP:
+      case SystemControlSubId_EMERGENCY_STOP:
         should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_EMERGENCY_HALT, TIMEOUT_BLOCK );
-        break;
-
-      /*-----------------------------------------------------------------------
-      Handle motor control messages
-      -----------------------------------------------------------------------*/
-      case SubId_SUB_MSG_SYS_CTRL_MOTOR:
-        if ( msg.payload.has_motorCmd )
-        {
-          should_ack = true;
-
-          switch ( msg.payload.motorCmd )
-          {
-            case MotorCtrlCmd_ENABLE_OUTPUT_STAGE:
-              Motor::enableDriveOutput();
-              break;
-
-            case MotorCtrlCmd_DISABLE_OUTPUT_STAGE:
-              Motor::disableDriveOutput();
-              break;
-
-            case MotorCtrlCmd_EMERGENCY_STOP:
-              Motor::emergencyStop();
-              break;
-
-            default:
-              should_ack = false;
-              break;
-          }
-        }
-        break;
-
-      /*-----------------------------------------------------------------------
-      Enable/disable the inner loop manual control
-      -----------------------------------------------------------------------*/
-      case SubId_SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP:
-        if ( Control::Field::getControlMode() == Control::Field::Mode::OPEN_LOOP )
-        {
-          should_ack = Control::Field::setControlMode( Control::Field::Mode::DISABLED );
-        }
-        else
-        {
-          should_ack = Control::Field::setControlMode( Control::Field::Mode::OPEN_LOOP );
-        }
-        break;
-
-      /*-----------------------------------------------------------------------
-      Assign new references for the inner loop
-      -----------------------------------------------------------------------*/
-      case SubId_SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP_REF:
-        if ( msg.payload.has_data && ( msg.payload.data.size == sizeof( SystemControlMessage_ManualICtrlSetPoint ) ) )
-        {
-          should_ack       = true;
-          const auto pData = reinterpret_cast<const SystemControlMessage_ManualICtrlSetPoint *>( msg.payload.data.bytes );
-          Control::Field::setInnerLoopReferences( pData->iq_ref, pData->id_ref, pData->rotor_theta_rad );
-        }
         break;
 
       /*-----------------------------------------------------------------------

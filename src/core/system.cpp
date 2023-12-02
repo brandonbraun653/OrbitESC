@@ -23,37 +23,6 @@ namespace Orbit::System
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
-  Mode getMode()
-  {
-    return Data::SysInfo.bootMode;
-  }
-
-
-  void setMode( const Mode next )
-  {
-    Data::Param::write( ParamId_PARAM_BOOT_MODE, &next, sizeof( next ) );
-    doSafeShutdown();
-  }
-
-
-  const char *modeString( const Mode mode )
-  {
-    switch ( mode )
-    {
-      case Mode::NORMAL:
-        return "Normal";
-
-      case Mode::CONFIG:
-        return "Config";
-
-      case Mode::TEST:
-        return "Test";
-
-      default:
-        return "Unknown";
-    }
-  }
-
 
   void doSafeShutdown()
   {

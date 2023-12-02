@@ -28,11 +28,3 @@ class TestSystemControlCommands:
             assert math.isclose(new_rate, value, rel_tol=0.00001)
 
         serial_client.set_activity_led_blink_scaler(1.0)
-
-    def test_switch_modes(self, serial_client: OrbitClient):
-        test_values = [Mode.Normal, Mode.Test, Mode.Config]
-        for value in test_values:
-            assert serial_client.set_mode(value)
-            time.sleep(1.0)
-
-        assert serial_client.set_mode(Mode.Normal)

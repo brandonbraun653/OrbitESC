@@ -12,5 +12,4 @@ class MessageId(IntEnum):
     SystemTick = proto.MSG_SYS_TICK
     ParamIO = proto.MSG_PARAM_IO
     SystemCtrl = proto.MSG_SYS_CTRL
-    SwitchMode = proto.MSG_SWITCH_MODE
     SystemData = proto.MSG_SYS_DATA

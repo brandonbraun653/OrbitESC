@@ -199,17 +199,6 @@ class ConsoleMessage(BaseMessage):
         return self._pb_msg.data
 
 
-class SwitchModeMessage(BaseMessage):
-
-    def __init__(self, mode: Mode):
-        super().__init__()
-        self._pb_msg = proto.SwitchModeMessage()
-        self._pb_msg.header.msgId = MessageId.SwitchMode.value
-        self._pb_msg.header.subId = 0
-        
-        self._pb_msg.mode = mode.value
-
-
 class SystemDataMessage(BaseMessage):
 
     class ADCPhaseCurrents(ctypes.Structure):

@@ -17,7 +17,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <cstddef>
 #include <etl/string_view.h>
-#include <src/core/com/proto/serial_interface.pb.h>
+#include <src/core/com/proto/proto_defs.hpp>
 #include <src/core/data/volatile/orbit_parameter_decl.hpp>
 
 namespace Orbit::Data::Param

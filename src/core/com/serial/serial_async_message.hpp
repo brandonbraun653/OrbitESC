@@ -24,7 +24,7 @@ Includes
 #include <etl/array.h>
 #include <etl/message.h>
 #include <etl/vector.h>
-#include <src/core/com/proto/serial_interface.pb.h>
+#include <src/core/com/proto/proto_defs.hpp>
 
 namespace Orbit::Serial::Message
 {
@@ -43,11 +43,10 @@ namespace Orbit::Serial::Message
       AckNackMessage_size,
       PingMessage_size,
       ConsoleMessage_size,
-      SystemTick_size,
+      SystemTickMessage_size,
       SystemInfoMessage_size,
       ParamIOMessage_size,
       SystemControlMessage_size,
-      SwitchModeMessage_size,
       SystemDataMessage_size,
       /* clang-format on */
     };
@@ -74,7 +73,6 @@ namespace Orbit::Serial::Message
     MSG_SYS_INFO    = MsgId_MSG_SYS_INFO,
     MSG_PARAM_IO    = MsgId_MSG_PARAM_IO,
     MSG_SYS_CTRL    = MsgId_MSG_SYS_CTRL,
-    MSG_SWITCH_MODE = MsgId_MSG_SWITCH_MODE,
     MSG_SYS_DATA    = MsgId_MSG_SYS_DATA,
 
     MSG_ID_COUNT
@@ -189,15 +187,14 @@ namespace Orbit::Serial::Message
   /*---------------------------------------------------------------------------
   Message Class Declarations
   ---------------------------------------------------------------------------*/
-  using AckNack    = _CustomMsg<MSG_ACK_NACK, AckNackMessage, AckNackMessage_size, AckNackMessage_fields>;
-  using Ping       = _CustomMsg<MSG_PING_CMD, PingMessage, PingMessage_size, PingMessage_fields>;
-  using Console    = _CustomMsg<MSG_TERMINAL, ConsoleMessage, ConsoleMessage_size, ConsoleMessage_fields>;
-  using SysTick    = _CustomMsg<MSG_SYS_TICK, SystemTick, SystemTick_size, SystemTick_fields>;
-  using SysInfo    = _CustomMsg<MSG_SYS_INFO, SystemInfoMessage, SystemInfoMessage_size, SystemInfoMessage_fields>;
-  using ParamIO    = _CustomMsg<MSG_PARAM_IO, ParamIOMessage, ParamIOMessage_size, ParamIOMessage_fields>;
-  using SysCtrl    = _CustomMsg<MSG_SYS_CTRL, SystemControlMessage, SystemControlMessage_size, SystemControlMessage_fields>;
-  using SwitchMode = _CustomMsg<MSG_SWITCH_MODE, SwitchModeMessage, SwitchModeMessage_size, SwitchModeMessage_fields>;
-  using SysData    = _CustomMsg<MSG_SYS_DATA, SystemDataMessage, SystemDataMessage_size, SystemDataMessage_fields>;
+  using AckNack = _CustomMsg<MSG_ACK_NACK, AckNackMessage, AckNackMessage_size, AckNackMessage_fields>;
+  using Ping    = _CustomMsg<MSG_PING_CMD, PingMessage, PingMessage_size, PingMessage_fields>;
+  using Console = _CustomMsg<MSG_TERMINAL, ConsoleMessage, ConsoleMessage_size, ConsoleMessage_fields>;
+  using SysTick = _CustomMsg<MSG_SYS_TICK, SystemTickMessage, SystemTickMessage_size, SystemTickMessage_fields>;
+  using SysInfo = _CustomMsg<MSG_SYS_INFO, SystemInfoMessage, SystemInfoMessage_size, SystemInfoMessage_fields>;
+  using ParamIO = _CustomMsg<MSG_PARAM_IO, ParamIOMessage, ParamIOMessage_size, ParamIOMessage_fields>;
+  using SysCtrl = _CustomMsg<MSG_SYS_CTRL, SystemControlMessage, SystemControlMessage_size, SystemControlMessage_fields>;
+  using SysData = _CustomMsg<MSG_SYS_DATA, SystemDataMessage, SystemDataMessage_size, SystemDataMessage_fields>;
 
 }    // namespace Orbit::Serial::Message
 

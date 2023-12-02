@@ -16,7 +16,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <etl/message.h>
-#include <src/core/com/proto/serial_interface.pb.h>
+#include <src/core/com/proto/proto_defs.hpp>
 
 
 namespace Orbit::Event

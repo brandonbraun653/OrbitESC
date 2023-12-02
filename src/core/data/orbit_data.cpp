@@ -77,8 +77,8 @@ namespace Orbit::Data
 
   void printSystemInfo()
   {
-    LOG_INFO( "OrbitESC -- Boot#: %d, Mode: %s, HW: %d, SW:%s, SN:%s\r\n", SysInfo.bootCount,
-              System::modeString( SysInfo.bootMode ), SysIdentity.hwVersion, SysIdentity.swVersion, SysIdentity.serialNumber );
+    LOG_INFO( "OrbitESC -- Boot#: %d, HW: %d, SW:%s, SN:%s\r\n", SysInfo.bootCount,
+              SysIdentity.hwVersion, SysIdentity.swVersion, SysIdentity.serialNumber );
   }
 
 }    // namespace Orbit::Data

@@ -16,25 +16,13 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <cstdint>
-#include <src/core/com/proto/serial_interface.pb.h>
+#include <src/core/com/proto/proto_defs.hpp>
 
 namespace Orbit::System
 {
   /*---------------------------------------------------------------------------
   Enumerations
   ---------------------------------------------------------------------------*/
-
-  /**
-   * @brief Operational modes of the system
-   */
-  enum class Mode : uint8_t
-  {
-    NORMAL = BootMode_BOOT_MODE_NORMAL, /**< Standard operational mode for flight */
-    CONFIG = BootMode_BOOT_MODE_CONFIG, /**< Non-flight mode for configuration and control */
-    TEST   = BootMode_BOOT_MODE_TEST,   /**< Non-flight mode for testing */
-    NUM_OPTIONS
-  };
-
 
   /**
    * @brief Various fault codes that could occur during system operation

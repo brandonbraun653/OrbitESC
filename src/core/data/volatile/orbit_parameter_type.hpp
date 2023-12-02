@@ -15,7 +15,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <src/core/com/proto/serial_interface.pb.h>
+#include <src/core/com/proto/proto_defs.hpp>
 
 
 namespace Orbit::Data::Param

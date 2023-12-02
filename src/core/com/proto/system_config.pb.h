@@ -69,6 +69,13 @@ typedef enum _ParamId {
     ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD = 61 /* Peak voltage threshold in Volts */
 } ParamId;
 
+typedef enum _ParamIOSubId {
+    ParamIOSubId_GET = 1, /* Retrieve the current value of a parameter */
+    ParamIOSubId_SET = 2, /* Commit a new value of a parameter */
+    ParamIOSubId_SYNC = 3, /* Synchronize all parameters to disk */
+    ParamIOSubId_LOAD = 4 /* Load all parameters from disk */
+} ParamIOSubId;
+
 /* Struct definitions */
 typedef PB_BYTES_ARRAY_T(64) ParamIOMessage_data_t;
 typedef struct _ParamIOMessage {
@@ -94,6 +101,10 @@ extern "C" {
 #define _ParamId_MIN ParamId_PARAM_INVALID
 #define _ParamId_MAX ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD
 #define _ParamId_ARRAYSIZE ((ParamId)(ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD+1))
+
+#define _ParamIOSubId_MIN ParamIOSubId_GET
+#define _ParamIOSubId_MAX ParamIOSubId_LOAD
+#define _ParamIOSubId_ARRAYSIZE ((ParamIOSubId)(ParamIOSubId_LOAD+1))
 
 #define ParamIOMessage_id_ENUMTYPE ParamId
 #define ParamIOMessage_type_ENUMTYPE ParamType
@@ -125,7 +136,7 @@ extern const pb_msgdesc_t ParamIOMessage_msg;
 #define ParamIOMessage_fields &ParamIOMessage_msg
 
 /* Maximum encoded size of messages (where known) */
-#define ParamIOMessage_size                      89
+#define ParamIOMessage_size                      91
 
 #ifdef __cplusplus
 } /* extern "C" */

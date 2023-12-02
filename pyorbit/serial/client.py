@@ -129,29 +129,6 @@ class OrbitClient:
         """
         self.com_pipe.write(SystemResetMessage().serialize())
 
-    def set_mode(self, mode: Mode) -> bool:
-        """
-        Args:
-            mode: Which mode to switch into
-
-        Returns:
-            True if the mode was switched successfully, False otherwise
-        """
-        # Send the switch command
-        sub_id = self.com_pipe.subscribe(msg=AckNackMessage, qty=1, timeout=5.0)
-        self.com_pipe.write(SwitchModeMessage(mode=mode).serialize())
-        responses = self.com_pipe.get_subscription_data(sub_id, terminate=True)
-        if not responses or responses[0].ack is False:
-            logger.warning("Node did not respond/rejected set mode command")
-            return False
-
-        # Wait for the mode to switch to take effect
-        self._online = False
-        while not self.is_online:
-            time.sleep(0.1)
-
-        new_mode = Mode(self.parameter.get(ParameterId.BootMode))
-        return new_mode == mode
 
     def set_activity_led_blink_scaler(self, scaler: float = 1.0) -> bool:
         """

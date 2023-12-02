@@ -22,7 +22,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto2',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x14system_control.proto\x1a\x0cnanopb.proto\x1a\x16serial_interface.proto\"D\n\x14SystemControlMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x13\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x42\x05\x92?\x02\x08@*\xcb\x05\n\x12SystemControlSubId\x12\x1a\n\x16SUB_MSG_SYS_CTRL_RESET\x10\x01\x12\x1a\n\x16SUB_MSG_SYS_CTRL_MOTOR\x10\x02\x12\x1c\n\x18SUB_MSG_SYS_CTRL_CAL_ADC\x10\x03\x12&\n\"SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP\x10\x04\x12*\n&SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP_REF\x10\x05\x12(\n$SUB_MSG_ENABLE_STREAM_PHASE_CURRENTS\x10\x06\x12)\n%SUB_MSG_DISABLE_STREAM_PHASE_CURRENTS\x10\x07\x12)\n%SUB_MSG_ENABLE_STREAM_SYSTEM_VOLTAGES\x10\x08\x12*\n&SUB_MSG_DISABLE_STREAM_SYSTEM_VOLTAGES\x10\t\x12(\n$SUB_MSG_ENABLE_STREAM_PHASE_VOLTAGES\x10\n\x12)\n%SUB_MSG_DISABLE_STREAM_PHASE_VOLTAGES\x10\x0b\x12)\n%SUB_MSG_ENABLE_STREAM_STATE_ESTIMATES\x10\x0c\x12*\n&SUB_MSG_DISABLE_STREAM_STATE_ESTIMATES\x10\r\x12\x18\n\x14SUB_MSG_SYS_CTRL_ARM\x10\x0e\x12\x1b\n\x17SUB_MSG_SYS_CTRL_DISARM\x10\x0f\x12\x1b\n\x17SUB_MSG_SYS_CTRL_ENGAGE\x10\x10\x12\x1e\n\x1aSUB_MSG_SYS_CTRL_DISENGAGE\x10\x11\x12\x1a\n\x16SUB_MSG_SYS_CTRL_FAULT\x10\x12\x12#\n\x1fSUB_MSG_SYS_CTRL_EMERGENCY_STOP\x10\x13'
+  serialized_pb=b'\n\x14system_control.proto\x1a\x0cnanopb.proto\x1a\x16serial_interface.proto\"D\n\x14SystemControlMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x13\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x42\x05\x92?\x02\x08@*\xd0\x03\n\x12SystemControlSubId\x12\t\n\x05RESET\x10\x01\x12\t\n\x05MOTOR\x10\x02\x12\x0b\n\x07\x43\x41L_ADC\x10\x03\x12\x15\n\x11MANUAL_INNER_LOOP\x10\x04\x12\x19\n\x15MANUAL_INNER_LOOP_REF\x10\x05\x12 \n\x1c\x45NABLE_STREAM_PHASE_CURRENTS\x10\x06\x12!\n\x1d\x44ISABLE_STREAM_PHASE_CURRENTS\x10\x07\x12!\n\x1d\x45NABLE_STREAM_SYSTEM_VOLTAGES\x10\x08\x12\"\n\x1e\x44ISABLE_STREAM_SYSTEM_VOLTAGES\x10\t\x12 \n\x1c\x45NABLE_STREAM_PHASE_VOLTAGES\x10\n\x12!\n\x1d\x44ISABLE_STREAM_PHASE_VOLTAGES\x10\x0b\x12!\n\x1d\x45NABLE_STREAM_STATE_ESTIMATES\x10\x0c\x12\"\n\x1e\x44ISABLE_STREAM_STATE_ESTIMATES\x10\r\x12\x07\n\x03\x41RM\x10\x0e\x12\n\n\x06\x44ISARM\x10\x0f\x12\n\n\x06\x45NGAGE\x10\x10\x12\r\n\tDISENGAGE\x10\x11\x12\t\n\x05\x46\x41ULT\x10\x12\x12\x12\n\x0e\x45MERGENCY_STOP\x10\x13'
   ,
   dependencies=[nanopb__pb2.DESCRIPTOR,serial__interface__pb2.DESCRIPTOR,])
 
@@ -34,97 +34,97 @@ _SYSTEMCONTROLSUBID = _descriptor.EnumDescriptor(
   create_key=_descriptor._internal_create_key,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_SYS_CTRL_RESET', index=0, number=1,
+      name='RESET', index=0, number=1,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_SYS_CTRL_MOTOR', index=1, number=2,
+      name='MOTOR', index=1, number=2,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_SYS_CTRL_CAL_ADC', index=2, number=3,
+      name='CAL_ADC', index=2, number=3,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP', index=3, number=4,
+      name='MANUAL_INNER_LOOP', index=3, number=4,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP_REF', index=4, number=5,
+      name='MANUAL_INNER_LOOP_REF', index=4, number=5,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_ENABLE_STREAM_PHASE_CURRENTS', index=5, number=6,
+      name='ENABLE_STREAM_PHASE_CURRENTS', index=5, number=6,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_DISABLE_STREAM_PHASE_CURRENTS', index=6, number=7,
+      name='DISABLE_STREAM_PHASE_CURRENTS', index=6, number=7,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_ENABLE_STREAM_SYSTEM_VOLTAGES', index=7, number=8,
+      name='ENABLE_STREAM_SYSTEM_VOLTAGES', index=7, number=8,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_DISABLE_STREAM_SYSTEM_VOLTAGES', index=8, number=9,
+      name='DISABLE_STREAM_SYSTEM_VOLTAGES', index=8, number=9,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_ENABLE_STREAM_PHASE_VOLTAGES', index=9, number=10,
+      name='ENABLE_STREAM_PHASE_VOLTAGES', index=9, number=10,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_DISABLE_STREAM_PHASE_VOLTAGES', index=10, number=11,
+      name='DISABLE_STREAM_PHASE_VOLTAGES', index=10, number=11,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_ENABLE_STREAM_STATE_ESTIMATES', index=11, number=12,
+      name='ENABLE_STREAM_STATE_ESTIMATES', index=11, number=12,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_DISABLE_STREAM_STATE_ESTIMATES', index=12, number=13,
+      name='DISABLE_STREAM_STATE_ESTIMATES', index=12, number=13,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_SYS_CTRL_ARM', index=13, number=14,
+      name='ARM', index=13, number=14,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_SYS_CTRL_DISARM', index=14, number=15,
+      name='DISARM', index=14, number=15,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_SYS_CTRL_ENGAGE', index=15, number=16,
+      name='ENGAGE', index=15, number=16,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_SYS_CTRL_DISENGAGE', index=16, number=17,
+      name='DISENGAGE', index=16, number=17,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_SYS_CTRL_FAULT', index=17, number=18,
+      name='FAULT', index=17, number=18,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='SUB_MSG_SYS_CTRL_EMERGENCY_STOP', index=18, number=19,
+      name='EMERGENCY_STOP', index=18, number=19,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
@@ -132,30 +132,30 @@ _SYSTEMCONTROLSUBID = _descriptor.EnumDescriptor(
   containing_type=None,
   serialized_options=None,
   serialized_start=133,
-  serialized_end=848,
+  serialized_end=597,
 )
 _sym_db.RegisterEnumDescriptor(_SYSTEMCONTROLSUBID)
 
 SystemControlSubId = enum_type_wrapper.EnumTypeWrapper(_SYSTEMCONTROLSUBID)
-SUB_MSG_SYS_CTRL_RESET = 1
-SUB_MSG_SYS_CTRL_MOTOR = 2
-SUB_MSG_SYS_CTRL_CAL_ADC = 3
-SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP = 4
-SUB_MSG_SYS_CTRL_MANUAL_INNER_LOOP_REF = 5
-SUB_MSG_ENABLE_STREAM_PHASE_CURRENTS = 6
-SUB_MSG_DISABLE_STREAM_PHASE_CURRENTS = 7
-SUB_MSG_ENABLE_STREAM_SYSTEM_VOLTAGES = 8
-SUB_MSG_DISABLE_STREAM_SYSTEM_VOLTAGES = 9
-SUB_MSG_ENABLE_STREAM_PHASE_VOLTAGES = 10
-SUB_MSG_DISABLE_STREAM_PHASE_VOLTAGES = 11
-SUB_MSG_ENABLE_STREAM_STATE_ESTIMATES = 12
-SUB_MSG_DISABLE_STREAM_STATE_ESTIMATES = 13
-SUB_MSG_SYS_CTRL_ARM = 14
-SUB_MSG_SYS_CTRL_DISARM = 15
-SUB_MSG_SYS_CTRL_ENGAGE = 16
-SUB_MSG_SYS_CTRL_DISENGAGE = 17
-SUB_MSG_SYS_CTRL_FAULT = 18
-SUB_MSG_SYS_CTRL_EMERGENCY_STOP = 19
+RESET = 1
+MOTOR = 2
+CAL_ADC = 3
+MANUAL_INNER_LOOP = 4
+MANUAL_INNER_LOOP_REF = 5
+ENABLE_STREAM_PHASE_CURRENTS = 6
+DISABLE_STREAM_PHASE_CURRENTS = 7
+ENABLE_STREAM_SYSTEM_VOLTAGES = 8
+DISABLE_STREAM_SYSTEM_VOLTAGES = 9
+ENABLE_STREAM_PHASE_VOLTAGES = 10
+DISABLE_STREAM_PHASE_VOLTAGES = 11
+ENABLE_STREAM_STATE_ESTIMATES = 12
+DISABLE_STREAM_STATE_ESTIMATES = 13
+ARM = 14
+DISARM = 15
+ENGAGE = 16
+DISENGAGE = 17
+FAULT = 18
+EMERGENCY_STOP = 19
 
 
 

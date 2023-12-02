@@ -64,16 +64,16 @@ namespace Orbit::COM
     s_phase_currents.payload.header.subId = 0;
     s_phase_currents.payload.header.uuid  = Serial::Message::getNextUUID();
     s_phase_currents.payload.id           = SystemDataId_ADC_PHASE_CURRENTS;
-    s_phase_currents.payload.has_data     = true;
-    s_phase_currents.payload.data.size    = sizeof( SystemDataMessage_ADCPhaseCurrents );
+    s_phase_currents.payload.timestamp    = Chimera::micros();
+    s_phase_currents.payload.has_payload  = true;
+    s_phase_currents.payload.payload.size = sizeof( ADCPhaseCurrentsPayload );
 
-    auto data = reinterpret_cast<SystemDataMessage_ADCPhaseCurrents *>( s_phase_currents.payload.data.bytes );
-    memset( data, 0, sizeof( s_phase_currents.payload.data.bytes ) );
+    auto data = reinterpret_cast<ADCPhaseCurrentsPayload *>( s_phase_currents.payload.payload.bytes );
+    memset( data, 0, sizeof( s_phase_currents.payload.payload.bytes ) );
 
-    data->timestamp = Chimera::micros();
-    data->ia        = Control::foc_ireg_state.ima;
-    data->ib        = Control::foc_ireg_state.imb;
-    data->ic        = Control::foc_ireg_state.imc;
+    data->ia = Control::foc_ireg_state.ima;
+    data->ib = Control::foc_ireg_state.imb;
+    data->ic = Control::foc_ireg_state.imc;
 
     /*-------------------------------------------------------------------------
     Update the task data
@@ -101,13 +101,13 @@ namespace Orbit::COM
     s_system_voltages.payload.header.subId = 0;
     s_system_voltages.payload.header.uuid  = Serial::Message::getNextUUID();
     s_system_voltages.payload.id           = SystemDataId_ADC_SYSTEM_VOLTAGES;
-    s_system_voltages.payload.has_data     = true;
-    s_system_voltages.payload.data.size    = sizeof( SystemDataMessage_ADCSystemVoltages );
+    s_system_voltages.payload.timestamp    = Chimera::micros();
+    s_system_voltages.payload.has_payload  = true;
+    s_system_voltages.payload.payload.size = sizeof( ADCSystemVoltagesPayload );
 
-    auto data = reinterpret_cast<SystemDataMessage_ADCSystemVoltages *>( s_system_voltages.payload.data.bytes );
-    memset( data, 0, sizeof( s_system_voltages.payload.data.bytes ) );
+    auto data = reinterpret_cast<ADCSystemVoltagesPayload *>( s_system_voltages.payload.payload.bytes );
+    memset( data, 0, sizeof( s_system_voltages.payload.payload.bytes ) );
 
-    data->timestamp = Chimera::micros();
     data->v_mcu     = Instrumentation::getMCUVoltage();
     data->v_dc_link = Instrumentation::getSupplyVoltage();
     data->v_temp    = Instrumentation::getTemperatureVoltage();
@@ -139,16 +139,15 @@ namespace Orbit::COM
     s_phase_voltages.payload.header.subId = 0;
     s_phase_voltages.payload.header.uuid  = Serial::Message::getNextUUID();
     s_phase_voltages.payload.id           = SystemDataId_ADC_PHASE_VOLTAGES;
-    s_phase_voltages.payload.has_data     = true;
-    s_phase_voltages.payload.data.size    = sizeof( SystemDataMessage_ADCPhaseVoltages );
+    s_phase_voltages.payload.timestamp    = Chimera::micros();
+    s_phase_voltages.payload.has_payload  = true;
+    s_phase_voltages.payload.payload.size = sizeof( ADCPhaseVoltagesPayload );
 
-    auto data = reinterpret_cast<SystemDataMessage_ADCPhaseVoltages *>( s_phase_voltages.payload.data.bytes );
-    memset( data, 0, sizeof( s_phase_voltages.payload.data.bytes ) );
-
-    data->timestamp = Chimera::micros();
-    data->va        = Control::foc_ireg_state.vma;
-    data->vb        = Control::foc_ireg_state.vmb;
-    data->vc        = Control::foc_ireg_state.vmc;
+    auto data = reinterpret_cast<ADCPhaseVoltagesPayload *>( s_phase_voltages.payload.payload.bytes );
+    memset( data, 0, sizeof( s_phase_voltages.payload.payload.bytes ) );
+    data->va = Control::foc_ireg_state.vma;
+    data->vb = Control::foc_ireg_state.vmb;
+    data->vc = Control::foc_ireg_state.vmc;
 
     /*-------------------------------------------------------------------------
     Update the task data

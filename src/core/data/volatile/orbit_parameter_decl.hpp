@@ -18,7 +18,7 @@ Includes
 #include <array>
 #include <algorithm>
 #include <cstddef>
-#include <src/core/com/proto/serial_interface.pb.h>
+#include <src/core/com/proto/proto_defs.hpp>
 #include <src/core/data/volatile/orbit_parameter_type.hpp>
 #include <src/core/data/volatile/orbit_parameter_validators.hpp>
 #include <src/core/data/orbit_data.hpp>
@@ -107,13 +107,6 @@ namespace Orbit::Data::Param
               .key       = "actv_led_scale",
               .address   = &SysConfig.activityLedScaler,
               .maxSize   = sizeof( SysConfig.activityLedScaler ),
-              .validator = nullptr },
-
-        Node{ .id        = ParamId_PARAM_BOOT_MODE,
-              .type      = ParamType_UINT8,
-              .key       = "boot_mode",
-              .address   = &SysInfo.bootMode,
-              .maxSize   = sizeof( SysInfo.bootMode ),
               .validator = nullptr },
 
         Node{ .id        = ParamId_PARAM_CAN_NODE_ID,

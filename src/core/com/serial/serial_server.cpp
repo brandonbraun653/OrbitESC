@@ -198,14 +198,6 @@ namespace Orbit::Serial
         }
         break;
 
-        case Message::MSG_SWITCH_MODE: {
-          Message::SwitchMode msg;
-          if( Message::decode( &msg.state, in.data(), rx_search_offset - 1u ) )
-          {
-            this->receive( msg );
-          }
-        }
-
         case Message::MSG_ID_COUNT:
         default:
           LOG_ERROR( "Unhandled msg ID: %d", msg.header.msgId );

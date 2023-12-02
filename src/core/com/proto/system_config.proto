@@ -65,6 +65,13 @@ enum ParamId {
   PARAM_PEAK_VOLTAGE_THRESHOLD = 61; // Peak voltage threshold in Volts
 }
 
+enum ParamIOSubId {
+  GET  = 1;  // Retrieve the current value of a parameter
+  SET  = 2;  // Commit a new value of a parameter
+  SYNC = 3;  // Synchronize all parameters to disk
+  LOAD = 4;  // Load all parameters from disk
+}
+
 message ParamIOMessage {
   required Header header = 1;
   optional ParamId id = 2 [(nanopb).int_size = IS_16];

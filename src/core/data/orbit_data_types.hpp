@@ -88,7 +88,6 @@ namespace Orbit::Data
   {
   public:
     uint32_t     bootCount; /**< PARAM_BOOT_COUNT */
-    System::Mode bootMode;  /**< PARAM_BOOT_MODE */
 
     float v_mcu;      /**< System chip voltage */
     float v_dc_link;  /**< Main power rail for the motor */

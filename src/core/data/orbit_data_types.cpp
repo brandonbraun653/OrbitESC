@@ -115,7 +115,6 @@ namespace Orbit::Data
   void Information::clear()
   {
     bootCount = 0;
-    bootMode  = System::Mode::NORMAL;
     v_dc_link = 0.0f;
     v_isense  = 0.0f;
     v_mcu     = 0.0f;

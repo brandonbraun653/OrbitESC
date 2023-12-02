@@ -19,19 +19,12 @@ typedef enum _MsgId {
     MsgId_MSG_SYS_INFO = 4, /* System information */
     MsgId_MSG_PARAM_IO = 5, /* Do operations on configurable parameters */
     MsgId_MSG_SYS_CTRL = 6, /* Perform system control operations */
-    MsgId_MSG_SWITCH_MODE = 7, /* Switch the boot mode of the device */
-    MsgId_MSG_SYS_DATA = 8 /* System data stream */
+    MsgId_MSG_SYS_DATA = 7 /* System data stream */
 } MsgId;
 
 /* Specialization sub-IDs to further specify the root message ID. */
 typedef enum _SubId {
-    /* option allow_alias = true; */
-    SubId_SUB_MSG_NONE = 0, /* Invalid/empty sub-message ID */
-    /* Parameter IO messages */
-    SubId_SUB_MSG_PARAM_IO_GET = 1, /* Retrieve the current value of a parameter */
-    SubId_SUB_MSG_PARAM_IO_SET = 2, /* Commit a new value of a parameter */
-    SubId_SUB_MSG_PARAM_IO_SYNC = 3, /* Synchronize all parameters to disk */
-    SubId_SUB_MSG_PARAM_IO_LOAD = 4 /* Load all parameters from disk */
+    SubId_SUB_MSG_NONE = 0 /* Invalid/empty sub-message ID */
 } SubId;
 
 /* Status codes for ACK/NACK messages */
@@ -48,8 +41,8 @@ typedef enum _StatusCode {
 /* Core message header common to all types. Each functional message type **must**
  have this first in their list of declarations. */
 typedef struct _Header {
-    MsgId msgId; /* Root message identifier */
-    SubId subId; /* Possible sub-identifier to specify root ID details */
+    uint8_t msgId; /* Root message identifier */
+    uint8_t subId; /* Possible sub-identifier to specify root ID details */
     uint16_t uuid; /* Unique ID for the message */
 } Header;
 
@@ -84,15 +77,13 @@ extern "C" {
 #define _MsgId_ARRAYSIZE ((MsgId)(MsgId_MSG_SYS_DATA+1))
 
 #define _SubId_MIN SubId_SUB_MSG_NONE
-#define _SubId_MAX SubId_SUB_MSG_PARAM_IO_LOAD
-#define _SubId_ARRAYSIZE ((SubId)(SubId_SUB_MSG_PARAM_IO_LOAD+1))
+#define _SubId_MAX SubId_SUB_MSG_NONE
+#define _SubId_ARRAYSIZE ((SubId)(SubId_SUB_MSG_NONE+1))
 
 #define _StatusCode_MIN StatusCode_NO_ERROR
 #define _StatusCode_MAX StatusCode_REQUEST_FAILED
 #define _StatusCode_ARRAYSIZE ((StatusCode)(StatusCode_REQUEST_FAILED+1))
 
-#define Header_msgId_ENUMTYPE MsgId
-#define Header_subId_ENUMTYPE SubId
 
 
 #define AckNackMessage_status_code_ENUMTYPE StatusCode
@@ -100,11 +91,11 @@ extern "C" {
 
 
 /* Initializer values for message structs */
-#define Header_init_default                      {_MsgId_MIN, _SubId_MIN, 0}
+#define Header_init_default                      {0, 0, 0}
 #define BaseMessage_init_default                 {Header_init_default}
 #define AckNackMessage_init_default              {Header_init_default, 0, _StatusCode_MIN, false, {0, {0}}}
 #define PingMessage_init_default                 {Header_init_default}
-#define Header_init_zero                         {_MsgId_MIN, _SubId_MIN, 0}
+#define Header_init_zero                         {0, 0, 0}
 #define BaseMessage_init_zero                    {Header_init_zero}
 #define AckNackMessage_init_zero                 {Header_init_zero, 0, _StatusCode_MIN, false, {0, {0}}}
 #define PingMessage_init_zero                    {Header_init_zero}
@@ -122,8 +113,8 @@ extern "C" {
 
 /* Struct field encoding specification for nanopb */
 #define Header_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, UENUM,    msgId,             1) \
-X(a, STATIC,   REQUIRED, UENUM,    subId,             2) \
+X(a, STATIC,   REQUIRED, UINT32,   msgId,             1) \
+X(a, STATIC,   REQUIRED, UINT32,   subId,             2) \
 X(a, STATIC,   REQUIRED, UINT32,   uuid,              3)
 #define Header_CALLBACK NULL
 #define Header_DEFAULT NULL
@@ -161,10 +152,10 @@ extern const pb_msgdesc_t PingMessage_msg;
 #define PingMessage_fields &PingMessage_msg
 
 /* Maximum encoded size of messages (where known) */
-#define AckNackMessage_size                      80
-#define BaseMessage_size                         10
-#define Header_size                              8
-#define PingMessage_size                         10
+#define AckNackMessage_size                      82
+#define BaseMessage_size                         12
+#define Header_size                              10
+#define PingMessage_size                         12
 
 #ifdef __cplusplus
 } /* extern "C" */
