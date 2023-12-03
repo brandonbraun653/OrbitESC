@@ -1330,6 +1330,21 @@ files = [
 ]
 
 [[package]]
+name = "mypy-protobuf"
+version = "3.1.0"
+description = "Generate mypy stub files from protobuf specs"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "mypy-protobuf-3.1.0.tar.gz", hash = "sha256:558dcc390290e43c7def0d4238cc41a79abde06ff509b3014c3dff0553c7b0c1"},
+    {file = "mypy_protobuf-3.1.0-py3-none-any.whl", hash = "sha256:dfaad58dea15603f93dd8273ac6e82d0d1cbd405d69133a732b7737a16d8e7d9"},
+]
+
+[package.dependencies]
+protobuf = ">=3.19.1"
+types-protobuf = ">=3.17.4"
+
+[[package]]
 name = "nanopb"
 version = "0.4.7"
 description = "Nanopb is a small code-size Protocol Buffers implementation in ansi C. It is especially suitable for use in microcontrollers, but fits any memory restricted system."
@@ -2512,6 +2527,17 @@ docs = ["myst-parser", "pydata-sphinx-theme", "sphinx"]
 test = ["argcomplete (>=3.0.3)", "mypy (>=1.6.0)", "pre-commit", "pytest (>=7.0,<7.5)", "pytest-mock", "pytest-mypy-testing"]
 
 [[package]]
+name = "types-protobuf"
+version = "4.24.0.4"
+description = "Typing stubs for protobuf"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "types-protobuf-4.24.0.4.tar.gz", hash = "sha256:57ab42cb171dfdba2c74bb5b50c250478538cc3c5ed95b8b368929ad0c9f90a5"},
+    {file = "types_protobuf-4.24.0.4-py3-none-any.whl", hash = "sha256:131ab7d0cbc9e444bc89c994141327dcce7bcaeded72b1acb72a94827eb9c7af"},
+]
+
+[[package]]
 name = "types-python-dateutil"
 version = "2.8.19.14"
 description = "Typing stubs for python-dateutil"
@@ -2724,4 +2750,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "8399a384edd25c9e3bdbb72e67f1566d2cb30ac59b856adcf89b8f1ee0839a73"
+content-hash = "660a8493e7fe758e173da06e06d0e4dbb03e72c11ff6578d8928c61d7370f5e7"

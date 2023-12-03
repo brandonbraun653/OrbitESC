@@ -9,48 +9,15 @@
 # **********************************************************************************************************************
 
 from __future__ import annotations
+
 import ctypes
 import pyorbit.nanopb.serial_interface_pb2 as proto
-from typing import Union
-from enum import IntEnum
+from pyorbit.nanopb.system_data_pb2 import *
+from typing import Union, TypeVar
 from google.protobuf.message import Message
-
-from pyorbit.serial.serial_interface import MessageId
+from pyorbit.nanopb.serial_interface_pb2 import *
 from pyorbit.utils import Singleton
 from threading import RLock
-
-
-class MessageSubId(IntEnum):
-    Empty = proto.SUB_MSG_NONE
-
-    # Parameter IO
-    ParamIO_Set = proto.SUB_MSG_PARAM_IO_SET
-    ParamIO_Get = proto.SUB_MSG_PARAM_IO_GET
-    ParamIO_Sync = proto.SUB_MSG_PARAM_IO_SYNC
-    ParamIO_Load = proto.SUB_MSG_PARAM_IO_LOAD
-
-
-class StatusCode(IntEnum):
-    NO_ERROR = proto.NO_ERROR
-    UNKNOWN_ERROR = proto.UNKNOWN_ERROR
-    INVALID_PARAM = proto.INVALID_PARAM
-    INVALID_TYPE = proto.INVALID_TYPE
-    INVALID_VALUE = proto.INVALID_VALUE
-    REQUEST_FAILED = proto.REQUEST_FAILED
-
-
-class Mode(IntEnum):
-    Normal = proto.BOOT_MODE_NORMAL
-    Test = proto.BOOT_MODE_TEST
-    Config = proto.BOOT_MODE_CONFIG
-
-
-class SystemDataId(IntEnum):
-    SYS_DATA_INVALID = proto.SYS_DATA_INVALID
-    ADC_PHASE_CURRENTS = proto.ADC_PHASE_CURRENTS
-    ADC_PHASE_VOLTAGES = proto.ADC_PHASE_VOLTAGES
-    ADC_SYSTEM_VOLTAGES = proto.ADC_SYSTEM_VOLTAGES
-    STATE_ESTIMATES = proto.STATE_ESTIMATES
 
 
 class UUIDGenerator(metaclass=Singleton):
@@ -66,7 +33,11 @@ class UUIDGenerator(metaclass=Singleton):
             return self._uuid
 
 
-class BaseMessage:
+# Core type for messages that inherit from this class
+BasePBMsgInheritor = TypeVar('BasePBMsgInheritor', bound='BasePBMsg')
+
+
+class BasePBMsg:
 
     def __init__(self):
         self._id_gen = UUIDGenerator()
@@ -86,20 +57,20 @@ class BaseMessage:
         return self._pb_msg.header.uuid
 
     @property
-    def sub_id(self) -> MessageSubId:
-        return MessageSubId(self._pb_msg.header.subId)
+    def sub_id(self) -> int:
+        return int(self._pb_msg.header.subId)
 
     @sub_id.setter
-    def sub_id(self, sid: MessageSubId) -> None:
-        self._pb_msg.header.subId = sid.value
+    def sub_id(self, sid: int) -> None:
+        self._pb_msg.header.subId = sid
 
     @property
-    def msg_id(self) -> MessageId:
+    def msg_id(self) -> MsgId:
         return self._pb_msg.header.msgId
 
     @msg_id.setter
-    def msg_id(self, mid: MessageId):
-        self._pb_msg.header.msgId = mid.value
+    def msg_id(self, mid: MsgId):
+        self._pb_msg.header.msgId = mid
 
     def deserialize(self, serialized: bytes) -> int:
         """
@@ -132,12 +103,12 @@ class BaseMessage:
             self._pb_msg.header.uuid = self._id_gen.next_uuid
 
 
-class AckNackMessage(BaseMessage):
+class AckNackPBMsg(BasePBMsg):
 
     def __init__(self):
         super().__init__()
         self._pb_msg = proto.AckNackMessage()
-        self._pb_msg.header.msgId = MessageId.AckNack.value
+        self._pb_msg.header.msgId = MsgId.MSG_ACK_NACK
 
     @property
     def ack(self) -> bool:
@@ -153,25 +124,25 @@ class AckNackMessage(BaseMessage):
 
     @status_code.setter
     def status_code(self, sc: StatusCode):
-        self._pb_msg.status_code = sc.value
+        self._pb_msg.status_code = sc
 
 
-class PingMessage(BaseMessage):
+class PingPBMsg(BasePBMsg):
 
     def __init__(self):
         super().__init__()
 
         self._pb_msg = proto.PingMessage()
-        self._pb_msg.header.msgId = MessageId.PingCmd.value
+        self._pb_msg.header.msgId = MsgId.MSG_PING_CMD
         self._pb_msg.header.subId = 0
 
 
-class SystemTickMessage(BaseMessage):
+class SystemTickPBMsg(BasePBMsg):
 
     def __init__(self):
         super().__init__()
-        self._pb_msg = proto.SystemTick()
-        self._pb_msg.header.msgId = MessageId.SystemTick.value
+        self._pb_msg = SystemTickMessage()
+        self._pb_msg.header.msgId = MsgId.MSG_SYS_TICK
         self._pb_msg.tick = 0
 
     @property
@@ -179,12 +150,12 @@ class SystemTickMessage(BaseMessage):
         return self._pb_msg.tick
 
 
-class ConsoleMessage(BaseMessage):
+class ConsolePBMsg(BasePBMsg):
 
     def __init__(self):
         super().__init__()
-        self._pb_msg = proto.ConsoleMessage()
-        self._pb_msg.header.msgId = MessageId.Terminal.value
+        self._pb_msg = ConsoleMessage()
+        self._pb_msg.header.msgId = MsgId.MSG_TERMINAL
 
     @property
     def frame_number(self) -> int:
@@ -199,11 +170,10 @@ class ConsoleMessage(BaseMessage):
         return self._pb_msg.data
 
 
-class SystemDataMessage(BaseMessage):
+class SystemDataPBMsg(BasePBMsg):
 
     class ADCPhaseCurrents(ctypes.Structure):
         _fields_ = [
-            ('timestamp', ctypes.c_uint32),
             ('ia', ctypes.c_float),
             ('ib', ctypes.c_float),
             ('ic', ctypes.c_float),
@@ -211,7 +181,6 @@ class SystemDataMessage(BaseMessage):
 
     class ADCPhaseVoltages(ctypes.Structure):
         _fields_ = [
-            ('timestamp', ctypes.c_uint32),
             ('va', ctypes.c_float),
             ('vb', ctypes.c_float),
             ('vc', ctypes.c_float),
@@ -219,7 +188,6 @@ class SystemDataMessage(BaseMessage):
 
     class ADCSystemVoltages(ctypes.Structure):
         _fields_ = [
-            ('timestamp', ctypes.c_uint32),
             ('v_mcu', ctypes.c_float),
             ('v_dc_link', ctypes.c_float),
             ('v_temp', ctypes.c_float),
@@ -228,7 +196,6 @@ class SystemDataMessage(BaseMessage):
 
     class StateEstimates(ctypes.Structure):
         _fields_ = [
-            ('timestamp', ctypes.c_uint32),
             ('position', ctypes.c_float),
             ('speed', ctypes.c_float),
         ]
@@ -242,25 +209,33 @@ class SystemDataMessage(BaseMessage):
 
     def __init__(self):
         super().__init__()
-        self._pb_msg = proto.SystemDataMessage()
-        self._pb_msg.header.msgId = MessageId.SystemData.value
+        self._pb_msg = SystemDataMessage()
+        self._pb_msg.header.msgId = MsgId.MSG_SYS_DATA
         self._pb_msg.header.subId = 0
 
     @property
+    def timestamp(self) -> int:
+        """
+        Returns:
+            Device system time in microseconds when the data was captured
+        """
+        return self._pb_msg.timestamp
+
+    @property
     def data_id(self) -> SystemDataId:
-        return SystemDataId(self._pb_msg.id)
+        return self._pb_msg.id
 
     @data_id.setter
     def data_id(self, data_id: SystemDataId):
-        self._pb_msg.id = data_id.value
+        self._pb_msg.id = data_id
 
     @property
     def data(self) -> bytes:
-        return self._pb_msg.data
+        return self._pb_msg.payload
 
     @data.setter
     def data(self, data: bytes):
-        self._pb_msg.data = data
+        self._pb_msg.payload = data
 
     def convert_to_message_type(self) -> Union[None, ctypes.Structure]:
         """

@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import struct
 import time
+from pyorbit.nanopb.system_config_pb2 import *
 from typing import Optional
 from loguru import logger
-from pyorbit.serial.messages import MessageSubId, AckNackMessage, StatusCode
-from pyorbit.serial.parameters import ParameterId, ParameterType, ParamIOMessage, MessageEncoding
+from pyorbit.serial.messages import AckNackPBMsg
+from pyorbit.serial.parameters import ParameterId, ParameterType, ParamIOPBMsg, MessageEncoding
 from pyorbit.serial.pipe import SerialPipePublisher
 
 
@@ -25,8 +26,8 @@ class ParameterController:
             Deserialized value
         """
         # Format and publish the request
-        msg = ParamIOMessage()
-        msg.sub_id = MessageSubId.ParamIO_Get
+        msg = ParamIOPBMsg()
+        msg.sub_id = ParamIOSubId.GET
         msg.param_id = param
 
         # Push the request onto the wire
@@ -34,13 +35,13 @@ class ParameterController:
         rsp = self._com_pipe.write_and_wait(msg, 3.0)
 
         # Server denied the request for some reason
-        if isinstance(rsp, AckNackMessage):
+        if isinstance(rsp, AckNackPBMsg):
             logger.error(f"GET parameter {repr(param)} failed with status code: "
-                         f"{repr(StatusCode(rsp.status_code))}")
+                         f"{repr(rsp.status_code)}")
             return None
 
         # Deserialize the data returned
-        if isinstance(rsp, ParamIOMessage):
+        if isinstance(rsp, ParamIOPBMsg):
             logger.trace(f"Transaction completed in {time.time() - start_time:.2f} seconds for {repr(param)}")
             try:
                 if rsp.param_type == MessageEncoding.STRING:
@@ -77,8 +78,8 @@ class ParameterController:
         from pyorbit.app.parameters.util import parameter_encoding
 
         # Build the base of the message
-        msg = ParamIOMessage()
-        msg.sub_id = MessageSubId.ParamIO_Set
+        msg = ParamIOPBMsg()
+        msg.sub_id = ParamIOSubId.SET
         msg.param_id = param
         msg.param_type = parameter_encoding(param)
 
@@ -107,9 +108,9 @@ class ParameterController:
             logger.error("No valid response from server")
             return False
 
-        assert isinstance(rsp, AckNackMessage), f"Expected AckNackMessage but got {type(rsp)}"
+        assert isinstance(rsp, AckNackPBMsg), f"Expected AckNackMessage but got {type(rsp)}"
         if not rsp.ack:
-            logger.error(f"SET parameter {repr(param)} failed with status code: {repr(StatusCode(rsp.status_code))}")
+            logger.error(f"SET parameter {repr(param)} failed with status code: {repr(rsp.status_code)}")
             return False
         else:
             return True
@@ -120,17 +121,17 @@ class ParameterController:
         Returns:
             True if the operation succeeds, False if not
         """
-        msg = ParamIOMessage()
-        msg.sub_id = MessageSubId.ParamIO_Load
+        msg = ParamIOPBMsg()
+        msg.sub_id = ParamIOSubId.LOAD
 
         rsp = self._com_pipe.write_and_wait(msg, timeout=10.0)
         if not rsp:
             logger.error("No valid response from server")
             return False
 
-        assert isinstance(rsp, AckNackMessage), f"Expected AckNackMessage but got {type(rsp)}"
+        assert isinstance(rsp, AckNackPBMsg), f"Expected AckNackMessage but got {type(rsp)}"
         if not rsp.ack:
-            logger.error(f"LOAD parameters failed with status code: {repr(StatusCode(rsp.status_code))}")
+            logger.error(f"LOAD parameters failed with status code: {repr(rsp.status_code)}")
             return False
         else:
             return True
@@ -141,17 +142,17 @@ class ParameterController:
         Returns:
             True if the operation succeeds, False if not
         """
-        msg = ParamIOMessage()
-        msg.sub_id = MessageSubId.ParamIO_Sync
+        msg = ParamIOPBMsg()
+        msg.sub_id = ParamIOSubId.SYNC
 
         rsp = self._com_pipe.write_and_wait(msg, timeout=10.0)
         if not rsp:
             logger.error("No valid response from server")
             return False
 
-        assert isinstance(rsp, AckNackMessage), f"Expected AckNackMessage but got {type(rsp)}"
+        assert isinstance(rsp, AckNackPBMsg), f"Expected AckNackMessage but got {type(rsp)}"
         if not rsp.ack:
-            logger.error(f"STORE failed with status code: {repr(StatusCode(rsp.status_code))}")
+            logger.error(f"STORE failed with status code: {repr(rsp.status_code)}")
             return False
         else:
             return True

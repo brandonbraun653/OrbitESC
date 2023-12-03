@@ -20,7 +20,7 @@ from typing import Dict, List, Callable, Optional
 from pyorbit.serial.messages import *
 from pyorbit.observers import MessageObserver
 from threading import Thread, Lock, Event
-from pyorbit.serial.messages import BaseMessage
+from pyorbit.serial.messages import BasePBMsg
 
 
 class ConsoleObserver(MessageObserver):
@@ -30,7 +30,7 @@ class ConsoleObserver(MessageObserver):
         def __init__(self):
             self.start_time = time.time()
             self.total_frames = 0
-            self.frames: List[ConsoleMessage] = []
+            self.frames: List[ConsolePBMsg] = []
 
         def message(self) -> str:
             self.frames = sorted(self.frames, key=cmp_to_key(lambda x1, x2: x1.frame_number - x2.frame_number))
@@ -40,14 +40,14 @@ class ConsoleObserver(MessageObserver):
             return final_msg
 
     def __init__(self, on_msg_rx: Callable[[str], None]):
-        super().__init__(func=self._frame_accumulator, msg_type=ConsoleMessage)
+        super().__init__(func=self._frame_accumulator, msg_type=ConsolePBMsg)
         self._frame_lock = Lock()
         self._on_msg_rx = on_msg_rx
         self._in_progress_frames = {}  # type: Dict[int, ConsoleObserver.FrameBuffer]
         self._processing_thread = Thread(target=self._frame_processor, name="FrameProcessor", daemon=True)
         self._processing_thread.start()
 
-    def _frame_accumulator(self, msg: ConsoleMessage) -> None:
+    def _frame_accumulator(self, msg: ConsolePBMsg) -> None:
         """
         Accumulates new frames in to the frame buffer tracking
         Args:
@@ -103,12 +103,12 @@ class TransactionResponseObserver(MessageObserver):
     def __init__(self, txn_uuid: int, timeout: Union[int, float]):
         # Register the observer to listen to all messages
         super().__init__(func=self._uuid_matcher_observer, msg_type=type(None), timeout=timeout)
-        self._result: Optional[BaseMessage] = None
+        self._result: Optional[BasePBMsg] = None
         self._event = Event()
         self._timeout = timeout
         self._txn_uuid = txn_uuid
 
-    def wait(self) -> Optional[BaseMessage]:
+    def wait(self) -> Optional[BasePBMsg]:
         """
         Waits for the response to the message we're observing
         Returns:
@@ -117,7 +117,7 @@ class TransactionResponseObserver(MessageObserver):
         self._event.wait(timeout=self._timeout)
         return self._result
 
-    def _uuid_matcher_observer(self, _msg: BaseMessage) -> None:
+    def _uuid_matcher_observer(self, _msg: BasePBMsg) -> None:
         """
         Callback for the observer. Will only accept messages with the same UUID as
         the message we're waiting for.
@@ -127,7 +127,7 @@ class TransactionResponseObserver(MessageObserver):
         Returns:
             None
         """
-        if not isinstance(_msg, BaseMessage):
+        if not isinstance(_msg, BasePBMsg):
             return
         elif not self._event.is_set() and (self._txn_uuid == _msg.uuid):
             self._result = copy.copy(_msg)
@@ -137,7 +137,7 @@ class TransactionResponseObserver(MessageObserver):
 class PredicateObserver(MessageObserver):
     """ Observer that accepts messages based on a user defined predicate """
 
-    def __init__(self, func: Callable[[BaseMessage], bool], qty: int = 1, timeout: Union[int, float] = 1.0):
+    def __init__(self, func: Callable[[BasePBMsg], bool], qty: int = 1, timeout: Union[int, float] = 1.0):
         """
         Args:
             func: Predicate function that accepts a message and returns True if it should be accepted
@@ -153,7 +153,7 @@ class PredicateObserver(MessageObserver):
         self._timeout = timeout
         self._predicate = func
 
-    def wait(self) -> Optional[List[BaseMessage]]:
+    def wait(self) -> Optional[List[BasePBMsg]]:
         """
         Waits for the response(s) to the message predicate we're observing
         Returns:
@@ -162,7 +162,7 @@ class PredicateObserver(MessageObserver):
         self._event.wait(timeout=self._timeout)
         return list(self._msg_queue.queue)
 
-    def _predicate_matcher_observer(self, msg: BaseMessage) -> None:
+    def _predicate_matcher_observer(self, msg: BasePBMsg) -> None:
         """
         Callback for the observer. Will only accept messages that pass the user defined
         predicate.
@@ -172,7 +172,7 @@ class PredicateObserver(MessageObserver):
         Returns:
             None
         """
-        if not isinstance(msg, BaseMessage):
+        if not isinstance(msg, BasePBMsg):
             return
 
         # Accept the message if we can

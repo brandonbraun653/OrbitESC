@@ -24,4 +24,4 @@ python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py --cpp-descript
 
 # Build the Python bindings
 echo "Building Python Bindings"
-protoc -I="$SRC_DIR" -I="$NPB_DIR" -I"$SRC_DIR"/serial_interface.proto --python_out="$DST_DIR" "$SRC_DIR"/*.proto
+protoc -I="$SRC_DIR" -I="$NPB_DIR" -I"$SRC_DIR"/serial_interface.proto --python_out="$DST_DIR" --mypy_out="$DST_DIR" "$SRC_DIR"/*.proto

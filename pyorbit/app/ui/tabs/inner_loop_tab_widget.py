@@ -3,7 +3,7 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QCheckBox, QDial, QDoubleSpinBox, QLCDNumber, QSlider
 from pyorbit.app.connections.serial import SerialConnectionManagerSingleton, get_serial_client
-from pyorbit.serial.intf.system_control import ManualCurrentControlToggleMessage
+from pyorbit.serial.intf.system_control import ManualCurrentControlTogglePBMsg
 
 
 class InnerLoopTabWidget(QtWidgets.QWidget):
@@ -323,7 +323,7 @@ class InnerLoopTabWidget(QtWidgets.QWidget):
         #     pass
         # elif state == Qt.CheckState.Unchecked:
         #     pass
-        get_serial_client().com_pipe.write(ManualCurrentControlToggleMessage().serialize())
+        get_serial_client().com_pipe.write(ManualCurrentControlTogglePBMsg().serialize())
 
     def reset_widgets_to_inactive_state(self) -> None:
         # Reset the manual override checkbox

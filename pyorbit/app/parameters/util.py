@@ -57,6 +57,7 @@ def parameter_encoding(pid: ParameterId) -> Optional[MessageEncoding]:
     if pid in parameter_id_lookup_cache.keys():
         return parameter_id_lookup_cache[pid].value_encoding
     else:
+        logger.error(f"Could not find parameter {pid}")
         return None
 
 

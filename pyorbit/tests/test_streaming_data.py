@@ -1,7 +1,8 @@
 import math
 import time
+from typing import List
 
-from pyorbit.serial.messages import SystemDataMessage, SystemDataId, SystemTickMessage
+from pyorbit.serial.messages import SystemDataPBMsg, SystemDataId, SystemTickPBMsg
 from pyorbit.tests.fixtures import *
 from pyorbit.serial.client import OrbitClient
 from pyorbit.utility.time import period_to_hz
@@ -14,8 +15,8 @@ class TestStaticStreamingData:
     def test_system_voltages(self, serial_client: OrbitClient) -> None:
         """ Validates that system voltages are being reported periodically """
 
-        packets = serial_client.com_pipe.filter(
-            lambda msg: isinstance(msg, SystemDataMessage) and (msg.data_id == SystemDataId.ADC_SYSTEM_VOLTAGES),
+        packets: List[SystemDataPBMsg] = serial_client.com_pipe.filter(
+            lambda msg: isinstance(msg, SystemDataPBMsg) and (msg.data_id == SystemDataId.ADC_SYSTEM_VOLTAGES),
             qty=5,
             timeout=5.0)
         assert len(packets) == 5
@@ -24,8 +25,8 @@ class TestStaticStreamingData:
 
         # Validate the periodicity of the messages
         for idx in range(1, len(messages)):
-            hz = period_to_hz(messages[idx].timestamp, messages[idx - 1].timestamp)
-            assert isinstance(messages[idx], SystemDataMessage.ADCSystemVoltages)
+            hz = period_to_hz(packets[idx].timestamp, packets[idx - 1].timestamp)
+            assert isinstance(messages[idx], SystemDataPBMsg.ADCSystemVoltages)
             assert 0.0 < messages[idx].v_dc_link < 18.0
             assert 1.64 < messages[idx].v_isense < 1.66
             assert 3.25 < messages[idx].v_mcu < 3.35
@@ -36,14 +37,14 @@ class TestStaticStreamingData:
         """ Validates that system tick messages are being reported periodically """
 
         packets = serial_client.com_pipe.filter(
-            lambda msg: isinstance(msg, SystemTickMessage),
+            lambda msg: isinstance(msg, SystemTickPBMsg),
             qty=5,
             timeout=5.0)
         assert len(packets) == 5
 
         # Validate the periodicity of the messages
         for idx in range(1, len(packets)):
-            assert isinstance(packets[idx], SystemTickMessage)
+            assert isinstance(packets[idx], SystemTickPBMsg)
             hz = period_to_hz(packets[idx].tick, packets[idx - 1].tick, unit=1e-3)
             assert 9 < hz < 11
 
@@ -56,7 +57,7 @@ class TestStaticStreamingData:
 
         # Listen for the data
         packets = serial_client.com_pipe.filter(
-            lambda msg: isinstance(msg, SystemDataMessage) and (msg.data_id == SystemDataId.ADC_PHASE_CURRENTS),
+            lambda msg: isinstance(msg, SystemDataPBMsg) and (msg.data_id == SystemDataId.ADC_PHASE_CURRENTS),
             qty=15,
             timeout=5.0)
 
@@ -69,10 +70,10 @@ class TestStaticStreamingData:
         assert len(packets) == 15
         avg_hz = 0.0
         for idx in range(1, len(messages)):
-            avg_hz += period_to_hz(messages[idx].timestamp, messages[idx - 1].timestamp)
+            avg_hz += period_to_hz(packets[idx].timestamp, packets[idx - 1].timestamp)
 
             # Ensure the message converted over to the expected type
-            assert isinstance(messages[idx], SystemDataMessage.ADCPhaseCurrents)
+            assert isinstance(messages[idx], SystemDataPBMsg.ADCPhaseCurrents)
 
             # The motor drive isn't enabled, so the reported currents should be roughly zero
             assert math.isclose(messages[idx].ia, 0.0, rel_tol=0.1)

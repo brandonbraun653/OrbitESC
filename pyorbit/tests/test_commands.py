@@ -3,7 +3,6 @@ import time
 import numpy as np
 from pyorbit.tests.fixtures import *
 from pyorbit.serial.client import OrbitClient
-from pyorbit.serial.messages import Mode
 from pyorbit.serial.parameters import ParameterId
 
 

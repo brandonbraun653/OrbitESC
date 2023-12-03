@@ -14,7 +14,7 @@ from PyQt5 import QtCore
 from pyqtgraph import PlotWidget, PlotDataItem
 
 from pyorbit.app.main import AppSettings, Settings
-from pyorbit.serial.messages import SystemDataMessage
+from pyorbit.serial.messages import SystemDataPBMsg
 from pyorbit.serial.parameters import ParameterId
 from pyorbit.observers import MessageObserver
 
@@ -59,7 +59,7 @@ class MotorCurrentPlot(AbstractDataPlot):
     #         self.messageSignal.emit(message)
 
     def __init__(self):
-        self._observer = MessageObserver(self._system_data_observer, SystemDataMessage)
+        self._observer = MessageObserver(self._system_data_observer, SystemDataPBMsg)
         self._phase_a_attr = PlotAttributes(enabled=True, data_field="PhaseACurrent",
                                             pen=pyqtgraph.mkPen(color=(255, 0, 0), width=2, style=QtCore.Qt.SolidLine))
         self._phase_b_attr = PlotAttributes(enabled=True, data_field="PhaseBCurrent",
@@ -86,22 +86,22 @@ class MotorCurrentPlot(AbstractDataPlot):
         index = tab.currentIndex()
         return index == 0
 
-    def _system_data_observer(self, msg: SystemDataMessage):
+    def _system_data_observer(self, msg: SystemDataPBMsg):
         data = msg.convert_to_message_type()
-        if isinstance(data, SystemDataMessage.ADCPhaseCurrents):
-            time_in_sec = data.timestamp / 1e6
+        if isinstance(data, SystemDataPBMsg.ADCPhaseCurrents):
+            time_in_sec = msg.timestamp / 1e6
             self._phase_a_attr.time.append(time_in_sec)
-            self._phase_a_attr.data.append(data.phase_a)
+            self._phase_a_attr.data.append(data.ia)
             self._phase_b_attr.time.append(time_in_sec)
-            self._phase_b_attr.data.append(data.phase_b)
+            self._phase_b_attr.data.append(data.ib)
             self._phase_c_attr.time.append(time_in_sec)
-            self._phase_c_attr.data.append(data.phase_c)
+            self._phase_c_attr.data.append(data.ic)
 
 
 class MotorSpeedPositionPlot(AbstractDataPlot):
 
     def __init__(self):
-        self._observer = MessageObserver(self._system_data_observer, SystemDataMessage)
+        self._observer = MessageObserver(self._system_data_observer, SystemDataPBMsg)
         self._speed_attr = PlotAttributes(enabled=True, data_field="MotorSpeed",
                                           pen=pyqtgraph.mkPen(color=(0, 0, 255), width=2, style=QtCore.Qt.SolidLine))
         self._pos_attr = PlotAttributes(enabled=True, data_field="MotorPosition",
@@ -123,9 +123,9 @@ class MotorSpeedPositionPlot(AbstractDataPlot):
         index = tab.currentIndex()
         return index == 2
 
-    def _system_data_observer(self, msg: SystemDataMessage):
+    def _system_data_observer(self, msg: SystemDataPBMsg):
         data = msg.convert_to_message_type()
-        if isinstance(data, SystemDataMessage.StateEstimates):
+        if isinstance(data, SystemDataPBMsg.StateEstimates):
             time_in_sec = data.timestamp / 1e6
             self._speed_attr.time.append(time_in_sec)
             self._speed_attr.data.append(data.speed * (180 / np.pi))

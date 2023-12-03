@@ -19,7 +19,7 @@ from serial import Serial
 from threading import Thread, Event
 from queue import Queue
 from pyorbit.publisher import Publisher
-from pyorbit.serial.messages import BaseMessage, AckNackMessage, StatusCode
+from pyorbit.serial.messages import BasePBMsg, AckNackPBMsg, StatusCode, BasePBMsgInheritor
 from pyorbit.serial.observers import TransactionResponseObserver, PredicateObserver
 from pyorbit.serial.parameters import MessageTypeMap
 
@@ -104,7 +104,7 @@ class SerialPipePublisher(Publisher):
         """
         self._tx_msgs.put(data, block=True)
 
-    def write_and_wait(self, msg: BaseMessage, timeout: Union[int, float]) -> Optional[BaseMessage]:
+    def write_and_wait(self, msg: BasePBMsg, timeout: Union[int, float]) -> Optional[BasePBMsg]:
         """
         Writes a message to the serial pipe and waits for a response
         Args:
@@ -125,8 +125,8 @@ class SerialPipePublisher(Publisher):
         self.unsubscribe(sub_id)
         return result
 
-    def filter(self, predicate: Callable[[BaseMessage], bool], qty: int = 1, timeout: Union[int, float] = 1.0) -> List[
-               BaseMessage]:
+    def filter(self, predicate: Callable[[BasePBMsg], bool], qty: int = 1, timeout: Union[int, float] = 1.0) -> List[
+               BasePBMsgInheritor]:
         """
         Filters incoming the incoming message stream based on a user defined predicate, then returns the
         messages that fulfilled the predicate.
@@ -146,7 +146,7 @@ class SerialPipePublisher(Publisher):
         return results
 
     @staticmethod
-    def process_ack_nack_response(msg: BaseMessage, error_string: str = None) -> bool:
+    def process_ack_nack_response(msg: BasePBMsg, error_string: str = None) -> bool:
         """
         Processes an AckNackMessage response from the ESC
         Args:
@@ -156,7 +156,7 @@ class SerialPipePublisher(Publisher):
         Returns:
             True if the response was an ACK, False otherwise
         """
-        if not msg or not isinstance(msg, AckNackMessage):
+        if not msg or not isinstance(msg, AckNackPBMsg):
             logger.error(f"No valid response from server {'. Got type ' + str(type(msg)) if msg else ''}")
             return False
 

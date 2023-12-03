@@ -15,3 +15,4 @@ touch ./.venv/lib/python3.10/site-packages/orbitesc.pth
 echo "$(pwd)" >> ./.venv/lib/python3.10/site-packages/orbitesc.pth
 echo "$(pwd)"/lib/Aurora/lib/nanopb/nanopb/generator >> ./.venv/lib/python3.10/site-packages/orbitesc.pth
 echo "$(pwd)"/lib/Aurora/lib/nanopb/nanopb/generator/proto >> ./.venv/lib/python3.10/site-packages/orbitesc.pth
+echo "$(pwd)"/pyorbit/nanopb >> ./.venv/lib/python3.10/site-packages/orbitesc.pth

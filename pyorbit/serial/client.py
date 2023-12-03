@@ -16,13 +16,13 @@ from functools import wraps
 from loguru import logger
 from typing import Any, Callable
 
-from pyorbit.serial.intf.system_control import StreamPhaseCurrentsMessage, SystemResetMessage
+from pyorbit.serial.intf.system_control import StreamPhaseCurrentsPBMsg, SystemResetPBMsg
 from pyorbit.serial.pipe import SerialPipePublisher
 from pyorbit.exceptions import NotOnlineException
 from pyorbit.serial.messages import *
 from pyorbit.observers import MessageObserver
 from pyorbit.serial.observers import ConsoleObserver
-from pyorbit.serial.parameters import SetActivityLedBlinkScalerMessage, ParameterId
+from pyorbit.serial.parameters import SetActivityLedBlinkScalerPBMsg, ParameterId
 from pyorbit.serial.controllers import ParameterController
 from threading import Event, Thread
 
@@ -79,7 +79,7 @@ class OrbitClient:
 
         # Register known observers
         self._param_observer = ParameterController(pipe=self.com_pipe)
-        self.com_pipe.subscribe_observer(MessageObserver(func=self._observer_esc_tick, msg_type=SystemTickMessage))
+        self.com_pipe.subscribe_observer(MessageObserver(func=self._observer_esc_tick, msg_type=SystemTickPBMsg))
         self.com_pipe.subscribe_observer(ConsoleObserver(on_msg_rx=lambda x: logger.info(x.strip('\n'))))
 
         atexit.register(self._teardown)
@@ -101,8 +101,8 @@ class OrbitClient:
         Returns:
             True if the device was ping-able, False otherwise
         """
-        sub_id = self.com_pipe.subscribe(msg=PingMessage, qty=1, timeout=5.0)
-        self.com_pipe.write(PingMessage().serialize())
+        sub_id = self.com_pipe.subscribe(msg=PingPBMsg, qty=1, timeout=5.0)
+        self.com_pipe.write(PingPBMsg().serialize())
         responses = self.com_pipe.get_subscription_data(sub_id, terminate=True)
         if not responses:
             logger.warning("Node did not respond to ping")
@@ -117,7 +117,7 @@ class OrbitClient:
         Returns:
             True if the command was successful, False otherwise
         """
-        rsp = self.com_pipe.write_and_wait(StreamPhaseCurrentsMessage(enable=enable), timeout=3.0)
+        rsp = self.com_pipe.write_and_wait(StreamPhaseCurrentsPBMsg(enable=enable), timeout=3.0)
         return self.com_pipe.process_ack_nack_response(rsp, f"Failed to {'enable' if enable else 'disable'} "
                                                             f"phase current streaming")
 
@@ -127,7 +127,7 @@ class OrbitClient:
         Returns:
             None
         """
-        self.com_pipe.write(SystemResetMessage().serialize())
+        self.com_pipe.write(SystemResetPBMsg().serialize())
 
 
     def set_activity_led_blink_scaler(self, scaler: float = 1.0) -> bool:
@@ -142,8 +142,8 @@ class OrbitClient:
         Notes:
             The default scaler is 1.0, which means the LED will blink at the default pre-programmed rate.
         """
-        sub_id = self.com_pipe.subscribe(msg=AckNackMessage, qty=1, timeout=5.0)
-        self.com_pipe.write(SetActivityLedBlinkScalerMessage(scaler=scaler).serialize())
+        sub_id = self.com_pipe.subscribe(msg=AckNackPBMsg, qty=1, timeout=5.0)
+        self.com_pipe.write(SetActivityLedBlinkScalerPBMsg(scaler=scaler).serialize())
         responses = self.com_pipe.get_subscription_data(sub_id, terminate=True)
         if not responses:
             logger.warning("Node did not respond to set activity LED blink scaler command")
@@ -185,7 +185,7 @@ class OrbitClient:
                 logger.warning("Serial link is offline")
                 self._online = False
 
-    def _observer_esc_tick(self, msg: SystemTickMessage) -> None:
+    def _observer_esc_tick(self, msg: SystemTickPBMsg) -> None:
         """
         Looks for the SystemTick of the registered node to determine online/offline status
         Args:
