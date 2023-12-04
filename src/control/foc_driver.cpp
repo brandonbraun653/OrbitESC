@@ -42,8 +42,8 @@ namespace Orbit::Control::FOC
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static StateMachine s_ctrl_fsm;
-  static SuperState                       mState;            /**< Entire FOC subsystem state */
+  static StateMachine                                      s_ctrl_fsm;
+  static SuperState                                        mState;         /**< Entire FOC subsystem state */
   static std::array<etl::ifsm_state *, ModeId::NUM_STATES> mFSMStateArray; /**< Storage for the FSM state controllers */
 
 
@@ -56,8 +56,7 @@ namespace Orbit::Control::FOC
 
   void StateMachine::logUnhandledMessage( const etl::imessage &msg )
   {
-    LOG_WARN( "%s message not handled from state %s",
-              getMessageString( msg.get_message_id() ).data(),
+    LOG_WARN( "%s message not handled from state %s", getMessageString( msg.get_message_id() ).data(),
               getModeString( get_state_id() ).data() );
   }
 
@@ -99,31 +98,33 @@ namespace Orbit::Control::FOC
     // ctl->Dpid.OutMinLimit = 0.0f;
     // ctl->Dpid.OutMaxLimit = 1.0f;
     // ctl->DFIR = Math::FIR<float, 15>( { -0.00124568841F, 0.00147019443F, 0.0123328818F, 0.00110139197F, -0.0499843247F,
-    //                                     -0.0350326933F, 0.164325342F, 0.407320708F, 0.407320708F, 0.164325342F, -0.0350326933F,
-    //                                     -0.0499843247F, 0.00110139197F, 0.0123328818F, 0.00147019443F, -0.00124568841F } );
+    //                                     -0.0350326933F, 0.164325342F, 0.407320708F, 0.407320708F, 0.164325342F,
+    //                                     -0.0350326933F, -0.0499843247F, 0.00110139197F, 0.0123328818F, 0.00147019443F,
+    //                                     -0.00124568841F } );
     // ctl->DFIR.initialize();
 
     // ctl->Qpid.SetPoint    = 0.0f;
     // ctl->Qpid.OutMinLimit = 0.0f;
     // ctl->Qpid.OutMaxLimit = 1.0f;
     // ctl->QFIR = Math::FIR<float, 15>( { -0.00124568841F, 0.00147019443F, 0.0123328818F, 0.00110139197F, -0.0499843247F,
-    //                                     -0.0350326933F, 0.164325342F, 0.407320708F, 0.407320708F, 0.164325342F, -0.0350326933F,
-    //                                     -0.0499843247F, 0.00110139197F, 0.0123328818F, 0.00147019443F, -0.00124568841F } );
+    //                                     -0.0350326933F, 0.164325342F, 0.407320708F, 0.407320708F, 0.164325342F,
+    //                                     -0.0350326933F, -0.0499843247F, 0.00110139197F, 0.0123328818F, 0.00147019443F,
+    //                                     -0.00124568841F } );
     // ctl->QFIR.initialize();
     // ctl->Qpid.setTunings( 5.0f, 2.0f, 0.3f, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
 
-    // /*-------------------------------------------------------------------------
-    // Initialize the finite state machine
-    // -------------------------------------------------------------------------*/
-    // mFSMStateArray.fill( nullptr );
-    // mFSMStateArray[ ModeId::IDLE ]    = new State::Idle();
-    // mFSMStateArray[ ModeId::ARMED ]   = new State::Armed();
-    // mFSMStateArray[ ModeId::FAULT ]   = new State::Fault();
-    // mFSMStateArray[ ModeId::ENGAGED ] = new State::Engaged();
+    /*-------------------------------------------------------------------------
+    Initialize the finite state machine
+    -------------------------------------------------------------------------*/
+    mFSMStateArray.fill( nullptr );
+    mFSMStateArray[ ModeId::IDLE ]    = new State::Idle();
+    mFSMStateArray[ ModeId::ARMED ]   = new State::Armed();
+    mFSMStateArray[ ModeId::FAULT ]   = new State::Fault();
+    mFSMStateArray[ ModeId::ENGAGED ] = new State::Engaged();
 
-    // /* Initialize the FSM. First state will be ModeId::IDLE. */
-    // s_ctrl_fsm.set_states( mFSMStateArray.data(), mFSMStateArray.size() );
-    // s_ctrl_fsm.start();
+    /* Initialize the FSM. First state will be ModeId::IDLE. */
+    s_ctrl_fsm.set_states( mFSMStateArray.data(), mFSMStateArray.size() );
+    s_ctrl_fsm.start();
 
     // mInitialized = true;
   }
@@ -206,7 +207,6 @@ namespace Orbit::Control::FOC
   }
 
 
-
   /**
    * @brief Calculates back-EMF estimates along the D and Q axes
    * @see https://ieeexplore.ieee.org/document/530286
@@ -250,4 +250,4 @@ namespace Orbit::Control::FOC
     // mState.emfObserver.z2 = mState.emfObserver.z2_dot;
   }
 
-}    // namespace Orbit::Control
+}    // namespace Orbit::Control::FOC

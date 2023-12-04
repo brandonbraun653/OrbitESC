@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto2',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x13motor_control.proto\x1a\x0cnanopb.proto\"N\n\x13ManualICtrlSetPoint\x12\x17\n\x0frotor_theta_rad\x18\x01 \x02(\x02\x12\x0e\n\x06id_ref\x18\x02 \x02(\x02\x12\x0e\n\x06iq_ref\x18\x03 \x02(\x02*\x9f\x01\n\x0eMotorCtrlState\x12\x1c\n\x18MOTOR_CTRL_STATE_INVALID\x10\x00\x12\x19\n\x15MOTOR_CTRL_STATE_IDLE\x10\x01\x12\x1a\n\x16MOTOR_CTRL_STATE_ARMED\x10\x02\x12\x1c\n\x18MOTOR_CTRL_STATE_ENGAGED\x10\x03\x12\x1a\n\x16MOTOR_CTRL_STATE_FAULT\x10\x04*\x9e\x01\n\x0cMotorCtrlCmd\x12\x1a\n\x16MOTOR_CTRL_CMD_INVALID\x10\x00\x12&\n\"MOTOR_CTRL_CMD_ENABLE_OUTPUT_STAGE\x10\x01\x12\'\n#MOTOR_CTRL_CMD_DISABLE_OUTPUT_STAGE\x10\x02\x12!\n\x1dMOTOR_CTRL_CMD_EMERGENCY_STOP\x10\x03'
+  serialized_pb=b'\n\x13motor_control.proto\x1a\x0cnanopb.proto\"N\n\x13ManualICtrlSetPoint\x12\x17\n\x0frotor_theta_rad\x18\x01 \x02(\x02\x12\x0e\n\x06id_ref\x18\x02 \x02(\x02\x12\x0e\n\x06iq_ref\x18\x03 \x02(\x02*\x9f\x01\n\x0eMotorCtrlState\x12\x19\n\x15MOTOR_CTRL_STATE_IDLE\x10\x00\x12\x1a\n\x16MOTOR_CTRL_STATE_ARMED\x10\x01\x12\x1c\n\x18MOTOR_CTRL_STATE_ENGAGED\x10\x02\x12\x1a\n\x16MOTOR_CTRL_STATE_FAULT\x10\x03\x12\x1c\n\x18MOTOR_CTRL_STATE_INVALID\x10\x04*\x9e\x01\n\x0cMotorCtrlCmd\x12\x1a\n\x16MOTOR_CTRL_CMD_INVALID\x10\x00\x12&\n\"MOTOR_CTRL_CMD_ENABLE_OUTPUT_STAGE\x10\x01\x12\'\n#MOTOR_CTRL_CMD_DISABLE_OUTPUT_STAGE\x10\x02\x12!\n\x1dMOTOR_CTRL_CMD_EMERGENCY_STOP\x10\x03'
   ,
   dependencies=[nanopb__pb2.DESCRIPTOR,])
 
@@ -33,27 +33,27 @@ _MOTORCTRLSTATE = _descriptor.EnumDescriptor(
   create_key=_descriptor._internal_create_key,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='MOTOR_CTRL_STATE_INVALID', index=0, number=0,
+      name='MOTOR_CTRL_STATE_IDLE', index=0, number=0,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='MOTOR_CTRL_STATE_IDLE', index=1, number=1,
+      name='MOTOR_CTRL_STATE_ARMED', index=1, number=1,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='MOTOR_CTRL_STATE_ARMED', index=2, number=2,
+      name='MOTOR_CTRL_STATE_ENGAGED', index=2, number=2,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='MOTOR_CTRL_STATE_ENGAGED', index=3, number=3,
+      name='MOTOR_CTRL_STATE_FAULT', index=3, number=3,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='MOTOR_CTRL_STATE_FAULT', index=4, number=4,
+      name='MOTOR_CTRL_STATE_INVALID', index=4, number=4,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
@@ -102,11 +102,11 @@ _MOTORCTRLCMD = _descriptor.EnumDescriptor(
 _sym_db.RegisterEnumDescriptor(_MOTORCTRLCMD)
 
 MotorCtrlCmd = enum_type_wrapper.EnumTypeWrapper(_MOTORCTRLCMD)
-MOTOR_CTRL_STATE_INVALID = 0
-MOTOR_CTRL_STATE_IDLE = 1
-MOTOR_CTRL_STATE_ARMED = 2
-MOTOR_CTRL_STATE_ENGAGED = 3
-MOTOR_CTRL_STATE_FAULT = 4
+MOTOR_CTRL_STATE_IDLE = 0
+MOTOR_CTRL_STATE_ARMED = 1
+MOTOR_CTRL_STATE_ENGAGED = 2
+MOTOR_CTRL_STATE_FAULT = 3
+MOTOR_CTRL_STATE_INVALID = 4
 MOTOR_CTRL_CMD_INVALID = 0
 MOTOR_CTRL_CMD_ENABLE_OUTPUT_STAGE = 1
 MOTOR_CTRL_CMD_DISABLE_OUTPUT_STAGE = 2

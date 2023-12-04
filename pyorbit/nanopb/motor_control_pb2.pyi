@@ -16,38 +16,38 @@ class _MotorCtrlState:
     V: typing_extensions.TypeAlias = ValueType
 class _MotorCtrlStateEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_MotorCtrlState.ValueType], builtins.type):
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor = ...
-    MOTOR_CTRL_STATE_INVALID: MotorCtrlState.ValueType = ...  # 0
-    """Invalid motor control state"""
-
-    MOTOR_CTRL_STATE_IDLE: MotorCtrlState.ValueType = ...  # 1
+    MOTOR_CTRL_STATE_IDLE: MotorCtrlState.ValueType = ...  # 0
     """Motor control is idle"""
 
-    MOTOR_CTRL_STATE_ARMED: MotorCtrlState.ValueType = ...  # 2
+    MOTOR_CTRL_STATE_ARMED: MotorCtrlState.ValueType = ...  # 1
     """Motor control is armed"""
 
-    MOTOR_CTRL_STATE_ENGAGED: MotorCtrlState.ValueType = ...  # 3
+    MOTOR_CTRL_STATE_ENGAGED: MotorCtrlState.ValueType = ...  # 2
     """Motor control is engaged"""
 
-    MOTOR_CTRL_STATE_FAULT: MotorCtrlState.ValueType = ...  # 4
+    MOTOR_CTRL_STATE_FAULT: MotorCtrlState.ValueType = ...  # 3
     """Motor control is in a fault state"""
+
+    MOTOR_CTRL_STATE_INVALID: MotorCtrlState.ValueType = ...  # 4
+    """Invalid motor control state"""
 
 class MotorCtrlState(_MotorCtrlState, metaclass=_MotorCtrlStateEnumTypeWrapper):
     pass
 
-MOTOR_CTRL_STATE_INVALID: MotorCtrlState.ValueType = ...  # 0
-"""Invalid motor control state"""
-
-MOTOR_CTRL_STATE_IDLE: MotorCtrlState.ValueType = ...  # 1
+MOTOR_CTRL_STATE_IDLE: MotorCtrlState.ValueType = ...  # 0
 """Motor control is idle"""
 
-MOTOR_CTRL_STATE_ARMED: MotorCtrlState.ValueType = ...  # 2
+MOTOR_CTRL_STATE_ARMED: MotorCtrlState.ValueType = ...  # 1
 """Motor control is armed"""
 
-MOTOR_CTRL_STATE_ENGAGED: MotorCtrlState.ValueType = ...  # 3
+MOTOR_CTRL_STATE_ENGAGED: MotorCtrlState.ValueType = ...  # 2
 """Motor control is engaged"""
 
-MOTOR_CTRL_STATE_FAULT: MotorCtrlState.ValueType = ...  # 4
+MOTOR_CTRL_STATE_FAULT: MotorCtrlState.ValueType = ...  # 3
 """Motor control is in a fault state"""
+
+MOTOR_CTRL_STATE_INVALID: MotorCtrlState.ValueType = ...  # 4
+"""Invalid motor control state"""
 
 global___MotorCtrlState = MotorCtrlState
 

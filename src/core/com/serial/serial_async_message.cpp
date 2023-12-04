@@ -64,14 +64,14 @@ namespace Orbit::Serial::Message
   }
 
 
-  bool encode( EncodableMessage *const msg )
+  bool encode( EncodableMessage *const msg, const bool use_cobs )
   {
     RT_DBG_ASSERT( msg );
-    return encode( msg, msg->PBPayloadData, msg->PBPayloadSize );
+    return encode( msg, msg->PBPayloadData, msg->PBPayloadSize, use_cobs );
   }
 
 
-  bool encode( EncodableMessage *const msg, const void *const src, const size_t length )
+  bool encode( EncodableMessage *const msg, const void *const src, const size_t length, const bool use_cobs )
   {
     RT_DBG_ASSERT( msg );
     RT_DBG_ASSERT( src );
@@ -102,8 +102,18 @@ namespace Orbit::Serial::Message
     Frame the transaction with COBS encoding. Add +1 to the total encoded
     size to account for the null byte delimiter that gets transmitted.
     -----------------------------------------------------------------------*/
-    cobs_encode_result cobsResult = cobs_encode( msg->IOBuffer, msg->IOBufferSize, PBBuffer, stream.bytes_written );
-    msg->EncodedSize              = cobsResult.out_len + 1u;
+    cobs_encode_result cobsResult;
+    if( use_cobs )
+    {
+      cobsResult       = cobs_encode( msg->IOBuffer, msg->IOBufferSize, PBBuffer, stream.bytes_written );
+      msg->EncodedSize = cobsResult.out_len + 1u;
+    }
+    else
+    {
+      memcpy( msg->IOBuffer, PBBuffer, stream.bytes_written );
+      msg->EncodedSize  = stream.bytes_written;
+      cobsResult.status = COBS_ENCODE_OK;
+    }
 
     RT_DBG_ASSERT( msg->EncodedSize <= msg->IOBufferSize );
     delete[] PBBuffer;

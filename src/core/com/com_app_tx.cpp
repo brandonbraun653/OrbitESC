@@ -60,28 +60,32 @@ namespace Orbit::COM
     /*-------------------------------------------------------------------------
     Pack the message data
     -------------------------------------------------------------------------*/
-    s_phase_currents.payload.header.msgId = MsgId_MSG_SYS_DATA;
-    s_phase_currents.payload.header.subId = 0;
-    s_phase_currents.payload.header.uuid  = Serial::Message::getNextUUID();
-    s_phase_currents.payload.id           = SystemDataId_ADC_PHASE_CURRENTS;
-    s_phase_currents.payload.timestamp    = Chimera::micros();
-    s_phase_currents.payload.has_payload  = true;
-    s_phase_currents.payload.payload.size = sizeof( ADCPhaseCurrentsPayload );
+    s_phase_currents.raw.header.msgId = MsgId_MSG_SYS_DATA;
+    s_phase_currents.raw.header.subId = 0;
+    s_phase_currents.raw.header.uuid  = Serial::Message::getNextUUID();
+    s_phase_currents.raw.id           = SystemDataId_ADC_PHASE_CURRENTS;
+    s_phase_currents.raw.timestamp    = Chimera::micros();
+    s_phase_currents.raw.has_payload  = true;
 
-    auto data = reinterpret_cast<ADCPhaseCurrentsPayload *>( s_phase_currents.payload.payload.bytes );
-    memset( data, 0, sizeof( s_phase_currents.payload.payload.bytes ) );
+    /*-------------------------------------------------------------------------
+    Pack the payload data
+    -------------------------------------------------------------------------*/
+    Serial::Message::Payload::ADCPhaseCurrents payload;
+    payload.raw.ia = Control::foc_ireg_state.ima;
+    payload.raw.ib = Control::foc_ireg_state.imb;
+    payload.raw.ic = Control::foc_ireg_state.imc;
 
-    data->ia = Control::foc_ireg_state.ima;
-    data->ib = Control::foc_ireg_state.imb;
-    data->ic = Control::foc_ireg_state.imc;
+    Serial::Message::encode( &payload.state, Serial::Message::ENCODE_NO_COBS );
+    memcpy( s_phase_currents.raw.payload.bytes, payload.data(), payload.size() );
+    s_phase_currents.raw.payload.size = payload.size();
 
     /*-------------------------------------------------------------------------
     Update the task data
     -------------------------------------------------------------------------*/
     if( Serial::Message::encode( &s_phase_currents.state ) == Chimera::Status::OK )
     {
-      task->data = s_phase_currents.state.IOBuffer;
-      task->size = s_phase_currents.state.EncodedSize;
+      task->data = s_phase_currents.data();
+      task->size = s_phase_currents.size();
     }
   }
 
@@ -97,29 +101,34 @@ namespace Orbit::COM
     /*-------------------------------------------------------------------------
     Pack the message data
     -------------------------------------------------------------------------*/
-    s_system_voltages.payload.header.msgId = MsgId_MSG_SYS_DATA;
-    s_system_voltages.payload.header.subId = 0;
-    s_system_voltages.payload.header.uuid  = Serial::Message::getNextUUID();
-    s_system_voltages.payload.id           = SystemDataId_ADC_SYSTEM_VOLTAGES;
-    s_system_voltages.payload.timestamp    = Chimera::micros();
-    s_system_voltages.payload.has_payload  = true;
-    s_system_voltages.payload.payload.size = sizeof( ADCSystemVoltagesPayload );
+    s_system_voltages.raw.header.msgId = MsgId_MSG_SYS_DATA;
+    s_system_voltages.raw.header.subId = 0;
+    s_system_voltages.raw.header.uuid  = Serial::Message::getNextUUID();
+    s_system_voltages.raw.id           = SystemDataId_ADC_SYSTEM_VOLTAGES;
+    s_system_voltages.raw.timestamp    = Chimera::micros();
+    s_system_voltages.raw.has_payload  = true;
+    s_system_voltages.raw.payload.size = sizeof( ADCSystemVoltagesPayload );
 
-    auto data = reinterpret_cast<ADCSystemVoltagesPayload *>( s_system_voltages.payload.payload.bytes );
-    memset( data, 0, sizeof( s_system_voltages.payload.payload.bytes ) );
+    /*-------------------------------------------------------------------------
+    Pack the payload data
+    -------------------------------------------------------------------------*/
+    Serial::Message::Payload::ADCSystemVoltages payload;
+    payload.raw.v_mcu     = Instrumentation::getMCUVoltage();
+    payload.raw.v_dc_link = Instrumentation::getSupplyVoltage();
+    payload.raw.v_temp    = Instrumentation::getTemperatureVoltage();
+    payload.raw.v_isense  = Instrumentation::getCurrentSenseReferenceVoltage();
 
-    data->v_mcu     = Instrumentation::getMCUVoltage();
-    data->v_dc_link = Instrumentation::getSupplyVoltage();
-    data->v_temp    = Instrumentation::getTemperatureVoltage();
-    data->v_isense  = Instrumentation::getCurrentSenseReferenceVoltage();
+    Serial::Message::encode( &payload.state, Serial::Message::ENCODE_NO_COBS );
+    memcpy( s_system_voltages.raw.payload.bytes, payload.data(), payload.size() );
+    s_system_voltages.raw.payload.size = payload.size();
 
     /*-------------------------------------------------------------------------
     Update the task data
     -------------------------------------------------------------------------*/
     if( Serial::Message::encode( &s_system_voltages.state ) == Chimera::Status::OK )
     {
-      task->data = s_system_voltages.state.IOBuffer;
-      task->size = s_system_voltages.state.EncodedSize;
+      task->data = s_system_voltages.data();
+      task->size = s_system_voltages.size();
     }
   }
 
@@ -135,27 +144,32 @@ namespace Orbit::COM
     /*-------------------------------------------------------------------------
     Pack the message data
     -------------------------------------------------------------------------*/
-    s_phase_voltages.payload.header.msgId = MsgId_MSG_SYS_DATA;
-    s_phase_voltages.payload.header.subId = 0;
-    s_phase_voltages.payload.header.uuid  = Serial::Message::getNextUUID();
-    s_phase_voltages.payload.id           = SystemDataId_ADC_PHASE_VOLTAGES;
-    s_phase_voltages.payload.timestamp    = Chimera::micros();
-    s_phase_voltages.payload.has_payload  = true;
-    s_phase_voltages.payload.payload.size = sizeof( ADCPhaseVoltagesPayload );
+    s_phase_voltages.raw.header.msgId = MsgId_MSG_SYS_DATA;
+    s_phase_voltages.raw.header.subId = 0;
+    s_phase_voltages.raw.header.uuid  = Serial::Message::getNextUUID();
+    s_phase_voltages.raw.id           = SystemDataId_ADC_PHASE_VOLTAGES;
+    s_phase_voltages.raw.timestamp    = Chimera::micros();
+    s_phase_voltages.raw.has_payload  = true;
 
-    auto data = reinterpret_cast<ADCPhaseVoltagesPayload *>( s_phase_voltages.payload.payload.bytes );
-    memset( data, 0, sizeof( s_phase_voltages.payload.payload.bytes ) );
-    data->va = Control::foc_ireg_state.vma;
-    data->vb = Control::foc_ireg_state.vmb;
-    data->vc = Control::foc_ireg_state.vmc;
+    /*-------------------------------------------------------------------------
+    Pack the payload data
+    -------------------------------------------------------------------------*/
+    Serial::Message::Payload::ADCPhaseVoltages payload;
+    payload.raw.va = Control::foc_ireg_state.vma;
+    payload.raw.vb = Control::foc_ireg_state.vmb;
+    payload.raw.vc = Control::foc_ireg_state.vmc;
+
+    Serial::Message::encode( &payload.state, Serial::Message::ENCODE_NO_COBS );
+    memcpy( s_phase_voltages.raw.payload.bytes, payload.data(), payload.size() );
+    s_phase_voltages.raw.payload.size = payload.size();
 
     /*-------------------------------------------------------------------------
     Update the task data
     -------------------------------------------------------------------------*/
     if( Serial::Message::encode( &s_phase_voltages.state ) == Chimera::Status::OK )
     {
-      task->data = s_phase_voltages.state.IOBuffer;
-      task->size = s_phase_voltages.state.EncodedSize;
+      task->data = s_phase_voltages.data();
+      task->size = s_phase_voltages.size();
     }
   }
 
@@ -171,18 +185,18 @@ namespace Orbit::COM
     /*-------------------------------------------------------------------------
     Pack the message data
     -------------------------------------------------------------------------*/
-    s_system_tick.payload.header.msgId = MsgId_MSG_SYS_TICK;
-    s_system_tick.payload.header.subId = 0;
-    s_system_tick.payload.header.uuid  = Serial::Message::getNextUUID();
-    s_system_tick.payload.tick         = Chimera::millis();
+    s_system_tick.raw.header.msgId = MsgId_MSG_SYS_TICK;
+    s_system_tick.raw.header.subId = 0;
+    s_system_tick.raw.header.uuid  = Serial::Message::getNextUUID();
+    s_system_tick.raw.tick         = Chimera::millis();
 
     /*-------------------------------------------------------------------------
     Update the task data
     -------------------------------------------------------------------------*/
     if( Serial::Message::encode( &s_system_tick.state ) == Chimera::Status::OK )
     {
-      task->data = s_system_tick.state.IOBuffer;
-      task->size = s_system_tick.state.EncodedSize;
+      task->data = s_system_tick.data();
+      task->size = s_system_tick.size();
     }
   }
 
@@ -208,7 +222,7 @@ namespace Orbit::COM
     tsk.endpoint = Scheduler::Endpoint::USB;
     tsk.priority = Scheduler::Priority::HIGH;
     tsk.ttl      = Scheduler::TTL_INFINITE;
-    tsk.data     = s_phase_currents.state.IOBuffer;
+    tsk.data     = s_phase_currents.data();
     tsk.size     = 0;
 
     s_stream_ids[ STREAM_ID_PHASE_CURRENTS ] = Scheduler::add( tsk );
@@ -223,7 +237,7 @@ namespace Orbit::COM
     tsk.endpoint = Scheduler::Endpoint::USB;
     tsk.priority = Scheduler::Priority::HIGH;
     tsk.ttl      = Scheduler::TTL_INFINITE;
-    tsk.data     = s_phase_voltages.state.IOBuffer;
+    tsk.data     = s_phase_voltages.data();
     tsk.size     = 0;
 
     s_stream_ids[ STREAM_ID_PHASE_VOLTAGES ] = Scheduler::add( tsk );
@@ -238,7 +252,7 @@ namespace Orbit::COM
     tsk.endpoint = Scheduler::Endpoint::USB;
     tsk.priority = Scheduler::Priority::LOW;
     tsk.ttl      = Scheduler::TTL_INFINITE;
-    tsk.data     = s_system_voltages.state.IOBuffer;
+    tsk.data     = s_system_voltages.data();
     tsk.size     = 0;
 
     s_stream_ids[ STREAM_ID_SYSTEM_VOLTAGES ] = Scheduler::add( tsk, true );
@@ -253,7 +267,7 @@ namespace Orbit::COM
     tsk.endpoint = Scheduler::Endpoint::USB;
     tsk.priority = Scheduler::Priority::LOW;
     tsk.ttl      = Scheduler::TTL_INFINITE;
-    tsk.data     = s_system_tick.state.IOBuffer;
+    tsk.data     = s_system_tick.data();
     tsk.size     = 0;
 
     s_stream_ids[ STREAM_ID_SYSTEM_TICK ] = Scheduler::add( tsk, true );

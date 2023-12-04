@@ -43,7 +43,7 @@ namespace Orbit::Serial::Router
     -------------------------------------------------------------------------*/
     if ( ParamIOEventQueue.full() )
     {
-      LOG_ERROR( "Dropped ParamIO request: %d", msg.payload.header.uuid );
+      LOG_ERROR( "Dropped ParamIO request: %d", msg.raw.header.uuid );
       return;
     }
 

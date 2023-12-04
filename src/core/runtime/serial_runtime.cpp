@@ -38,7 +38,6 @@ namespace Orbit::Serial
   ---------------------------------------------------------------------------*/
   static etl::circular_buffer<uint8_t, 1024> s_msg_buffer;
   static Orbit::Serial::DispatchServer       s_server;
-  static SystemDataQueue                     s_sys_data_queue;
 
   /*---------------------------------------------------------------------------
   Router Declarations
@@ -58,15 +57,15 @@ namespace Orbit::Serial
   {
     using namespace Orbit::Data;
 
-    LOG_TRACE( "GET request for param: %d", msg.payload.id );
+    LOG_TRACE( "GET request for param: %d", msg.raw.id );
 
     /*-------------------------------------------------------------------------
     Ensure the parameter ID is valid
     -------------------------------------------------------------------------*/
-    const ParamId id = static_cast<ParamId>( msg.payload.id );
+    const ParamId id = static_cast<ParamId>( msg.raw.id );
     if ( !Param::exists( id ) )
     {
-      sendAckNack( false, msg.payload.header, StatusCode_INVALID_PARAM );
+      sendAckNack( false, msg.raw.header, StatusCode_INVALID_PARAM );
       return;
     }
 
@@ -74,24 +73,24 @@ namespace Orbit::Serial
     Prepare the response
     -------------------------------------------------------------------------*/
     Message::ParamIO reply;
-    reply.payload.header   = msg.payload.header;
-    reply.payload.id       = msg.payload.id;
-    reply.payload.type     = Param::type( id );
-    reply.payload.has_type = true;
-    reply.payload.has_data = true;
-    memset( reply.payload.data.bytes, 0, sizeof( reply.payload.data.bytes ) );
+    reply.raw.header   = msg.raw.header;
+    reply.raw.id       = msg.raw.id;
+    reply.raw.type     = Param::type( id );
+    reply.raw.has_type = true;
+    reply.raw.has_data = true;
+    memset( reply.raw.data.bytes, 0, sizeof( reply.raw.data.bytes ) );
 
     /*-------------------------------------------------------------------------
     Copy out the serialized data
     -------------------------------------------------------------------------*/
-    const ssize_t read_size = Param::read( id, reply.payload.data.bytes, sizeof( reply.payload.data.bytes ) );
+    const ssize_t read_size = Param::read( id, reply.raw.data.bytes, sizeof( reply.raw.data.bytes ) );
     if ( read_size < 0 )
     {
-      sendAckNack( false, msg.payload.header, StatusCode_REQUEST_FAILED );
+      sendAckNack( false, msg.raw.header, StatusCode_REQUEST_FAILED );
       return;
     }
 
-    reply.payload.data.size = static_cast<pb_size_t>( read_size );
+    reply.raw.data.size = static_cast<pb_size_t>( read_size );
 
     /*-------------------------------------------------------------------------
     Ship the response on the wire
@@ -112,28 +111,28 @@ namespace Orbit::Serial
   static void handle_put( const Message::ParamIO &msg )
   {
     using namespace Orbit::Data;
-    LOG_TRACE( "PUT request for param: %d", msg.payload.id );
+    LOG_TRACE( "PUT request for param: %d", msg.raw.id );
 
     /*-------------------------------------------------------------------------
     Ensure the parameter ID is valid
     -------------------------------------------------------------------------*/
-    const ParamId id = static_cast<ParamId>( msg.payload.id );
+    const ParamId id = static_cast<ParamId>( msg.raw.id );
     if ( !Param::exists( id ) )
     {
-      sendAckNack( false, msg.payload.header, StatusCode_INVALID_PARAM );
+      sendAckNack( false, msg.raw.header, StatusCode_INVALID_PARAM );
       return;
     }
 
     /*-------------------------------------------------------------------------
     Load the data into the cache
     -------------------------------------------------------------------------*/
-    if ( msg.payload.has_data && Param::write( id, msg.payload.data.bytes, msg.payload.data.size ) )
+    if ( msg.raw.has_data && Param::write( id, msg.raw.data.bytes, msg.raw.data.size ) )
     {
-      sendAckNack( true, msg.payload.header );
+      sendAckNack( true, msg.raw.header );
     }
     else
     {
-      sendAckNack( false, msg.payload.header, StatusCode_REQUEST_FAILED );
+      sendAckNack( false, msg.raw.header, StatusCode_REQUEST_FAILED );
     }
 
     LOG_TRACE( "PUT request complete" );
@@ -147,7 +146,7 @@ namespace Orbit::Serial
   static void handle_load( const Message::ParamIO &msg )
   {
     LOG_TRACE( "LOAD param request" );
-    sendAckNack( Data::Param::load(), msg.payload.header );
+    sendAckNack( Data::Param::load(), msg.raw.header );
   }
 
 
@@ -158,7 +157,7 @@ namespace Orbit::Serial
   static void handle_sync( const Message::ParamIO &msg )
   {
     LOG_TRACE( "SYNC param request" );
-    sendAckNack( Data::Param::flush(), msg.payload.header );
+    sendAckNack( Data::Param::flush(), msg.raw.header );
   }
 
   /*---------------------------------------------------------------------------
@@ -187,24 +186,6 @@ namespace Orbit::Serial
     Run the message processing loop
     -------------------------------------------------------------------------*/
     s_server.process();
-
-    /*-------------------------------------------------------------------------
-    Flush any data messages that need to be sent
-    -------------------------------------------------------------------------*/
-    while( !s_sys_data_queue.empty() )
-    {
-      auto msg = s_sys_data_queue.front();
-      Message::encode( &msg.state );
-
-      if ( Chimera::Status::OK == Message::send( &msg.state, Config::getCommandPort() ) )
-      {
-        s_sys_data_queue.pop();
-      }
-      else
-      {
-        break;
-      }
-    }
   }
 
 
@@ -215,7 +196,7 @@ namespace Orbit::Serial
       Message::ParamIO msg = Router::ParamIOEventQueue.front();
       Router::ParamIOEventQueue.pop();
 
-      switch ( msg.payload.header.subId )
+      switch ( msg.raw.header.subId )
       {
         case ParamIOSubId_GET:
           handle_get( msg );
@@ -234,15 +215,10 @@ namespace Orbit::Serial
           break;
 
         default:
-          LOG_ERROR( "Unhandled ParamIO subId: %d", msg.payload.header.subId );
+          LOG_ERROR( "Unhandled ParamIO subId: %d", msg.raw.header.subId );
           break;
       }
     }
   }
 
-
-  void publishDataMessage( const Message::SysData &msg )
-  {
-    s_sys_data_queue.push( msg );
-  }
 }    // namespace Orbit::Serial

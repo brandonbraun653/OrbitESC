@@ -17,6 +17,13 @@ Includes
 
 namespace Orbit::Serial
 {
+
+  /*---------------------------------------------------------------------------
+  Constants
+  ---------------------------------------------------------------------------*/
+
+  static constexpr uint8_t USB_SERIAL_ENDPOINT = 0;
+
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
@@ -33,6 +40,12 @@ namespace Orbit::Serial
   }
 
 
+  bool isConnected()
+  {
+    return tud_cdc_n_connected( USB_SERIAL_ENDPOINT );
+  }
+
+
   Chimera::Serial::Driver_rPtr Config::getCommandPort()
   {
     return &s_usb_serial;
@@ -42,7 +55,7 @@ namespace Orbit::Serial
   USBSerial Implementation
   ---------------------------------------------------------------------------*/
 
-  USBSerial::USBSerial() : mEndpoint( 0 ), mRXBuffer( nullptr ), mTXBuffer( nullptr )
+  USBSerial::USBSerial() : mEndpoint( USB_SERIAL_ENDPOINT ), mRXBuffer( nullptr ), mTXBuffer( nullptr )
   {
   }
 

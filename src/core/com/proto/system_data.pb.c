@@ -27,7 +27,7 @@ PB_BIND(ADCPhaseVoltagesPayload, ADCPhaseVoltagesPayload, AUTO)
 PB_BIND(ADCSystemVoltagesPayload, ADCSystemVoltagesPayload, AUTO)
 
 
-PB_BIND(StateEstimatesPayload, StateEstimatesPayload, AUTO)
+PB_BIND(SystemStateAnnuncPayload, SystemStateAnnuncPayload, AUTO)
 
 
 

@@ -205,21 +205,21 @@ namespace Orbit::COM::Scheduler
         if( task->endpoint & Endpoint::UART )
         {
           const auto size = sSerial->write( task->data, task->size, Chimera::Thread::TIMEOUT_DONT_WAIT );
-          LOG_WARN_IF( size != static_cast<int>( task->size ), "Com Scheduler: Task %d UART write failed", task->uuid );
+          LOG_WARN_IF( Serial::isConnected() && size != static_cast<int>( task->size ), "Com Scheduler: Task %d UART write failed", task->uuid );
           Monitor::putDataTXEvent();
         }
 
         if( task->endpoint & Endpoint::USB )
         {
           const auto size = sUSB->write( task->data, task->size, Chimera::Thread::TIMEOUT_DONT_WAIT );
-          LOG_WARN_IF( size != static_cast<int>( task->size ), "Com Scheduler: Task %d USB write failed", task->uuid );
+          LOG_WARN_IF( Serial::isConnected() && size != static_cast<int>( task->size ), "Com Scheduler: Task %d USB write failed", task->uuid );
           Monitor::putDataTXEvent();
         }
 
         if( task->endpoint & Endpoint::CAN )
         {
           const auto status = sCAN->send( *reinterpret_cast<Chimera::CAN::BasicFrame *>( task->data ) );
-          LOG_WARN_IF( status != Chimera::Status::OK, "Com Scheduler: Task %d CAN write failed", task->uuid );
+          LOG_WARN_IF( Serial::isConnected() && status != Chimera::Status::OK, "Com Scheduler: Task %d CAN write failed", task->uuid );
           Monitor::putDataTXEvent();
         }
       }

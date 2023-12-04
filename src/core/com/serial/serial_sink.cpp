@@ -106,13 +106,13 @@ namespace Orbit::Serial
       /*-----------------------------------------------------------------------
       Construct the message
       -----------------------------------------------------------------------*/
-      msg.payload.header.msgId = Message::Console::MessageId;
-      msg.payload.header.subId = 0;
-      msg.payload.header.uuid  = msg_uuid;
-      msg.payload.this_frame   = frame_number;
-      msg.payload.total_frames = max_frames;
-      msg.payload.data.size    = chunk_size;
-      memcpy( msg.payload.data.bytes, p_usr_data + byte_offset, chunk_size );
+      msg.raw.header.msgId = Message::Console::MessageId;
+      msg.raw.header.subId = 0;
+      msg.raw.header.uuid  = msg_uuid;
+      msg.raw.this_frame   = frame_number;
+      msg.raw.total_frames = max_frames;
+      msg.raw.data.size    = chunk_size;
+      memcpy( msg.raw.data.bytes, p_usr_data + byte_offset, chunk_size );
 
       /*-----------------------------------------------------------------------
       Encode the data and ship it

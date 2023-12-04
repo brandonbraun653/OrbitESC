@@ -11,11 +11,11 @@
 
 /* Enum definitions */
 typedef enum _MotorCtrlState {
-    MotorCtrlState_MOTOR_CTRL_STATE_INVALID = 0, /* Invalid motor control state */
-    MotorCtrlState_MOTOR_CTRL_STATE_IDLE = 1, /* Motor control is idle */
-    MotorCtrlState_MOTOR_CTRL_STATE_ARMED = 2, /* Motor control is armed */
-    MotorCtrlState_MOTOR_CTRL_STATE_ENGAGED = 3, /* Motor control is engaged */
-    MotorCtrlState_MOTOR_CTRL_STATE_FAULT = 4 /* Motor control is in a fault state */
+    MotorCtrlState_MOTOR_CTRL_STATE_IDLE = 0, /* Motor control is idle */
+    MotorCtrlState_MOTOR_CTRL_STATE_ARMED = 1, /* Motor control is armed */
+    MotorCtrlState_MOTOR_CTRL_STATE_ENGAGED = 2, /* Motor control is engaged */
+    MotorCtrlState_MOTOR_CTRL_STATE_FAULT = 3, /* Motor control is in a fault state */
+    MotorCtrlState_MOTOR_CTRL_STATE_INVALID = 4 /* Invalid motor control state */
 } MotorCtrlState;
 
 typedef enum _MotorCtrlCmd {
@@ -38,9 +38,9 @@ extern "C" {
 #endif
 
 /* Helper constants for enums */
-#define _MotorCtrlState_MIN MotorCtrlState_MOTOR_CTRL_STATE_INVALID
-#define _MotorCtrlState_MAX MotorCtrlState_MOTOR_CTRL_STATE_FAULT
-#define _MotorCtrlState_ARRAYSIZE ((MotorCtrlState)(MotorCtrlState_MOTOR_CTRL_STATE_FAULT+1))
+#define _MotorCtrlState_MIN MotorCtrlState_MOTOR_CTRL_STATE_IDLE
+#define _MotorCtrlState_MAX MotorCtrlState_MOTOR_CTRL_STATE_INVALID
+#define _MotorCtrlState_ARRAYSIZE ((MotorCtrlState)(MotorCtrlState_MOTOR_CTRL_STATE_INVALID+1))
 
 #define _MotorCtrlCmd_MIN MotorCtrlCmd_MOTOR_CTRL_CMD_INVALID
 #define _MotorCtrlCmd_MAX MotorCtrlCmd_MOTOR_CTRL_CMD_EMERGENCY_STOP

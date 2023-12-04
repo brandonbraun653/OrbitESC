@@ -35,20 +35,20 @@ namespace Orbit::Serial::Router
 
     bool should_ack = true;
 
-    switch ( msg.payload.header.subId )
+    switch ( msg.raw.header.subId )
     {
       /*-----------------------------------------------------------------------
       Do a system reset. Send the ACK first so the host knows it was received.
       -----------------------------------------------------------------------*/
       case SystemControlSubId_RESET:
-        sendAckNack( true, msg.payload.header );
+        sendAckNack( true, msg.raw.header );
         Orbit::Event::gControlBus.receive( Event::SystemReset() );
         return;
 
       case SystemControlSubId_DISABLE_STREAM_PHASE_CURRENTS:
       case SystemControlSubId_ENABLE_STREAM_PHASE_CURRENTS: {
         Event::StreamPhaseCurrents event;
-        event.enable = ( msg.payload.header.subId == SystemControlSubId_ENABLE_STREAM_PHASE_CURRENTS );
+        event.enable = ( msg.raw.header.subId == SystemControlSubId_ENABLE_STREAM_PHASE_CURRENTS );
 
         Orbit::Event::gControlBus.receive( event );
         break;
@@ -92,7 +92,7 @@ namespace Orbit::Serial::Router
     /*-------------------------------------------------------------------------
     Send the results back to the sender
     -------------------------------------------------------------------------*/
-    sendAckNack( should_ack, msg.payload.header );
+    sendAckNack( should_ack, msg.raw.header );
   }
 
   void SysCtrlRouter::on_receive_unknown( const etl::imessage &msg )

@@ -1,9 +1,9 @@
 import math
 import time
 from typing import List
-
-from pyorbit.serial.messages import SystemDataPBMsg, SystemDataId, SystemTickPBMsg
+from pyorbit.serial.messages import SystemDataPBMsg, SystemTickPBMsg
 from pyorbit.tests.fixtures import *
+from pyorbit.nanopb.system_data_pb2 import *
 from pyorbit.serial.client import OrbitClient
 from pyorbit.utility.time import period_to_hz
 
@@ -21,12 +21,12 @@ class TestStaticStreamingData:
             timeout=5.0)
         assert len(packets) == 5
 
-        messages = [msg.convert_to_message_type() for msg in packets]
+        messages = [msg.extract_payload() for msg in packets]
 
         # Validate the periodicity of the messages
         for idx in range(1, len(messages)):
             hz = period_to_hz(packets[idx].timestamp, packets[idx - 1].timestamp)
-            assert isinstance(messages[idx], SystemDataPBMsg.ADCSystemVoltages)
+            assert isinstance(messages[idx], ADCSystemVoltagesPayload)
             assert 0.0 < messages[idx].v_dc_link < 18.0
             assert 1.64 < messages[idx].v_isense < 1.66
             assert 3.25 < messages[idx].v_mcu < 3.35
@@ -64,7 +64,7 @@ class TestStaticStreamingData:
         # Disable streaming
         serial_client.stream_phase_currents(False)
 
-        messages = [msg.convert_to_message_type() for msg in packets]
+        messages = [msg.extract_payload() for msg in packets]
 
         # Validate the periodicity and data of the messages
         assert len(packets) == 15
@@ -73,7 +73,7 @@ class TestStaticStreamingData:
             avg_hz += period_to_hz(packets[idx].timestamp, packets[idx - 1].timestamp)
 
             # Ensure the message converted over to the expected type
-            assert isinstance(messages[idx], SystemDataPBMsg.ADCPhaseCurrents)
+            assert isinstance(messages[idx], ADCPhaseCurrentsPayload)
 
             # The motor drive isn't enabled, so the reported currents should be roughly zero
             assert math.isclose(messages[idx].ia, 0.0, rel_tol=0.1)

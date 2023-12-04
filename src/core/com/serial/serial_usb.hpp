@@ -45,6 +45,13 @@ namespace Orbit::Serial
    */
   USBSerial *getUSBSerialDriver();
 
+  /**
+   * @brief Checks if the USB serial driver is connected to a host
+   *
+   * @return bool  True if connected, false otherwise
+   */
+  bool isConnected();
+
 
   /*---------------------------------------------------------------------------
   Classes

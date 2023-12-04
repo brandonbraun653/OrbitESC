@@ -21,6 +21,7 @@ Includes
 #include <etl/string_view.h>
 #include <limits>
 #include <src/control/foc_data.hpp>
+#include <src/core/com/proto/motor_control.pb.h>
 
 namespace Orbit::Control
 {
@@ -59,12 +60,12 @@ namespace Orbit::Control
   {
     enum
     {
-      IDLE,    /**< Control system is not engaged */
-      ARMED,   /**< System is armed and ready to engage */
-      ENGAGED, /**< Controller is running normally */
-      FAULT,   /**< System is having problems */
+      IDLE    = MotorCtrlState_MOTOR_CTRL_STATE_IDLE,    /**< Control system is not engaged */
+      ARMED   = MotorCtrlState_MOTOR_CTRL_STATE_ARMED,   /**< System is armed and ready to engage */
+      ENGAGED = MotorCtrlState_MOTOR_CTRL_STATE_ENGAGED, /**< Controller is running normally */
+      FAULT   = MotorCtrlState_MOTOR_CTRL_STATE_FAULT,   /**< System is having problems */
 
-      NUM_STATES
+      NUM_STATES = 4
     };
   };
 

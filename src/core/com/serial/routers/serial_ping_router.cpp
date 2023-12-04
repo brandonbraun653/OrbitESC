@@ -26,7 +26,7 @@ namespace Orbit::Serial::Router
 
   void PingRouter::on_receive( const Message::Ping &msg )
   {
-    sendAckNack( true, msg.payload.header );
+    sendAckNack( true, msg.raw.header );
   }
 
 

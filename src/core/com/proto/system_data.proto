@@ -1,13 +1,14 @@
 syntax = "proto2";
 import "nanopb.proto";
 import "serial_interface.proto";
+import "motor_control.proto";
 
 enum SystemDataId {
   SYS_DATA_INVALID = 0;     // Invalid data ID
   ADC_PHASE_CURRENTS = 1;   // ADC readings of the phase currents
   ADC_PHASE_VOLTAGES = 2;   // Voltage commands being sent to the motor
-  STATE_ESTIMATES = 3;      // State estimates of the motor
-  ADC_SYSTEM_VOLTAGES = 4;  // Measurements of less-critical system voltages
+  ADC_SYSTEM_VOLTAGES = 3;  // Measurements of less-critical system voltages
+  SYS_STATE_ANNUNC = 4;     // System state annunciation, essentially a snapshot of observable system state
 }
 
 // Message type for announcing the current system tick
@@ -63,8 +64,8 @@ message ADCSystemVoltagesPayload {
   required float v_isense = 4;    // Current sense amplifier voltage reference in Volts
 }
 
-// Data payload type for SystemDataId::STATE_ESTIMATES
-message StateEstimatesPayload {
-  required float theta_est = 1;   // Physical angle of the rotor in radians
-  required float omega_est = 2;   // Physical angular velocity of the rotor in radians per second
+
+// Data payload type for SystemDataId::SYS_STATE_ANNUNC
+message SystemStateAnnuncPayload {
+  required MotorCtrlState motor_ctrl_state = 1; // Current motor control state
 }

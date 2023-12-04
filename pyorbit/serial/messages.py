@@ -10,10 +10,10 @@
 
 from __future__ import annotations
 
-import ctypes
 import pyorbit.nanopb.serial_interface_pb2 as proto
 from pyorbit.nanopb.system_data_pb2 import *
-from typing import Union, TypeVar
+from loguru import logger
+from typing import TypeVar, Optional
 from google.protobuf.message import Message
 from pyorbit.nanopb.serial_interface_pb2 import *
 from pyorbit.utils import Singleton
@@ -172,41 +172,6 @@ class ConsolePBMsg(BasePBMsg):
 
 class SystemDataPBMsg(BasePBMsg):
 
-    class ADCPhaseCurrents(ctypes.Structure):
-        _fields_ = [
-            ('ia', ctypes.c_float),
-            ('ib', ctypes.c_float),
-            ('ic', ctypes.c_float),
-        ]
-
-    class ADCPhaseVoltages(ctypes.Structure):
-        _fields_ = [
-            ('va', ctypes.c_float),
-            ('vb', ctypes.c_float),
-            ('vc', ctypes.c_float),
-        ]
-
-    class ADCSystemVoltages(ctypes.Structure):
-        _fields_ = [
-            ('v_mcu', ctypes.c_float),
-            ('v_dc_link', ctypes.c_float),
-            ('v_temp', ctypes.c_float),
-            ('v_isense', ctypes.c_float)
-        ]
-
-    class StateEstimates(ctypes.Structure):
-        _fields_ = [
-            ('position', ctypes.c_float),
-            ('speed', ctypes.c_float),
-        ]
-
-    _id_to_type = {
-        SystemDataId.ADC_PHASE_CURRENTS: ADCPhaseCurrents,
-        SystemDataId.ADC_PHASE_VOLTAGES: ADCPhaseVoltages,
-        SystemDataId.ADC_SYSTEM_VOLTAGES: ADCSystemVoltages,
-        SystemDataId.STATE_ESTIMATES: StateEstimates,
-    }
-
     def __init__(self):
         super().__init__()
         self._pb_msg = SystemDataMessage()
@@ -237,13 +202,22 @@ class SystemDataPBMsg(BasePBMsg):
     def data(self, data: bytes):
         self._pb_msg.payload = data
 
-    def convert_to_message_type(self) -> Union[None, ctypes.Structure]:
+    def extract_payload(self) -> Optional[Message]:
         """
         Converts the data field to the appropriate message type based on the data_id field.
         Returns:
             The converted message type, or None if the data_id is not recognized.
         """
-        msg_type = self._id_to_type.get(self.data_id, None)
-        if msg_type is None:
+        _id_to_type = {
+            SystemDataId.ADC_PHASE_CURRENTS: ADCPhaseCurrentsPayload,
+            SystemDataId.ADC_PHASE_VOLTAGES: ADCPhaseVoltagesPayload,
+            SystemDataId.ADC_SYSTEM_VOLTAGES: ADCSystemVoltagesPayload,
+        }
+
+        try:
+            instance = _id_to_type[self.data_id]()
+            instance.ParseFromString(self.data)
+            return instance
+        except KeyError:
+            logger.error(f"Unknown data_id: {self.data_id}")
             return None
-        return msg_type.from_buffer_copy(self.data)

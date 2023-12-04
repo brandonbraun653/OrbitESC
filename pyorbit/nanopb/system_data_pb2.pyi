@@ -6,6 +6,7 @@ import builtins
 import google.protobuf.descriptor
 import google.protobuf.internal.enum_type_wrapper
 import google.protobuf.message
+import motor_control_pb2
 import serial_interface_pb2
 import typing
 import typing_extensions
@@ -26,11 +27,11 @@ class _SystemDataIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._E
     ADC_PHASE_VOLTAGES: SystemDataId.ValueType = ...  # 2
     """Voltage commands being sent to the motor"""
 
-    STATE_ESTIMATES: SystemDataId.ValueType = ...  # 3
-    """State estimates of the motor"""
-
-    ADC_SYSTEM_VOLTAGES: SystemDataId.ValueType = ...  # 4
+    ADC_SYSTEM_VOLTAGES: SystemDataId.ValueType = ...  # 3
     """Measurements of less-critical system voltages"""
+
+    SYS_STATE_ANNUNC: SystemDataId.ValueType = ...  # 4
+    """System state annunciation, essentially a snapshot of observable system state"""
 
 class SystemDataId(_SystemDataId, metaclass=_SystemDataIdEnumTypeWrapper):
     pass
@@ -44,11 +45,11 @@ ADC_PHASE_CURRENTS: SystemDataId.ValueType = ...  # 1
 ADC_PHASE_VOLTAGES: SystemDataId.ValueType = ...  # 2
 """Voltage commands being sent to the motor"""
 
-STATE_ESTIMATES: SystemDataId.ValueType = ...  # 3
-"""State estimates of the motor"""
-
-ADC_SYSTEM_VOLTAGES: SystemDataId.ValueType = ...  # 4
+ADC_SYSTEM_VOLTAGES: SystemDataId.ValueType = ...  # 3
 """Measurements of less-critical system voltages"""
+
+SYS_STATE_ANNUNC: SystemDataId.ValueType = ...  # 4
+"""System state annunciation, essentially a snapshot of observable system state"""
 
 global___SystemDataId = SystemDataId
 
@@ -244,22 +245,17 @@ class ADCSystemVoltagesPayload(google.protobuf.message.Message):
     def ClearField(self, field_name: typing_extensions.Literal["v_dc_link",b"v_dc_link","v_isense",b"v_isense","v_mcu",b"v_mcu","v_temp",b"v_temp"]) -> None: ...
 global___ADCSystemVoltagesPayload = ADCSystemVoltagesPayload
 
-class StateEstimatesPayload(google.protobuf.message.Message):
-    """Data payload type for SystemDataId::STATE_ESTIMATES"""
+class SystemStateAnnuncPayload(google.protobuf.message.Message):
+    """Data payload type for SystemDataId::SYS_STATE_ANNUNC"""
     DESCRIPTOR: google.protobuf.descriptor.Descriptor = ...
-    THETA_EST_FIELD_NUMBER: builtins.int
-    OMEGA_EST_FIELD_NUMBER: builtins.int
-    theta_est: builtins.float = ...
-    """Physical angle of the rotor in radians"""
-
-    omega_est: builtins.float = ...
-    """Physical angular velocity of the rotor in radians per second"""
+    MOTOR_CTRL_STATE_FIELD_NUMBER: builtins.int
+    motor_ctrl_state: motor_control_pb2.MotorCtrlState.ValueType = ...
+    """Current motor control state"""
 
     def __init__(self,
         *,
-        theta_est : typing.Optional[builtins.float] = ...,
-        omega_est : typing.Optional[builtins.float] = ...,
+        motor_ctrl_state : typing.Optional[motor_control_pb2.MotorCtrlState.ValueType] = ...,
         ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["omega_est",b"omega_est","theta_est",b"theta_est"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["omega_est",b"omega_est","theta_est",b"theta_est"]) -> None: ...
-global___StateEstimatesPayload = StateEstimatesPayload
+    def HasField(self, field_name: typing_extensions.Literal["motor_ctrl_state",b"motor_ctrl_state"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["motor_ctrl_state",b"motor_ctrl_state"]) -> None: ...
+global___SystemStateAnnuncPayload = SystemStateAnnuncPayload

@@ -32,11 +32,11 @@ namespace Orbit::Serial
     Ship the response on the wire
     -------------------------------------------------------------------------*/
     Message::AckNack reply;
-    reply.payload.header.msgId = Message::MSG_ACK_NACK;
-    reply.payload.header.subId = header.subId;
-    reply.payload.header.uuid  = header.uuid;
-    reply.payload.acknowledge  = ack_or_nack;
-    reply.payload.status_code  = code;
+    reply.raw.header.msgId = Message::MSG_ACK_NACK;
+    reply.raw.header.subId = header.subId;
+    reply.raw.header.uuid  = header.uuid;
+    reply.raw.acknowledge  = ack_or_nack;
+    reply.raw.status_code  = code;
 
 
     if( Message::encode( &reply.state ) )

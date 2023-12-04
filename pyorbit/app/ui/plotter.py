@@ -87,7 +87,7 @@ class MotorCurrentPlot(AbstractDataPlot):
         return index == 0
 
     def _system_data_observer(self, msg: SystemDataPBMsg):
-        data = msg.convert_to_message_type()
+        data = msg.extract_payload()
         if isinstance(data, SystemDataPBMsg.ADCPhaseCurrents):
             time_in_sec = msg.timestamp / 1e6
             self._phase_a_attr.time.append(time_in_sec)
@@ -124,7 +124,7 @@ class MotorSpeedPositionPlot(AbstractDataPlot):
         return index == 2
 
     def _system_data_observer(self, msg: SystemDataPBMsg):
-        data = msg.convert_to_message_type()
+        data = msg.extract_payload()
         if isinstance(data, SystemDataPBMsg.StateEstimates):
             time_in_sec = data.timestamp / 1e6
             self._speed_attr.time.append(time_in_sec)

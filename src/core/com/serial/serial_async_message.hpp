@@ -36,26 +36,51 @@ namespace Orbit::Serial::Message
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
+  static constexpr bool ENCODE_WITH_COBS = true;
+  static constexpr bool ENCODE_NO_COBS   = false;
+
   namespace Internal
   {
+    /*-------------------------------------------------------------------------
+    Sizes for all message types
+    -------------------------------------------------------------------------*/
     static constexpr size_t _msg_size_array[] = {
       /* clang-format off */
       AckNackMessage_size,
-      PingMessage_size,
       ConsoleMessage_size,
-      SystemTickMessage_size,
-      SystemInfoMessage_size,
       ParamIOMessage_size,
+      PingMessage_size,
       SystemControlMessage_size,
       SystemDataMessage_size,
+      SystemInfoMessage_size,
+      SystemTickMessage_size,
       /* clang-format on */
     };
-  }
-  static constexpr size_t MAX_RAW_MSG_SIZE =
+
+    static constexpr size_t MIN_RAW_MSG_SIZE = sizeof( Header );
+    static constexpr size_t MAX_RAW_MSG_SIZE =
       *std::max_element( std::begin( Internal::_msg_size_array ), std::end( Internal::_msg_size_array ) );
-  static constexpr size_t MIN_RAW_MSG_SIZE  = sizeof( Header );
-  static constexpr size_t MAX_COBS_MSG_SIZE = COBS_ENCODE_DST_BUF_LEN_MAX( MAX_RAW_MSG_SIZE ) + 1u;
-  static constexpr size_t MIN_COBS_MSG_SIZE = COBS_ENCODE_DST_BUF_LEN_MAX( MIN_RAW_MSG_SIZE ) + 1u;
+
+    /*-------------------------------------------------------------------------
+    Payload sizes for the system data messages
+    -------------------------------------------------------------------------*/
+    static constexpr size_t _system_data_payload_size_array[] = {
+      /* clang-format off */
+      ADCPhaseCurrentsPayload_size,
+      ADCPhaseVoltagesPayload_size,
+      ADCSystemVoltagesPayload_size,
+      SystemStateAnnuncPayload_size,
+      /* clang-format on */
+    };
+
+    static constexpr size_t MAX_RAW_SYS_DATA_MSG_PAYLOAD_SIZE = *std::max_element(
+        std::begin( Internal::_system_data_payload_size_array ), std::end( Internal::_system_data_payload_size_array ) );
+
+    static_assert( MAX_RAW_SYS_DATA_MSG_PAYLOAD_SIZE <= sizeof( SystemDataMessage_payload_t ) );
+  }    // namespace Internal
+
+  static constexpr size_t MAX_COBS_MSG_SIZE = COBS_ENCODE_DST_BUF_LEN_MAX( Internal::MAX_RAW_MSG_SIZE ) + 1u;
+  static constexpr size_t MIN_COBS_MSG_SIZE = COBS_ENCODE_DST_BUF_LEN_MAX( Internal::MIN_RAW_MSG_SIZE ) + 1u;
 
   /*---------------------------------------------------------------------------
   Enumerations
@@ -66,18 +91,19 @@ namespace Orbit::Serial::Message
    */
   enum _Id : etl::message_id_t
   {
-    MSG_ACK_NACK    = MsgId_MSG_ACK_NACK,
-    MSG_PING_CMD    = MsgId_MSG_PING_CMD,
-    MSG_TERMINAL    = MsgId_MSG_TERMINAL,
-    MSG_SYS_TICK    = MsgId_MSG_SYS_TICK,
-    MSG_SYS_INFO    = MsgId_MSG_SYS_INFO,
-    MSG_PARAM_IO    = MsgId_MSG_PARAM_IO,
-    MSG_SYS_CTRL    = MsgId_MSG_SYS_CTRL,
-    MSG_SYS_DATA    = MsgId_MSG_SYS_DATA,
+    MSG_ACK_NACK = MsgId_MSG_ACK_NACK,
+    MSG_PING_CMD = MsgId_MSG_PING_CMD,
+    MSG_TERMINAL = MsgId_MSG_TERMINAL,
+    MSG_SYS_TICK = MsgId_MSG_SYS_TICK,
+    MSG_SYS_INFO = MsgId_MSG_SYS_INFO,
+    MSG_PARAM_IO = MsgId_MSG_PARAM_IO,
+    MSG_SYS_CTRL = MsgId_MSG_SYS_CTRL,
+    MSG_SYS_DATA = MsgId_MSG_SYS_DATA,
 
     MSG_ID_COUNT
   };
   static_assert( MSG_ID_COUNT == ARRAY_COUNT( Internal::_msg_size_array ) );
+
 
   /*---------------------------------------------------------------------------
   Structures
@@ -123,20 +149,22 @@ namespace Orbit::Serial::Message
   /**
    * @brief Encodes an external buffer of data
    *
-   * @param msg     Message descriptor to use for encoding
-   * @param src     Source buffer of raw data to encode
-   * @param length  Size of the bytes contained in the source buffer
+   * @param msg       Message descriptor to use for encoding
+   * @param src       Source buffer of raw data to encode
+   * @param length    Size of the bytes contained in the source buffer
+   * @param use_cobs  True to use COBS encoding, false to skip it
    * @return bool     True if encoding was successful, false if not
    */
-  bool encode( EncodableMessage *const msg, const void *const src, const size_t length );
+  bool encode( EncodableMessage *const msg, const void *const src, const size_t length, const bool use_cobs = true );
 
   /**
    * @brief Encodes the internal message data
    *
-   * @param msg   Message descriptor to use for encoding
-   * @return bool True if encoding was successful, false if not
+   * @param msg       Message descriptor to use for encoding
+   * @param use_cobs  True to use COBS encoding, false to skip it
+   * @return bool     True if encoding was successful, false if not
    */
-  bool encode( EncodableMessage *const msg );
+  bool encode( EncodableMessage *const msg, const bool use_cobs = true );
 
   /**
    * @brief Sends the encoded message data over a serial link
@@ -172,11 +200,21 @@ namespace Orbit::Serial::Message
     static constexpr size_t            IOBuffSize = std::max<size_t>( EncodeSize, DecodeSize ) + 1u;
     static constexpr etl::message_id_t MessageId  = MSG_ID;
 
-    PayloadType  payload; /**< Raw data structure of the message */
+    PayloadType      raw; /**< Raw data structure of the message */
     EncodableMessage state;   /**< Encoder state data */
 
-    _CustomMsg() : payload{ 0 }, state{ io_buffer, IOBuffSize, PayloadFields, PayloadSize, &payload, 0 }
+    _CustomMsg() : raw{ 0 }, state{ io_buffer, IOBuffSize, PayloadFields, PayloadSize, &raw, 0 }
     {
+    }
+
+    pb_byte_t* data() const
+    {
+      return state.IOBuffer;
+    }
+
+    size_t size() const
+    {
+      return state.EncodedSize;
     }
 
   private:
@@ -195,6 +233,21 @@ namespace Orbit::Serial::Message
   using ParamIO = _CustomMsg<MSG_PARAM_IO, ParamIOMessage, ParamIOMessage_size, ParamIOMessage_fields>;
   using SysCtrl = _CustomMsg<MSG_SYS_CTRL, SystemControlMessage, SystemControlMessage_size, SystemControlMessage_fields>;
   using SysData = _CustomMsg<MSG_SYS_DATA, SystemDataMessage, SystemDataMessage_size, SystemDataMessage_fields>;
+
+  /*---------------------------------------------------------------------------
+  Message Payload Declarations
+  ---------------------------------------------------------------------------*/
+  namespace Payload
+  {
+    using ADCPhaseCurrents  = _CustomMsg<SystemDataId_ADC_PHASE_CURRENTS, ADCPhaseCurrentsPayload, ADCPhaseCurrentsPayload_size,
+                                        ADCPhaseCurrentsPayload_fields>;
+    using ADCPhaseVoltages  = _CustomMsg<SystemDataId_ADC_PHASE_VOLTAGES, ADCPhaseVoltagesPayload, ADCPhaseVoltagesPayload_size,
+                                        ADCPhaseVoltagesPayload_fields>;
+    using ADCSystemVoltages = _CustomMsg<SystemDataId_ADC_SYSTEM_VOLTAGES, ADCSystemVoltagesPayload,
+                                         ADCSystemVoltagesPayload_size, ADCSystemVoltagesPayload_fields>;
+    using SystemStateAnnunc = _CustomMsg<SystemDataId_SYS_STATE_ANNUNC, SystemStateAnnuncPayload, SystemStateAnnuncPayload_size,
+                                         SystemStateAnnuncPayload_fields>;
+  }    // namespace Payload
 
 }    // namespace Orbit::Serial::Message
 

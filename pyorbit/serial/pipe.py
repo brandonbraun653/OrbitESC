@@ -161,7 +161,7 @@ class SerialPipePublisher(Publisher):
             return False
 
         if not msg.ack:
-            logger.error(f"NACK: {repr(StatusCode(msg.status_code))} ' -- {error_string if error_string else ''}")
+            logger.error(f"NACK: {repr(msg.status_code)} ' -- {error_string if error_string else ''}")
             return False
         else:
             return True
