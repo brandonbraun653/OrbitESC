@@ -68,9 +68,8 @@ namespace Orbit::Control::State
   }
 
 
-  etl::fsm_state_id_t Idle::on_event( const MsgEmergencyHalt &msg )
+  etl::fsm_state_id_t Idle::on_event( const MsgDisable & )
   {
-    // get_fsm_context().mTimerDriver.emergencyBreak();
     return ModeId::IDLE;
   }
 

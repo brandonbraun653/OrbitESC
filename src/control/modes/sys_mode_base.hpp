@@ -41,11 +41,9 @@ namespace Orbit::Control
   {
     enum
     {
-      EMERGENCY_HALT, /**< Emergency stop the motor and place into a safe state */
       ARM,            /**< Prepare the motor control system to run */
-      DISARM,         /**< Move the motor controller to an idle state */
       ENGAGE,         /**< Engage the control system and drive the motor */
-      DISENGAGE,      /**< Disengage the control system and stop driving the motor */
+      DISABLE,        /**< Move the motor controller to an idle state */
       FAULT,          /**< Indicate a fault has occurred */
 
       NUM_EVENTS
@@ -72,15 +70,8 @@ namespace Orbit::Control
   /*---------------------------------------------------------------------------
   Event Message Types
   ---------------------------------------------------------------------------*/
-  class MsgEmergencyHalt : public etl::message<EventId::EMERGENCY_HALT>
-  {
-  };
 
   class MsgArm : public etl::message<EventId::ARM>
-  {
-  };
-
-  class MsgDisarm : public etl::message<EventId::DISARM>
   {
   };
 
@@ -88,7 +79,7 @@ namespace Orbit::Control
   {
   };
 
-  class MsgDisengage : public etl::message<EventId::DISENGAGE>
+  class MsgDisable : public etl::message<EventId::DISABLE>
   {
   };
 

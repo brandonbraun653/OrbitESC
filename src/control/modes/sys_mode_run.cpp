@@ -41,13 +41,7 @@ namespace Orbit::Control::State
   }
 
 
-  etl::fsm_state_id_t Engaged::on_event( const MsgEmergencyHalt &msg )
-  {
-    return ModeId::ENGAGED;
-  }
-
-
-  etl::fsm_state_id_t Engaged::on_event( const MsgDisengage &msg )
+  etl::fsm_state_id_t Engaged::on_event( const MsgDisable &msg )
   {
     return ModeId::ENGAGED;
   }

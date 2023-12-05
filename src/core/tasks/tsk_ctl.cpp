@@ -49,24 +49,16 @@ namespace Orbit::Tasks::CTL
           Control::FOC::sendSystemEvent( Control::EventId::ARM );
           break;
 
-        case TASK_MSG_CTRL_DISARM:
-          Control::FOC::sendSystemEvent( Control::EventId::DISARM );
-          break;
-
         case TASK_MSG_CTRL_ENGAGE:
           Control::FOC::sendSystemEvent( Control::EventId::ENGAGE );
           break;
 
-        case TASK_MSG_CTRL_DISENGAGE:
-          Control::FOC::sendSystemEvent( Control::EventId::DISENGAGE );
+        case TASK_MSG_CTRL_DISABLE:
+          Control::FOC::sendSystemEvent( Control::EventId::DISABLE );
           break;
 
         case TASK_MSG_CTRL_FAULT:
           Control::FOC::sendSystemEvent( Control::EventId::FAULT );
-          break;
-
-        case TASK_MSG_CTRL_EMERGENCY_HALT:
-          Control::FOC::sendSystemEvent( Control::EventId::EMERGENCY_HALT );
           break;
 
         default:

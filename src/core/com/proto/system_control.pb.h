@@ -11,6 +11,8 @@
 #endif
 
 /* Enum definitions */
+/* Sub Ids used to specify the type of system control message. This is set in the
+ header of the message. */
 typedef enum _SystemControlSubId {
     SystemControlSubId_RESET = 1, /* Reset the system */
     SystemControlSubId_MOTOR = 2, /* Inject manual motor control commands */
@@ -25,12 +27,10 @@ typedef enum _SystemControlSubId {
     SystemControlSubId_DISABLE_STREAM_PHASE_VOLTAGES = 11, /* Disable streaming of phase voltage commands */
     SystemControlSubId_ENABLE_STREAM_STATE_ESTIMATES = 12, /* Enable streaming of state estimates */
     SystemControlSubId_DISABLE_STREAM_STATE_ESTIMATES = 13, /* Disable streaming of state estimates */
-    SystemControlSubId_ARM = 14, /* Arm the motor control system */
-    SystemControlSubId_DISARM = 15, /* Disarm the motor control system */
-    SystemControlSubId_ENGAGE = 16, /* Engage the motor control system */
-    SystemControlSubId_DISENGAGE = 17, /* Disengage the motor control system */
-    SystemControlSubId_FAULT = 18, /* Panic the motor control system */
-    SystemControlSubId_EMERGENCY_STOP = 19 /* Emergency stop the motor control system */
+    SystemControlSubId_ARM = 14, /* Arm the motor control system for driving the system */
+    SystemControlSubId_ENGAGE = 15, /* Engage the motor control system to actively drive the motor */
+    SystemControlSubId_DISABLE = 16, /* Normal disengagement of the motor control system */
+    SystemControlSubId_FAULT = 17 /* High priority disengagement of the motor control system (for safety), bypassing normal disengagement flow */
 } SystemControlSubId;
 
 /* Struct definitions */
@@ -48,8 +48,8 @@ extern "C" {
 
 /* Helper constants for enums */
 #define _SystemControlSubId_MIN SystemControlSubId_RESET
-#define _SystemControlSubId_MAX SystemControlSubId_EMERGENCY_STOP
-#define _SystemControlSubId_ARRAYSIZE ((SystemControlSubId)(SystemControlSubId_EMERGENCY_STOP+1))
+#define _SystemControlSubId_MAX SystemControlSubId_FAULT
+#define _SystemControlSubId_ARRAYSIZE ((SystemControlSubId)(SystemControlSubId_FAULT+1))
 
 
 

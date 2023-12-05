@@ -52,11 +52,9 @@ namespace Orbit::Tasks
     System Control
     -------------------------------------------------------------------------*/
     TASK_MSG_CTRL_ARM,       /**< Transition from IDLE to ARM */
-    TASK_MSG_CTRL_DISARM,    /**< Transition from ARM to IDLE */
     TASK_MSG_CTRL_ENGAGE,    /**< Transition from ARM to ENGAGED */
-    TASK_MSG_CTRL_DISENGAGE, /**< Transition from ENGAGED to ARM */
-    TASK_MSG_CTRL_FAULT,     /**< Transition from ENGAGED to FAULT */
-    TASK_MSG_CTRL_EMERGENCY_HALT, /**< Emergency halt event */
+    TASK_MSG_CTRL_DISABLE,   /**< Normal disengagement from ARM or ENGAGED back to IDLE */
+    TASK_MSG_CTRL_FAULT,     /**< Panic emergency stop */
 
     /*-------------------------------------------------------------------------
     USB CDC

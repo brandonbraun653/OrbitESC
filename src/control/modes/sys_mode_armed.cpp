@@ -35,8 +35,8 @@ namespace Orbit::Control::State
     /*-------------------------------------------------------------------------
     Power up the motor control drivers
     -------------------------------------------------------------------------*/
-    Control::Field::powerUp();
-    Control::Speed::powerUp();
+    // Control::Field::powerUp();
+    // Control::Speed::powerUp();
 
     /*-------------------------------------------------------------------------
     Signal to the user that the system is armed
@@ -46,15 +46,7 @@ namespace Orbit::Control::State
     return ModeId::ARMED;
   }
 
-  etl::fsm_state_id_t Armed::on_event( const MsgEmergencyHalt &msg )
-  {
-    /*-------------------------------------------------------------------------
-    Transition directly to the FAULT state. Let on_enter_state() do the work.
-    -------------------------------------------------------------------------*/
-    return ModeId::FAULT;
-  }
-
-  etl::fsm_state_id_t Armed::on_event( const MsgDisarm &msg )
+  etl::fsm_state_id_t Armed::on_event( const MsgDisable &msg )
   {
     /*-------------------------------------------------------------------------
     Transition directly to the IDLE state. Let on_enter_state() do the work.

@@ -18,12 +18,10 @@ enum SystemControlSubId {
   DISABLE_STREAM_PHASE_VOLTAGES = 11; // Disable streaming of phase voltage commands
   ENABLE_STREAM_STATE_ESTIMATES = 12; // Enable streaming of state estimates
   DISABLE_STREAM_STATE_ESTIMATES = 13; // Disable streaming of state estimates
-  ARM = 14; // Arm the motor control system
-  DISARM = 15; // Disarm the motor control system
-  ENGAGE = 16; // Engage the motor control system
-  DISENGAGE = 17; // Disengage the motor control system
-  FAULT = 18; // Panic the motor control system
-  EMERGENCY_STOP = 19; // Emergency stop the motor control system
+  ARM = 14; // Arm the motor control system for driving the system
+  ENGAGE = 15; // Engage the motor control system to actively drive the motor
+  DISABLE = 16; // Normal disengagement of the motor control system
+  FAULT = 17; // High priority disengagement of the motor control system (for safety), bypassing normal disengagement flow
 }
 
 

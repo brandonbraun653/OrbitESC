@@ -22,7 +22,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto2',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x14system_control.proto\x1a\x0cnanopb.proto\x1a\x16serial_interface.proto\"D\n\x14SystemControlMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x13\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x42\x05\x92?\x02\x08@*\xd0\x03\n\x12SystemControlSubId\x12\t\n\x05RESET\x10\x01\x12\t\n\x05MOTOR\x10\x02\x12\x0b\n\x07\x43\x41L_ADC\x10\x03\x12\x15\n\x11MANUAL_INNER_LOOP\x10\x04\x12\x19\n\x15MANUAL_INNER_LOOP_REF\x10\x05\x12 \n\x1c\x45NABLE_STREAM_PHASE_CURRENTS\x10\x06\x12!\n\x1d\x44ISABLE_STREAM_PHASE_CURRENTS\x10\x07\x12!\n\x1d\x45NABLE_STREAM_SYSTEM_VOLTAGES\x10\x08\x12\"\n\x1e\x44ISABLE_STREAM_SYSTEM_VOLTAGES\x10\t\x12 \n\x1c\x45NABLE_STREAM_PHASE_VOLTAGES\x10\n\x12!\n\x1d\x44ISABLE_STREAM_PHASE_VOLTAGES\x10\x0b\x12!\n\x1d\x45NABLE_STREAM_STATE_ESTIMATES\x10\x0c\x12\"\n\x1e\x44ISABLE_STREAM_STATE_ESTIMATES\x10\r\x12\x07\n\x03\x41RM\x10\x0e\x12\n\n\x06\x44ISARM\x10\x0f\x12\n\n\x06\x45NGAGE\x10\x10\x12\r\n\tDISENGAGE\x10\x11\x12\t\n\x05\x46\x41ULT\x10\x12\x12\x12\n\x0e\x45MERGENCY_STOP\x10\x13'
+  serialized_pb=b'\n\x14system_control.proto\x1a\x0cnanopb.proto\x1a\x16serial_interface.proto\"D\n\x14SystemControlMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x13\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x42\x05\x92?\x02\x08@*\xae\x03\n\x12SystemControlSubId\x12\t\n\x05RESET\x10\x01\x12\t\n\x05MOTOR\x10\x02\x12\x0b\n\x07\x43\x41L_ADC\x10\x03\x12\x15\n\x11MANUAL_INNER_LOOP\x10\x04\x12\x19\n\x15MANUAL_INNER_LOOP_REF\x10\x05\x12 \n\x1c\x45NABLE_STREAM_PHASE_CURRENTS\x10\x06\x12!\n\x1d\x44ISABLE_STREAM_PHASE_CURRENTS\x10\x07\x12!\n\x1d\x45NABLE_STREAM_SYSTEM_VOLTAGES\x10\x08\x12\"\n\x1e\x44ISABLE_STREAM_SYSTEM_VOLTAGES\x10\t\x12 \n\x1c\x45NABLE_STREAM_PHASE_VOLTAGES\x10\n\x12!\n\x1d\x44ISABLE_STREAM_PHASE_VOLTAGES\x10\x0b\x12!\n\x1d\x45NABLE_STREAM_STATE_ESTIMATES\x10\x0c\x12\"\n\x1e\x44ISABLE_STREAM_STATE_ESTIMATES\x10\r\x12\x07\n\x03\x41RM\x10\x0e\x12\n\n\x06\x45NGAGE\x10\x0f\x12\x0b\n\x07\x44ISABLE\x10\x10\x12\t\n\x05\x46\x41ULT\x10\x11'
   ,
   dependencies=[nanopb__pb2.DESCRIPTOR,serial__interface__pb2.DESCRIPTOR,])
 
@@ -104,27 +104,17 @@ _SYSTEMCONTROLSUBID = _descriptor.EnumDescriptor(
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='DISARM', index=14, number=15,
+      name='ENGAGE', index=14, number=15,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='ENGAGE', index=15, number=16,
+      name='DISABLE', index=15, number=16,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='DISENGAGE', index=16, number=17,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='FAULT', index=17, number=18,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='EMERGENCY_STOP', index=18, number=19,
+      name='FAULT', index=16, number=17,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
@@ -132,7 +122,7 @@ _SYSTEMCONTROLSUBID = _descriptor.EnumDescriptor(
   containing_type=None,
   serialized_options=None,
   serialized_start=133,
-  serialized_end=597,
+  serialized_end=563,
 )
 _sym_db.RegisterEnumDescriptor(_SYSTEMCONTROLSUBID)
 
@@ -151,11 +141,9 @@ DISABLE_STREAM_PHASE_VOLTAGES = 11
 ENABLE_STREAM_STATE_ESTIMATES = 12
 DISABLE_STREAM_STATE_ESTIMATES = 13
 ARM = 14
-DISARM = 15
-ENGAGE = 16
-DISENGAGE = 17
-FAULT = 18
-EMERGENCY_STOP = 19
+ENGAGE = 15
+DISABLE = 16
+FAULT = 17
 
 
 

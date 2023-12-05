@@ -24,20 +24,16 @@ namespace Orbit::Control
   ---------------------------------------------------------------------------*/
   static constexpr etl::array<etl::string_view, EventId::NUM_EVENTS> s_event_names = {
     /* clang-format off */
-    "EMERGENCY_HALT",
     "ARM",
-    "DISARM",
     "ENGAGE",
-    "DISENGAGE",
+    "DISABLE",
     "FAULT"
     /* clang-format on */
   };
 
-  static_assert( s_event_names[ EventId::EMERGENCY_HALT ] == "EMERGENCY_HALT", "Event name mismatch" );
   static_assert( s_event_names[ EventId::ARM ] == "ARM", "Event name mismatch" );
-  static_assert( s_event_names[ EventId::DISARM ] == "DISARM", "Event name mismatch" );
   static_assert( s_event_names[ EventId::ENGAGE ] == "ENGAGE", "Event name mismatch" );
-  static_assert( s_event_names[ EventId::DISENGAGE ] == "DISENGAGE", "Event name mismatch" );
+  static_assert( s_event_names[ EventId::DISABLE ] == "DISABLE", "Event name mismatch" );
   static_assert( s_event_names[ EventId::FAULT ] == "FAULT", "Event name mismatch" );
 
   static constexpr etl::array<etl::string_view, ModeId::NUM_STATES> s_state_names = {

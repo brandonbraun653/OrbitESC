@@ -61,24 +61,16 @@ namespace Orbit::Serial::Router
         should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_ARM, TIMEOUT_BLOCK );
         break;
 
-      case SystemControlSubId_DISARM:
-        should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_DISARM, TIMEOUT_BLOCK );
-        break;
-
       case SystemControlSubId_ENGAGE:
         should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_ENGAGE, TIMEOUT_BLOCK );
         break;
 
-      case SystemControlSubId_DISENGAGE:
-        should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_DISENGAGE, TIMEOUT_BLOCK );
+      case SystemControlSubId_DISABLE:
+        should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_DISABLE, TIMEOUT_BLOCK );
         break;
 
       case SystemControlSubId_FAULT:
         should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_FAULT, TIMEOUT_BLOCK );
-        break;
-
-      case SystemControlSubId_EMERGENCY_STOP:
-        should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_EMERGENCY_HALT, TIMEOUT_BLOCK );
         break;
 
       /*-----------------------------------------------------------------------

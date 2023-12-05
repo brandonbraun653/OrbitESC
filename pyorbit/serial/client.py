@@ -14,7 +14,7 @@ import atexit
 import time
 from functools import wraps
 from loguru import logger
-from typing import Any, Callable
+from typing import Any, Callable, Union
 
 from pyorbit.serial.intf.system_control import StreamPhaseCurrentsPBMsg, SystemResetPBMsg
 from pyorbit.serial.pipe import SerialPipePublisher
@@ -129,19 +129,24 @@ class OrbitClient:
         """
         self.com_pipe.write(SystemResetPBMsg().serialize())
 
-    def request_motor_state_transition(self, new_state: MotorCtrlState) -> None:
+    def set_motor_ctrl_state(self, new_state: MotorCtrlState, timeout: Union[int, float] = 5.0) -> bool:
         """
         Requests a motor state transition
         Args:
             new_state: Desired state to transition to
+            timeout: How long to wait for the transition to complete
 
         Returns:
             None
         """
         state_to_sub_id = {
-            MotorCtrlState.MOTOR_CTRL_STATE_IDLE: SystemControlSubId.DISARM,
+            MotorCtrlState.MOTOR_CTRL_STATE_IDLE: SystemControlSubId.DISABLE,
+            MotorCtrlState.MOTOR_CTRL_STATE_ARMED: SystemControlSubId.ARM,
+            MotorCtrlState.MOTOR_CTRL_STATE_ENGAGED: SystemControlSubId.ENGAGE,
+            MotorCtrlState.MOTOR_CTRL_STATE_FAULT: SystemControlSubId.FAULT,
         }
 
+        # Make the request for the state transition
         try:
             msg = SystemControlPbMsg()
             msg.message_type = state_to_sub_id[new_state]
@@ -149,6 +154,14 @@ class OrbitClient:
             self.com_pipe.write(msg.serialize())
         except KeyError:
             logger.error(f"Invalid motor state transition: {new_state}")
+
+        # Wait for the transition to complete by listening for the new state
+        packets = self.com_pipe.filter(
+            lambda x: isinstance(x, SystemStatusPBMsg) and (x.motor_ctrl_state == new_state),
+            qty=1,
+            timeout=timeout)
+
+        return len(packets) == 1
 
     def set_activity_led_blink_scaler(self, scaler: float = 1.0) -> bool:
         """

@@ -57,24 +57,21 @@ class _SystemControlSubIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrap
     """Disable streaming of state estimates"""
 
     ARM: SystemControlSubId.ValueType = ...  # 14
-    """Arm the motor control system"""
+    """Arm the motor control system for driving the system"""
 
-    DISARM: SystemControlSubId.ValueType = ...  # 15
-    """Disarm the motor control system"""
+    ENGAGE: SystemControlSubId.ValueType = ...  # 15
+    """Engage the motor control system to actively drive the motor"""
 
-    ENGAGE: SystemControlSubId.ValueType = ...  # 16
-    """Engage the motor control system"""
+    DISABLE: SystemControlSubId.ValueType = ...  # 16
+    """Normal disengagement of the motor control system"""
 
-    DISENGAGE: SystemControlSubId.ValueType = ...  # 17
-    """Disengage the motor control system"""
-
-    FAULT: SystemControlSubId.ValueType = ...  # 18
-    """Panic the motor control system"""
-
-    EMERGENCY_STOP: SystemControlSubId.ValueType = ...  # 19
-    """Emergency stop the motor control system"""
+    FAULT: SystemControlSubId.ValueType = ...  # 17
+    """High priority disengagement of the motor control system (for safety), bypassing normal disengagement flow"""
 
 class SystemControlSubId(_SystemControlSubId, metaclass=_SystemControlSubIdEnumTypeWrapper):
+    """Sub Ids used to specify the type of system control message. This is set in the
+    header of the message.
+    """
     pass
 
 RESET: SystemControlSubId.ValueType = ...  # 1
@@ -117,22 +114,16 @@ DISABLE_STREAM_STATE_ESTIMATES: SystemControlSubId.ValueType = ...  # 13
 """Disable streaming of state estimates"""
 
 ARM: SystemControlSubId.ValueType = ...  # 14
-"""Arm the motor control system"""
+"""Arm the motor control system for driving the system"""
 
-DISARM: SystemControlSubId.ValueType = ...  # 15
-"""Disarm the motor control system"""
+ENGAGE: SystemControlSubId.ValueType = ...  # 15
+"""Engage the motor control system to actively drive the motor"""
 
-ENGAGE: SystemControlSubId.ValueType = ...  # 16
-"""Engage the motor control system"""
+DISABLE: SystemControlSubId.ValueType = ...  # 16
+"""Normal disengagement of the motor control system"""
 
-DISENGAGE: SystemControlSubId.ValueType = ...  # 17
-"""Disengage the motor control system"""
-
-FAULT: SystemControlSubId.ValueType = ...  # 18
-"""Panic the motor control system"""
-
-EMERGENCY_STOP: SystemControlSubId.ValueType = ...  # 19
-"""Emergency stop the motor control system"""
+FAULT: SystemControlSubId.ValueType = ...  # 17
+"""High priority disengagement of the motor control system (for safety), bypassing normal disengagement flow"""
 
 global___SystemControlSubId = SystemControlSubId
 

@@ -143,24 +143,16 @@ namespace Orbit::Control::FOC
     -------------------------------------------------------------------------*/
     switch( event )
     {
-      case EventId::EMERGENCY_HALT:
-        s_ctrl_fsm.receive( MsgEmergencyHalt() );
-        break;
-
       case EventId::ARM:
         s_ctrl_fsm.receive( MsgArm() );
-        break;
-
-      case EventId::DISARM:
-        s_ctrl_fsm.receive( MsgDisarm() );
         break;
 
       case EventId::ENGAGE:
         s_ctrl_fsm.receive( MsgEngage() );
         break;
 
-      case EventId::DISENGAGE:
-        s_ctrl_fsm.receive( MsgDisengage() );
+      case EventId::DISABLE:
+        s_ctrl_fsm.receive( MsgDisable() );
         break;
 
       case EventId::FAULT:
