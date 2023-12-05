@@ -1,7 +1,7 @@
 import math
 import time
 from typing import List
-from pyorbit.serial.messages import SystemDataPBMsg, SystemTickPBMsg
+from pyorbit.serial.messages import SystemDataPBMsg, SystemTickPBMsg, SystemStatusPBMsg
 from pyorbit.tests.fixtures import *
 from pyorbit.nanopb.system_data_pb2 import *
 from pyorbit.serial.client import OrbitClient
@@ -47,6 +47,20 @@ class TestStaticStreamingData:
             assert isinstance(packets[idx], SystemTickPBMsg)
             hz = period_to_hz(packets[idx].tick, packets[idx - 1].tick, unit=1e-3)
             assert 9 < hz < 11
+
+    def test_system_status(self, serial_client: OrbitClient) -> None:
+        """ Validates that system status messages are being reported periodically """
+
+        packets = serial_client.com_pipe.filter(
+            lambda msg: isinstance(msg, SystemStatusPBMsg),
+            qty=5,
+            timeout=5.0)
+        assert len(packets) == 5
+
+        # Validate the periodicity of the messages
+        for idx in range(1, len(packets)):
+            hz = period_to_hz(packets[idx].tick, packets[idx - 1].tick, unit=1e-3)
+            assert 4 < hz < 6
 
     def test_motor_phase_currents(self, serial_client: OrbitClient) -> None:
         """ Validates that motor phase current data is being reported periodically """

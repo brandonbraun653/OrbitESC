@@ -8,7 +8,6 @@ enum SystemDataId {
   ADC_PHASE_CURRENTS = 1;   // ADC readings of the phase currents
   ADC_PHASE_VOLTAGES = 2;   // Voltage commands being sent to the motor
   ADC_SYSTEM_VOLTAGES = 3;  // Measurements of less-critical system voltages
-  SYS_STATE_ANNUNC = 4;     // System state annunciation, essentially a snapshot of observable system state
 }
 
 // Message type for announcing the current system tick
@@ -25,13 +24,21 @@ message ConsoleMessage {
   required bytes data = 4 [(nanopb).max_size = 128]; // Data payload
 }
 
-//Message type for announcing some device descriptions
+// Message type for announcing some device descriptions
 message SystemInfoMessage {
   required Header header = 1;
   required uint32 systemTick = 2; // System time in milliseconds
   required string swVersion = 3 [(nanopb).max_size = 16, (nanopb).fixed_length = true]; // Software version
   required string description = 4 [(nanopb).max_size = 16, (nanopb).fixed_length = true]; // Device description
   required string serialNumber = 5 [(nanopb).max_size = 16, (nanopb).fixed_length = true]; // Serial number
+}
+
+// Message type for announcing the current system status
+message SystemStatusMessage {
+  required Header header = 1;
+  required uint32 systemTick = 2; // System time in milliseconds
+  required MotorCtrlState motorCtrlState = 3; // High level current motor control state
+  // maybe something about error codes, etc.
 }
 
 // Message type for streaming out raw data from the system in real time
@@ -62,10 +69,4 @@ message ADCSystemVoltagesPayload {
   required float v_dc_link = 2;   // DC link voltage in Volts
   required float v_temp = 3;      // Temperature sensor voltage in Volts
   required float v_isense = 4;    // Current sense amplifier voltage reference in Volts
-}
-
-
-// Data payload type for SystemDataId::SYS_STATE_ANNUNC
-message SystemStateAnnuncPayload {
-  required MotorCtrlState motor_ctrl_state = 1; // Current motor control state
 }

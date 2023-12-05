@@ -19,7 +19,7 @@ namespace Orbit::Serial::Router
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  PingRouter::PingRouter() : message_router( Message::MSG_PING_CMD )
+  PingRouter::PingRouter() : message_router( ROUTER_ID_PING )
   {
   }
 

@@ -19,7 +19,8 @@ typedef enum _MsgId {
     MsgId_MSG_SYS_INFO = 4, /* System information */
     MsgId_MSG_PARAM_IO = 5, /* Do operations on configurable parameters */
     MsgId_MSG_SYS_CTRL = 6, /* Perform system control operations */
-    MsgId_MSG_SYS_DATA = 7 /* System data stream */
+    MsgId_MSG_SYS_DATA = 7, /* System data stream */
+    MsgId_MSG_SYS_STATUS = 8 /* System status annunciation, essentially a snapshot of observable system state */
 } MsgId;
 
 /* Specialization sub-IDs to further specify the root message ID. */
@@ -73,8 +74,8 @@ extern "C" {
 
 /* Helper constants for enums */
 #define _MsgId_MIN MsgId_MSG_ACK_NACK
-#define _MsgId_MAX MsgId_MSG_SYS_DATA
-#define _MsgId_ARRAYSIZE ((MsgId)(MsgId_MSG_SYS_DATA+1))
+#define _MsgId_MAX MsgId_MSG_SYS_STATUS
+#define _MsgId_ARRAYSIZE ((MsgId)(MsgId_MSG_SYS_STATUS+1))
 
 #define _SubId_MIN SubId_SUB_MSG_NONE
 #define _SubId_MAX SubId_SUB_MSG_NONE

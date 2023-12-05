@@ -30,9 +30,6 @@ class _SystemDataIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._E
     ADC_SYSTEM_VOLTAGES: SystemDataId.ValueType = ...  # 3
     """Measurements of less-critical system voltages"""
 
-    SYS_STATE_ANNUNC: SystemDataId.ValueType = ...  # 4
-    """System state annunciation, essentially a snapshot of observable system state"""
-
 class SystemDataId(_SystemDataId, metaclass=_SystemDataIdEnumTypeWrapper):
     pass
 
@@ -47,9 +44,6 @@ ADC_PHASE_VOLTAGES: SystemDataId.ValueType = ...  # 2
 
 ADC_SYSTEM_VOLTAGES: SystemDataId.ValueType = ...  # 3
 """Measurements of less-critical system voltages"""
-
-SYS_STATE_ANNUNC: SystemDataId.ValueType = ...  # 4
-"""System state annunciation, essentially a snapshot of observable system state"""
 
 global___SystemDataId = SystemDataId
 
@@ -135,6 +129,30 @@ class SystemInfoMessage(google.protobuf.message.Message):
     def HasField(self, field_name: typing_extensions.Literal["description",b"description","header",b"header","serialNumber",b"serialNumber","swVersion",b"swVersion","systemTick",b"systemTick"]) -> builtins.bool: ...
     def ClearField(self, field_name: typing_extensions.Literal["description",b"description","header",b"header","serialNumber",b"serialNumber","swVersion",b"swVersion","systemTick",b"systemTick"]) -> None: ...
 global___SystemInfoMessage = SystemInfoMessage
+
+class SystemStatusMessage(google.protobuf.message.Message):
+    """Message type for announcing the current system status"""
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor = ...
+    HEADER_FIELD_NUMBER: builtins.int
+    SYSTEMTICK_FIELD_NUMBER: builtins.int
+    MOTORCTRLSTATE_FIELD_NUMBER: builtins.int
+    @property
+    def header(self) -> serial_interface_pb2.Header: ...
+    systemTick: builtins.int = ...
+    """System time in milliseconds"""
+
+    motorCtrlState: motor_control_pb2.MotorCtrlState.ValueType = ...
+    """High level current motor control state"""
+
+    def __init__(self,
+        *,
+        header : typing.Optional[serial_interface_pb2.Header] = ...,
+        systemTick : typing.Optional[builtins.int] = ...,
+        motorCtrlState : typing.Optional[motor_control_pb2.MotorCtrlState.ValueType] = ...,
+        ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["header",b"header","motorCtrlState",b"motorCtrlState","systemTick",b"systemTick"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["header",b"header","motorCtrlState",b"motorCtrlState","systemTick",b"systemTick"]) -> None: ...
+global___SystemStatusMessage = SystemStatusMessage
 
 class SystemDataMessage(google.protobuf.message.Message):
     """Message type for streaming out raw data from the system in real time"""
@@ -244,18 +262,3 @@ class ADCSystemVoltagesPayload(google.protobuf.message.Message):
     def HasField(self, field_name: typing_extensions.Literal["v_dc_link",b"v_dc_link","v_isense",b"v_isense","v_mcu",b"v_mcu","v_temp",b"v_temp"]) -> builtins.bool: ...
     def ClearField(self, field_name: typing_extensions.Literal["v_dc_link",b"v_dc_link","v_isense",b"v_isense","v_mcu",b"v_mcu","v_temp",b"v_temp"]) -> None: ...
 global___ADCSystemVoltagesPayload = ADCSystemVoltagesPayload
-
-class SystemStateAnnuncPayload(google.protobuf.message.Message):
-    """Data payload type for SystemDataId::SYS_STATE_ANNUNC"""
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor = ...
-    MOTOR_CTRL_STATE_FIELD_NUMBER: builtins.int
-    motor_ctrl_state: motor_control_pb2.MotorCtrlState.ValueType = ...
-    """Current motor control state"""
-
-    def __init__(self,
-        *,
-        motor_ctrl_state : typing.Optional[motor_control_pb2.MotorCtrlState.ValueType] = ...,
-        ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["motor_ctrl_state",b"motor_ctrl_state"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["motor_ctrl_state",b"motor_ctrl_state"]) -> None: ...
-global___SystemStateAnnuncPayload = SystemStateAnnuncPayload

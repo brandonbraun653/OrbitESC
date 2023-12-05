@@ -31,7 +31,7 @@ namespace Orbit::Serial
   Aliases
   ---------------------------------------------------------------------------*/
   using SystemDataQueue =
-      etl::queue_spsc_atomic<Message::SysData, 64, etl::memory_model::MEMORY_MODEL_SMALL>;
+      etl::queue_spsc_atomic<Message::SystemData, 64, etl::memory_model::MEMORY_MODEL_SMALL>;
 
   /*---------------------------------------------------------------------------
   Static Data

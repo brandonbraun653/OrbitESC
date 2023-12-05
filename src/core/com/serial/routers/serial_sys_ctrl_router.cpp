@@ -23,12 +23,12 @@ namespace Orbit::Serial::Router
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  SysCtrlRouter::SysCtrlRouter() : message_router( Message::MSG_SYS_CTRL )
+  SysCtrlRouter::SysCtrlRouter() : message_router( ROUTER_ID_SYS_CTRL )
   {
   }
 
 
-  void SysCtrlRouter::on_receive( const Message::SysCtrl &msg )
+  void SysCtrlRouter::on_receive( const Message::SystemControl &msg )
   {
     using namespace Orbit::Tasks;
     using namespace Chimera::Thread;

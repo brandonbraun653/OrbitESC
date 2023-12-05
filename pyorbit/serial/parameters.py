@@ -5,7 +5,7 @@ from enum import IntEnum
 from typing import List, NewType, Union, Dict
 from pyorbit.nanopb.system_config_pb2 import *
 from pyorbit.serial.messages import AckNackPBMsg, BasePBMsg, PingPBMsg, \
-    SystemTickPBMsg, ConsolePBMsg, SystemDataPBMsg
+    SystemTickPBMsg, ConsolePBMsg, SystemDataPBMsg, SystemStatusPBMsg
 from pyorbit.nanopb.serial_interface_pb2 import *
 
 # Encapsulate the Python parameter type in a new type, so we can use it in type hints
@@ -165,6 +165,7 @@ MessageTypeMap = {
     MsgId.MSG_TERMINAL: ConsolePBMsg,
     MsgId.MSG_PARAM_IO: ParamIOPBMsg,
     MsgId.MSG_SYS_DATA: SystemDataPBMsg,
+    MsgId.MSG_SYS_STATUS: SystemStatusPBMsg,
 }
 
 

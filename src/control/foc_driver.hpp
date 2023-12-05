@@ -41,6 +41,9 @@ namespace Orbit::Control::FOC
   public:
     StateMachine();
     void logUnhandledMessage( const etl::imessage &msg );
+
+  protected:
+    etl::fsm_state_id_t dst_state; /* Destination state of the FSM */
   };
 
   /*---------------------------------------------------------------------------
@@ -89,7 +92,6 @@ namespace Orbit::Control::FOC
 
   /**
    * @brief Gets the current system mode of the FOC driver
-   *
    * @return ModeId_t
    */
   ModeId_t currentMode();
@@ -103,6 +105,6 @@ namespace Orbit::Control::FOC
    */
   void driveTestSignal( const uint8_t commCycle, const float dutyCycle );
 
-}    // namespace Orbit::Control
+}    // namespace Orbit::Control::FOC
 
 #endif /* !ORBIT_ESC_FOC_CONTROL_HPP */

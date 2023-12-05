@@ -29,7 +29,7 @@ namespace Orbit::Serial::Router
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  ParamIORouter::ParamIORouter() : message_router( Message::MSG_PARAM_IO )
+  ParamIORouter::ParamIORouter() : message_router( ROUTER_ID_PARAM_IO )
   {
   }
 

@@ -288,7 +288,7 @@ class SerialPipePublisher(Publisher):
             base_msg = proto.BaseMessage()
             base_msg.ParseFromString(frame)
             if base_msg.header.msgId not in MessageTypeMap.keys():
-                logger.warning(f"Unsupported message ID: {base_msg.header.msgId}")
+                logger.error(f"Unsupported message ID: {base_msg.header.msgId}")
                 return None
         except g_proto_msg.DecodeError:
             logger.trace("Frame did not contain the expected header. Unable to parse.")

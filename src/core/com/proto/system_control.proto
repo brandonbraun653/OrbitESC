@@ -2,6 +2,8 @@ syntax = "proto2";
 import "nanopb.proto";
 import "serial_interface.proto";
 
+// Sub Ids used to specify the type of system control message. This is set in the
+// header of the message.
 enum SystemControlSubId {
   RESET   = 1; // Reset the system
   MOTOR   = 2; // Inject manual motor control commands

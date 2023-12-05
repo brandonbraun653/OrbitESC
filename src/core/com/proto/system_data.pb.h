@@ -16,8 +16,7 @@ typedef enum _SystemDataId {
     SystemDataId_SYS_DATA_INVALID = 0, /* Invalid data ID */
     SystemDataId_ADC_PHASE_CURRENTS = 1, /* ADC readings of the phase currents */
     SystemDataId_ADC_PHASE_VOLTAGES = 2, /* Voltage commands being sent to the motor */
-    SystemDataId_ADC_SYSTEM_VOLTAGES = 3, /* Measurements of less-critical system voltages */
-    SystemDataId_SYS_STATE_ANNUNC = 4 /* System state annunciation, essentially a snapshot of observable system state */
+    SystemDataId_ADC_SYSTEM_VOLTAGES = 3 /* Measurements of less-critical system voltages */
 } SystemDataId;
 
 /* Struct definitions */
@@ -44,6 +43,13 @@ typedef struct _SystemInfoMessage {
     char description[16]; /* Device description */
     char serialNumber[16]; /* Serial number */
 } SystemInfoMessage;
+
+/* Message type for announcing the current system status */
+typedef struct _SystemStatusMessage {
+    Header header;
+    uint32_t systemTick; /* System time in milliseconds */
+    MotorCtrlState motorCtrlState; /* High level current motor control state */
+} SystemStatusMessage;
 
 typedef PB_BYTES_ARRAY_T(32) SystemDataMessage_payload_t;
 /* Message type for streaming out raw data from the system in real time */
@@ -77,11 +83,6 @@ typedef struct _ADCSystemVoltagesPayload {
     float v_isense; /* Current sense amplifier voltage reference in Volts */
 } ADCSystemVoltagesPayload;
 
-/* Data payload type for SystemDataId::SYS_STATE_ANNUNC */
-typedef struct _SystemStateAnnuncPayload {
-    MotorCtrlState motor_ctrl_state; /* Current motor control state */
-} SystemStateAnnuncPayload;
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -89,37 +90,37 @@ extern "C" {
 
 /* Helper constants for enums */
 #define _SystemDataId_MIN SystemDataId_SYS_DATA_INVALID
-#define _SystemDataId_MAX SystemDataId_SYS_STATE_ANNUNC
-#define _SystemDataId_ARRAYSIZE ((SystemDataId)(SystemDataId_SYS_STATE_ANNUNC+1))
+#define _SystemDataId_MAX SystemDataId_ADC_SYSTEM_VOLTAGES
+#define _SystemDataId_ARRAYSIZE ((SystemDataId)(SystemDataId_ADC_SYSTEM_VOLTAGES+1))
 
 
 
+
+#define SystemStatusMessage_motorCtrlState_ENUMTYPE MotorCtrlState
 
 #define SystemDataMessage_id_ENUMTYPE SystemDataId
 
 
 
 
-#define SystemStateAnnuncPayload_motor_ctrl_state_ENUMTYPE MotorCtrlState
-
 
 /* Initializer values for message structs */
 #define SystemTickMessage_init_default           {Header_init_default, 0}
 #define ConsoleMessage_init_default              {Header_init_default, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_default           {Header_init_default, 0, "", "", ""}
+#define SystemStatusMessage_init_default         {Header_init_default, 0, _MotorCtrlState_MIN}
 #define SystemDataMessage_init_default           {Header_init_default, _SystemDataId_MIN, 0, false, {0, {0}}}
 #define ADCPhaseCurrentsPayload_init_default     {0, 0, 0}
 #define ADCPhaseVoltagesPayload_init_default     {0, 0, 0}
 #define ADCSystemVoltagesPayload_init_default    {0, 0, 0, 0}
-#define SystemStateAnnuncPayload_init_default    {_MotorCtrlState_MIN}
 #define SystemTickMessage_init_zero              {Header_init_zero, 0}
 #define ConsoleMessage_init_zero                 {Header_init_zero, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_zero              {Header_init_zero, 0, "", "", ""}
+#define SystemStatusMessage_init_zero            {Header_init_zero, 0, _MotorCtrlState_MIN}
 #define SystemDataMessage_init_zero              {Header_init_zero, _SystemDataId_MIN, 0, false, {0, {0}}}
 #define ADCPhaseCurrentsPayload_init_zero        {0, 0, 0}
 #define ADCPhaseVoltagesPayload_init_zero        {0, 0, 0}
 #define ADCSystemVoltagesPayload_init_zero       {0, 0, 0, 0}
-#define SystemStateAnnuncPayload_init_zero       {_MotorCtrlState_MIN}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define SystemTickMessage_header_tag             1
@@ -133,6 +134,9 @@ extern "C" {
 #define SystemInfoMessage_swVersion_tag          3
 #define SystemInfoMessage_description_tag        4
 #define SystemInfoMessage_serialNumber_tag       5
+#define SystemStatusMessage_header_tag           1
+#define SystemStatusMessage_systemTick_tag       2
+#define SystemStatusMessage_motorCtrlState_tag   3
 #define SystemDataMessage_header_tag             1
 #define SystemDataMessage_id_tag                 2
 #define SystemDataMessage_timestamp_tag          3
@@ -147,7 +151,6 @@ extern "C" {
 #define ADCSystemVoltagesPayload_v_dc_link_tag   2
 #define ADCSystemVoltagesPayload_v_temp_tag      3
 #define ADCSystemVoltagesPayload_v_isense_tag    4
-#define SystemStateAnnuncPayload_motor_ctrl_state_tag 1
 
 /* Struct field encoding specification for nanopb */
 #define SystemTickMessage_FIELDLIST(X, a) \
@@ -175,6 +178,14 @@ X(a, STATIC,   REQUIRED, STRING,   serialNumber,      5)
 #define SystemInfoMessage_CALLBACK NULL
 #define SystemInfoMessage_DEFAULT NULL
 #define SystemInfoMessage_header_MSGTYPE Header
+
+#define SystemStatusMessage_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
+X(a, STATIC,   REQUIRED, UINT32,   systemTick,        2) \
+X(a, STATIC,   REQUIRED, UENUM,    motorCtrlState,    3)
+#define SystemStatusMessage_CALLBACK NULL
+#define SystemStatusMessage_DEFAULT NULL
+#define SystemStatusMessage_header_MSGTYPE Header
 
 #define SystemDataMessage_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
@@ -207,29 +218,24 @@ X(a, STATIC,   REQUIRED, FLOAT,    v_isense,          4)
 #define ADCSystemVoltagesPayload_CALLBACK NULL
 #define ADCSystemVoltagesPayload_DEFAULT NULL
 
-#define SystemStateAnnuncPayload_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, UENUM,    motor_ctrl_state,   1)
-#define SystemStateAnnuncPayload_CALLBACK NULL
-#define SystemStateAnnuncPayload_DEFAULT NULL
-
 extern const pb_msgdesc_t SystemTickMessage_msg;
 extern const pb_msgdesc_t ConsoleMessage_msg;
 extern const pb_msgdesc_t SystemInfoMessage_msg;
+extern const pb_msgdesc_t SystemStatusMessage_msg;
 extern const pb_msgdesc_t SystemDataMessage_msg;
 extern const pb_msgdesc_t ADCPhaseCurrentsPayload_msg;
 extern const pb_msgdesc_t ADCPhaseVoltagesPayload_msg;
 extern const pb_msgdesc_t ADCSystemVoltagesPayload_msg;
-extern const pb_msgdesc_t SystemStateAnnuncPayload_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define SystemTickMessage_fields &SystemTickMessage_msg
 #define ConsoleMessage_fields &ConsoleMessage_msg
 #define SystemInfoMessage_fields &SystemInfoMessage_msg
+#define SystemStatusMessage_fields &SystemStatusMessage_msg
 #define SystemDataMessage_fields &SystemDataMessage_msg
 #define ADCPhaseCurrentsPayload_fields &ADCPhaseCurrentsPayload_msg
 #define ADCPhaseVoltagesPayload_fields &ADCPhaseVoltagesPayload_msg
 #define ADCSystemVoltagesPayload_fields &ADCSystemVoltagesPayload_msg
-#define SystemStateAnnuncPayload_fields &SystemStateAnnuncPayload_msg
 
 /* Maximum encoded size of messages (where known) */
 #define ADCPhaseCurrentsPayload_size             15
@@ -238,7 +244,7 @@ extern const pb_msgdesc_t SystemStateAnnuncPayload_msg;
 #define ConsoleMessage_size                      149
 #define SystemDataMessage_size                   54
 #define SystemInfoMessage_size                   69
-#define SystemStateAnnuncPayload_size            2
+#define SystemStatusMessage_size                 20
 #define SystemTickMessage_size                   18
 
 #ifdef __cplusplus
@@ -270,6 +276,13 @@ struct MessageDescriptor<SystemInfoMessage> {
     }
 };
 template <>
+struct MessageDescriptor<SystemStatusMessage> {
+    static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 3;
+    static inline const pb_msgdesc_t* fields() {
+        return &SystemStatusMessage_msg;
+    }
+};
+template <>
 struct MessageDescriptor<SystemDataMessage> {
     static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 4;
     static inline const pb_msgdesc_t* fields() {
@@ -295,13 +308,6 @@ struct MessageDescriptor<ADCSystemVoltagesPayload> {
     static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 4;
     static inline const pb_msgdesc_t* fields() {
         return &ADCSystemVoltagesPayload_msg;
-    }
-};
-template <>
-struct MessageDescriptor<SystemStateAnnuncPayload> {
-    static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 1;
-    static inline const pb_msgdesc_t* fields() {
-        return &SystemStateAnnuncPayload_msg;
     }
 };
 }  // namespace nanopb

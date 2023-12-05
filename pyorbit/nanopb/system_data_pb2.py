@@ -23,7 +23,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto2',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x11system_data.proto\x1a\x0cnanopb.proto\x1a\x16serial_interface.proto\x1a\x13motor_control.proto\":\n\x11SystemTickMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x0c\n\x04tick\x18\x02 \x02(\r\"w\n\x0e\x43onsoleMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x19\n\nthis_frame\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x1b\n\x0ctotal_frames\x18\x03 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x04\x64\x61ta\x18\x04 \x02(\x0c\x42\x06\x92?\x03\x08\x80\x01\"\xa2\x01\n\x11SystemInfoMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x12\n\nsystemTick\x18\x02 \x02(\r\x12\x1d\n\tswVersion\x18\x03 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12\x1f\n\x0b\x64\x65scription\x18\x04 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12 \n\x0cserialNumber\x18\x05 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\"y\n\x11SystemDataMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12 \n\x02id\x18\x02 \x02(\x0e\x32\r.SystemDataIdB\x05\x92?\x02\x38\x08\x12\x11\n\ttimestamp\x18\x03 \x02(\r\x12\x16\n\x07payload\x18\x04 \x01(\x0c\x42\x05\x92?\x02\x08 \"=\n\x17\x41\x44\x43PhaseCurrentsPayload\x12\n\n\x02ia\x18\x01 \x02(\x02\x12\n\n\x02ib\x18\x02 \x02(\x02\x12\n\n\x02ic\x18\x03 \x02(\x02\"=\n\x17\x41\x44\x43PhaseVoltagesPayload\x12\n\n\x02va\x18\x01 \x02(\x02\x12\n\n\x02vb\x18\x02 \x02(\x02\x12\n\n\x02vc\x18\x03 \x02(\x02\"^\n\x18\x41\x44\x43SystemVoltagesPayload\x12\r\n\x05v_mcu\x18\x01 \x02(\x02\x12\x11\n\tv_dc_link\x18\x02 \x02(\x02\x12\x0e\n\x06v_temp\x18\x03 \x02(\x02\x12\x10\n\x08v_isense\x18\x04 \x02(\x02\"E\n\x18SystemStateAnnuncPayload\x12)\n\x10motor_ctrl_state\x18\x01 \x02(\x0e\x32\x0f.MotorCtrlState*\x83\x01\n\x0cSystemDataId\x12\x14\n\x10SYS_DATA_INVALID\x10\x00\x12\x16\n\x12\x41\x44\x43_PHASE_CURRENTS\x10\x01\x12\x16\n\x12\x41\x44\x43_PHASE_VOLTAGES\x10\x02\x12\x17\n\x13\x41\x44\x43_SYSTEM_VOLTAGES\x10\x03\x12\x14\n\x10SYS_STATE_ANNUNC\x10\x04'
+  serialized_pb=b'\n\x11system_data.proto\x1a\x0cnanopb.proto\x1a\x16serial_interface.proto\x1a\x13motor_control.proto\":\n\x11SystemTickMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x0c\n\x04tick\x18\x02 \x02(\r\"w\n\x0e\x43onsoleMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x19\n\nthis_frame\x18\x02 \x02(\rB\x05\x92?\x02\x38\x08\x12\x1b\n\x0ctotal_frames\x18\x03 \x02(\rB\x05\x92?\x02\x38\x08\x12\x14\n\x04\x64\x61ta\x18\x04 \x02(\x0c\x42\x06\x92?\x03\x08\x80\x01\"\xa2\x01\n\x11SystemInfoMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x12\n\nsystemTick\x18\x02 \x02(\r\x12\x1d\n\tswVersion\x18\x03 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12\x1f\n\x0b\x64\x65scription\x18\x04 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\x12 \n\x0cserialNumber\x18\x05 \x02(\tB\n\x92?\x02\x08\x10\x92?\x02x\x01\"k\n\x13SystemStatusMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x12\n\nsystemTick\x18\x02 \x02(\r\x12\'\n\x0emotorCtrlState\x18\x03 \x02(\x0e\x32\x0f.MotorCtrlState\"y\n\x11SystemDataMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12 \n\x02id\x18\x02 \x02(\x0e\x32\r.SystemDataIdB\x05\x92?\x02\x38\x08\x12\x11\n\ttimestamp\x18\x03 \x02(\r\x12\x16\n\x07payload\x18\x04 \x01(\x0c\x42\x05\x92?\x02\x08 \"=\n\x17\x41\x44\x43PhaseCurrentsPayload\x12\n\n\x02ia\x18\x01 \x02(\x02\x12\n\n\x02ib\x18\x02 \x02(\x02\x12\n\n\x02ic\x18\x03 \x02(\x02\"=\n\x17\x41\x44\x43PhaseVoltagesPayload\x12\n\n\x02va\x18\x01 \x02(\x02\x12\n\n\x02vb\x18\x02 \x02(\x02\x12\n\n\x02vc\x18\x03 \x02(\x02\"^\n\x18\x41\x44\x43SystemVoltagesPayload\x12\r\n\x05v_mcu\x18\x01 \x02(\x02\x12\x11\n\tv_dc_link\x18\x02 \x02(\x02\x12\x0e\n\x06v_temp\x18\x03 \x02(\x02\x12\x10\n\x08v_isense\x18\x04 \x02(\x02*m\n\x0cSystemDataId\x12\x14\n\x10SYS_DATA_INVALID\x10\x00\x12\x16\n\x12\x41\x44\x43_PHASE_CURRENTS\x10\x01\x12\x16\n\x12\x41\x44\x43_PHASE_VOLTAGES\x10\x02\x12\x17\n\x13\x41\x44\x43_SYSTEM_VOLTAGES\x10\x03'
   ,
   dependencies=[nanopb__pb2.DESCRIPTOR,serial__interface__pb2.DESCRIPTOR,motor__control__pb2.DESCRIPTOR,])
 
@@ -54,16 +54,11 @@ _SYSTEMDATAID = _descriptor.EnumDescriptor(
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='SYS_STATE_ANNUNC', index=4, number=4,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=843,
-  serialized_end=974,
+  serialized_start=880,
+  serialized_end=989,
 )
 _sym_db.RegisterEnumDescriptor(_SYSTEMDATAID)
 
@@ -72,7 +67,6 @@ SYS_DATA_INVALID = 0
 ADC_PHASE_CURRENTS = 1
 ADC_PHASE_VOLTAGES = 2
 ADC_SYSTEM_VOLTAGES = 3
-SYS_STATE_ANNUNC = 4
 
 
 
@@ -228,6 +222,52 @@ _SYSTEMINFOMESSAGE = _descriptor.Descriptor(
 )
 
 
+_SYSTEMSTATUSMESSAGE = _descriptor.Descriptor(
+  name='SystemStatusMessage',
+  full_name='SystemStatusMessage',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='header', full_name='SystemStatusMessage.header', index=0,
+      number=1, type=11, cpp_type=10, label=2,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='systemTick', full_name='SystemStatusMessage.systemTick', index=1,
+      number=2, type=13, cpp_type=3, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='motorCtrlState', full_name='SystemStatusMessage.motorCtrlState', index=2,
+      number=3, type=14, cpp_type=8, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=426,
+  serialized_end=533,
+)
+
+
 _SYSTEMDATAMESSAGE = _descriptor.Descriptor(
   name='SystemDataMessage',
   full_name='SystemDataMessage',
@@ -276,8 +316,8 @@ _SYSTEMDATAMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=426,
-  serialized_end=547,
+  serialized_start=535,
+  serialized_end=656,
 )
 
 
@@ -322,8 +362,8 @@ _ADCPHASECURRENTSPAYLOAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=549,
-  serialized_end=610,
+  serialized_start=658,
+  serialized_end=719,
 )
 
 
@@ -368,8 +408,8 @@ _ADCPHASEVOLTAGESPAYLOAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=612,
-  serialized_end=673,
+  serialized_start=721,
+  serialized_end=782,
 )
 
 
@@ -421,56 +461,25 @@ _ADCSYSTEMVOLTAGESPAYLOAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=675,
-  serialized_end=769,
-)
-
-
-_SYSTEMSTATEANNUNCPAYLOAD = _descriptor.Descriptor(
-  name='SystemStateAnnuncPayload',
-  full_name='SystemStateAnnuncPayload',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='motor_ctrl_state', full_name='SystemStateAnnuncPayload.motor_ctrl_state', index=0,
-      number=1, type=14, cpp_type=8, label=2,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=771,
-  serialized_end=840,
+  serialized_start=784,
+  serialized_end=878,
 )
 
 _SYSTEMTICKMESSAGE.fields_by_name['header'].message_type = serial__interface__pb2._HEADER
 _CONSOLEMESSAGE.fields_by_name['header'].message_type = serial__interface__pb2._HEADER
 _SYSTEMINFOMESSAGE.fields_by_name['header'].message_type = serial__interface__pb2._HEADER
+_SYSTEMSTATUSMESSAGE.fields_by_name['header'].message_type = serial__interface__pb2._HEADER
+_SYSTEMSTATUSMESSAGE.fields_by_name['motorCtrlState'].enum_type = motor__control__pb2._MOTORCTRLSTATE
 _SYSTEMDATAMESSAGE.fields_by_name['header'].message_type = serial__interface__pb2._HEADER
 _SYSTEMDATAMESSAGE.fields_by_name['id'].enum_type = _SYSTEMDATAID
-_SYSTEMSTATEANNUNCPAYLOAD.fields_by_name['motor_ctrl_state'].enum_type = motor__control__pb2._MOTORCTRLSTATE
 DESCRIPTOR.message_types_by_name['SystemTickMessage'] = _SYSTEMTICKMESSAGE
 DESCRIPTOR.message_types_by_name['ConsoleMessage'] = _CONSOLEMESSAGE
 DESCRIPTOR.message_types_by_name['SystemInfoMessage'] = _SYSTEMINFOMESSAGE
+DESCRIPTOR.message_types_by_name['SystemStatusMessage'] = _SYSTEMSTATUSMESSAGE
 DESCRIPTOR.message_types_by_name['SystemDataMessage'] = _SYSTEMDATAMESSAGE
 DESCRIPTOR.message_types_by_name['ADCPhaseCurrentsPayload'] = _ADCPHASECURRENTSPAYLOAD
 DESCRIPTOR.message_types_by_name['ADCPhaseVoltagesPayload'] = _ADCPHASEVOLTAGESPAYLOAD
 DESCRIPTOR.message_types_by_name['ADCSystemVoltagesPayload'] = _ADCSYSTEMVOLTAGESPAYLOAD
-DESCRIPTOR.message_types_by_name['SystemStateAnnuncPayload'] = _SYSTEMSTATEANNUNCPAYLOAD
 DESCRIPTOR.enum_types_by_name['SystemDataId'] = _SYSTEMDATAID
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -494,6 +503,13 @@ SystemInfoMessage = _reflection.GeneratedProtocolMessageType('SystemInfoMessage'
   # @@protoc_insertion_point(class_scope:SystemInfoMessage)
   })
 _sym_db.RegisterMessage(SystemInfoMessage)
+
+SystemStatusMessage = _reflection.GeneratedProtocolMessageType('SystemStatusMessage', (_message.Message,), {
+  'DESCRIPTOR' : _SYSTEMSTATUSMESSAGE,
+  '__module__' : 'system_data_pb2'
+  # @@protoc_insertion_point(class_scope:SystemStatusMessage)
+  })
+_sym_db.RegisterMessage(SystemStatusMessage)
 
 SystemDataMessage = _reflection.GeneratedProtocolMessageType('SystemDataMessage', (_message.Message,), {
   'DESCRIPTOR' : _SYSTEMDATAMESSAGE,
@@ -522,13 +538,6 @@ ADCSystemVoltagesPayload = _reflection.GeneratedProtocolMessageType('ADCSystemVo
   # @@protoc_insertion_point(class_scope:ADCSystemVoltagesPayload)
   })
 _sym_db.RegisterMessage(ADCSystemVoltagesPayload)
-
-SystemStateAnnuncPayload = _reflection.GeneratedProtocolMessageType('SystemStateAnnuncPayload', (_message.Message,), {
-  'DESCRIPTOR' : _SYSTEMSTATEANNUNCPAYLOAD,
-  '__module__' : 'system_data_pb2'
-  # @@protoc_insertion_point(class_scope:SystemStateAnnuncPayload)
-  })
-_sym_db.RegisterMessage(SystemStateAnnuncPayload)
 
 
 _CONSOLEMESSAGE.fields_by_name['this_frame']._options = None

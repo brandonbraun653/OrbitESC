@@ -15,6 +15,9 @@ PB_BIND(ConsoleMessage, ConsoleMessage, AUTO)
 PB_BIND(SystemInfoMessage, SystemInfoMessage, AUTO)
 
 
+PB_BIND(SystemStatusMessage, SystemStatusMessage, AUTO)
+
+
 PB_BIND(SystemDataMessage, SystemDataMessage, AUTO)
 
 
@@ -25,9 +28,6 @@ PB_BIND(ADCPhaseVoltagesPayload, ADCPhaseVoltagesPayload, AUTO)
 
 
 PB_BIND(ADCSystemVoltagesPayload, ADCSystemVoltagesPayload, AUTO)
-
-
-PB_BIND(SystemStateAnnuncPayload, SystemStateAnnuncPayload, AUTO)
 
 
 

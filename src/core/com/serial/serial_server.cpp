@@ -32,7 +32,7 @@ namespace Orbit::Serial
     Ship the response on the wire
     -------------------------------------------------------------------------*/
     Message::AckNack reply;
-    reply.raw.header.msgId = Message::MSG_ACK_NACK;
+    reply.raw.header.msgId = MsgId_MSG_ACK_NACK;
     reply.raw.header.subId = header.subId;
     reply.raw.header.uuid  = header.uuid;
     reply.raw.acknowledge  = ack_or_nack;
@@ -171,7 +171,7 @@ namespace Orbit::Serial
       -----------------------------------------------------------------------*/
       switch( msg.header.msgId )
       {
-        case Message::MSG_PING_CMD: {
+        case MsgId_MSG_PING_CMD: {
           Message::Ping msg;
           if( Message::decode( &msg.state, in.data(), rx_search_offset - 1u ) )
           {
@@ -180,7 +180,7 @@ namespace Orbit::Serial
         }
         break;
 
-        case Message::MSG_PARAM_IO: {
+        case MsgId_MSG_PARAM_IO: {
           Message::ParamIO msg;
           if( Message::decode( &msg.state, in.data(), rx_search_offset - 1u ) )
           {
@@ -189,8 +189,8 @@ namespace Orbit::Serial
         }
         break;
 
-        case Message::MSG_SYS_CTRL: {
-          Message::SysCtrl msg;
+        case MsgId_MSG_SYS_CTRL: {
+          Message::SystemControl msg;
           if( Message::decode( &msg.state, in.data(), rx_search_offset - 1u ) )
           {
             this->receive( msg );
@@ -198,7 +198,6 @@ namespace Orbit::Serial
         }
         break;
 
-        case Message::MSG_ID_COUNT:
         default:
           LOG_ERROR( "Unhandled msg ID: %d", msg.header.msgId );
           break;

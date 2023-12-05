@@ -14,6 +14,7 @@ Includes
 #include <Chimera/common>
 #include <cstdint>
 #include <src/control/foc_data.hpp>
+#include <src/control/foc_driver.hpp>
 #include <src/core/com/com_app_tx.hpp>
 #include <src/core/com/com_scheduler.hpp>
 #include <src/core/com/serial/serial_async_message.hpp>
@@ -39,11 +40,12 @@ namespace Orbit::COM
   /*---------------------------------------------------------------------------
   Private Data
   ---------------------------------------------------------------------------*/
-  static Scheduler::TaskId        s_stream_ids[ STREAM_ID_NUM_OPTIONS ];
-  static Serial::Message::SysData s_phase_currents;
-  static Serial::Message::SysData s_phase_voltages;
-  static Serial::Message::SysData s_system_voltages;
-  static Serial::Message::SysTick s_system_tick;
+  static Scheduler::TaskId             s_stream_ids[ STREAM_ID_NUM_OPTIONS ];
+  static Serial::Message::SystemData   s_phase_currents;
+  static Serial::Message::SystemData   s_phase_voltages;
+  static Serial::Message::SystemData   s_system_voltages;
+  static Serial::Message::SystemTick   s_system_tick;
+  static Serial::Message::SystemStatus s_system_status;
 
   /*---------------------------------------------------------------------------
   Private Functions
@@ -200,6 +202,35 @@ namespace Orbit::COM
     }
   }
 
+
+  /**
+   * @brief Updates the system status periodic data
+   *
+   * @param task  The task to update
+   * @return void
+   */
+  static void update_system_status( Scheduler::Task *task )
+  {
+    /*-------------------------------------------------------------------------
+    Pack the message data
+    -------------------------------------------------------------------------*/
+    s_system_status.raw.header.msgId   = MsgId_MSG_SYS_STATUS;
+    s_system_status.raw.header.subId   = 0;
+    s_system_status.raw.header.uuid    = Serial::Message::getNextUUID();
+    s_system_status.raw.systemTick     = Chimera::millis();
+    s_system_status.raw.motorCtrlState = static_cast<MotorCtrlState>( Control::FOC::currentMode() );
+
+    /*-------------------------------------------------------------------------
+    Update the task data
+    -------------------------------------------------------------------------*/
+    if( Serial::Message::encode( &s_system_status.state ) == Chimera::Status::OK )
+    {
+      task->data = s_system_status.data();
+      task->size = s_system_status.size();
+    }
+  }
+
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
@@ -272,6 +303,21 @@ namespace Orbit::COM
 
     s_stream_ids[ STREAM_ID_SYSTEM_TICK ] = Scheduler::add( tsk, true );
     RT_DBG_ASSERT( s_stream_ids[ STREAM_ID_SYSTEM_TICK ] != Scheduler::INVALID_TASK_ID );
+
+    /*-------------------------------------------------------------------------
+    Register the system status publishing task
+    -------------------------------------------------------------------------*/
+    tsk.clear();
+    tsk.updater  = update_system_status;
+    tsk.period   = hz_to_ms( 5 );
+    tsk.endpoint = Scheduler::Endpoint::USB;
+    tsk.priority = Scheduler::Priority::LOW;
+    tsk.ttl      = Scheduler::TTL_INFINITE;
+    tsk.data     = s_system_status.data();
+    tsk.size     = 0;
+
+    s_stream_ids[ STREAM_ID_SYSTEM_STATUS ] = Scheduler::add( tsk, true );
+    RT_DBG_ASSERT( s_stream_ids[ STREAM_ID_SYSTEM_STATUS ] != Scheduler::INVALID_TASK_ID );
   }
 
 

@@ -129,6 +129,26 @@ class OrbitClient:
         """
         self.com_pipe.write(SystemResetPBMsg().serialize())
 
+    def request_motor_state_transition(self, new_state: MotorCtrlState) -> None:
+        """
+        Requests a motor state transition
+        Args:
+            new_state: Desired state to transition to
+
+        Returns:
+            None
+        """
+        state_to_sub_id = {
+            MotorCtrlState.MOTOR_CTRL_STATE_IDLE: SystemControlSubId.DISARM,
+        }
+
+        try:
+            msg = SystemControlPbMsg()
+            msg.message_type = state_to_sub_id[new_state]
+
+            self.com_pipe.write(msg.serialize())
+        except KeyError:
+            logger.error(f"Invalid motor state transition: {new_state}")
 
     def set_activity_led_blink_scaler(self, scaler: float = 1.0) -> bool:
         """

@@ -23,7 +23,7 @@ namespace Orbit::CAN::Router
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  EmergencyHaltRouter::EmergencyHaltRouter() : message_router( Message::MSG_EMERGENCY_HALT )
+  EmergencyHaltRouter::EmergencyHaltRouter() : message_router( ROUTER_ID_EMERGENCY_HALT )
   {
   }
 

@@ -59,7 +59,7 @@ namespace Orbit::Serial::Message
 
     static constexpr size_t MIN_RAW_MSG_SIZE = sizeof( Header );
     static constexpr size_t MAX_RAW_MSG_SIZE =
-      *std::max_element( std::begin( Internal::_msg_size_array ), std::end( Internal::_msg_size_array ) );
+        *std::max_element( std::begin( Internal::_msg_size_array ), std::end( Internal::_msg_size_array ) );
 
     /*-------------------------------------------------------------------------
     Payload sizes for the system data messages
@@ -69,7 +69,6 @@ namespace Orbit::Serial::Message
       ADCPhaseCurrentsPayload_size,
       ADCPhaseVoltagesPayload_size,
       ADCSystemVoltagesPayload_size,
-      SystemStateAnnuncPayload_size,
       /* clang-format on */
     };
 
@@ -81,29 +80,6 @@ namespace Orbit::Serial::Message
 
   static constexpr size_t MAX_COBS_MSG_SIZE = COBS_ENCODE_DST_BUF_LEN_MAX( Internal::MAX_RAW_MSG_SIZE ) + 1u;
   static constexpr size_t MIN_COBS_MSG_SIZE = COBS_ENCODE_DST_BUF_LEN_MAX( Internal::MIN_RAW_MSG_SIZE ) + 1u;
-
-  /*---------------------------------------------------------------------------
-  Enumerations
-  ---------------------------------------------------------------------------*/
-
-  /**
-   * @brief Alias the definitions from the protocol buffer interface spec
-   */
-  enum _Id : etl::message_id_t
-  {
-    MSG_ACK_NACK = MsgId_MSG_ACK_NACK,
-    MSG_PING_CMD = MsgId_MSG_PING_CMD,
-    MSG_TERMINAL = MsgId_MSG_TERMINAL,
-    MSG_SYS_TICK = MsgId_MSG_SYS_TICK,
-    MSG_SYS_INFO = MsgId_MSG_SYS_INFO,
-    MSG_PARAM_IO = MsgId_MSG_PARAM_IO,
-    MSG_SYS_CTRL = MsgId_MSG_SYS_CTRL,
-    MSG_SYS_DATA = MsgId_MSG_SYS_DATA,
-
-    MSG_ID_COUNT
-  };
-  static_assert( MSG_ID_COUNT == ARRAY_COUNT( Internal::_msg_size_array ) );
-
 
   /*---------------------------------------------------------------------------
   Structures
@@ -200,14 +176,14 @@ namespace Orbit::Serial::Message
     static constexpr size_t            IOBuffSize = std::max<size_t>( EncodeSize, DecodeSize ) + 1u;
     static constexpr etl::message_id_t MessageId  = MSG_ID;
 
-    PayloadType      raw; /**< Raw data structure of the message */
-    EncodableMessage state;   /**< Encoder state data */
+    PayloadType      raw;   /**< Raw data structure of the message */
+    EncodableMessage state; /**< Encoder state data */
 
     _CustomMsg() : raw{ 0 }, state{ io_buffer, IOBuffSize, PayloadFields, PayloadSize, &raw, 0 }
     {
     }
 
-    pb_byte_t* data() const
+    pb_byte_t *data() const
     {
       return state.IOBuffer;
     }
@@ -225,14 +201,17 @@ namespace Orbit::Serial::Message
   /*---------------------------------------------------------------------------
   Message Class Declarations
   ---------------------------------------------------------------------------*/
-  using AckNack = _CustomMsg<MSG_ACK_NACK, AckNackMessage, AckNackMessage_size, AckNackMessage_fields>;
-  using Ping    = _CustomMsg<MSG_PING_CMD, PingMessage, PingMessage_size, PingMessage_fields>;
-  using Console = _CustomMsg<MSG_TERMINAL, ConsoleMessage, ConsoleMessage_size, ConsoleMessage_fields>;
-  using SysTick = _CustomMsg<MSG_SYS_TICK, SystemTickMessage, SystemTickMessage_size, SystemTickMessage_fields>;
-  using SysInfo = _CustomMsg<MSG_SYS_INFO, SystemInfoMessage, SystemInfoMessage_size, SystemInfoMessage_fields>;
-  using ParamIO = _CustomMsg<MSG_PARAM_IO, ParamIOMessage, ParamIOMessage_size, ParamIOMessage_fields>;
-  using SysCtrl = _CustomMsg<MSG_SYS_CTRL, SystemControlMessage, SystemControlMessage_size, SystemControlMessage_fields>;
-  using SysData = _CustomMsg<MSG_SYS_DATA, SystemDataMessage, SystemDataMessage_size, SystemDataMessage_fields>;
+  using AckNack    = _CustomMsg<MsgId_MSG_ACK_NACK, AckNackMessage, AckNackMessage_size, AckNackMessage_fields>;
+  using Ping       = _CustomMsg<MsgId_MSG_PING_CMD, PingMessage, PingMessage_size, PingMessage_fields>;
+  using Console    = _CustomMsg<MsgId_MSG_TERMINAL, ConsoleMessage, ConsoleMessage_size, ConsoleMessage_fields>;
+  using SystemTick = _CustomMsg<MsgId_MSG_SYS_TICK, SystemTickMessage, SystemTickMessage_size, SystemTickMessage_fields>;
+  using SystemInfo = _CustomMsg<MsgId_MSG_SYS_INFO, SystemInfoMessage, SystemInfoMessage_size, SystemInfoMessage_fields>;
+  using ParamIO    = _CustomMsg<MsgId_MSG_PARAM_IO, ParamIOMessage, ParamIOMessage_size, ParamIOMessage_fields>;
+  using SystemControl =
+      _CustomMsg<MsgId_MSG_SYS_CTRL, SystemControlMessage, SystemControlMessage_size, SystemControlMessage_fields>;
+  using SystemData = _CustomMsg<MsgId_MSG_SYS_DATA, SystemDataMessage, SystemDataMessage_size, SystemDataMessage_fields>;
+  using SystemStatus =
+      _CustomMsg<MsgId_MSG_SYS_STATUS, SystemStatusMessage, SystemStatusMessage_size, SystemStatusMessage_fields>;
 
   /*---------------------------------------------------------------------------
   Message Payload Declarations
@@ -245,8 +224,6 @@ namespace Orbit::Serial::Message
                                         ADCPhaseVoltagesPayload_fields>;
     using ADCSystemVoltages = _CustomMsg<SystemDataId_ADC_SYSTEM_VOLTAGES, ADCSystemVoltagesPayload,
                                          ADCSystemVoltagesPayload_size, ADCSystemVoltagesPayload_fields>;
-    using SystemStateAnnunc = _CustomMsg<SystemDataId_SYS_STATE_ANNUNC, SystemStateAnnuncPayload, SystemStateAnnuncPayload_size,
-                                         SystemStateAnnuncPayload_fields>;
   }    // namespace Payload
 
 }    // namespace Orbit::Serial::Message

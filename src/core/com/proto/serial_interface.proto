@@ -3,14 +3,15 @@ import "nanopb.proto";
 
 // Message IDs for all the core message types sent between the host and the device.
 enum MsgId {
-  MSG_ACK_NACK = 0; // Generic ack/nack type message
-  MSG_PING_CMD = 1; // Simple PING to see if the node is alive
-  MSG_TERMINAL = 2; // Terminal command for printing text/debug data
-  MSG_SYS_TICK = 3; // System time tick
-  MSG_SYS_INFO = 4; // System information
-  MSG_PARAM_IO = 5; // Do operations on configurable parameters
-  MSG_SYS_CTRL = 6; // Perform system control operations
-  MSG_SYS_DATA = 7; // System data stream
+  MSG_ACK_NACK   = 0; // Generic ack/nack type message
+  MSG_PING_CMD   = 1; // Simple PING to see if the node is alive
+  MSG_TERMINAL   = 2; // Terminal command for printing text/debug data
+  MSG_SYS_TICK   = 3; // System time tick
+  MSG_SYS_INFO   = 4; // System information
+  MSG_PARAM_IO   = 5; // Do operations on configurable parameters
+  MSG_SYS_CTRL   = 6; // Perform system control operations
+  MSG_SYS_DATA   = 7; // System data stream
+  MSG_SYS_STATUS = 8; // System status annunciation, essentially a snapshot of observable system state
 }
 
 // Specialization sub-IDs to further specify the root message ID.

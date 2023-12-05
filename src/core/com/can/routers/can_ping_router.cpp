@@ -23,7 +23,7 @@ namespace Orbit::CAN::Router
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  PingRouter::PingRouter() : message_router( Message::MSG_PING )
+  PingRouter::PingRouter() : message_router( ROUTER_ID_PING )
   {
   }
 

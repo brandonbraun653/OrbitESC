@@ -23,7 +23,7 @@ namespace Orbit::CAN::Router
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  SetSystemModeRouter::SetSystemModeRouter() : message_router( Message::MSG_SET_SYSTEM_MODE )
+  SetSystemModeRouter::SetSystemModeRouter() : message_router( ROUTER_ID_SET_SYSTEM_MODE )
   {
   }
 

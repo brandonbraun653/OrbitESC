@@ -10,14 +10,18 @@
 
 from __future__ import annotations
 
-import pyorbit.nanopb.serial_interface_pb2 as proto
-from pyorbit.nanopb.system_data_pb2 import *
-from loguru import logger
-from typing import TypeVar, Optional
-from google.protobuf.message import Message
-from pyorbit.nanopb.serial_interface_pb2 import *
-from pyorbit.utils import Singleton
 from threading import RLock
+from typing import TypeVar, Optional, cast
+
+from google.protobuf.message import Message
+from loguru import logger
+
+import pyorbit.nanopb.serial_interface_pb2 as proto
+from pyorbit.nanopb.motor_control_pb2 import *
+from pyorbit.nanopb.serial_interface_pb2 import *
+from pyorbit.nanopb.system_control_pb2 import *
+from pyorbit.nanopb.system_data_pb2 import *
+from pyorbit.utils import Singleton
 
 
 class UUIDGenerator(metaclass=Singleton):
@@ -148,6 +152,39 @@ class SystemTickPBMsg(BasePBMsg):
     @property
     def tick(self) -> int:
         return self._pb_msg.tick
+
+
+class SystemStatusPBMsg(BasePBMsg):
+
+    def __init__(self):
+        super().__init__()
+        self._pb_msg = SystemStatusMessage()
+        self._pb_msg.header.msgId = MsgId.MSG_SYS_STATUS
+
+    @property
+    def tick(self) -> int:
+        return self._pb_msg.systemTick
+
+    @property
+    def motor_ctrl_state(self) -> MotorCtrlState:
+        return self._pb_msg.motorCtrlState
+
+
+class SystemControlPbMsg(BasePBMsg):
+
+    def __init__(self):
+        super().__init__()
+        self._pb_msg = SystemControlMessage()
+        self._pb_msg.header.msgId = MsgId.MSG_SYS_CTRL
+        self._pb_msg.header.subId = SubId.SUB_MSG_NONE
+
+    @property
+    def message_type(self) -> SystemControlSubId:
+        return cast(SystemControlSubId, self._pb_msg.header.subId)
+
+    @message_type.setter
+    def message_type(self, msg_type: SystemControlSubId):
+        self._pb_msg.header.subId = msg_type
 
 
 class ConsolePBMsg(BasePBMsg):
