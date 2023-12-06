@@ -21,9 +21,13 @@
 #define FDB_LOG_TAG "[tsl]"
 /* rewrite log prefix */
 #undef  FDB_LOG_PREFIX2
-#define FDB_LOG_PREFIX2()                         FDB_PRINT("[%s] ", db_name(db))
+#define FDB_LOG_PREFIX2()                         FDB_PRINT("[%s][%s] ", db_name(db), _fdb_db_path((fdb_db_t)db))
 
 #if defined(FDB_USING_TSDB)
+
+#if (FDB_WRITE_GRAN == 64) || (FDB_WRITE_GRAN == 128)
+#error "Flash 64 or 128 bits write granularity is not supported in TSDB yet!"
+#endif
 
 /* magic word(`T`, `S`, `L`, `0`) */
 #define SECTOR_MAGIC_WORD                        0x304C5354
@@ -49,6 +53,7 @@
 #define db_init_ok(db)                           (((fdb_db_t)db)->init_ok)
 #define db_sec_size(db)                          (((fdb_db_t)db)->sec_size)
 #define db_max_size(db)                          (((fdb_db_t)db)->max_size)
+#define db_oldest_addr(db)                       (((fdb_db_t)db)->oldest_addr)
 
 #define db_lock(db)                                                            \
     do {                                                                       \
@@ -352,9 +357,9 @@ static fdb_err_t update_sec_status(fdb_tsdb_t db, tsdb_sec_info_t sector, fdb_bl
         if (sector->status != FDB_SECTOR_STORE_EMPTY) {
             /* calculate the oldest sector address */
             if (new_sec_addr + db_sec_size(db) < db_max_size(db)) {
-                db->oldest_addr = new_sec_addr + db_sec_size(db);
+                db_oldest_addr(db) = new_sec_addr + db_sec_size(db);
             } else {
-                db->oldest_addr = 0;
+                db_oldest_addr(db) = 0;
             }
             format_sector(db, new_sec_addr);
             read_sector_info(db, new_sec_addr, &db->cur_sec, false);
@@ -376,28 +381,35 @@ static fdb_err_t update_sec_status(fdb_tsdb_t db, tsdb_sec_info_t sector, fdb_bl
     return result;
 }
 
-static fdb_err_t tsl_append(fdb_tsdb_t db, fdb_blob_t blob)
+static fdb_err_t tsl_append(fdb_tsdb_t db, fdb_blob_t blob, fdb_time_t *timestamp)
 {
     fdb_err_t result = FDB_NO_ERR;
-    fdb_time_t cur_time = db->get_time();
+    fdb_time_t cur_time = timestamp == NULL ? db->get_time() : *timestamp;
 
-    FDB_ASSERT(blob->size <= db->max_len);
+    /* check the append length, MUST less than the db->max_len */
+    if(blob->size > db->max_len)
+    {
+        FDB_INFO("Warning: append length (%" PRIdMAX ") is more than the db->max_len (%" PRIdMAX "). This tsl will be dropped.\n", 
+                (intmax_t)blob->size, (intmax_t)(db->max_len));
+        return FDB_WRITE_ERR;
+    }
 
     /* check the current timestamp, MUST more than the last save timestamp */
-    if (cur_time < db->last_time) {
-        FDB_INFO("Warning: current timestamp (%" PRIdMAX ") is less than the last save timestamp (%" PRIdMAX "). This tsl will be dropped.\n",
+    if (cur_time <= db->last_time) {
+        FDB_INFO("Warning: current timestamp (%" PRIdMAX ") is less than or equal to the last save timestamp (%" PRIdMAX "). This tsl will be dropped.\n",
                 (intmax_t )cur_time, (intmax_t )(db->last_time));
         return FDB_WRITE_ERR;
     }
 
     result = update_sec_status(db, &db->cur_sec, blob, cur_time);
     if (result != FDB_NO_ERR) {
+        FDB_INFO("Error: update the sector status failed (%d)", result);
         return result;
     }
-
     /* write the TSL node */
     result = write_tsl(db, blob, cur_time);
     if (result != FDB_NO_ERR) {
+        FDB_INFO("Error: write tsl failed (%d)", result);
         return result;
     }
 
@@ -430,7 +442,31 @@ fdb_err_t fdb_tsl_append(fdb_tsdb_t db, fdb_blob_t blob)
     }
 
     db_lock(db);
-    result = tsl_append(db, blob);
+    result = tsl_append(db, blob, NULL);
+    db_unlock(db);
+
+    return result;
+}
+
+/**
+ * Append a new log to TSDB with specific timestamp.
+ *
+ * @param db database object
+ * @param blob log blob data
+ *
+ * @return result
+ */
+fdb_err_t fdb_tsl_append_with_ts(fdb_tsdb_t db, fdb_blob_t blob, fdb_time_t timestamp)
+{
+    fdb_err_t result = FDB_NO_ERR;
+
+    if (!db_init_ok(db)) {
+        FDB_INFO("Error: TSL (%s) isn't initialize OK.\n", db_name(db));
+        return FDB_INIT_FAILED;
+    }
+
+    db_lock(db);
+    result = tsl_append(db, blob, &timestamp);
     db_unlock(db);
 
     return result;
@@ -457,8 +493,8 @@ void fdb_tsl_iter(fdb_tsdb_t db, fdb_tsl_cb cb, void *arg)
         return;
     }
 
-    sec_addr = db->oldest_addr;
-    db_lock(db);
+    sec_addr = db_oldest_addr(db);
+	db_lock(db);
     /* search all sectors */
     do {
         traversed_len += db_sec_size(db);
@@ -593,7 +629,7 @@ void fdb_tsl_iter_by_time(fdb_tsdb_t db, fdb_time_t from, fdb_time_t to, fdb_tsl
     }
 
     if(from <= to) {
-        start_addr = db->oldest_addr;
+        start_addr = db_oldest_addr(db);
         get_sector_addr = get_next_sector_addr;
         get_tsl_addr = get_next_tsl_addr;
     } else {
@@ -685,7 +721,7 @@ size_t fdb_tsl_query_count(fdb_tsdb_t db, fdb_time_t from, fdb_time_t to, fdb_ts
 
     if (!db_init_ok(db)) {
         FDB_INFO("Error: TSL (%s) isn't initialize OK.\n", db_name(db));
-        return FDB_INIT_FAILED;
+        return 0;
     }
 
     fdb_tsl_iter_by_time(db, from, to, query_count_cb, &arg);
@@ -773,7 +809,7 @@ static void tsl_format_all(fdb_tsdb_t db)
 
     sector.addr = 0;
     sector_iterator(db, &sector, FDB_SECTOR_STORE_UNUSED, db, NULL, format_all_cb, false);
-    db->oldest_addr = 0;
+    db_oldest_addr(db) = 0;
     db->cur_sec.addr = 0;
     db->last_time = 0;
     /* read the current using sector info */
@@ -896,11 +932,14 @@ fdb_err_t fdb_tsdb_init(fdb_tsdb_t db, const char *name, const char *path, fdb_g
         goto __exit;
     }
 
+    /* lock the TSDB */
+    db_lock(db);
+
     db->get_time = get_time;
     db->max_len = max_len;
     /* default rollover flag is true */
     db->rollover = true;
-    db->oldest_addr = FDB_DATA_UNUSED;
+    db_oldest_addr(db) = FDB_DATA_UNUSED;
     db->cur_sec.addr = FDB_DATA_UNUSED;
     /* must less than sector size */
     FDB_ASSERT(max_len < db_sec_size(db));
@@ -931,19 +970,19 @@ fdb_err_t fdb_tsdb_init(fdb_tsdb_t db, const char *name, const char *path, fdb_g
         /* db->cur_sec is the latest sector, and the next is the oldest sector */
         if (latest_addr + db_sec_size(db) >= db_max_size(db)) {
             /* db->cur_sec is the the bottom of the database */
-            db->oldest_addr = 0;
+            db_oldest_addr(db) = 0;
         } else {
-            db->oldest_addr = latest_addr + db_sec_size(db);
+            db_oldest_addr(db) = latest_addr + db_sec_size(db);
         }
     }
-    FDB_DEBUG("TSDB (%s) oldest sectors is 0x%08" PRIX32 ", current using sector is 0x%08" PRIX32 ".\n", db_name(db), db->oldest_addr,
+    FDB_DEBUG("TSDB (%s) oldest sectors is 0x%08" PRIX32 ", current using sector is 0x%08" PRIX32 ".\n", db_name(db), db_oldest_addr(db),
             db->cur_sec.addr);
     /* read the current using sector info */
     read_sector_info(db, db->cur_sec.addr, &db->cur_sec, true);
     /* get last save time */
     if (db->cur_sec.status == FDB_SECTOR_STORE_USING) {
         db->last_time = db->cur_sec.end_time;
-    } else if (db->cur_sec.status == FDB_SECTOR_STORE_EMPTY && db->oldest_addr != db->cur_sec.addr) {
+    } else if (db->cur_sec.status == FDB_SECTOR_STORE_EMPTY && db_oldest_addr(db) != db->cur_sec.addr) {
         struct tsdb_sec_info sec;
         uint32_t addr = db->cur_sec.addr;
 
@@ -955,6 +994,9 @@ fdb_err_t fdb_tsdb_init(fdb_tsdb_t db, const char *name, const char *path, fdb_g
         read_sector_info(db, addr, &sec, false);
         db->last_time = sec.end_time;
     }
+
+    /* unlock the TSDB */
+    db_unlock(db);
 
 __exit:
 
