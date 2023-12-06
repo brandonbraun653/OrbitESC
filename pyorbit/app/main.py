@@ -7,8 +7,8 @@ from PyQt5 import QtCore, QtGui
 from loguru import logger
 from pyorbit.app.parameters.updater import ParameterUpdater
 from pyorbit.app.ui.pyorbit import Ui_MainWindow
-from pyorbit.app.connections.serial import SerialConnectionManager
-from pyorbit.serial.client import SerialClient
+from pyorbit.app.connections.serial import SerialConnectionManagerSingleton
+from pyorbit.serial.client import OrbitClient
 
 # Load our settings storage
 AppSettings = QtCore.QSettings("OrbitESC", "PyOrbit")
@@ -28,7 +28,7 @@ class PyOrbitGUI(QMainWindow, Ui_MainWindow):
         logger.add(self._loguru_log_message, level="DEBUG")
 
         # Run the serial connection manager in the background.
-        self._serial_conn_mgr = SerialConnectionManager()
+        self._serial_conn_mgr = SerialConnectionManagerSingleton()
         self._serial_conn_mgr.start()
 
         # Start the background parameter updater
@@ -46,7 +46,7 @@ class PyOrbitGUI(QMainWindow, Ui_MainWindow):
         return self._settings
 
     @property
-    def serial_client(self) -> SerialClient:
+    def serial_client(self) -> OrbitClient:
         """
         Returns:
             Returns the serial client object from the serial connection manager.
@@ -125,11 +125,13 @@ class PyOrbitGUI(QMainWindow, Ui_MainWindow):
         self._serial_conn_mgr.onOpenSignal.connect(self.phaseCurrentPlotter.serial_connect)
         self._serial_conn_mgr.onOpenSignal.connect(self.speedPositionPlotter.serial_connect)
         self._serial_conn_mgr.onOpenSignal.connect(self._param_updater.on_serial_connect)
+        self._serial_conn_mgr.onOpenSignal.connect(self.tabCurrentControl.on_serial_connect)
 
         # Notify widgets when a serial connection is closed
         self._serial_conn_mgr.onCloseSignal.connect(self.phaseCurrentPlotter.serial_disconnect)
         self._serial_conn_mgr.onCloseSignal.connect(self.speedPositionPlotter.serial_disconnect)
         self._serial_conn_mgr.onCloseSignal.connect(self._param_updater.on_serial_disconnect)
+        self._serial_conn_mgr.onCloseSignal.connect(self.tabCurrentControl.on_serial_disconnect)
 
         # Notify widgets of a log message
         self.appLogMessageSignal.connect(self.consoleWindow.add_app_console_message)

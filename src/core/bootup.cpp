@@ -16,20 +16,31 @@ Includes
 #include <Chimera/assert>
 #include <Chimera/gpio>
 #include <Chimera/serial>
+#include <Thor/lld/common/cortex-m4/system_time.hpp>
+#include <Thor/lld/interface/inc/flash>
+#include <Thor/lld/interface/inc/flash>
+#include <Thor/lld/interface/inc/power>
+#include <Thor/lld/interface/inc/rcc>
+#include <Thor/lld/stm32f4x/rcc/hw_rcc_prv.hpp>
 #include <etl/circular_buffer.h>
 #include <src/config/bsp/board_map.hpp>
+#include <src/control/foc_driver.hpp>
 #include <src/core/bootup.hpp>
+#include <src/core/com/com_scheduler.hpp>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/data/orbit_log_io.hpp>
+#include <src/core/events/event_stream.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_can.hpp>
 #include <src/core/hw/orbit_gpio.hpp>
-#include <src/core/hw/orbit_i2c.hpp>
+#include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_led.hpp>
+#include <src/core/hw/orbit_sdio.hpp>
 #include <src/core/hw/orbit_spi.hpp>
 #include <src/core/hw/orbit_timer.hpp>
 #include <src/core/hw/orbit_usart.hpp>
 #include <src/core/tasks.hpp>
+#include <src/monitor/orbit_metrics.hpp>
 #include <src/monitor/orbit_monitors.hpp>
 
 
@@ -88,9 +99,8 @@ namespace Orbit::Boot
     -------------------------------------------------------------------------*/
     Orbit::USART::powerUp();           // Serial debug port logging
     Orbit::SPI::powerUp();             // NOR bus driver
-    Orbit::I2C::powerUp();             // EEPROM bus driver
+    Orbit::SDIO::powerUp();            // SD card driver
     Orbit::Data::initialize();         // Prepare system data memory
-    Orbit::Data::bootFileSystem();     // Attach and load the file system
     Orbit::Data::printSystemInfo();    // Print the system info to the console
 
     /*-------------------------------------------------------------------------
@@ -111,7 +121,11 @@ namespace Orbit::Boot
     -------------------------------------------------------------------------*/
     Orbit::GPIO::powerUp();
     Orbit::LED::powerUp();
-    // Orbit::Monitor::initialize();
+    Orbit::Instrumentation::powerUp();
+    Orbit::COM::Scheduler::initialize();
+    Orbit::Monitor::initMetrics();
+    Orbit::Event::initialize();
+    Orbit::Control::FOC::initialize();
   }
 
 
@@ -130,6 +144,102 @@ namespace Orbit::Boot
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_HWM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_COM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CTL ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CDC ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_USB ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
   }
 
 }    // namespace Orbit::Boot
+
+
+namespace Thor::LLD::RCC
+{
+  /**
+   * @brief Project configuration of the clock tree.
+   *
+   * Uses the external osciallator as the PLL source and drives the system
+   * clock at 180MHz. I'm essentially pushing the performance to the max for
+   * this chip.
+   */
+  void configureProjectClocks()
+  {
+    constexpr size_t hseClkIn     = 24'000'000;
+    constexpr size_t targetSysClk = 180'000'000;
+    constexpr size_t targetUSBClk = 48'000'000;
+
+    /*-------------------------------------------------------------------------
+    Notify RCC module of external clocks
+    -------------------------------------------------------------------------*/
+    cacheExtOscFreq( Chimera::Clock::Bus::HSE, hseClkIn );
+
+    /*-------------------------------------------------------------------------
+    Set flash latency to a safe value for all possible clocks. This will slow
+    down the configuration, but this is only performed once at startup.
+    -------------------------------------------------------------------------*/
+    FLASH::setLatency( 15 );
+
+    /*-------------------------------------------------------------------------
+    Not strictly necessary, but done because this config function uses the max
+    system clock.
+    -------------------------------------------------------------------------*/
+    PWR::setOverdriveMode( true );
+
+    /*-------------------------------------------------------------------------
+    Configure the system clocks to max performance
+    -------------------------------------------------------------------------*/
+    ClockTreeInit clkCfg;
+    clkCfg.clear();
+
+    /* Select which clocks to turn on  */
+    clkCfg.enabled.hsi          = true;    // Needed for transfer of clock source
+    clkCfg.enabled.hse          = true;    // Needed for PLL source
+    clkCfg.enabled.lsi          = true;    // Allows IWDG use
+    clkCfg.enabled.pll_core_clk = true;    // Will drive sys off PLL
+    clkCfg.enabled.pll_sai_p    = true;    // USB 48 MHz clock
+
+    /* Select clock mux routing */
+    clkCfg.mux.pll   = Chimera::Clock::Bus::HSE;
+    clkCfg.mux.sys   = Chimera::Clock::Bus::PLLP;
+    clkCfg.mux.usb48 = Chimera::Clock::Bus::PLLSAI_P;
+    clkCfg.mux.sdio  = Chimera::Clock::Bus::CK48;
+
+    /* Divisors from the system clock */
+    clkCfg.prescaler.ahb  = 1;
+    clkCfg.prescaler.apb1 = 4;
+    clkCfg.prescaler.apb2 = 2;
+
+    /* Core PLL configuration settings */
+    clkCfg.PLLCore.M = 24;
+    clkCfg.PLLCore.N = 360;
+    clkCfg.PLLCore.P = 2;
+    clkCfg.PLLCore.Q = 8;   // Doesn't matter, not used
+    clkCfg.PLLCore.R = 7;   // Doesn't matter, not used
+
+    /* SAI PLL configuration settings */
+    clkCfg.PLLSAI.M = 16;
+    clkCfg.PLLSAI.N = 128;
+    clkCfg.PLLSAI.P = 4;
+    clkCfg.PLLSAI.Q = 2;    // Doesn't matter, not used
+
+    RT_HARD_ASSERT( configureClockTree( clkCfg ) );
+
+    /*-------------------------------------------------------------------------
+    Make sure the rest of the system knows about the new clock frequency.
+    -------------------------------------------------------------------------*/
+    const size_t sys_clk = getSystemClock();
+    RT_HARD_ASSERT( sys_clk == targetSysClk );
+
+    CortexM4::Clock::updateCoreClockCache( sys_clk );
+
+    /*-------------------------------------------------------------------------
+    Trim the flash latency back to a performant range now that the high speed
+    clock has been configured.
+    -------------------------------------------------------------------------*/
+    FLASH::setLatency( FLASH::LATENCY_AUTO_DETECT );
+
+    /*-------------------------------------------------------------------------
+    Verify the user's target clocks have been achieved
+    -------------------------------------------------------------------------*/
+    auto rcc = getCoreClockCtrl();
+    RT_HARD_ASSERT( targetUSBClk == rcc->getClockFrequency( Chimera::Clock::Bus::PLLSAI_P ) );
+  }
+}

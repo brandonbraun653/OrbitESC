@@ -63,7 +63,7 @@ namespace Orbit::CAN::Message
     // Orbit::Control::ADCControl::ChannelBuffer buffer;
 
     // payload.timestamp  = Orbit::Control::FOCDriver.lastSensorData( buffer );
-    // payload.current    = static_cast<uint16_t>( buffer[ Control::ADC_CH_MOTOR_PHASE_A_CURRENT ].measured * 1e3f );
+    // payload.current    = static_cast<uint16_t>( buffer[ Control::CHANNEL_PHASE_A_CURRENT ].measured * 1e3f );
     // payload.hdr.nodeId = EnumValue( thisNode() );
     // this->send();
   }
@@ -76,7 +76,7 @@ namespace Orbit::CAN::Message
     // Orbit::Control::ADCControl::ChannelBuffer buffer;
 
     // payload.timestamp  = Orbit::Control::FOCDriver.lastSensorData( buffer );
-    // payload.current    = static_cast<uint16_t>( buffer[ Control::ADC_CH_MOTOR_PHASE_B_CURRENT ].measured * 1e3f );
+    // payload.current    = static_cast<uint16_t>( buffer[ Control::CHANNEL_PHASE_B_CURRENT ].measured * 1e3f );
     // payload.hdr.nodeId = EnumValue( thisNode() );
     // this->send();
   }
@@ -89,7 +89,7 @@ namespace Orbit::CAN::Message
     // Orbit::Control::ADCControl::ChannelBuffer buffer;
 
     // payload.timestamp  = Orbit::Control::FOCDriver.lastSensorData( buffer );
-    // payload.current    = static_cast<uint16_t>( buffer[ Control::ADC_CH_MOTOR_PHASE_C_CURRENT ].measured * 1e3f );
+    // payload.current    = static_cast<uint16_t>( buffer[ Control::CHANNEL_PHASE_C_CURRENT ].measured * 1e3f );
     // payload.hdr.nodeId = EnumValue( thisNode() );
     // this->send();
   }

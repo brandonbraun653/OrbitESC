@@ -31,15 +31,35 @@ namespace Orbit::Tasks
     TASK_DIO,  /**< Delayed IO HW manager */
     TASK_CTL,  /**< Control system task */
     TASK_COM,  /**< Networking/communications processing */
+    TASK_USB,  /**< USB hardware stack */
+    TASK_CDC,  /**< USB CDC driver */
 
     TASK_NUM_OPTIONS,
     TASK_UNKNOWN
   };
   static_assert( TASK_IDLE == 0 );
 
-  enum PrjTaskMsg : uint8_t
+  enum PrjTaskMsg : uint32_t
   {
-    TASK_MSG_PARAM_IO_EVENT = ( 1u << 0 ), /**< Handle incoming ParamIO messages */
+    __PRJ_FIRST_MSG = Chimera::Thread::TSK_MSG_PRJ_FIRST_MSG,
+
+    /*-------------------------------------------------------------------------
+    Delayed IO
+    -------------------------------------------------------------------------*/
+    TASK_MSG_PARAM_IO_EVENT, /**< Handle incoming ParamIO messages */
+
+    /*-------------------------------------------------------------------------
+    System Control
+    -------------------------------------------------------------------------*/
+    TASK_MSG_CTRL_ARM,       /**< Transition from IDLE to ARM */
+    TASK_MSG_CTRL_ENGAGE,    /**< Transition from ARM to ENGAGED */
+    TASK_MSG_CTRL_DISABLE,   /**< Normal disengagement from ARM or ENGAGED back to IDLE */
+    TASK_MSG_CTRL_FAULT,     /**< Panic emergency stop */
+
+    /*-------------------------------------------------------------------------
+    USB CDC
+    -------------------------------------------------------------------------*/
+    TASK_MSG_CDC_WAKEUP, /**< There is work to do on the CDC class */
 
     TASK_MSG_NUM_OPTIONS
   };

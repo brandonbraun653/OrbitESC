@@ -1,0 +1,56 @@
+syntax = "proto2";
+import "nanopb.proto";
+
+// Message IDs for all the core message types sent between the host and the device.
+enum MsgId {
+  MSG_ACK_NACK   = 0; // Generic ack/nack type message
+  MSG_PING_CMD   = 1; // Simple PING to see if the node is alive
+  MSG_TERMINAL   = 2; // Terminal command for printing text/debug data
+  MSG_SYS_TICK   = 3; // System time tick
+  MSG_SYS_INFO   = 4; // System information
+  MSG_PARAM_IO   = 5; // Do operations on configurable parameters
+  MSG_SYS_CTRL   = 6; // Perform system control operations
+  MSG_SYS_DATA   = 7; // System data stream
+  MSG_SYS_STATUS = 8; // System status annunciation, essentially a snapshot of observable system state
+}
+
+// Specialization sub-IDs to further specify the root message ID.
+enum SubId {
+  SUB_MSG_NONE = 0; // Invalid/empty sub-message ID
+}
+
+// Core message header common to all types. Each functional message type **must**
+// have this first in their list of declarations.
+message Header {
+  required uint32 msgId = 1 [(nanopb).int_size = IS_8]; // Root message identifier
+  required uint32 subId = 2 [(nanopb).int_size = IS_8]; // Possible sub-identifier to specify root ID details
+  required uint32 uuid = 3 [(nanopb).int_size = IS_16]; // Unique ID for the message
+}
+
+// Root type that parsers can use to peek at messages and figure out what type the full message is.
+message BaseMessage {
+  required Header header = 1;
+}
+
+// Status codes for ACK/NACK messages
+enum StatusCode {
+  NO_ERROR = 0;
+  UNKNOWN_ERROR = 1;
+  INVALID_PARAM = 2;
+  INVALID_TYPE = 3;
+  INVALID_VALUE = 4;
+  REQUEST_FAILED = 5;
+}
+
+// Generic ACK or NACK to a previous message, with optional data payload
+message AckNackMessage {
+  required Header header = 1;
+  required bool acknowledge = 2; // True if this is an ACK, false if it's a NACK
+  required StatusCode status_code = 3 [(nanopb).int_size = IS_8]; // Status code for the ACK/NACK
+  optional bytes data = 4 [(nanopb).max_size = 64 ]; // Optional data payload
+}
+
+// Simple PING message to see if the node is alive, client or server can send this.
+message PingMessage {
+  required Header header = 1;
+}

@@ -5,7 +5,7 @@
  *  Description:
  *    Field Oriented Control (FOC) Driver
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -37,26 +37,34 @@ Includes
 #endif /* EMBEDDED */
 
 
-namespace Orbit::Control
+namespace Orbit::Control::FOC
 {
   /*---------------------------------------------------------------------------
-  Public Data
+  Static Data
   ---------------------------------------------------------------------------*/
-  //FOC FOCDriver;
+  static StateMachine                                      s_ctrl_fsm;
+  static SuperState                                        mState;         /**< Entire FOC subsystem state */
+  static std::array<etl::ifsm_state *, ModeId::NUM_STATES> mFSMStateArray; /**< Storage for the FSM state controllers */
+
 
   /*---------------------------------------------------------------------------
-  Classes
+  StateMachine Implementation
   ---------------------------------------------------------------------------*/
-  FOC::FOC() : mInitialized( false ), fsm( MOTOR_STATE_ROUTER_ID )
+  StateMachine::StateMachine() : fsm( MOTOR_STATE_ROUTER_ID )
   {
   }
 
-  FOC::~FOC()
+  void StateMachine::logUnhandledMessage( const etl::imessage &msg )
   {
+    LOG_WARN( "%s message not handled from state %s", getMessageString( msg.get_message_id() ).data(),
+              getModeString( get_state_id() ).data() );
   }
 
+  /*---------------------------------------------------------------------------
+  Public Functions
+  ---------------------------------------------------------------------------*/
 
-  int FOC::initialize( const FOCConfig &cfg, const MotorParameters &motorParams )
+  void initialize()
   {
     /*-------------------------------------------------------------------------
     Validate the configuration
@@ -90,80 +98,65 @@ namespace Orbit::Control
     // ctl->Dpid.OutMinLimit = 0.0f;
     // ctl->Dpid.OutMaxLimit = 1.0f;
     // ctl->DFIR = Math::FIR<float, 15>( { -0.00124568841F, 0.00147019443F, 0.0123328818F, 0.00110139197F, -0.0499843247F,
-    //                                     -0.0350326933F, 0.164325342F, 0.407320708F, 0.407320708F, 0.164325342F, -0.0350326933F,
-    //                                     -0.0499843247F, 0.00110139197F, 0.0123328818F, 0.00147019443F, -0.00124568841F } );
+    //                                     -0.0350326933F, 0.164325342F, 0.407320708F, 0.407320708F, 0.164325342F,
+    //                                     -0.0350326933F, -0.0499843247F, 0.00110139197F, 0.0123328818F, 0.00147019443F,
+    //                                     -0.00124568841F } );
     // ctl->DFIR.initialize();
 
     // ctl->Qpid.SetPoint    = 0.0f;
     // ctl->Qpid.OutMinLimit = 0.0f;
     // ctl->Qpid.OutMaxLimit = 1.0f;
     // ctl->QFIR = Math::FIR<float, 15>( { -0.00124568841F, 0.00147019443F, 0.0123328818F, 0.00110139197F, -0.0499843247F,
-    //                                     -0.0350326933F, 0.164325342F, 0.407320708F, 0.407320708F, 0.164325342F, -0.0350326933F,
-    //                                     -0.0499843247F, 0.00110139197F, 0.0123328818F, 0.00147019443F, -0.00124568841F } );
+    //                                     -0.0350326933F, 0.164325342F, 0.407320708F, 0.407320708F, 0.164325342F,
+    //                                     -0.0350326933F, -0.0499843247F, 0.00110139197F, 0.0123328818F, 0.00147019443F,
+    //                                     -0.00124568841F } );
     // ctl->QFIR.initialize();
     // ctl->Qpid.setTunings( 5.0f, 2.0f, 0.3f, ( 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ ) );
 
-    // /*-------------------------------------------------------------------------
-    // Initialize the finite state machine
-    // -------------------------------------------------------------------------*/
-    // mFSMStateArray.fill( nullptr );
-    // mFSMStateArray[ ModeId::IDLE ]    = new State::Idle();
-    // mFSMStateArray[ ModeId::ARMED ]   = new State::Armed();
-    // mFSMStateArray[ ModeId::FAULT ]   = new State::Fault();
-    // mFSMStateArray[ ModeId::ENGAGED ] = new State::Engaged();
+    /*-------------------------------------------------------------------------
+    Initialize the finite state machine
+    -------------------------------------------------------------------------*/
+    mFSMStateArray.fill( nullptr );
+    mFSMStateArray[ ModeId::IDLE ]    = new State::Idle();
+    mFSMStateArray[ ModeId::ARMED ]   = new State::Armed();
+    mFSMStateArray[ ModeId::FAULT ]   = new State::Fault();
+    mFSMStateArray[ ModeId::ENGAGED ] = new State::Engaged();
 
-    // /* Initialize the FSM. First state will be ModeId::IDLE. */
-    // this->set_states( mFSMStateArray.data(), mFSMStateArray.size() );
-    // this->start();
+    /* Initialize the FSM. First state will be ModeId::IDLE. */
+    s_ctrl_fsm.set_states( mFSMStateArray.data(), mFSMStateArray.size() );
+    s_ctrl_fsm.start();
 
     // mInitialized = true;
-    return 0;
   }
 
 
-  void FOC::run()
+  void process()
   {
     mState.motorCtl.isrCtlActive = true;
   }
 
 
-  int FOC::sendSystemEvent( const EventId_t event )
+  int sendSystemEvent( const EventId_t event )
   {
-    /*-------------------------------------------------------------------------
-    Make sure the state machine controller is ready
-    -------------------------------------------------------------------------*/
-    if( !mInitialized )
-    {
-      return -1;
-    }
-
     /*-------------------------------------------------------------------------
     Send the correct message into the state machine
     -------------------------------------------------------------------------*/
     switch( event )
     {
-      case EventId::EMERGENCY_HALT:
-        this->receive( MsgEmergencyHalt() );
-        break;
-
       case EventId::ARM:
-        this->receive( MsgArm() );
-        break;
-
-      case EventId::DISARM:
-        this->receive( MsgDisarm() );
+        s_ctrl_fsm.receive( MsgArm() );
         break;
 
       case EventId::ENGAGE:
-        this->receive( MsgEngage() );
+        s_ctrl_fsm.receive( MsgEngage() );
         break;
 
-      case EventId::DISENGAGE:
-        this->receive( MsgDisengage() );
+      case EventId::DISABLE:
+        s_ctrl_fsm.receive( MsgDisable() );
         break;
 
       case EventId::FAULT:
-        this->receive( MsgFault() );
+        s_ctrl_fsm.receive( MsgFault() );
         break;
 
       default:
@@ -175,39 +168,25 @@ namespace Orbit::Control
   }
 
 
-  int FOC::setSpeedRef( const float ref )
+  int setSpeedRef( const float ref )
   {
     return 0;
   }
 
 
-  const SuperState &FOC::dbgGetState() const
+  const SuperState &dbgGetState()
   {
     return mState;
   }
 
 
-  ModeId_t FOC::currentMode() const
+  ModeId_t currentMode()
   {
-    if( mInitialized )
-    {
-      return this->get_state_id();
-    }
-    else
-    {
-      return ModeId::NUM_STATES;
-    }
+    return s_ctrl_fsm.get_state_id();
   }
 
 
-  void FOC::logUnhandledMessage( const etl::imessage &msg )
-  {
-    LOG_WARN( "%s message not handled from state %s\r\n", getMessageString( msg.get_message_id() ).data(),
-              getModeString( get_state_id() ).data() );
-  }
-
-
-  void FOC::driveTestSignal( const uint8_t commCycle, const float dutyCycle )
+  void driveTestSignal( const uint8_t commCycle, const float dutyCycle )
   {
     /*-------------------------------------------------------------------------
     Ensure we're in the ARMED state before attempting anything. This guarantees
@@ -220,14 +199,13 @@ namespace Orbit::Control
   }
 
 
-
   /**
    * @brief Calculates back-EMF estimates along the D and Q axes
    * @see https://ieeexplore.ieee.org/document/530286
    *
    * @param dt  The time in seconds since the last call to this function
    */
-  void FOC::stepEMFObserver( const float dt )
+  void stepEMFObserver( const float dt )
   {
     // /*-------------------------------------------------------------------------
     // Alias equation variables to make everything easier to read
@@ -264,15 +242,4 @@ namespace Orbit::Control
     // mState.emfObserver.z2 = mState.emfObserver.z2_dot;
   }
 
-
-  void FOC::stepIControl( const float dt )
-  {
-  }
-
-
-  void FOC::stepEstimator( const float dt )
-  {
-  }
-
-
-}    // namespace Orbit::Control
+}    // namespace Orbit::Control::FOC

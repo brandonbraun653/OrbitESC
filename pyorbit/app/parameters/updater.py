@@ -2,7 +2,7 @@ from typing import List, Optional
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication
 from loguru import logger
-from pyorbit.serial.client import SerialClient
+from pyorbit.serial.client import OrbitClient
 from pyorbit.serial.parameters import ParameterId
 
 
@@ -16,7 +16,7 @@ class ParameterUpdater(QtCore.QObject):
 
     def __init__(self):
         super().__init__()
-        self._client = None  # type: Optional[SerialClient]
+        self._client = None  # type: Optional[OrbitClient]
         self.refreshRequest.connect(self.refresh)
         self.applyRequest.connect(self.apply)
 
@@ -27,10 +27,12 @@ class ParameterUpdater(QtCore.QObject):
         Returns:
             None
         """
+        from pyorbit.app.parameters.util import valid_parameter_ids
+
         window = QApplication.activeWindow()
         self._client = window.serial_client
 
-        self.refreshRequest.emit(ParameterId.values())
+        self.refreshRequest.emit(valid_parameter_ids())
 
     @QtCore.pyqtSlot()
     def on_serial_disconnect(self) -> None:

@@ -14,12 +14,16 @@ import atexit
 import time
 from functools import wraps
 from loguru import logger
-from typing import Any, Callable
-from pyorbit.serial.pipe import SerialPipe
+from typing import Any, Callable, Union
+
+from pyorbit.serial.intf.system_control import StreamPhaseCurrentsPBMsg, SystemResetPBMsg
+from pyorbit.serial.pipe import SerialPipePublisher
 from pyorbit.exceptions import NotOnlineException
 from pyorbit.serial.messages import *
-from pyorbit.observer import MessageObserver
-from pyorbit.serial.observers import ConsoleObserver, ParameterObserver
+from pyorbit.observers import MessageObserver
+from pyorbit.serial.observers import ConsoleObserver
+from pyorbit.serial.parameters import SetActivityLedBlinkScalerPBMsg, ParameterId
+from pyorbit.serial.controllers import ParameterController
 from threading import Event, Thread
 
 
@@ -39,9 +43,9 @@ def online_checker(method: Callable) -> Any:
     """
 
     @wraps(method)
-    def _impl(self: SerialClient, *method_args, **method_kwargs):
+    def _impl(self: OrbitClient, *method_args, **method_kwargs):
         # Ensure this decorator is only used on OrbitESC classes
-        assert isinstance(self, SerialClient)
+        assert isinstance(self, OrbitClient)
         if not self.is_online:
             raise NotOnlineException()
 
@@ -52,7 +56,7 @@ def online_checker(method: Callable) -> Any:
     return _impl
 
 
-class SerialClient:
+class OrbitClient:
     """ High level serial client to connect with the debug server running on OrbitESC """
 
     def __init__(self, port: str, baudrate: int):
@@ -61,7 +65,7 @@ class SerialClient:
             port: Serial port endpoint to connect with
             baudrate: Desired communication baudrate
         """
-        self._transport = SerialPipe()
+        self._transport = SerialPipePublisher()
         self._transport.open(port=port, baudrate=baudrate)
         self._online = False
         self._time_last_online = 0
@@ -74,15 +78,14 @@ class SerialClient:
         self._thread.start()
 
         # Register known observers
-        self._param_observer = ParameterObserver(pipe=self.com_pipe)
-        self.com_pipe.subscribe_observer(MessageObserver(func=self._observer_esc_tick, msg_type=SystemTickMessage))
+        self._param_observer = ParameterController(pipe=self.com_pipe)
+        self.com_pipe.subscribe_observer(MessageObserver(func=self._observer_esc_tick, msg_type=SystemTickPBMsg))
         self.com_pipe.subscribe_observer(ConsoleObserver(on_msg_rx=lambda x: logger.info(x.strip('\n'))))
-        self.com_pipe.subscribe_observer(self._param_observer)
 
         atexit.register(self._teardown)
 
     @property
-    def com_pipe(self) -> SerialPipe:
+    def com_pipe(self) -> SerialPipePublisher:
         return self._transport
 
     @property
@@ -90,7 +93,7 @@ class SerialClient:
         return self._online
 
     @property
-    def parameter(self) -> ParameterObserver:
+    def parameter(self) -> ParameterController:
         return self._param_observer
 
     def ping(self) -> bool:
@@ -98,54 +101,67 @@ class SerialClient:
         Returns:
             True if the device was ping-able, False otherwise
         """
-        sub_id = self.com_pipe.subscribe(msg=PingMessage, qty=1, timeout=5.0)
-        self.com_pipe.put(PingMessage().serialize())
+        sub_id = self.com_pipe.subscribe(msg=PingPBMsg, qty=1, timeout=5.0)
+        self.com_pipe.write(PingPBMsg().serialize())
         responses = self.com_pipe.get_subscription_data(sub_id, terminate=True)
         if not responses:
             logger.warning("Node did not respond to ping")
         return bool(responses)
 
-    def system_reset(self) -> bool:
+    def stream_phase_currents(self, enable: bool) -> bool:
         """
-        Returns:
-            True if the device was reset, False otherwise
-        """
-        sub_id = self.com_pipe.subscribe(msg=AckNackMessage, qty=1, timeout=5.0)
-        self.com_pipe.put(SystemResetMessage().serialize())
-        responses = self.com_pipe.get_subscription_data(sub_id, terminate=True)
-        if not responses:
-            logger.warning("Node did not respond to system reset command")
-            return False
-        else:
-            # Reset the clients knowledge of the node's availability
-            if responses[0].ack:
-                self._online = False
-
-            return responses[0].ack
-
-    def set_mode(self, mode: Mode) -> bool:
-        """
+        Enable or disable the streaming of phase current data from the ESC
         Args:
-            mode: Which mode to switch into
+            enable: True to enable, False to disable
 
         Returns:
-            True if the mode was switched successfully, False otherwise
+            True if the command was successful, False otherwise
         """
-        # Send the switch command
-        sub_id = self.com_pipe.subscribe(msg=AckNackMessage, qty=1, timeout=5.0)
-        self.com_pipe.put(SwitchModeMessage(mode=mode).serialize())
-        responses = self.com_pipe.get_subscription_data(sub_id, terminate=True)
-        if not responses or responses[0].ack is False:
-            logger.warning("Node did not respond/rejected set mode command")
-            return False
+        rsp = self.com_pipe.write_and_wait(StreamPhaseCurrentsPBMsg(enable=enable), timeout=3.0)
+        return self.com_pipe.process_ack_nack_response(rsp, f"Failed to {'enable' if enable else 'disable'} "
+                                                            f"phase current streaming")
 
-        # Wait for the mode to switch to take effect
-        self._online = False
-        while not self.is_online:
-            time.sleep(0.1)
+    def system_reset(self) -> None:
+        """
+        Requests a full system reset from the ESC
+        Returns:
+            None
+        """
+        self.com_pipe.write(SystemResetPBMsg().serialize())
 
-        new_mode = Mode(self.parameter.get(ParameterId.BootMode))
-        return new_mode == mode
+    def set_motor_ctrl_state(self, new_state: MotorCtrlState, timeout: Union[int, float] = 5.0) -> bool:
+        """
+        Requests a motor state transition
+        Args:
+            new_state: Desired state to transition to
+            timeout: How long to wait for the transition to complete
+
+        Returns:
+            None
+        """
+        state_to_sub_id = {
+            MotorCtrlState.MOTOR_CTRL_STATE_IDLE: SystemControlSubId.DISABLE,
+            MotorCtrlState.MOTOR_CTRL_STATE_ARMED: SystemControlSubId.ARM,
+            MotorCtrlState.MOTOR_CTRL_STATE_ENGAGED: SystemControlSubId.ENGAGE,
+            MotorCtrlState.MOTOR_CTRL_STATE_FAULT: SystemControlSubId.FAULT,
+        }
+
+        # Make the request for the state transition
+        try:
+            msg = SystemControlPbMsg()
+            msg.message_type = state_to_sub_id[new_state]
+
+            self.com_pipe.write(msg.serialize())
+        except KeyError:
+            logger.error(f"Invalid motor state transition: {new_state}")
+
+        # Wait for the transition to complete by listening for the new state
+        packets = self.com_pipe.filter(
+            lambda x: isinstance(x, SystemStatusPBMsg) and (x.motor_ctrl_state == new_state),
+            qty=1,
+            timeout=timeout)
+
+        return len(packets) == 1
 
     def set_activity_led_blink_scaler(self, scaler: float = 1.0) -> bool:
         """
@@ -159,8 +175,8 @@ class SerialClient:
         Notes:
             The default scaler is 1.0, which means the LED will blink at the default pre-programmed rate.
         """
-        sub_id = self.com_pipe.subscribe(msg=AckNackMessage, qty=1, timeout=5.0)
-        self.com_pipe.put(SetActivityLedBlinkScalerMessage(scaler=scaler).serialize())
+        sub_id = self.com_pipe.subscribe(msg=AckNackPBMsg, qty=1, timeout=5.0)
+        self.com_pipe.write(SetActivityLedBlinkScalerPBMsg(scaler=scaler).serialize())
         responses = self.com_pipe.get_subscription_data(sub_id, terminate=True)
         if not responses:
             logger.warning("Node did not respond to set activity LED blink scaler command")
@@ -177,7 +193,7 @@ class SerialClient:
         Returns:
             None
         """
-        self.com_pipe.put(data)
+        self.com_pipe.write(data)
 
     def close(self) -> None:
         return self._teardown()
@@ -202,7 +218,7 @@ class SerialClient:
                 logger.warning("Serial link is offline")
                 self._online = False
 
-    def _observer_esc_tick(self, msg: SystemTickMessage) -> None:
+    def _observer_esc_tick(self, msg: SystemTickPBMsg) -> None:
         """
         Looks for the SystemTick of the registered node to determine online/offline status
         Args:

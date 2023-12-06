@@ -5,7 +5,7 @@
  *  Description:
  *    Logging sink for Orbit
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -15,8 +15,8 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <Aurora/logging>
 #include <Aurora/filesystem>
+#include <Aurora/logging>
 #include <etl/circular_buffer.h>
 
 namespace Orbit::Log
@@ -34,13 +34,6 @@ namespace Orbit::Log
   class FileLogger : public Aurora::Logging::SinkInterface
   {
   public:
-    /**
-     * How many times the cache had to be flushed directly during a log
-     * event because it was too full. Use this as an indication of the
-     * buffer size needing to be increased.
-     */
-    size_t numBufferOverruns;
-
     FileLogger();
     ~FileLogger();
 
@@ -55,14 +48,31 @@ namespace Orbit::Log
      * @brief Assigns the file for logging into
      *
      * @param file  Name of the file to log to
+     * @return void
      */
     void setLogFile( const std::string_view &file );
 
-  private:
-    static constexpr size_t CACHE_SIZE = 128;
+    /**
+     * @brief Sets the backing memory for caching log information
+     *
+     * @param cache  Memory to use for caching log information
+     * @return void
+     */
+    void setLogCache( etl::icircular_buffer<uint8_t> *const cache );
 
-    std::string_view                          mFileName; /**< File being logged against */
-    etl::circular_buffer<uint8_t, CACHE_SIZE> mBuffer;   /**< Cache for buffering frequent writes */
+    /**
+     * @brief Get the number of times the cache was too full to accept a log
+     *
+     * This is a good indication of the buffer size needing to be increased.
+     *
+     * @return size_t
+     */
+    size_t getBufferOverruns() const;
+
+  private:
+    std::string_view                mFileName;       /**< File being logged against */
+    etl::icircular_buffer<uint8_t> *mBuffer;         /**< Cache for buffering frequent writes */
+    size_t                          mBufferOverruns; /**< How many overrun events occurred */
   };
 }    // namespace Orbit::Log
 

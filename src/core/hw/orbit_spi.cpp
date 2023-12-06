@@ -41,11 +41,6 @@ namespace Orbit::SPI
     -------------------------------------------------------------------------*/
     Chimera::GPIO::Driver_rPtr pin = nullptr;
 
-    pin = Chimera::GPIO::getDriver( IO::SPI::ledCSPort, IO::SPI::ledCSPin );
-    RT_HARD_ASSERT( pin );
-    RT_HARD_ASSERT( Chimera::Status::OK == pin->init( IO::SPI::ledCSPinInit ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == pin->setState( Chimera::GPIO::State::HIGH ) );
-
     pin = Chimera::GPIO::getDriver( IO::SPI::norCSPort, IO::SPI::norCSPin );
     RT_HARD_ASSERT( pin );
     RT_HARD_ASSERT( Chimera::Status::OK == pin->init( IO::SPI::norCSPinInit ) );

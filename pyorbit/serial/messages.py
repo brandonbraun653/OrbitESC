@@ -9,63 +9,19 @@
 # **********************************************************************************************************************
 
 from __future__ import annotations
-import ctypes
-import struct
-from typing import Union
-from enum import IntEnum
+
+from threading import RLock
+from typing import TypeVar, Optional, cast
+
+from google.protobuf.message import Message
+from loguru import logger
 
 import pyorbit.nanopb.serial_interface_pb2 as proto
-from google.protobuf.message import Message
-from pyorbit.serial.parameters import ParameterType, ParameterId
+from pyorbit.nanopb.motor_control_pb2 import *
+from pyorbit.nanopb.serial_interface_pb2 import *
+from pyorbit.nanopb.system_control_pb2 import *
+from pyorbit.nanopb.system_data_pb2 import *
 from pyorbit.utils import Singleton
-from threading import RLock
-
-
-class MessageId(IntEnum):
-    AckNack = proto.MSG_ACK_NACK
-    PingCmd = proto.MSG_PING_CMD
-    Terminal = proto.MSG_TERMINAL
-    SystemTick = proto.MSG_SYS_TICK
-    ParamIO = proto.MSG_PARAM_IO
-    SystemCtrl = proto.MSG_SYS_CTRL
-    SwitchMode = proto.MSG_SWITCH_MODE
-    SystemData = proto.MSG_SYS_DATA
-
-
-class MessageSubId(IntEnum):
-    Empty = proto.SUB_MSG_NONE
-
-    # Parameter IO
-    ParamIO_Set = proto.SUB_MSG_PARAM_IO_SET
-    ParamIO_Get = proto.SUB_MSG_PARAM_IO_GET
-    ParamIO_Sync = proto.SUB_MSG_PARAM_IO_SYNC
-    ParamIO_Load = proto.SUB_MSG_PARAM_IO_LOAD
-
-    # System Control
-    SystemControl_Reset = proto.SUB_MSG_SYS_CTRL_RESET
-    SystemControl_Motor = proto.SUB_MSG_SYS_CTRL_MOTOR
-
-
-class StatusCode(IntEnum):
-    NO_ERROR = proto.NO_ERROR
-    UNKNOWN_ERROR = proto.UNKNOWN_ERROR
-    INVALID_PARAM = proto.INVALID_PARAM
-    INVALID_TYPE = proto.INVALID_TYPE
-    INVALID_VALUE = proto.INVALID_VALUE
-    REQUEST_FAILED = proto.REQUEST_FAILED
-
-
-class Mode(IntEnum):
-    Normal = proto.BOOT_MODE_NORMAL
-    Test = proto.BOOT_MODE_TEST
-    Config = proto.BOOT_MODE_CONFIG
-
-
-class SystemDataId(IntEnum):
-    SYS_DATA_INVALID = proto.SYS_DATA_INVALID
-    ADC_PHASE_CURRENTS = proto.ADC_PHASE_CURRENTS
-    PWM_COMMANDS = proto.PWM_COMMANDS
-    STATE_ESTIMATES = proto.STATE_ESTIMATES
 
 
 class UUIDGenerator(metaclass=Singleton):
@@ -77,11 +33,15 @@ class UUIDGenerator(metaclass=Singleton):
     @property
     def next_uuid(self) -> int:
         with self._lock:
-            self._uuid = (self._uuid + 1) % 256
+            self._uuid = (self._uuid + 1) % 65536
             return self._uuid
 
 
-class BaseMessage:
+# Core type for messages that inherit from this class
+BasePBMsgInheritor = TypeVar('BasePBMsgInheritor', bound='BasePBMsg')
+
+
+class BasePBMsg:
 
     def __init__(self):
         self._id_gen = UUIDGenerator()
@@ -97,23 +57,24 @@ class BaseMessage:
 
     @property
     def uuid(self) -> int:
+        self._assign_uuid_if_empty()
         return self._pb_msg.header.uuid
 
     @property
-    def sub_id(self) -> MessageSubId:
-        return MessageSubId(self._pb_msg.header.subId)
+    def sub_id(self) -> int:
+        return int(self._pb_msg.header.subId)
 
     @sub_id.setter
-    def sub_id(self, sid: MessageSubId) -> None:
-        self._pb_msg.header.subId = sid.value
+    def sub_id(self, sid: int) -> None:
+        self._pb_msg.header.subId = sid
 
     @property
-    def msg_id(self) -> MessageId:
+    def msg_id(self) -> MsgId:
         return self._pb_msg.header.msgId
 
     @msg_id.setter
-    def msg_id(self, mid: MessageId):
-        self._pb_msg.header.msgId = mid.value
+    def msg_id(self, mid: MsgId):
+        self._pb_msg.header.msgId = mid
 
     def deserialize(self, serialized: bytes) -> int:
         """
@@ -131,15 +92,27 @@ class BaseMessage:
         Returns:
             Serialized message
         """
+        self._assign_uuid_if_empty()
         return self.pb_message.SerializeToString()
 
+    def _assign_uuid_if_empty(self):
+        """
+        ProtoBuf don't support default values for fields, but they do set them to 0 by default. We can
+        use this to our advantage as a way to determine if the UUID has been set yet.
 
-class AckNackMessage(BaseMessage):
+        Returns:
+            None
+        """
+        if self._pb_msg and self._pb_msg.header.uuid == 0:
+            self._pb_msg.header.uuid = self._id_gen.next_uuid
+
+
+class AckNackPBMsg(BasePBMsg):
 
     def __init__(self):
         super().__init__()
         self._pb_msg = proto.AckNackMessage()
-        self._pb_msg.header.msgId = MessageId.AckNack.value
+        self._pb_msg.header.msgId = MsgId.MSG_ACK_NACK
 
     @property
     def ack(self) -> bool:
@@ -155,26 +128,25 @@ class AckNackMessage(BaseMessage):
 
     @status_code.setter
     def status_code(self, sc: StatusCode):
-        self._pb_msg.status_code = sc.value
+        self._pb_msg.status_code = sc
 
 
-class PingMessage(BaseMessage):
+class PingPBMsg(BasePBMsg):
 
     def __init__(self):
         super().__init__()
 
         self._pb_msg = proto.PingMessage()
-        self._pb_msg.header.msgId = MessageId.PingCmd.value
+        self._pb_msg.header.msgId = MsgId.MSG_PING_CMD
         self._pb_msg.header.subId = 0
-        self._pb_msg.header.uuid = self._id_gen.next_uuid
 
 
-class SystemTickMessage(BaseMessage):
+class SystemTickPBMsg(BasePBMsg):
 
     def __init__(self):
         super().__init__()
-        self._pb_msg = proto.SystemTick()
-        self._pb_msg.header.msgId = MessageId.SystemTick.value
+        self._pb_msg = SystemTickMessage()
+        self._pb_msg.header.msgId = MsgId.MSG_SYS_TICK
         self._pb_msg.tick = 0
 
     @property
@@ -182,12 +154,45 @@ class SystemTickMessage(BaseMessage):
         return self._pb_msg.tick
 
 
-class ConsoleMessage(BaseMessage):
+class SystemStatusPBMsg(BasePBMsg):
 
     def __init__(self):
         super().__init__()
-        self._pb_msg = proto.ConsoleMessage()
-        self._pb_msg.header.msgId = MessageId.Terminal.value
+        self._pb_msg = SystemStatusMessage()
+        self._pb_msg.header.msgId = MsgId.MSG_SYS_STATUS
+
+    @property
+    def tick(self) -> int:
+        return self._pb_msg.systemTick
+
+    @property
+    def motor_ctrl_state(self) -> MotorCtrlState:
+        return self._pb_msg.motorCtrlState
+
+
+class SystemControlPbMsg(BasePBMsg):
+
+    def __init__(self):
+        super().__init__()
+        self._pb_msg = SystemControlMessage()
+        self._pb_msg.header.msgId = MsgId.MSG_SYS_CTRL
+        self._pb_msg.header.subId = SubId.SUB_MSG_NONE
+
+    @property
+    def message_type(self) -> SystemControlSubId:
+        return cast(SystemControlSubId, self._pb_msg.header.subId)
+
+    @message_type.setter
+    def message_type(self, msg_type: SystemControlSubId):
+        self._pb_msg.header.subId = msg_type
+
+
+class ConsolePBMsg(BasePBMsg):
+
+    def __init__(self):
+        super().__init__()
+        self._pb_msg = ConsoleMessage()
+        self._pb_msg.header.msgId = MsgId.MSG_TERMINAL
 
     @property
     def frame_number(self) -> int:
@@ -202,185 +207,54 @@ class ConsoleMessage(BaseMessage):
         return self._pb_msg.data
 
 
-class ParamIOMessage(BaseMessage):
+class SystemDataPBMsg(BasePBMsg):
 
     def __init__(self):
         super().__init__()
-        self._pb_msg = proto.ParamIOMessage()
-        self._pb_msg.header.msgId = MessageId.ParamIO.value
-        self._pb_msg.header.uuid = self._id_gen.next_uuid
-
-    @property
-    def param_id(self) -> ParameterId:
-        return ParameterId(self._pb_msg.id)
-
-    @param_id.setter
-    def param_id(self, pid: ParameterId):
-        self._pb_msg.id = pid.value
-
-    @property
-    def param_type(self) -> ParameterType:
-        return ParameterType(self._pb_msg.type)
-
-    @param_type.setter
-    def param_type(self, pt: ParameterType):
-        self._pb_msg.type = pt.value
-
-    @property
-    def data(self) -> bytes:
-        return self._pb_msg.data
-
-    @data.setter
-    def data(self, d: bytes):
-        self._pb_msg.data = d
-
-
-class SystemResetMessage(BaseMessage):
-
-    def __init__(self):
-        super().__init__()
-        self._pb_msg = proto.SystemControlMessage()
-        self._pb_msg.header.msgId = MessageId.SystemCtrl.value
-        self._pb_msg.header.subId = MessageSubId.SystemControl_Reset.value
-        self._pb_msg.header.uuid = self._id_gen.next_uuid
-
-
-class MotorControlMessage(BaseMessage):
-
-    class Command(IntEnum):
-        """ Available commands for the motor control system message """
-        EnableOutputStage = proto.ENABLE_OUTPUT_STAGE
-        DisableOutputStage = proto.DISABLE_OUTPUT_STAGE
-        EmergencyStop = proto.EMERGENCY_STOP
-
-    def __init__(self, cmd: Command = None, data: bytes = None):
-        super().__init__()
-        self._pb_msg = proto.SystemControlMessage()
-        self._pb_msg.header.msgId = MessageId.SystemCtrl.value
-        self._pb_msg.header.subId = MessageSubId.SystemControl_Motor.value
-        self._pb_msg.header.uuid = self._id_gen.next_uuid
-        self._pb_msg.motorCmd = cmd
-        self._pb_msg.data = data if data else b''
-
-    @property
-    def command(self) -> Command:
-        return self._pb_msg.motorCmd
-
-    @command.setter
-    def command(self, cmd: Command):
-        """
-        Args:
-            cmd: Command to assign, from protobuf MotorCtrlCmd enum
-        """
-        assert isinstance(cmd, MotorControlMessage.Command)
-        self._pb_msg.motorCmd = cmd.value
-
-    @property
-    def payload(self) -> bytes:
-        return self._pb_msg.data
-
-    @payload.setter
-    def payload(self, data: bytes):
-        self._pb_msg.data = data
-
-
-class SetActivityLedBlinkScalerMessage(BaseMessage):
-
-    def __init__(self, scaler: float):
-        super().__init__()
-        self._pb_msg = proto.ParamIOMessage()
-        self._pb_msg.header.msgId = MessageId.ParamIO.value
-        self._pb_msg.header.subId = MessageSubId.ParamIO_Set.value
-        self._pb_msg.header.uuid = self._id_gen.next_uuid
-        self._pb_msg.id = ParameterId.ActivityLedScaler.value
-        self._pb_msg.type = ParameterType.FLOAT.value
-        self._pb_msg.data = struct.pack('<f', scaler)
-
-
-class SwitchModeMessage(BaseMessage):
-
-    def __init__(self, mode: Mode):
-        super().__init__()
-        self._pb_msg = proto.SwitchModeMessage()
-        self._pb_msg.header.msgId = MessageId.SwitchMode.value
+        self._pb_msg = SystemDataMessage()
+        self._pb_msg.header.msgId = MsgId.MSG_SYS_DATA
         self._pb_msg.header.subId = 0
-        self._pb_msg.header.uuid = self._id_gen.next_uuid
-        self._pb_msg.mode = mode.value
 
-
-class SystemDataMessage(BaseMessage):
-
-    class ADCPhaseCurrents(ctypes.Structure):
-        _fields_ = [
-            ('timestamp', ctypes.c_uint32),
-            ('phase_a', ctypes.c_float),
-            ('phase_b', ctypes.c_float),
-            ('phase_c', ctypes.c_float),
-        ]
-
-    class PWMCommands(ctypes.Structure):
-        _fields_ = [
-            ('timestamp', ctypes.c_uint32),
-            ('phase_a', ctypes.c_float),
-            ('phase_b', ctypes.c_float),
-            ('phase_c', ctypes.c_float),
-        ]
-
-    class StateEstimates(ctypes.Structure):
-        _fields_ = [
-            ('timestamp', ctypes.c_uint32),
-            ('position', ctypes.c_float),
-            ('speed', ctypes.c_float),
-        ]
-
-    _id_to_type = {
-        SystemDataId.ADC_PHASE_CURRENTS: ADCPhaseCurrents,
-        SystemDataId.PWM_COMMANDS: PWMCommands,
-        SystemDataId.STATE_ESTIMATES: StateEstimates,
-    }
-
-    def __init__(self):
-        super().__init__()
-        self._pb_msg = proto.SystemDataMessage()
-        self._pb_msg.header.msgId = MessageId.SystemData.value
-        self._pb_msg.header.subId = 0
-        self._pb_msg.header.uuid = self._id_gen.next_uuid
+    @property
+    def timestamp(self) -> int:
+        """
+        Returns:
+            Device system time in microseconds when the data was captured
+        """
+        return self._pb_msg.timestamp
 
     @property
     def data_id(self) -> SystemDataId:
-        return SystemDataId(self._pb_msg.id)
+        return self._pb_msg.id
 
     @data_id.setter
     def data_id(self, data_id: SystemDataId):
-        self._pb_msg.id = data_id.value
+        self._pb_msg.id = data_id
 
     @property
     def data(self) -> bytes:
-        return self._pb_msg.data
+        return self._pb_msg.payload
 
     @data.setter
     def data(self, data: bytes):
-        self._pb_msg.data = data
+        self._pb_msg.payload = data
 
-    def convert_to_message_type(self) -> Union[None, ADCPhaseCurrents]:
+    def extract_payload(self) -> Optional[Message]:
         """
         Converts the data field to the appropriate message type based on the data_id field.
         Returns:
             The converted message type, or None if the data_id is not recognized.
         """
-        msg_type = self._id_to_type.get(self.data_id, None)
-        if msg_type is None:
+        _id_to_type = {
+            SystemDataId.ADC_PHASE_CURRENTS: ADCPhaseCurrentsPayload,
+            SystemDataId.ADC_PHASE_VOLTAGES: ADCPhaseVoltagesPayload,
+            SystemDataId.ADC_SYSTEM_VOLTAGES: ADCSystemVoltagesPayload,
+        }
+
+        try:
+            instance = _id_to_type[self.data_id]()
+            instance.ParseFromString(self.data)
+            return instance
+        except KeyError:
+            logger.error(f"Unknown data_id: {self.data_id}")
             return None
-        return msg_type.from_buffer_copy(self.data)
-
-
-# Maps message IDs to message class types
-MessageTypeMap = {
-    MessageId.AckNack: AckNackMessage,
-    MessageId.PingCmd: PingMessage,
-    MessageId.SystemTick: SystemTickMessage,
-    MessageId.Terminal: ConsoleMessage,
-    MessageId.ParamIO: ParamIOMessage,
-    MessageId.SystemData: SystemDataMessage,
-}
-

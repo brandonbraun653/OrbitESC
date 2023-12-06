@@ -88,7 +88,11 @@ namespace Orbit::Data
   {
   public:
     uint32_t     bootCount; /**< PARAM_BOOT_COUNT */
-    System::Mode bootMode;  /**< PARAM_BOOT_MODE */
+
+    float v_mcu;      /**< System chip voltage */
+    float v_dc_link;  /**< Main power rail for the motor */
+    float v_temp;     /**< Temperature sensor voltage */
+    float v_isense;   /**< Current sense comparator reference voltage */
 
     void clear();
     void setDefaults();
@@ -117,13 +121,6 @@ namespace Orbit::Data
     -------------------------------------------------------------------------*/
     float peakCurrentThreshold; /**< PARAM_PEAK_CURRENT_THRESHOLD */
     float peakVoltageThreshold; /**< PARAM_PEAK_VOLTAGE_THRESHOLD */
-
-    /*-------------------------------------------------------------------------
-    System Behavior
-    -------------------------------------------------------------------------*/
-    bool streamPhaseCurrents;  /**< PARAM_STREAM_PHASE_CURRENTS */
-    bool streamPwmCommands;    /**< PARAM_STREAM_PWM_COMMANDS */
-    bool streamStateEstimates; /**< PARAM_STREAM_STATE_ESTIMATES */
 
     void clear();
     void setDefaults();

@@ -23,7 +23,7 @@ from pyorbit.can_pipe import CANPipe
 from pyorbit.can_messages import NodeID, Ping, SystemTick, SystemMode, SetSystemMode, EmergencyHalt, SetMotorSpeed, \
     SystemReset
 from pyorbit.exceptions import NotOnlineException
-from pyorbit.observer import MessageObserver
+from pyorbit.observers import MessageObserver
 
 
 def online_checker(method: Callable) -> Any:

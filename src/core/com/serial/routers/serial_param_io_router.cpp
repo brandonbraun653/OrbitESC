@@ -29,7 +29,7 @@ namespace Orbit::Serial::Router
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  ParamIORouter::ParamIORouter() : message_router( Message::MSG_PARAM_IO )
+  ParamIORouter::ParamIORouter() : message_router( ROUTER_ID_PARAM_IO )
   {
   }
 
@@ -43,7 +43,7 @@ namespace Orbit::Serial::Router
     -------------------------------------------------------------------------*/
     if ( ParamIOEventQueue.full() )
     {
-      LOG_ERROR( "Dropped ParamIO request: %d", msg.payload.header.uuid );
+      LOG_ERROR( "Dropped ParamIO request: %d", msg.raw.header.uuid );
       return;
     }
 

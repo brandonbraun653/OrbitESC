@@ -11,18 +11,25 @@ gen_static_lib_variants(
     can/routers/can_ping_router.cpp
     can/routers/can_reset_router.cpp
     can/routers/can_speed_router.cpp
+    com_app_tx.cpp
+    com_scheduler.cpp
+    proto/motor_control.pb.c
+    proto/serial_interface.pb.c
+    proto/system_config.pb.c
+    proto/system_control.pb.c
+    proto/system_data.pb.c
     serial/routers/serial_param_io_router.cpp
     serial/routers/serial_ping_router.cpp
-    serial/routers/serial_switch_mode_router.cpp
     serial/routers/serial_sys_ctrl_router.cpp
     serial/serial_async_message.cpp
-    serial/serial_interface.pb.c
     serial/serial_server.cpp
     serial/serial_sink.cpp
+    serial/serial_usb.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc
     project_intf_inc
+    tiny_usb_intf_inc
   EXPORT_DIR
     "${PROJECT_BINARY_DIR}/OrbitESC"
 )

@@ -13,36 +13,78 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <src/core/com/serial/serial_router.hpp>
 #include <src/core/com/serial/serial_server.hpp>
-#include <src/core/system.hpp>
-#include <src/testing/system_control.hpp>
+#include <src/control/current_control.hpp>
+#include <src/core/hw/orbit_motor.hpp>
+#include <src/core/events/event_stream.hpp>
+#include <src/core/tasks.hpp>
 
 namespace Orbit::Serial::Router
 {
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  SysCtrlRouter::SysCtrlRouter() : message_router( Message::MSG_SYS_CTRL )
+  SysCtrlRouter::SysCtrlRouter() : message_router( ROUTER_ID_SYS_CTRL )
   {
   }
 
-  void SysCtrlRouter::on_receive( const Message::SysCtrl &msg )
+
+  void SysCtrlRouter::on_receive( const Message::SystemControl &msg )
   {
-    switch ( msg.payload.header.subId )
+    using namespace Orbit::Tasks;
+    using namespace Chimera::Thread;
+
+    bool should_ack = true;
+
+    switch ( msg.raw.header.subId )
     {
-      case SubId_SUB_MSG_SYS_CTRL_RESET:
-        sendAckNack( true, msg.payload.header );
-        Chimera::delayMilliseconds( 50 );
-        Orbit::System::setMode( Orbit::System::getMode());
+      /*-----------------------------------------------------------------------
+      Do a system reset. Send the ACK first so the host knows it was received.
+      -----------------------------------------------------------------------*/
+      case SystemControlSubId_RESET:
+        sendAckNack( true, msg.raw.header );
+        Orbit::Event::gControlBus.receive( Event::SystemReset() );
+        return;
+
+      case SystemControlSubId_DISABLE_STREAM_PHASE_CURRENTS:
+      case SystemControlSubId_ENABLE_STREAM_PHASE_CURRENTS: {
+        Event::StreamPhaseCurrents event;
+        event.enable = ( msg.raw.header.subId == SystemControlSubId_ENABLE_STREAM_PHASE_CURRENTS );
+
+        Orbit::Event::gControlBus.receive( event );
+        break;
+      }
+
+      /*-----------------------------------------------------------------------
+      Handle control system mode changes
+      -----------------------------------------------------------------------*/
+      case SystemControlSubId_ARM:
+        should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_ARM, TIMEOUT_BLOCK );
         break;
 
-      case SubId_SUB_MSG_SYS_CTRL_MOTOR:
-        sendAckNack( Testing::SystemControl::handleMessage( msg ), msg.payload.header );
+      case SystemControlSubId_ENGAGE:
+        should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_ENGAGE, TIMEOUT_BLOCK );
         break;
 
+      case SystemControlSubId_DISABLE:
+        should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_DISABLE, TIMEOUT_BLOCK );
+        break;
+
+      case SystemControlSubId_FAULT:
+        should_ack = sendTaskMsg( getTaskId( TASK_CTL ), TASK_MSG_CTRL_FAULT, TIMEOUT_BLOCK );
+        break;
+
+      /*-----------------------------------------------------------------------
+      Unhandled message. Default to NACK.
+      -----------------------------------------------------------------------*/
       default:
-        sendAckNack( false, msg.payload.header );
+        should_ack = false;
         break;
     }
+
+    /*-------------------------------------------------------------------------
+    Send the results back to the sender
+    -------------------------------------------------------------------------*/
+    sendAckNack( should_ack, msg.raw.header );
   }
 
   void SysCtrlRouter::on_receive_unknown( const etl::imessage &msg )

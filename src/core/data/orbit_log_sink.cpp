@@ -5,7 +5,7 @@
  *  Description:
  *    Sink driver for the project's on-board NOR filesystem
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -14,6 +14,7 @@ Includes
 #include <Aurora/logging>
 #include <Chimera/thread>
 #include <src/core/data/orbit_log_sink.hpp>
+#include <src/core/data/persistent/orbit_filesystem.hpp>
 
 namespace Orbit::Log
 {
@@ -26,7 +27,7 @@ namespace Orbit::Log
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  FileLogger::FileLogger() : numBufferOverruns( 0 ), mFileName( "" ), mBuffer( {} )
+  FileLogger::FileLogger() : mFileName( "" ), mBuffer( nullptr ), mBufferOverruns( 0 )
   {
   }
 
@@ -41,10 +42,15 @@ namespace Orbit::Log
     Chimera::Thread::LockGuard _lck( *this );
     Aurora::FileSystem::FileId file;
 
+    if ( !Data::FileSystem::isMounted() )
+    {
+      return LG::Result::RESULT_FAIL_BAD_SINK;
+    }
+
     /*-------------------------------------------------------------------------
     Don't attempt to reopen
     -------------------------------------------------------------------------*/
-    if( enabled )
+    if ( enabled )
     {
       return LG::Result::RESULT_SUCCESS;
     }
@@ -52,17 +58,18 @@ namespace Orbit::Log
     /*-------------------------------------------------------------------------
     Effectively perform a "touch" operation
     -------------------------------------------------------------------------*/
-    auto flags = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_CREAT | FS::AccessFlags::O_RDWR;
+    auto flags = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_RDWR;
     if ( FS::fopen( mFileName.data(), flags, file ) == 0 )
     {
       FS::fclose( file );
+      enabled = true;
+      return LG::Result::RESULT_SUCCESS;
     }
-
-    /*-------------------------------------------------------------------------
-    Attempt to open the file, creating one if it doesn't exist yet.
-    -------------------------------------------------------------------------*/
-    enabled = true;
-    return LG::Result::RESULT_SUCCESS;
+    else
+    {
+      enabled = false;
+      return LG::Result::RESULT_FAIL_BAD_SINK;
+    }
   }
 
 
@@ -76,52 +83,62 @@ namespace Orbit::Log
 
   Aurora::Logging::Result FileLogger::flush()
   {
+    constexpr size_t HEAP_ALIGN = 128;
+
     Aurora::FileSystem::FileId file;
 
     /*-------------------------------------------------------------------------
     Entrancy Checks
     -------------------------------------------------------------------------*/
-    Chimera::Thread::LockGuard _lck( *this );
+    if ( !Data::FileSystem::isMounted() )
+    {
+      return LG::Result::RESULT_FAIL_BAD_SINK;
+    }
+
     if ( !enabled )
     {
       return LG::Result::RESULT_FAIL_BAD_SINK;
     }
 
-    const size_t cache_size = mBuffer.size();
-    if( cache_size == 0 )
+    if ( mBuffer->size() == 0 )
     {
       return LG::Result::RESULT_SUCCESS;
     }
 
-    auto flags  = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_RDWR;
+    /*-------------------------------------------------------------------------
+    Flush the cache to disk. Cache the current size of the buffer to allow
+    other threads to continue logging while this one is flushing.
+    -------------------------------------------------------------------------*/
+    const size_t buff_size = mBuffer->size();
+
+    auto flags = FS::AccessFlags::O_APPEND | FS::AccessFlags::O_RDWR;
     if ( FS::fopen( mFileName.data(), flags, file ) == 0 )
     {
       /*-------------------------------------------------------------------------
-      Copy out the data from the buffer
+      Copy out the data from the buffer. Try not to finely fragment the heap by
+      using a decently sized buffer.
       -------------------------------------------------------------------------*/
-      etl::array<uint8_t, CACHE_SIZE> stack_cache;
-      stack_cache.fill( 0 );
-      etl::copy( mBuffer.begin(), mBuffer.end(), stack_cache.begin() );
+      const size_t heap_size  = HEAP_ALIGN * ( buff_size / HEAP_ALIGN ) + 1u;
+      uint8_t     *heap_cache = new uint8_t[ heap_size ];
+      RT_HARD_ASSERT( heap_cache );
+      memset( heap_cache, 0, heap_size );
+
+      etl::copy( mBuffer->begin(), mBuffer->end(), heap_cache );
 
       /*-------------------------------------------------------------------------
       Flush the cache to disk
       -------------------------------------------------------------------------*/
-      size_t written = FS::fwrite( stack_cache.data(), 1, cache_size, file );
+      const size_t written = FS::fwrite( heap_cache, 1, buff_size, file );
 
-      if ( cache_size == written )
+      size_t cleared = 0;
+      while ( cleared < written )
       {
-        mBuffer.clear();
-      }
-      else
-      {
-        while( written > 0)
-        {
-          written--;
-          mBuffer.pop();
-        }
+        cleared++;
+        mBuffer->pop();
       }
 
       FS::fclose( file );
+      delete[] heap_cache;
     }
 
     return LG::Result::RESULT_SUCCESS;
@@ -139,13 +156,15 @@ namespace Orbit::Log
     /*-------------------------------------------------------------------------
     Entrancy Checks
     -------------------------------------------------------------------------*/
-    Chimera::Thread::LockGuard _lck( *this );
-    if( !enabled || ( level < logLevel ) )
+    if ( !message || !length )
+    {
+      return LG::Result::RESULT_FAIL_BAD_ARG;
+    }
+
+    if ( !Data::FileSystem::isMounted() || !enabled || ( level < logLevel ) )
     {
       return LG::Result::RESULT_IGNORE;
     }
-
-    RT_DBG_ASSERT( message && length );
 
     /*-------------------------------------------------------------------------
     Fill the cache first. If full flush to disk immediately.
@@ -153,22 +172,15 @@ namespace Orbit::Log
     size_t byte_idx = 0;
     auto   pData    = reinterpret_cast<const uint8_t *const>( message );
 
-    while( byte_idx < length )
+    while ( byte_idx < length )
     {
-      if( !mBuffer.available() )
+      if ( !mBuffer->available() )
       {
-        numBufferOverruns++;
-        auto err = this->flush();
-
-        if( err == LG::Result::RESULT_SUCCESS )
-        {
-          continue;
-        }
-
-        return err;
+        mBufferOverruns++;
+        return LG::Result::RESULT_NO_MEM;
       }
 
-      mBuffer.push( pData[ byte_idx++ ] );
+      mBuffer->push( pData[ byte_idx++ ] );
     }
 
     return LG::Result::RESULT_SUCCESS;
@@ -178,6 +190,22 @@ namespace Orbit::Log
   void FileLogger::setLogFile( const std::string_view &file )
   {
     mFileName = file;
+  }
+
+
+  void FileLogger::setLogCache( etl::icircular_buffer<uint8_t> *const cache )
+  {
+    RT_HARD_ASSERT( cache );
+
+    mBuffer = cache;
+    mBuffer->fill( 0 );
+    mBuffer->clear();
+  }
+
+
+  size_t FileLogger::getBufferOverruns() const
+  {
+    return mBufferOverruns;
   }
 
 }    // namespace Orbit::Log

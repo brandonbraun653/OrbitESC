@@ -3,54 +3,57 @@
  *    sys_mode_armed.cpp
  *
  *  Description:
- *    Armed state
+ *    State machine control logic for the ARMED state
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/system>
+#include <src/control/current_control.hpp>
 #include <src/control/modes/sys_mode_armed.hpp>
+#include <src/control/speed_control.hpp>
+#include <src/core/hw/orbit_instrumentation.hpp>
+#include <src/core/hw/orbit_led.hpp>
 
 namespace Orbit::Control::State
 {
-  /*---------------------------------------------------------------------------
-  Constants
-  ---------------------------------------------------------------------------*/
-  static constexpr bool DEBUG_MODULE = true;
-
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
   void Armed::on_exit_state()
   {
-    LOG_TRACE_IF( DEBUG_MODULE && !Chimera::System::inISR(), "Exiting ARMED state\r\n" );
+    LED::clearChannel( LED::Channel::ARMED );
+    LOG_INFO( "Exiting ARMED state" );
   }
 
   etl::fsm_state_id_t Armed::on_enter_state()
   {
-    // Orbit::Control::FOC& driver = get_fsm_context();
+    // TODO BMB: Configure this threshold with a parameter
+    if( float voltage = Orbit::Instrumentation::getSupplyVoltage(); voltage < 10.0f )
+    {
+      LOG_WARN( "Cannot engage ARMED state. Power supply [%.2fV] too low.", voltage );
+      return ModeId::IDLE;
+    }
 
-    // driver.mTimerDriver.disableOutput();
-    // driver.mTimerDriver.setForwardCommState( 0 );
-    // driver.mTimerDriver.setPhaseDutyCycle( 0.0f, 0.0f, 0.0f );
-    // driver.mTimerDriver.enableOutput();
+    /*-------------------------------------------------------------------------
+    Power up the motor control drivers
+    -------------------------------------------------------------------------*/
+    Control::Field::powerUp();
+    Control::Speed::powerUp();
 
-    // LOG_TRACE_IF( DEBUG_MODULE && !Chimera::System::inISR(), "Entered ARMED state\r\n" );
+    /*-------------------------------------------------------------------------
+    Signal to the user that the system is armed
+    -------------------------------------------------------------------------*/
+    LED::setChannel( LED::Channel::ARMED );
+
+    LOG_INFO( "Entered ARMED state" );
     return ModeId::ARMED;
   }
 
-  etl::fsm_state_id_t Armed::on_event( const MsgEmergencyHalt &msg )
-  {
-    /*-------------------------------------------------------------------------
-    Transition directly to the FAULT state. Let on_enter_state() do the work.
-    -------------------------------------------------------------------------*/
-    return ModeId::FAULT;
-  }
-
-  etl::fsm_state_id_t Armed::on_event( const MsgDisarm &msg )
+  etl::fsm_state_id_t Armed::on_event( const MsgDisable &msg )
   {
     /*-------------------------------------------------------------------------
     Transition directly to the IDLE state. Let on_enter_state() do the work.

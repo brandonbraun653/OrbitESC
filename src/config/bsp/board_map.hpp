@@ -5,7 +5,7 @@
  *  Description:
  *    Maps system hardware resources for the OrbitESC PCB
  *
- *  2022 | Brandon Braun | brandonbraun653@gmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@gmail.com
  *******************************************************************************/
 
 #pragma once
@@ -15,6 +15,6 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include "board_map_v2.hpp"
+#include "board_map_v3.hpp"
 
 #endif /* !ORBIT_ESC_BOARD_MAP_HPP */

@@ -15,40 +15,88 @@ Includes
 #include <Chimera/adc>
 #include <Chimera/thread>
 #include <src/control/foc_driver.hpp>
-#include <src/core/hw/drv8301.hpp>
+#include <src/control/current_control.hpp>
+#include <src/control/speed_control.hpp>
 #include <src/core/hw/orbit_adc.hpp>
+#include <src/core/hw/orbit_motor.hpp>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_ctl.hpp>
 #include <src/monitor/orbit_monitors.hpp>
-#include <src/core/hw/orbit_motor.hpp>
-
 
 namespace Orbit::Tasks::CTL
 {
+  /*---------------------------------------------------------------------------
+  Static Functions
+  ---------------------------------------------------------------------------*/
+  /**
+   * @brief Process any task messages that may have arrived
+   * @return void
+   */
+  static void process_task_messages()
+  {
+    using namespace Chimera::Thread;
+
+    TaskMsg tsk_msg = TASK_MSG_NUM_OPTIONS;
+
+    /*-------------------------------------------------------------------------
+    Process any task messages that may have arrived
+    -------------------------------------------------------------------------*/
+    if ( this_thread::receiveTaskMsg( tsk_msg, TIMEOUT_DONT_WAIT ) )
+    {
+      switch( tsk_msg )
+      {
+        case TASK_MSG_CTRL_ARM:
+          Control::FOC::sendSystemEvent( Control::EventId::ARM );
+          break;
+
+        case TASK_MSG_CTRL_ENGAGE:
+          Control::FOC::sendSystemEvent( Control::EventId::ENGAGE );
+          break;
+
+        case TASK_MSG_CTRL_DISABLE:
+          Control::FOC::sendSystemEvent( Control::EventId::DISABLE );
+          break;
+
+        case TASK_MSG_CTRL_FAULT:
+          Control::FOC::sendSystemEvent( Control::EventId::FAULT );
+          break;
+
+        default:
+          break;
+      }
+    }
+  }
+
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   void CTLThread( void *arg )
   {
+    using namespace Chimera::Thread;
+
     /*-------------------------------------------------------------------------
     Wait for the start signal
     -------------------------------------------------------------------------*/
     waitInit();
 
     /*-------------------------------------------------------------------------
-    Initialize the CTL drivers
-    -------------------------------------------------------------------------*/
-
-    Chimera::delayMilliseconds( 1000 );
-    Motor::powerUp();
-
-
-    /*-------------------------------------------------------------------------
     Run the CTL thread
     -------------------------------------------------------------------------*/
     size_t wake_up_tick = Chimera::millis();
+
     while ( 1 )
     {
+      /*-----------------------------------------------------------------------
+      Process any task messages that may have arrived
+      -----------------------------------------------------------------------*/
+      process_task_messages();
+
+      /*-----------------------------------------------------------------------
+      Process the FOC layer
+      -----------------------------------------------------------------------*/
+      Control::FOC::process();
+
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically
       -----------------------------------------------------------------------*/

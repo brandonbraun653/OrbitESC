@@ -19,14 +19,14 @@ namespace Orbit::Serial::Router
   /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
-  PingRouter::PingRouter() : message_router( Message::MSG_PING_CMD )
+  PingRouter::PingRouter() : message_router( ROUTER_ID_PING )
   {
   }
 
 
   void PingRouter::on_receive( const Message::Ping &msg )
   {
-    sendAckNack( true, msg.payload.header );
+    sendAckNack( true, msg.raw.header );
   }
 
 

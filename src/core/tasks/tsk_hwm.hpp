@@ -25,9 +25,9 @@ namespace Orbit::Tasks::HWM
   Constants
   ---------------------------------------------------------------------------*/
   static constexpr size_t                        PERIOD_MS = 5;
-  static constexpr size_t                        STACK     = STACK_BYTES( 2048 );
+  static constexpr size_t                        STACK     = STACK_BYTES( 4096 );
   static constexpr std::string_view              NAME      = "hwm";
-  static constexpr Chimera::Thread::TaskPriority PRIORITY  = 5;
+  static constexpr Chimera::Thread::TaskPriority PRIORITY  = 4;
 
   /*---------------------------------------------------------------------------
   Public Functions

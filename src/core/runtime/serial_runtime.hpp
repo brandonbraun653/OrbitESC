@@ -34,14 +34,6 @@ namespace Orbit::Serial
    */
   void handleParamIOEvent();
 
-  /**
-   * @brief Enqueues a data message to be sent out over the serial bus
-   * @note This is a non-blocking call that's safe to call from an ISR
-   *
-   * @param msg The data message to send
-   */
-  void publishDataMessage( const Message::SysData &msg );
-
 }  // namespace Orbit::Serial
 
 #endif  /* !ORBIT_SERIAL_RUNTIME_HPP */

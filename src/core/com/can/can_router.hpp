@@ -22,6 +22,19 @@ Includes
 namespace Orbit::CAN::Router
 {
   /*---------------------------------------------------------------------------
+  Enumerations
+  ---------------------------------------------------------------------------*/
+  enum RouterId : uint8_t
+  {
+    ROUTER_ID_PING = 0,
+    ROUTER_ID_SET_SYSTEM_MODE,
+    ROUTER_ID_SET_MOTOR_SPEED,
+    ROUTER_ID_EMERGENCY_HALT,
+    ROUTER_ID_SYSTEM_RESET,
+    ROUTER_ID_MAX
+  };
+
+  /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
   class PingRouter : public etl::message_router<PingRouter, Message::Ping>

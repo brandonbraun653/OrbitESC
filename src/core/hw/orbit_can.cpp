@@ -5,7 +5,7 @@
  *  Description:
  *    Orbit CAN bus driver
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -56,13 +56,7 @@ namespace Orbit::CAN
     TX GPIO
     -------------------------------------------------------------------------*/
     cfg.TXInit.clear();
-    cfg.TXInit.threaded  = true;
-    cfg.TXInit.validity  = true;
-    cfg.TXInit.alternate = Chimera::GPIO::Alternate::CAN1_TX;
-    cfg.TXInit.drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL;
-    cfg.TXInit.pin       = IO::CAN::pinTX;
-    cfg.TXInit.port      = IO::CAN::portTX;
-    cfg.TXInit.pull      = Chimera::GPIO::Pull::PULL_UP;
+    cfg.TXInit = IO::CAN::txPinInit;
 
     pin = Chimera::GPIO::getDriver( cfg.TXInit.port, cfg.TXInit.pin );
     RT_HARD_ASSERT( pin != nullptr );
@@ -72,13 +66,7 @@ namespace Orbit::CAN
     RX GPIO
     -------------------------------------------------------------------------*/
     cfg.RXInit.clear();
-    cfg.RXInit.threaded  = true;
-    cfg.RXInit.validity  = true;
-    cfg.RXInit.alternate = Chimera::GPIO::Alternate::CAN1_RX;
-    cfg.RXInit.drive     = Chimera::GPIO::Drive::ALTERNATE_PUSH_PULL;
-    cfg.RXInit.pin       = IO::CAN::pinRX;
-    cfg.RXInit.port      = IO::CAN::portRX;
-    cfg.RXInit.pull      = Chimera::GPIO::Pull::PULL_UP;
+    cfg.RXInit = IO::CAN::rxPinInit;
 
     pin = Chimera::GPIO::getDriver( cfg.RXInit.port, cfg.RXInit.pin );
     RT_HARD_ASSERT( pin != nullptr );
@@ -88,16 +76,16 @@ namespace Orbit::CAN
     Device Initialization
     -------------------------------------------------------------------------*/
     cfg.validity                  = true;
-    cfg.HWInit.channel            = Chimera::CAN::Channel::CAN0;
+    cfg.HWInit.channel            = IO::CAN::channel;
     cfg.HWInit.txBuffer           = s_tx_frame_buffer;
     cfg.HWInit.txElements         = ARRAY_COUNT( s_tx_frame_buffer );
     cfg.HWInit.rxBuffer           = s_rx_frame_buffer;
     cfg.HWInit.rxElements         = ARRAY_COUNT( s_rx_frame_buffer );
     cfg.HWInit.samplePointPercent = 0.875f;
-    cfg.HWInit.baudRate           = 1000000;
+    cfg.HWInit.baudRate           = 100000;
     cfg.HWInit.timeQuanta         = 16;
     cfg.HWInit.resyncJumpWidth    = 1;
-    cfg.HWInit.maxBaudError       = 0.05;
+    cfg.HWInit.maxBaudError       = 2.00f;
 
     CANDriver = Chimera::CAN::getDriver( cfg.HWInit.channel );
     RT_HARD_ASSERT( CANDriver != nullptr );

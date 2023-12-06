@@ -10,16 +10,17 @@
 
 from __future__ import annotations
 
+import copy
 import time
 from functools import cmp_to_key
-from loguru import logger
-from typing import Any, Dict, List, Callable
+from queue import Queue
 
-from pyorbit.serial.parameters import ParameterTypeMap
-from pyorbit.serial.pipe import SerialPipe
+from loguru import logger
+from typing import Dict, List, Callable, Optional
 from pyorbit.serial.messages import *
-from pyorbit.observer import MessageObserver
-from threading import Thread, Lock
+from pyorbit.observers import MessageObserver
+from threading import Thread, Lock, Event
+from pyorbit.serial.messages import BasePBMsg
 
 
 class ConsoleObserver(MessageObserver):
@@ -29,7 +30,7 @@ class ConsoleObserver(MessageObserver):
         def __init__(self):
             self.start_time = time.time()
             self.total_frames = 0
-            self.frames = []  # type: List[ConsoleMessage]
+            self.frames: List[ConsolePBMsg] = []
 
         def message(self) -> str:
             self.frames = sorted(self.frames, key=cmp_to_key(lambda x1, x2: x1.frame_number - x2.frame_number))
@@ -39,14 +40,14 @@ class ConsoleObserver(MessageObserver):
             return final_msg
 
     def __init__(self, on_msg_rx: Callable[[str], None]):
-        super().__init__(func=self._frame_accumulator, msg_type=ConsoleMessage)
+        super().__init__(func=self._frame_accumulator, msg_type=ConsolePBMsg)
         self._frame_lock = Lock()
         self._on_msg_rx = on_msg_rx
         self._in_progress_frames = {}  # type: Dict[int, ConsoleObserver.FrameBuffer]
         self._processing_thread = Thread(target=self._frame_processor, name="FrameProcessor", daemon=True)
         self._processing_thread.start()
 
-    def _frame_accumulator(self, msg: ConsoleMessage) -> None:
+    def _frame_accumulator(self, msg: ConsolePBMsg) -> None:
         """
         Accumulates new frames in to the frame buffer tracking
         Args:
@@ -96,175 +97,88 @@ class ConsoleObserver(MessageObserver):
                     self._in_progress_frames.pop(uuid)
 
 
-class ParameterObserver(MessageObserver):
-    """ Simple observer for interacting with the parameter registry off the OrbitESC debug port """
+class TransactionResponseObserver(MessageObserver):
+    """ Observer for listening to the response of a specific message """
 
-    def __init__(self, pipe: SerialPipe):
-        super().__init__(func=self._observer_func, msg_type=ParamIOMessage)
-        self._com_pipe = pipe
+    def __init__(self, txn_uuid: int, timeout: Union[int, float]):
+        # Register the observer to listen to all messages
+        super().__init__(func=self._uuid_matcher_observer, msg_type=type(None), timeout=timeout)
+        self._result: Optional[BasePBMsg] = None
+        self._event = Event()
+        self._timeout = timeout
+        self._txn_uuid = txn_uuid
 
-    def get(self, param: ParameterId) -> Any:
+    def wait(self) -> Optional[BasePBMsg]:
         """
-        Requests the current value of a parameter
+        Waits for the response to the message we're observing
+        Returns:
+            Response message
+        """
+        self._event.wait(timeout=self._timeout)
+        return self._result
+
+    def _uuid_matcher_observer(self, _msg: BasePBMsg) -> None:
+        """
+        Callback for the observer. Will only accept messages with the same UUID as
+        the message we're waiting for.
         Args:
-            param: Which parameter to get
+            _msg: Message being observed
 
         Returns:
-            Deserialized value
+            None
         """
-        # Subscribe to the messages expected to be received
-        nack_sub_id = self._com_pipe.subscribe(AckNackMessage, qty=1, timeout=3.0)
-        data_sub_id = self._com_pipe.subscribe(ParamIOMessage, qty=1, timeout=3.0)
+        if not isinstance(_msg, BasePBMsg):
+            return
+        elif not self._event.is_set() and (self._txn_uuid == _msg.uuid):
+            self._result = copy.copy(_msg)
+            self._event.set()
 
-        # Format and publish the request
-        msg = ParamIOMessage()
-        msg.sub_id = MessageSubId.ParamIO_Get
-        msg.param_id = param
 
-        # Push the request onto the wire
-        self._com_pipe.put(msg.serialize())
+class PredicateObserver(MessageObserver):
+    """ Observer that accepts messages based on a user defined predicate """
 
-        # Listen for return messages
-        start_time = time.time()
-        while True:
-            time.sleep(0.01)
-            nack_messages = self._com_pipe.get_subscription_data(nack_sub_id, block=False)  # type: List[AckNackMessage]
-            data_messages = self._com_pipe.get_subscription_data(data_sub_id, block=False)  # type: List[ParamIOMessage]
-
-            if nack_messages or data_messages or ((time.time() - start_time) > 3.0):
-                self._com_pipe.get_subscription_data(nack_sub_id, block=False, terminate=True)
-                self._com_pipe.get_subscription_data(data_sub_id, block=False, terminate=True)
-                break
-
-        # Server denied the request for some reason
-        if nack_messages:
-            logger.error(
-                f"GET parameter {repr(param)} failed with status code: {repr(StatusCode(nack_messages[0].status_code))}")
-            return None
-
-        # Deserialize the data returned
-        if data_messages:
-            rsp = data_messages[0]
-            msg = rsp.data.decode('utf-8')
-
-            try:
-                if rsp.param_type == ParameterType.STRING:
-                    return msg
-                elif rsp.param_type == ParameterType.FLOAT or rsp.param_type == ParameterType.DOUBLE:
-                    return float(msg)
-                elif rsp.param_type == ParameterType.UINT8 or rsp.param_type == ParameterType.UINT16 or \
-                        rsp.param_type == ParameterType.UINT32:
-                    return int(msg)
-                elif rsp.param_type == ParameterType.BOOL:
-                    return True if msg == '1' else False
-                else:
-                    logger.warning(f"Don't know how to decode parameter type {rsp.param_type}")
-                    return rsp.data
-            except ValueError:
-                logger.error(f"Failed to decode response: {msg}")
-                return None
-
-        logger.error("No response from server")
-        return None
-
-    def set(self, param: ParameterId, value: Any) -> bool:
+    def __init__(self, func: Callable[[BasePBMsg], bool], qty: int = 1, timeout: Union[int, float] = 1.0):
         """
-        Sets the value of a parameter
         Args:
-            param: Which parameter to set
-            value: Value being assigned
+            func: Predicate function that accepts a message and returns True if it should be accepted
+            qty: Number of messages to accept before terminating
+            timeout: How long to wait for the quantity limits to be satisfied
+        """
+        assert qty > 0, "Must observe at least one message"
+        assert timeout > 0, "Timeout must be greater than zero"
+
+        super().__init__(func=self._predicate_matcher_observer, msg_type=type(None), timeout=timeout)
+        self._event = Event()
+        self._msg_queue = Queue(qty)
+        self._timeout = timeout
+        self._predicate = func
+
+    def wait(self) -> Optional[List[BasePBMsg]]:
+        """
+        Waits for the response(s) to the message predicate we're observing
+        Returns:
+            Response message(s)
+        """
+        self._event.wait(timeout=self._timeout)
+        return list(self._msg_queue.queue)
+
+    def _predicate_matcher_observer(self, msg: BasePBMsg) -> None:
+        """
+        Callback for the observer. Will only accept messages that pass the user defined
+        predicate.
+        Args:
+            msg: Message being observed
 
         Returns:
-            True if the operation succeeds, False if not
+            None
         """
-        # Build the base of the message
-        msg = ParamIOMessage()
-        msg.sub_id = MessageSubId.ParamIO_Set
-        msg.param_id = param
-        msg.param_type = ParameterTypeMap[param]
+        if not isinstance(msg, BasePBMsg):
+            return
 
-        # Serialize the data to be sent
-        if msg.param_type == ParameterType.STRING:
-            msg.data = str(value).encode('utf-8')
-        elif msg.param_type == ParameterType.FLOAT:
-            msg.data = struct.pack('<f', float(value))
-        elif msg.param_type == ParameterType.DOUBLE:
-            msg.data = struct.pack('<d', float(value))
-        elif msg.param_type == ParameterType.UINT8 or msg.param_type == ParameterType.BOOL:
-            msg.data = struct.pack('<B', int(value))
-        elif msg.param_type == ParameterType.UINT16:
-            msg.data = struct.pack('<H', int(value))
-        elif msg.param_type == ParameterType.UINT32:
-            msg.data = struct.pack('<I', int(value))
-        else:
-            logger.error(f"Don't know how to serialize parameter type {msg.param_type}")
-            return False
+        # Accept the message if we can
+        if not self._event.is_set() and not self._msg_queue.full() and self._predicate(msg):
+            self._msg_queue.put(copy.copy(msg))
 
-        # Subscribe to the messages expected to be received
-        response_sub_id = self._com_pipe.subscribe(AckNackMessage, qty=1, timeout=3.0)
-
-        # Push the request onto the wire
-        self._com_pipe.put(msg.serialize())
-
-        # Listen for return messages
-        start_time = time.time()
-        while True:
-            time.sleep(0.01)
-            response = self._com_pipe.get_subscription_data(response_sub_id, block=False)  # type: List[AckNackMessage]
-
-            if response or ((time.time() - start_time) > 3.0):
-                self._com_pipe.get_subscription_data(response_sub_id, block=False, terminate=True)
-                break
-
-        # Parse the result
-        if not response:
-            logger.error("No response from server")
-            return False
-        elif not response[0].ack:
-            logger.error(
-                f"SET parameter {repr(param)} failed with status code: {repr(StatusCode(response[0].status_code))}")
-            return False
-        else:
-            return True
-
-    def load(self) -> bool:
-        """
-        Requests a complete reload from disk of all supported parameters
-        Returns:
-            True if the operation succeeds, False if not
-        """
-        sub_id = self._com_pipe.subscribe(AckNackMessage, qty=1, timeout=5.0)
-
-        msg = ParamIOMessage()
-        msg.sub_id = MessageSubId.ParamIO_Load
-
-        self._com_pipe.put(msg.serialize())
-        messages = self._com_pipe.get_subscription_data(sub_id, terminate=True)
-        for rsp in messages:  # type: AckNackMessage
-            if rsp.uuid != msg.uuid:
-                continue
-            else:
-                return rsp.ack
-
-    def store(self) -> bool:
-        """
-        Requests a complete serialize to disk of all supported parameters
-        Returns:
-            True if the operation succeeds, False if not
-        """
-        sub_id = self._com_pipe.subscribe(AckNackMessage, qty=1, timeout=5.0)
-
-        msg = ParamIOMessage()
-        msg.sub_id = MessageSubId.ParamIO_Sync
-
-        self._com_pipe.put(msg.serialize())
-        messages = self._com_pipe.get_subscription_data(sub_id, terminate=True)
-        for rsp in messages:  # type: AckNackMessage
-            if rsp.uuid != msg.uuid:
-                continue
-            else:
-                return rsp.ack
-
-    def _observer_func(self, msg: ParamIOMessage) -> None:
-        """ Stub function required for integration with the MessageObserver class """
-        pass
+        # Notify the listener if we're done
+        if self._msg_queue.full() and not self._event.is_set():
+            self._event.set()

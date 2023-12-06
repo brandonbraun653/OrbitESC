@@ -23,7 +23,7 @@ namespace Orbit::CAN::Router
   /*---------------------------------------------------------------------------
   SetMotorSpeed
   ---------------------------------------------------------------------------*/
-  SetMotorSpeedRouter::SetMotorSpeedRouter() : message_router( Message::MSG_SET_MOTOR_SPEED )
+  SetMotorSpeedRouter::SetMotorSpeedRouter() : message_router( ROUTER_ID_SET_MOTOR_SPEED )
   {
   }
 

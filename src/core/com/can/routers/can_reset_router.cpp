@@ -22,7 +22,7 @@ namespace Orbit::CAN::Router
   /*---------------------------------------------------------------------------
   SetMotorSpeed
   ---------------------------------------------------------------------------*/
-  SystemResetRouter::SystemResetRouter() : message_router( Message::MSG_SYSTEM_RESET )
+  SystemResetRouter::SystemResetRouter() : message_router( ROUTER_ID_SYSTEM_RESET )
   {
   }
 

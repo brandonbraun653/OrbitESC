@@ -5,7 +5,7 @@
  *  Description:
  *    Enables only the necessary peripherals for configuring Thor
  *
- *  2022 | Brandon Braun | brandonbraun653@gmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@gmail.com
  *******************************************************************************/
 
 #pragma once
@@ -27,10 +27,12 @@ Peripheral Support
 #define DC_NEED_GPIO  1
 #define DC_NEED_I2C   1
 #define DC_NEED_INT   1
+#define DC_NEED_SDIO  1
 #define DC_NEED_SPI   1
 #define DC_NEED_TIMER 1
 #define DC_NEED_UART  0
 #define DC_NEED_USART 1
+//#define DC_NEED_USB   1
 #define DC_NEED_WDG   1
 
 /*-----------------------------------------------------------------------------
@@ -64,6 +66,10 @@ Configure High/Low level driver pairings
 #define THOR_INT
 #endif
 
+#if DC_NEED_SDIO
+#define THOR_SDIO
+#endif
+
 #if DC_NEED_SPI
 #define THOR_SPI
 #endif
@@ -78,6 +84,10 @@ Configure High/Low level driver pairings
 
 #if DC_NEED_USART
 #define THOR_USART
+#endif
+
+#if DC_NEED_USB
+#define THOR_USB
 #endif
 
 #if DC_NEED_WDG

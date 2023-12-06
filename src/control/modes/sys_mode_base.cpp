@@ -11,7 +11,8 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <string_view>
+#include <etl/array.h>
+#include <etl/string_view.h>
 #include <Aurora/logging>
 #include <Chimera/assert>
 #include <src/control/modes/sys_mode_base.hpp>
@@ -21,25 +22,21 @@ namespace Orbit::Control
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static constexpr std::array<std::string_view, EventId::NUM_EVENTS> s_event_names = {
+  static constexpr etl::array<etl::string_view, EventId::NUM_EVENTS> s_event_names = {
     /* clang-format off */
-    "EMERGENCY_HALT",
     "ARM",
-    "DISARM",
     "ENGAGE",
-    "DISENGAGE",
+    "DISABLE",
     "FAULT"
     /* clang-format on */
   };
 
-  static_assert( s_event_names[ EventId::EMERGENCY_HALT ] == "EMERGENCY_HALT", "Event name mismatch" );
   static_assert( s_event_names[ EventId::ARM ] == "ARM", "Event name mismatch" );
-  static_assert( s_event_names[ EventId::DISARM ] == "DISARM", "Event name mismatch" );
   static_assert( s_event_names[ EventId::ENGAGE ] == "ENGAGE", "Event name mismatch" );
-  static_assert( s_event_names[ EventId::DISENGAGE ] == "DISENGAGE", "Event name mismatch" );
+  static_assert( s_event_names[ EventId::DISABLE ] == "DISABLE", "Event name mismatch" );
   static_assert( s_event_names[ EventId::FAULT ] == "FAULT", "Event name mismatch" );
 
-  static constexpr std::array<std::string_view, ModeId::NUM_STATES> s_state_names = {
+  static constexpr etl::array<etl::string_view, ModeId::NUM_STATES> s_state_names = {
     /* clang-format off */
     "IDLE",
     "ARMED",
@@ -56,14 +53,14 @@ namespace Orbit::Control
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
-  const std::string_view &getMessageString( const EventId_t event )
+  const etl::string_view &getMessageString( const EventId_t event )
   {
     RT_DBG_ASSERT( event < s_event_names.size() );
     return s_event_names[ event ];
   }
 
 
-  const std::string_view &getModeString( const ModeId_t mode )
+  const etl::string_view &getModeString( const ModeId_t mode )
   {
     RT_DBG_ASSERT( mode < s_state_names.size() );
     return s_state_names[ mode ];

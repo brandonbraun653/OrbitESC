@@ -1,0 +1,76 @@
+include("${COMMON_TOOL_ROOT}/cmake/utility/embedded.cmake")
+
+gen_intf_lib(
+  TARGET
+    tiny_usb_intf_inc
+  INTF_INCLUDES
+    ./tinyusb/src/class/audio
+    ./tinyusb/src/class/bth
+    ./tinyusb/src/class/cdc
+    ./tinyusb/src/class/dfu
+    ./tinyusb/src/class/hid
+    ./tinyusb/src/class/midi
+    ./tinyusb/src/class/msc
+    ./tinyusb/src/class/net
+    ./tinyusb/src/class/usbtmc
+    ./tinyusb/src/class/vendor
+    ./tinyusb/src/class/video
+    ./tinyusb/src/common
+    ./tinyusb/src/device
+    ./tinyusb/src/host
+    ./tinyusb/src/portable/synopsys/dwc2
+    ./tinyusb/src
+  INTF_LIBRARIES
+    project_intf_inc
+  EXPORT_DIR
+    "${PROJECT_BINARY_DIR}/tinyusb"
+)
+
+# Internal library for HW definitions. Separated from the main interface library
+# to prevent propagating conflicts with Thor/Chimera definitions. This is only
+# required to get HW support in a format expected by TinyUSB.
+gen_intf_lib(
+  TARGET
+    tiny_usb_prv_intf_inc
+  INTF_INCLUDES
+    ./tinyusb/hw/mcu/st/cmsis_device_f4/Include
+    ./tinyusb/lib/CMSIS_5/CMSIS/Core/Include
+  EXPORT_DIR
+    "${PROJECT_BINARY_DIR}/tinyusb"
+)
+
+gen_static_lib_variants(
+  TARGET
+    lib_tiny_usb
+  SOURCES
+    tinyusb/src/class/audio/audio_device.c
+    tinyusb/src/class/bth/bth_device.c
+    tinyusb/src/class/cdc/cdc_device.c
+    tinyusb/src/class/cdc/cdc_host.c
+    tinyusb/src/class/cdc/cdc_rndis_host.c
+    tinyusb/src/class/dfu/dfu_device.c
+    tinyusb/src/class/dfu/dfu_rt_device.c
+    tinyusb/src/class/hid/hid_device.c
+    tinyusb/src/class/hid/hid_host.c
+    tinyusb/src/class/midi/midi_device.c
+    tinyusb/src/class/msc/msc_device.c
+    tinyusb/src/class/msc/msc_host.c
+    tinyusb/src/class/net/ecm_rndis_device.c
+    tinyusb/src/class/net/ncm_device.c
+    tinyusb/src/class/usbtmc/usbtmc_device.c
+    tinyusb/src/class/vendor/vendor_device.c
+    tinyusb/src/class/vendor/vendor_host.c
+    tinyusb/src/class/video/video_device.c
+    tinyusb/src/common/tusb_fifo.c
+    tinyusb/src/device/usbd_control.c
+    tinyusb/src/device/usbd.c
+    tinyusb/src/host/hub.c
+    tinyusb/src/host/usbh.c
+    tinyusb/src/portable/synopsys/dwc2/dcd_dwc2.c
+    tinyusb/src/tusb.c
+  PRV_LIBRARIES
+    tiny_usb_intf_inc
+    tiny_usb_prv_intf_inc
+  EXPORT_DIR
+    "${PROJECT_BINARY_DIR}/tinyusb"
+)

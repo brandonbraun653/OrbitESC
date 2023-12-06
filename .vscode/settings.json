@@ -213,7 +213,8 @@
     "**/Thumbs.db": true,
     "**/__pycache__": true,
     "**/.conda": true,
-    "**/build": true,
+    "**/build/debug": true,
+    "**/build/release": true,
     "**/.idea": true,
   },
   "terminal.integrated.profiles.linux":{

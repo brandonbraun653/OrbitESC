@@ -1,0 +1,24 @@
+syntax = "proto2";
+import "nanopb.proto";
+
+enum MotorCtrlState {
+  MOTOR_CTRL_STATE_IDLE = 0;    // Motor control is idle
+  MOTOR_CTRL_STATE_ARMED = 1;   // Motor control is armed
+  MOTOR_CTRL_STATE_ENGAGED = 2; // Motor control is engaged
+  MOTOR_CTRL_STATE_FAULT = 3;   // Motor control is in a fault state
+  MOTOR_CTRL_STATE_INVALID = 4; // Invalid motor control state
+}
+
+enum MotorCtrlCmd {
+  MOTOR_CTRL_CMD_INVALID = 0;               // Invalid motor control command
+  MOTOR_CTRL_CMD_ENABLE_OUTPUT_STAGE  = 1;  // Allow the power stage to drive the motor
+  MOTOR_CTRL_CMD_DISABLE_OUTPUT_STAGE = 2;  // Disable the power stage
+  MOTOR_CTRL_CMD_EMERGENCY_STOP       = 3;  // Immediately stop driving the power stage and halt
+}
+
+
+message ManualICtrlSetPoint {
+  required float rotor_theta_rad = 1;
+  required float id_ref = 2;
+  required float iq_ref = 3;
+}

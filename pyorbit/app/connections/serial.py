@@ -2,11 +2,19 @@ from typing import Optional
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QApplication
 from loguru import logger
-from pyorbit.serial.client import SerialClient
+from pyorbit.serial.client import OrbitClient
 from threading import Event
 
 
-class SerialConnectionManager(QtCore.QThread):
+def get_serial_client() -> Optional[OrbitClient]:
+    """
+    Returns:
+        Returns the serial client object from the serial connection manager.
+    """
+    return SerialConnectionManagerSingleton().serial_client
+
+
+class SerialConnectionManagerSingleton(QtCore.QThread):
     """ Manages the serial connection to the target device, reacting to GUI commands to connect and disconnect. """
 
     onOpenSignal = QtCore.pyqtSignal()
@@ -15,11 +23,21 @@ class SerialConnectionManager(QtCore.QThread):
 
     CONNECTION_BAUD_RATE = 2000000
 
+    __instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls.__instance:
+            cls.__instance = super(SerialConnectionManagerSingleton, cls).__new__(cls)
+            cls.__initialized = False
+        return cls.__instance
+
     def __init__(self, parent: QtCore.QObject = None):
-        super().__init__(parent)
-        self._client = None  # type: Optional[SerialClient]
-        self._online = False
-        self._kill_event = Event()
+        if not self.__initialized:
+            self.__initialized = True
+            super().__init__(parent)
+            self._client = None  # type: Optional[OrbitClient]
+            self._online = False
+            self._kill_event = Event()
 
     def run(self) -> None:
         while not self._kill_event.is_set():
@@ -29,7 +47,7 @@ class SerialConnectionManager(QtCore.QThread):
             self._notify_availability_change()
 
     @property
-    def serial_client(self) -> SerialClient:
+    def serial_client(self) -> OrbitClient:
         return self._client
 
     @QtCore.pyqtSlot()
@@ -73,7 +91,7 @@ class SerialConnectionManager(QtCore.QThread):
             selector = window.findChild(QtWidgets.QComboBox, "serialTargetComboBox")  # type: SerialTargetSelect
 
             logger.info(f"Opening serial connection to {selector.active_target}")
-            self._client = SerialClient(selector.active_target, baudrate=self.CONNECTION_BAUD_RATE)
+            self._client = OrbitClient(selector.active_target, baudrate=self.CONNECTION_BAUD_RATE)
             self.onOpenSignal.emit()
 
     def _disconnect(self) -> None:

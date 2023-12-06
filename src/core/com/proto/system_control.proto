@@ -1,0 +1,31 @@
+syntax = "proto2";
+import "nanopb.proto";
+import "serial_interface.proto";
+
+// Sub Ids used to specify the type of system control message. This is set in the
+// header of the message.
+enum SystemControlSubId {
+  RESET   = 1; // Reset the system
+  MOTOR   = 2; // Inject manual motor control commands
+  CAL_ADC = 3; // Calibrate the ADC
+  MANUAL_INNER_LOOP = 4; // Manual inner loop control enable/disable
+  MANUAL_INNER_LOOP_REF = 5; // New references to use for manual inner loop control
+  ENABLE_STREAM_PHASE_CURRENTS = 6; // Enable streaming of phase currents
+  DISABLE_STREAM_PHASE_CURRENTS = 7; // Disable streaming of phase currents
+  ENABLE_STREAM_SYSTEM_VOLTAGES = 8; // Enable streaming of system voltages
+  DISABLE_STREAM_SYSTEM_VOLTAGES = 9; // Disable streaming of system voltages
+  ENABLE_STREAM_PHASE_VOLTAGES = 10; // Enable streaming of phase voltage commands
+  DISABLE_STREAM_PHASE_VOLTAGES = 11; // Disable streaming of phase voltage commands
+  ENABLE_STREAM_STATE_ESTIMATES = 12; // Enable streaming of state estimates
+  DISABLE_STREAM_STATE_ESTIMATES = 13; // Disable streaming of state estimates
+  ARM = 14; // Arm the motor control system for driving the system
+  ENGAGE = 15; // Engage the motor control system to actively drive the motor
+  DISABLE = 16; // Normal disengagement of the motor control system
+  FAULT = 17; // High priority disengagement of the motor control system (for safety), bypassing normal disengagement flow
+}
+
+
+message SystemControlMessage {
+  required Header header = 1;
+  optional bytes data = 2 [(nanopb).max_size = 64 ];
+}

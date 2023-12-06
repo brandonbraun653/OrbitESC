@@ -5,7 +5,7 @@
  *  Description:
  *    Orbit ESC ADC driver interface
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -16,23 +16,10 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/adc>
-#include <etl/array.h>
 
 
 namespace Orbit::ADC
 {
-  /*---------------------------------------------------------------------------
-  Structures
-  ---------------------------------------------------------------------------*/
-  struct IPhaseCal
-  {
-    float dcOffset; /**< Averaged DC offset when inputs are shorted */
-    float floor;    /**< Minimum value seen */
-    float ceiling;  /**< Maximum value seen */
-  };
-
-  using IPhaseCalArray = etl::array< IPhaseCal, 3>;
-
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
@@ -41,35 +28,12 @@ namespace Orbit::ADC
    */
   void powerUp();
 
-  void startSampling();
-
-  void stopSampling();
-
   /**
-   * @brief Calibrate the motor current sensors
-   * @note This function will block for a few seconds
-   *
-   * @param cal           Calibration data structure
-   * @param sampleTimeMs  Time to sample for each channel
+   * @brief Computes the total time it takes to sample all the motor channels in nanoseconds
+   * @return uint32_t
    */
-  void calibrateCurrentSensors( IPhaseCalArray &cal, const size_t sampleTimeMs );
+  uint32_t motorChannelSampleTimeNs();
 
-  /**
-   * @brief Transfer function to convert ADC voltage to measured phase current
-   *
-   * @param vin     Measurement voltage
-   * @return float  Calculated phase current in Amps
-   */
-  float sample2PhaseCurrent( const float vin );
+}    // namespace Orbit::ADC
 
-  /**
-   * @brief Transfer function to convert ADC voltage to measured bus voltage
-   *
-   * @param vin     Measurement voltage
-   * @return float  Calculated bus voltage
-   */
-  float sample2BusVoltage( const float vin );
-
-}  // namespace Orbit::ADC
-
-#endif  /* !ORBIT_ESC_ADC_HPP */
+#endif /* !ORBIT_ESC_ADC_HPP */

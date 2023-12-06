@@ -2,80 +2,32 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "gdb",
-      "request": "launch",
-      "name": "Simulator",
-      "target": "OrbitESC",
-      "cwd": "${workspaceRoot}/artifacts/last_build_version",
-      "valuesFormatting": "parseText"
-    },
-    {
-      "name": "J-Link STM32L432KB",
+      "name": "J-Link OrbitESC V3",
       "cwd": "${workspaceRoot}",
-      "executable": "./artifacts/last_build_version/sys_image",
+      "executable": "./build/artifacts/last_build_version/OrbitESC",
       "request": "launch",
       "type": "cortex-debug",
       "servertype": "jlink",
       "interface": "swd",
-      "device": "STM32L432KB",
-      "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32L4x2.svd",
-      "gdbPath": "arm-none-eabi-gdb-py3",
-      "postLaunchCommands": [
-        "source ${workspaceFolder}/.gdbinit"
-      ]
+      "device": "STM32F446RE",
+      "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32F446.svd",
+      "gdbPath": "arm-none-eabi-gdb",
     },
     {
-      "name": "J-Link STM32L432KC",
+      "name": "BMP OrbitESC V3",
       "cwd": "${workspaceRoot}",
-      "executable": "./artifacts/last_build_version/sys_image",
-      "request": "launch",
-      "type": "cortex-debug",
-      "servertype": "jlink",
-      "interface": "swd",
-      "device": "STM32L432KC",
-      "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32L4x2.svd",
-      "gdbPath": "arm-none-eabi-gdb-py3",
-      "postLaunchCommands": [
-        "source ${workspaceFolder}/.gdbinit"
-      ]
-    },
-    {
-      "name": "BMP STM32L432KB",
-      "cwd": "${workspaceRoot}",
-      "executable": "./artifacts/last_build_version/sys_image",
+      "executable": "./build/artifacts/last_build_version/OrbitESC",
       "request": "launch",
       "type": "cortex-debug",
       "servertype": "bmp",
       "interface": "swd",
-      "device": "STM32L432KB",
-      "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32L4x2.svd",
-      "gdbPath": "arm-none-eabi-gdb-py3",
-      "postLaunchCommands": [
-        "source ${workspaceFolder}/.gdbinit"
-      ],
+      "device": "STM32F446RE",
+      "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32F446.svd",
+      "gdbPath": "arm-none-eabi-gdb",
       "BMPGDBSerialPort": "/dev/ttyACM0",
       "preRestartCommands": [
           "enable breakpoint"
       ]
-    },
-    {
-      "name": "BMP STM32L432KC",
-      "cwd": "${workspaceRoot}",
-      "executable": "./artifacts/last_build_version/sys_image",
-      "request": "launch",
-      "type": "cortex-debug",
-      "servertype": "bmp",
-      "interface": "swd",
-      "device": "STM32L432KC",
-      "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32L4x2.svd",
-      "gdbPath": "arm-none-eabi-gdb-py3",
-      "postLaunchCommands": [
-        "source ${workspaceFolder}/.gdbinit"
-      ],
-      "BMPGDBSerialPort": "/dev/ttyACM0",
-      "preRestartCommands": [
-          "enable breakpoint"
-      ]
-    },
+    }
   ]
 }

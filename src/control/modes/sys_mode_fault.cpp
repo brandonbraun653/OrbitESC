@@ -49,14 +49,7 @@ namespace Orbit::Control::State
     return ModeId::FAULT;
   }
 
-
-  etl::fsm_state_id_t Fault::on_event( const MsgEmergencyHalt &msg )
-  {
-    return ModeId::FAULT;
-  }
-
-
-  etl::fsm_state_id_t Fault::on_event( const MsgArm &msg )
+  etl::fsm_state_id_t Fault::on_event( const MsgDisable &msg )
   {
     return ModeId::FAULT;
   }

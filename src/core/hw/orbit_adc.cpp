@@ -3,7 +3,7 @@
  *    orbit_adc.cpp
  *
  *  Description:
- *    Orbit ESC ADC driver
+ *    OrbitESC ADC driver
  *
  *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
@@ -11,31 +11,18 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Aurora/logging>
 #include <Chimera/adc>
 #include <etl/delegate.h>
 #include <src/config/bsp/board_map.hpp>
-#include <src/control/foc_driver.hpp>
 #include <src/core/hw/orbit_adc.hpp>
+#include <src/core/hw/orbit_motor.hpp>
+#include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_timer.hpp>
 
 
 namespace Orbit::ADC
 {
-  /*---------------------------------------------------------------------------
-  Voltage Sense Constants
-  ---------------------------------------------------------------------------*/
-  static constexpr float VDC_SENSE_R1          = 10'000.0f;
-  static constexpr float VDC_SENSE_R2          = 1'500.0f;
-  static constexpr float VDC_DIV_RATIO         = VDC_SENSE_R2 / ( VDC_SENSE_R1 + VDC_SENSE_R2 );
-  static constexpr float ADC_TO_VDC_CONV_CONST = 1.0f / VDC_DIV_RATIO;
-
-  /*---------------------------------------------------------------------------
-  Current Sense Constants
-  ---------------------------------------------------------------------------*/
-  static constexpr float ISHUNT_AMP_GAIN = 10.0f;    // Configured gain of all amplifiers
-  static constexpr float ISENSE_VREF     = 1.65f;    // Voltage reference for current sense
-  static constexpr float RSHUNT_OHM      = 0.01f;    // Low-side shunt resistor
-
   /*---------------------------------------------------------------------------
   Current Limit Constants
   ---------------------------------------------------------------------------*/
@@ -47,12 +34,11 @@ namespace Orbit::ADC
   static constexpr float ADC_WDG_V_HI_LIMIT = 15.0f;
   static constexpr float ADC_WDG_V_LO_LIMIT = 2.0f;
 
-
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static Chimera::ADC::ChannelList s_adc_channels;
-
+  static Chimera::ADC::ChannelList s_motor_channels;
+  static Chimera::ADC::ChannelList s_sensor_channels;
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -67,11 +53,10 @@ namespace Orbit::ADC
     // }
   }
 
-
-  /*---------------------------------------------------------------------------
-  Public Functions
-  ---------------------------------------------------------------------------*/
-  void powerUp()
+  /**
+   * @brief Initializes the GPIO pins used for ADC input.
+   */
+  static void init_gpio_pins()
   {
     Chimera::GPIO::Driver_rPtr gpio;
     Chimera::GPIO::PinInit     pin_cfg;
@@ -80,8 +65,20 @@ namespace Orbit::ADC
     Phase A Current GPIO Config
     -------------------------------------------------------------------------*/
     pin_cfg          = IO::Analog::CommonAnalogCfg;
-    pin_cfg.port     = IO::Analog::portPhaseA;
-    pin_cfg.pin      = IO::Analog::pinPhaseA;
+    pin_cfg.port     = IO::Analog::portIPhaseA;
+    pin_cfg.pin      = IO::Analog::pinIPhaseA;
+    pin_cfg.validity = true;
+
+    gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_DBG_ASSERT( gpio );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
+
+    /*-------------------------------------------------------------------------
+    Phase A Voltage GPIO Config
+    -------------------------------------------------------------------------*/
+    pin_cfg          = IO::Analog::CommonAnalogCfg;
+    pin_cfg.port     = IO::Analog::portVPhaseA;
+    pin_cfg.pin      = IO::Analog::pinVPhaseA;
     pin_cfg.validity = true;
 
     gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
@@ -92,8 +89,20 @@ namespace Orbit::ADC
     Phase B Current GPIO Config
     -------------------------------------------------------------------------*/
     pin_cfg          = IO::Analog::CommonAnalogCfg;
-    pin_cfg.port     = IO::Analog::portPhaseB;
-    pin_cfg.pin      = IO::Analog::pinPhaseB;
+    pin_cfg.port     = IO::Analog::portIPhaseB;
+    pin_cfg.pin      = IO::Analog::pinIPhaseB;
+    pin_cfg.validity = true;
+
+    gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_DBG_ASSERT( gpio );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
+
+    /*-------------------------------------------------------------------------
+    Phase B Voltage GPIO Config
+    -------------------------------------------------------------------------*/
+    pin_cfg          = IO::Analog::CommonAnalogCfg;
+    pin_cfg.port     = IO::Analog::portVPhaseB;
+    pin_cfg.pin      = IO::Analog::pinVPhaseB;
     pin_cfg.validity = true;
 
     gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
@@ -104,8 +113,8 @@ namespace Orbit::ADC
     Phase C Current GPIO Config
     -------------------------------------------------------------------------*/
     pin_cfg          = IO::Analog::CommonAnalogCfg;
-    pin_cfg.port     = IO::Analog::portPhaseC;
-    pin_cfg.pin      = IO::Analog::pinPhaseC;
+    pin_cfg.port     = IO::Analog::portIPhaseC;
+    pin_cfg.pin      = IO::Analog::pinIPhaseC;
     pin_cfg.validity = true;
 
     gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
@@ -113,7 +122,19 @@ namespace Orbit::ADC
     RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
 
     /*-------------------------------------------------------------------------
-    Power Supply Voltage GPIO Config
+    Phase C Voltage GPIO Config
+    -------------------------------------------------------------------------*/
+    pin_cfg          = IO::Analog::CommonAnalogCfg;
+    pin_cfg.port     = IO::Analog::portVPhaseC;
+    pin_cfg.pin      = IO::Analog::pinVPhaseC;
+    pin_cfg.validity = true;
+
+    gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_DBG_ASSERT( gpio );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
+
+    /*-------------------------------------------------------------------------
+    System Voltage GPIO Config
     -------------------------------------------------------------------------*/
     pin_cfg          = IO::Analog::CommonAnalogCfg;
     pin_cfg.port     = IO::Analog::portVSupply;
@@ -125,185 +146,181 @@ namespace Orbit::ADC
     RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
 
     /*-------------------------------------------------------------------------
-    Configure the ADC driver
+    MCU Voltage GPIO Config
     -------------------------------------------------------------------------*/
+    pin_cfg          = IO::Analog::CommonAnalogCfg;
+    pin_cfg.port     = IO::Analog::portVMCU;
+    pin_cfg.pin      = IO::Analog::pinVMCU;
+    pin_cfg.validity = true;
+
+    gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_DBG_ASSERT( gpio );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
+
+    /*-------------------------------------------------------------------------
+    Temperature Instrumentation Voltage GPIO Config
+    -------------------------------------------------------------------------*/
+    pin_cfg          = IO::Analog::CommonAnalogCfg;
+    pin_cfg.port     = IO::Analog::portVTemp;
+    pin_cfg.pin      = IO::Analog::pinVTemp;
+    pin_cfg.validity = true;
+
+    gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_DBG_ASSERT( gpio );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
+
+    /*-------------------------------------------------------------------------
+    Current Sense Reference Voltage GPIO Config
+    -------------------------------------------------------------------------*/
+    pin_cfg          = IO::Analog::CommonAnalogCfg;
+    pin_cfg.port     = IO::Analog::portVISenseRef;
+    pin_cfg.pin      = IO::Analog::pinVISenseRef;
+    pin_cfg.validity = true;
+
+    gpio = Chimera::GPIO::getDriver( pin_cfg.port, pin_cfg.pin );
+    RT_DBG_ASSERT( gpio );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( pin_cfg ) );
+  }
+
+
+  /**
+   * @brief Configures the ADC driver for the motor control system
+   */
+  static void cfg_motor_adc()
+  {
     Chimera::ADC::Driver_rPtr  adc;
     Chimera::ADC::DriverConfig adc_cfg;
     Chimera::ADC::SequenceInit seq;
 
-    /* Core configuration */
+    /*-------------------------------------------------------------------------
+    Core configuration
+    -------------------------------------------------------------------------*/
     adc_cfg.clear();
-    adc_cfg.defaultSampleCycles = 1000;
-    adc_cfg.bmISREnable         = Chimera::ADC::Interrupt::EOC_SEQUENCE;
-    adc_cfg.clockPrescale       = Chimera::ADC::PreScaler::DIV_2;
-    adc_cfg.clockSource         = Chimera::Clock::Bus::SYSCLK;
-    adc_cfg.overSampleRate      = Chimera::ADC::OverSampler::OS_NONE;
-    adc_cfg.overSampleShift     = Chimera::ADC::OverSampleShift::OS_NONE;
-    adc_cfg.periph              = IO::Analog::peripheral;
-    adc_cfg.resolution          = Chimera::ADC::Resolution::BIT_12;
-    adc_cfg.transferMode        = Chimera::ADC::TransferMode::DMA;
+    adc_cfg.bmISREnable     = Chimera::ADC::Interrupt::EOC_SEQUENCE;
+    adc_cfg.clockPrescale   = Chimera::ADC::PreScaler::DIV_2;
+    adc_cfg.clockSource     = Chimera::Clock::Bus::SYSCLK;
+    adc_cfg.overSampleRate  = Chimera::ADC::OverSampler::OS_NONE;
+    adc_cfg.overSampleShift = Chimera::ADC::OverSampleShift::OS_NONE;
+    adc_cfg.periph          = IO::Analog::MotorADC;
+    adc_cfg.resolution      = Chimera::ADC::Resolution::BIT_12;
+    adc_cfg.transferMode    = Chimera::ADC::TransferMode::DMA;
+    adc_cfg.analogVRef      = 3.30f;
 
     adc = Chimera::ADC::getDriver( adc_cfg.periph );
     RT_DBG_ASSERT( adc );
     RT_HARD_ASSERT( Chimera::Status::OK == adc->open( adc_cfg ) );
 
-    /* Configure the sequence conversion */
-    s_adc_channels[ 0 ] = IO::Analog::adcPhaseA;
-    s_adc_channels[ 1 ] = IO::Analog::adcPhaseB;
-    s_adc_channels[ 2 ] = IO::Analog::adcPhaseC;
-    s_adc_channels[ 3 ] = IO::Analog::adcVSupply;
+    /*-------------------------------------------------------------------------
+    Sequence conversion configuration
+    -------------------------------------------------------------------------*/
+    s_motor_channels.fill( Chimera::ADC::Channel::UNKNOWN );
+    s_motor_channels[ Motor::CHANNEL_PHASE_A_CURRENT ] = IO::Analog::adcIPhaseA;
+    s_motor_channels[ Motor::CHANNEL_PHASE_B_CURRENT ] = IO::Analog::adcIPhaseB;
+    s_motor_channels[ Motor::CHANNEL_PHASE_C_CURRENT ] = IO::Analog::adcIPhaseC;
+    s_motor_channels[ Motor::CHANNEL_PHASE_A_VOLTAGE ] = IO::Analog::adcVPhaseA;
+    s_motor_channels[ Motor::CHANNEL_PHASE_B_VOLTAGE ] = IO::Analog::adcVPhaseB;
+    s_motor_channels[ Motor::CHANNEL_PHASE_C_VOLTAGE ] = IO::Analog::adcVPhaseC;
 
     seq.clear();
-    seq.channels    = &s_adc_channels;
-    seq.numChannels = 4;
+    seq.channels    = &s_motor_channels;
+    seq.numChannels = Motor::CHANNEL_COUNT;
+    seq.seqGroup    = Chimera::ADC::SequenceGroup::REGULAR;
     seq.seqMode     = Chimera::ADC::SamplingMode::TRIGGER;
     seq.trigMode    = Chimera::ADC::TriggerMode::RISING_EDGE;
-    seq.trigChannel = 10;    // Regular channel, TIM1_TRGO2
+    seq.trigChannel = IO::Analog::MotorExternalEventChannel;
 
     RT_HARD_ASSERT( Chimera::Status::OK == adc->configSequence( seq ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcPhaseA, 12 ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcPhaseB, 12 ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcPhaseC, 12 ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVSupply, 12 ) );
-
-    /*-------------------------------------------------------------------------
-    Configure the analog watchdog
-    -------------------------------------------------------------------------*/
-    Chimera::ADC::WatchdogConfig wdg;
-    Chimera::ADC::ISRCallback    callback = Chimera::ADC::ISRCallback::create<adc_watchdog_monitor_isr>();
-
-    const float volts_per_code = adc->analogReference() / 4096.0f;
-    const float volts_ipx_ref = adc->analogReference() / 2.0f;
-
-    /*-------------------------------------------------------------------
-    Phase current monitor
-    -------------------------------------------------------------------*/
-    //                              OpAmp Ref  +/-      Shunt Voltage (V=IR*K)
-    float ipx_hi_bits = truncf( ( volts_ipx_ref + ( ADC_WDG_I_LIMIT * RSHUNT_OHM * ISHUNT_AMP_GAIN) ) / volts_per_code );
-    float ipx_lo_bits = truncf( ( volts_ipx_ref - ( ADC_WDG_I_LIMIT * RSHUNT_OHM * ISHUNT_AMP_GAIN) ) / volts_per_code );
-
-    wdg.wdgChannel    = Chimera::ADC::Watchdog::ANALOG_1;
-    wdg.highThreshold = ( static_cast<uint32_t>( ipx_hi_bits ) & 0xFF0 ) >> 4U;
-    wdg.lowThreshold  = ( static_cast<uint32_t>( ipx_lo_bits ) & 0xFF0 ) >> 4U;
-    wdg.callback      = callback;
-
-    // wdg.adcChannel = IO::Analog::adcPhaseA;
-    // RT_HARD_ASSERT( Chimera::Status::OK == adc->monitorChannel( wdg ) );
-    // wdg.adcChannel = IO::Analog::adcPhaseB;
-    // RT_HARD_ASSERT( Chimera::Status::OK == adc->monitorChannel( wdg ) );
-    // wdg.adcChannel = IO::Analog::adcPhaseC;
-    // RT_HARD_ASSERT( Chimera::Status::OK == adc->monitorChannel( wdg ) );
-    LOG_WARN( "Over-current protection disabled!" );
-
-    /*-------------------------------------------------------------------
-    Power supply voltage monitor
-    -------------------------------------------------------------------*/
-    float vdc_hi_bits = truncf( ( ADC_WDG_V_HI_LIMIT * VDC_DIV_RATIO ) / volts_per_code );
-    float vdc_lo_bits = truncf( ( ADC_WDG_V_LO_LIMIT * VDC_DIV_RATIO ) / volts_per_code );
-
-    wdg.wdgChannel    = Chimera::ADC::Watchdog::ANALOG_2;
-    wdg.adcChannel    = IO::Analog::adcVSupply;
-    wdg.highThreshold = ( static_cast<uint32_t>( vdc_hi_bits ) & 0xFF0 ) >> 4U;
-    wdg.lowThreshold  = ( static_cast<uint32_t>( vdc_lo_bits ) & 0xFF0 ) >> 4U;
-
-    //RT_HARD_ASSERT( Chimera::Status::OK == adc->monitorChannel( wdg ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseA, 12 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseA, 12 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseB, 12 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseB, 12 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseC, 12 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseC, 12 ) );
   }
 
 
-  void startSampling()
+  /**
+   * @brief Configures the ADC channels used for the instrumentation inputs
+   */
+  static void cfg_instrumentation_adc()
   {
-    auto adc = Chimera::ADC::getDriver( IO::Analog::peripheral );
-    adc->startSequence();
+    Chimera::ADC::Driver_rPtr  adc;
+    Chimera::ADC::DriverConfig adc_cfg;
+    Chimera::ADC::SequenceInit seq;
+
+    /*-------------------------------------------------------------------------
+    Core peripheral configuration
+    -------------------------------------------------------------------------*/
+    adc_cfg.clear();
+    adc_cfg.periph          = IO::Analog::InstrADC;
+    adc_cfg.bmISREnable     = Chimera::ADC::Interrupt::EOC_SEQUENCE;
+    adc_cfg.clockPrescale   = Chimera::ADC::PreScaler::DIV_2;
+    adc_cfg.clockSource     = Chimera::Clock::Bus::SYSCLK;
+    adc_cfg.overSampleRate  = Chimera::ADC::OverSampler::OS_NONE;
+    adc_cfg.overSampleShift = Chimera::ADC::OverSampleShift::OS_NONE;
+    adc_cfg.resolution      = Chimera::ADC::Resolution::BIT_12;
+    adc_cfg.transferMode    = Chimera::ADC::TransferMode::DMA;
+    adc_cfg.analogVRef      = 3.30f;
+
+    adc = Chimera::ADC::getDriver( adc_cfg.periph );
+    RT_DBG_ASSERT( adc );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->open( adc_cfg ) );
+
+    /*-------------------------------------------------------------------------
+    Configure the measurement sequence to be triggered. Expects a system timer
+    to be initialized elsewhere to trigger the ADC at a fixed rate.
+    -------------------------------------------------------------------------*/
+    s_sensor_channels.fill( Chimera::ADC::Channel::UNKNOWN );
+    s_sensor_channels[ Instrumentation::CHANNEL_VSUPPLY ] = IO::Analog::adcVSupply;
+    s_sensor_channels[ Instrumentation::CHANNEL_VMCU ]    = IO::Analog::adcVMCU;
+    s_sensor_channels[ Instrumentation::CHANNEL_TEMP ]    = IO::Analog::adcVTemp;
+    s_sensor_channels[ Instrumentation::CHANNEL_VREF ]    = IO::Analog::adcVISenseRef;
+
+    seq.clear();
+    seq.channels    = &s_sensor_channels;
+    seq.numChannels = Instrumentation::CHANNEL_COUNT;
+    seq.seqGroup    = Chimera::ADC::SequenceGroup::REGULAR;
+    seq.seqMode     = Chimera::ADC::SamplingMode::TRIGGER;
+    seq.trigMode    = Chimera::ADC::TriggerMode::RISING_EDGE;
+    seq.trigChannel = IO::Analog::SensorExternalEventChannel;
+
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->configSequence( seq ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVSupply, 80 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVMCU, 80 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVTemp, 80 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVISenseRef, 80 ) );
   }
 
 
-  void stopSampling()
+  /*---------------------------------------------------------------------------
+  Public Functions
+  ---------------------------------------------------------------------------*/
+  void powerUp()
   {
-    auto adc = Chimera::ADC::getDriver( IO::Analog::peripheral );
-    adc->stopSequence();
+    init_gpio_pins();
+    cfg_motor_adc();
+    cfg_instrumentation_adc();
   }
 
 
-  void calibrateCurrentSensors( IPhaseCalArray &cal, const size_t sampleTimeMs )
+  uint32_t motorChannelSampleTimeNs()
   {
-    const Chimera::ADC::Channel sample_channels[] = { IO::Analog::adcPhaseA, IO::Analog::adcPhaseB, IO::Analog::adcPhaseC };
+    using namespace Chimera::Timer;
+    using namespace Chimera::ADC;
 
     /*-------------------------------------------------------------------------
-    Ensure the motor is off for calibration
+    Compute the total time it takes to sample all the motor channels in
+    nanoseconds. This is used to configure the ADC trigger timing.
     -------------------------------------------------------------------------*/
-    // TODO: Add a check to ensure the motor is off
+    uint32_t sampleTimeNs = 0;
+    auto     adc          = Chimera::ADC::getDriver( IO::Analog::MotorADC );
 
-    /*-------------------------------------------------------------------------
-    Short the low side of the motor drive to ground. This assumes the motor has
-    been connected, which creates the ground path.
-    -------------------------------------------------------------------------*/
-    TIMER::configureIOTesting();
-    auto pin1 = Chimera::GPIO::getDriver( IO::Timer::portT1Ch1N, IO::Timer::pinT1Ch1N );
-    auto pin2 = Chimera::GPIO::getDriver( IO::Timer::portT1Ch2N, IO::Timer::pinT1Ch2N );
-    auto pin3 = Chimera::GPIO::getDriver( IO::Timer::portT1Ch3N, IO::Timer::pinT1Ch3N );
-
-    pin1->setState( Chimera::GPIO::State::HIGH );
-    pin2->setState( Chimera::GPIO::State::HIGH );
-    pin3->setState( Chimera::GPIO::State::HIGH );
-
-    Chimera::delayMilliseconds( 100 );
-
-    /*-------------------------------------------------------------------------
-    Measure the DC offset of the motor phase current sensors
-    -------------------------------------------------------------------------*/
-    LOG_TRACE( "Calibrating phase current sensors\r\n" );
-    auto adc = Chimera::ADC::getDriver( IO::Analog::peripheral );
-
-    for( int idx = 0; idx <= 3; idx++ )
+    for ( size_t idx = 0; idx < Motor::CHANNEL_COUNT; idx++ )
     {
-      cal[ idx ].ceiling  = -FLT_MAX;
-      cal[ idx ].floor    = FLT_MAX;
-      cal[ idx ].dcOffset = 0.0f;
-
-      float samples = 0.0f;
-      float pIxAvg  = 0.0f;
-      size_t startTime = Chimera::millis();
-
-      while ( ( Chimera::millis() - startTime ) < sampleTimeMs )
-      {
-        auto sample = adc->sampleChannel( sample_channels[ idx ] );
-        float voltage = adc->toVoltage( sample );
-        pIxAvg += voltage;
-        samples++;
-
-        if( voltage > cal[idx].ceiling )
-        {
-          cal[idx].ceiling = voltage;
-        }
-        else if( voltage < cal[idx].floor )
-        {
-          cal[idx].floor = voltage;
-        }
-      }
-
-      cal[ idx ].dcOffset = ( pIxAvg / samples );
+      sampleTimeNs += adc->totalMeasureTime( adc->getSampleCycle( s_motor_channels[ idx ] ) );
     }
 
-    LOG_TRACE( "Done\r\n" );
-  }
-
-
-  float sample2PhaseCurrent( const float vin )
-  {
-    /*-------------------------------------------------------------------------
-    Calculate backwards from the ADC reading to what the real current is. The
-    op-amp is configured as an inverting amplifier, so a positive current will
-    result in a negative voltage delta. The current is then calculated by
-    dividing the voltage by the shunt resistor and the op-amp gain.
-    -------------------------------------------------------------------------*/
-    float raw = -1.0f * ( vin / ( ISHUNT_AMP_GAIN * RSHUNT_OHM ) );
-    return raw;
-  }
-
-
-  float sample2BusVoltage( const float vin )
-  {
-    return vin * ADC_TO_VDC_CONV_CONST;
+    return sampleTimeNs;
   }
 
 }    // namespace Orbit::ADC

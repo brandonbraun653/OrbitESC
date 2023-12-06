@@ -13,19 +13,22 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/logging>
 #include <Chimera/thread>
-#include <src/core/data/orbit_data.hpp>
-#include <src/core/data/orbit_data_storage.hpp>
-#include <src/core/data/orbit_log_io.hpp>
 #include <src/core/bootup.hpp>
+#include <src/core/data/orbit_data.hpp>
+#include <src/core/data/orbit_log_io.hpp>
+#include <src/core/data/volatile/orbit_parameter.hpp>
 #include <src/core/runtime/serial_runtime.hpp>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_dio.hpp>
+#include <src/core/hw/orbit_sdio.hpp>
+#include <src/core/data/orbit_log_io.hpp>
 
 namespace Orbit::Tasks::DIO
 {
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+
   void DIOThread( void *arg )
   {
     using namespace Chimera::Thread;
@@ -40,7 +43,16 @@ namespace Orbit::Tasks::DIO
     Finalize the power up sequence
     -------------------------------------------------------------------------*/
     Data::SysInfo.bootCount++;
-    Data::updateDiskCache( ParamId_PARAM_BOOT_COUNT );
+    Data::Param::write( ParamId_PARAM_BOOT_COUNT, &Data::SysInfo.bootCount, sizeof( Data::SysInfo.bootCount ) );
+
+    char msg[ 64 ];
+    memset(msg, 0, sizeof( msg ) );
+    npf_snprintf( msg, sizeof( msg ), "Orbit ESC Power Up -- Boot count: %lu\r\n", Data::SysInfo.bootCount );
+
+    // if( SDIO::isCardPresent() )
+    // {
+    //   RT_HARD_ASSERT( true == Log::logTestMessage( msg ) );
+    // }
 
     /*-------------------------------------------------------------------------
     Run the delayed-io thread
@@ -48,6 +60,7 @@ namespace Orbit::Tasks::DIO
     size_t wake_up_tick = Chimera::millis();
     size_t next_sync    = wake_up_tick + Data::SysConfig.diskUpdateRateMs;
     TaskMsg tsk_msg     = TASK_MSG_NUM_OPTIONS;
+
     while( 1 )
     {
       /*-----------------------------------------------------------------------
@@ -72,12 +85,17 @@ namespace Orbit::Tasks::DIO
       Log::flushCache();
 
       /*-----------------------------------------------------------------------
+      React to any card events
+      -----------------------------------------------------------------------*/
+      SDIO::handleCardStatusChange();
+
+      /*-----------------------------------------------------------------------
       Synchronize any updates to the configuration backing store
       -----------------------------------------------------------------------*/
       if( wake_up_tick >= next_sync )
       {
         next_sync = wake_up_tick + Data::SysConfig.diskUpdateRateMs;
-        Data::syncDisk();
+        Data::Param::flush();
       }
 
       /*-----------------------------------------------------------------------

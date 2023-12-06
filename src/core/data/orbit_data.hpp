@@ -42,11 +42,6 @@ namespace Orbit::Data
   bool initialize();
 
   /**
-   * @brief Powers on the file system and prepares it for use
-   */
-  void bootFileSystem();
-
-  /**
    * @brief Prints the system configuration to console
    */
   void printSystemInfo();

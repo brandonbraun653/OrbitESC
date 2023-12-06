@@ -14,10 +14,11 @@ Includes
 #include <Aurora/logging>
 #include <Chimera/assert>
 #include <Chimera/common>
+#include <Chimera/function>
 #include <Chimera/gpio>
 #include <Chimera/thread>
 #include <src/config/bsp/board_map.hpp>
-#include <src/core/data/orbit_data.hpp>
+#include <src/core/com/com_scheduler.hpp>
 #include <src/core/hw/orbit_led.hpp>
 #include <src/core/hw/orbit_timer.hpp>
 #include <src/core/tasks.hpp>
@@ -28,6 +29,13 @@ namespace Orbit::Tasks::BKD
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+
+  /**
+   * @brief Main thread to run background tasks whenever excessive CPU is available.
+   *
+   * @param arg   Unused
+   * @return void
+   */
   void IdleThread( void *arg )
   {
     /*-------------------------------------------------------------------------
@@ -38,45 +46,30 @@ namespace Orbit::Tasks::BKD
     /*-------------------------------------------------------------------------
     Get the status/heartbeat pin and flash a quick boot up sequence
     -------------------------------------------------------------------------*/
-    for ( auto x = 0; x < 8; x++ )
+    for( auto x = 0; x < 8; x++ )
     {
-      LED::toggleChannel( LED::Channel::HEARTBEAT );
-      LED::sendUpdate();
+      LED::toggleChannel( LED::Channel::ALL );
       Chimera::delayMilliseconds( 35 );
     }
+
+    LED::clearChannel( LED::Channel::ALL );
     Chimera::delayMilliseconds( 500 );
 
     /*-------------------------------------------------------------------------
-    Main loop
+    Main loop. Don't add any blocking calls here. It's expected that this
+    will run as fast as possible and consume all available CPU time.
     -------------------------------------------------------------------------*/
-    while ( 1 )
+    while( 1 )
     {
       /*-----------------------------------------------------------------------
-      Compute the flash and hold times
+      Process the LED state machine
       -----------------------------------------------------------------------*/
-      const uint32_t flash_delay = static_cast<uint32_t>( 100.0f * Data::SysConfig.activityLedScaler );
-      const uint32_t hold_delay  = static_cast<uint32_t>( 450.0f * Data::SysConfig.activityLedScaler );
+      LED::process();
 
       /*-----------------------------------------------------------------------
-      High Pulse #1
+      Publish available data to the remote host
       -----------------------------------------------------------------------*/
-      LED::setChannel( LED::Channel::HEARTBEAT );
-      Chimera::delayMilliseconds( flash_delay );
-      LED::clrChannel( LED::Channel::HEARTBEAT );
-      Chimera::delayMilliseconds( flash_delay );
-
-      /*-----------------------------------------------------------------------
-      High Pulse #2
-      -----------------------------------------------------------------------*/
-      LED::setChannel( LED::Channel::HEARTBEAT );
-      Chimera::delayMilliseconds( flash_delay );
-      LED::clrChannel( LED::Channel::HEARTBEAT );
-      Chimera::delayMilliseconds( flash_delay );
-
-      /*-----------------------------------------------------------------------
-      Hold longer in the off state
-      -----------------------------------------------------------------------*/
-      Chimera::delayMilliseconds( hold_delay );
+      Orbit::COM::Scheduler::process();
     }
   }
 }    // namespace Orbit::Tasks::BKD

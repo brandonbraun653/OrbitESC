@@ -11,18 +11,20 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Aurora/utility>
 #include <Chimera/thread>
+#include <src/core/com/com_app_tx.hpp>
+#include <src/core/runtime/can_runtime.hpp>
+#include <src/core/runtime/serial_runtime.hpp>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_com.hpp>
-#include <src/core/runtime/serial_runtime.hpp>
-#include <src/core/runtime/can_runtime.hpp>
-
 
 namespace Orbit::Tasks::COM
 {
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+
   void COMThread( void *arg ){
 
     /*-------------------------------------------------------------------------
@@ -35,11 +37,12 @@ namespace Orbit::Tasks::COM
     -------------------------------------------------------------------------*/
     Orbit::CAN::initRuntime();
     Orbit::Serial::initRuntime();
+    Orbit::COM::initPeriodicData();
 
     /*-------------------------------------------------------------------------
     Run the thread
     -------------------------------------------------------------------------*/
-    size_t wake_up_tick = Chimera::millis();
+    size_t last_wakeup = Chimera::millis();
     while( 1 )
     {
       /*-----------------------------------------------------------------------
@@ -51,8 +54,8 @@ namespace Orbit::Tasks::COM
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically
       -----------------------------------------------------------------------*/
-      Chimera::delayUntil( wake_up_tick + PERIOD_MS );
-      wake_up_tick = Chimera::millis();
+      Chimera::delayUntil( last_wakeup + PERIOD_MS );
+      last_wakeup = Chimera::millis();
     }
   }
 }  // namespace Orbit::Tasks::COM

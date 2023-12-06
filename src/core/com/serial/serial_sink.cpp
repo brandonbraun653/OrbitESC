@@ -92,7 +92,6 @@ namespace Orbit::Serial
     Construct the encoded data
     -------------------------------------------------------------------------*/
     Message::Console    msg;
-    ConsoleMessage      pb_data;
     Message::UniqueId_t msg_uuid     = Message::getNextUUID();
     size_t              byte_offset  = 0;
     uint8_t             frame_number = 0;
@@ -107,26 +106,23 @@ namespace Orbit::Serial
       /*-----------------------------------------------------------------------
       Construct the message
       -----------------------------------------------------------------------*/
-      memset( &pb_data, 0, sizeof( pb_data ) );
-      msg.reset();
-
-      pb_data.header.msgId = Message::Console::MessageId;
-      pb_data.header.subId = 0;
-      pb_data.header.uuid  = msg_uuid;
-      pb_data.this_frame   = frame_number;
-      pb_data.total_frames = max_frames;
-      pb_data.data.size    = chunk_size;
-      memcpy( pb_data.data.bytes, p_usr_data + byte_offset, chunk_size );
+      msg.raw.header.msgId = Message::Console::MessageId;
+      msg.raw.header.subId = 0;
+      msg.raw.header.uuid  = msg_uuid;
+      msg.raw.this_frame   = frame_number;
+      msg.raw.total_frames = max_frames;
+      msg.raw.data.size    = chunk_size;
+      memcpy( msg.raw.data.bytes, p_usr_data + byte_offset, chunk_size );
 
       /*-----------------------------------------------------------------------
       Encode the data and ship it
       -----------------------------------------------------------------------*/
-      if ( !msg.encode( pb_data ) )
+      if ( !Serial::Message::encode( &msg.state ) )
       {
         return Result::RESULT_FAIL;
       }
 
-      if ( msg.send( mSerial, true ) == Chimera::Status::OK )
+      if ( Serial::Message::send( &msg.state, mSerial, true ) == Chimera::Status::OK )
       {
         byte_offset += chunk_size;
         frame_number++;

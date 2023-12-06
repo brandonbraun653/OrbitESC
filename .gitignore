@@ -7,9 +7,12 @@ artifacts/**
 
 # PyCharm project directory
 .idea/**
-.conda
-*__pycache__
+**__pycache__
+.venv
 
 # KiCAD Project Files
 hw/sim/CurrentSense/CurrentSense-backups/
 hw/sim/HalfBridgeDriver/HalfBridgeDriver-backups/
+
+# Testing and Profiling Outputs
+pyorbit/tests/prof

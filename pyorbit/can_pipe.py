@@ -18,10 +18,10 @@ from ifconfigparser import IfconfigParser
 from loguru import logger
 from typing import List
 from threading import Thread, Event
-from pyorbit.observer import Observer
+from pyorbit.publisher import Publisher
 
 
-class CANPipe(Observer):
+class CANPipe(Publisher):
     """ Interface to a number of ESC nodes communicating over CAN bus """
 
     def __init__(self, can_device: str, bit_rate: int):

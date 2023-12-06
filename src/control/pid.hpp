@@ -5,7 +5,7 @@
  *  Description:
  *    Basic PID controller implementation
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -15,8 +15,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <algorithm>
-#include <limits>
+#include <cstdint>
 
 namespace Orbit::Control::Math
 {
@@ -31,23 +30,21 @@ namespace Orbit::Control::Math
     float OutMinLimit; /**< Configurable minimum limit */
     float OutMaxLimit; /**< Configurable maximum limit */
 
-    PID() :
-        SetPoint( 0 ), Output( 0 ), OutMinLimit( 0 ), OutMaxLimit( 0 ), Kp( 0 ), Ki( 0 ), Kd( 0 ), iTerm( 0 ), lastInput( 0 )
-    {
-    }
+    PID();
 
-    void init()
-    {
-      SetPoint    = 0.0f;
-      Output      = 0.0f;
-      OutMinLimit = 0.0f;
-      OutMaxLimit = 0.0f;
-      Kp          = 0.0f;
-      Ki          = 0.0f;
-      Kd          = 0.0f;
-      iTerm       = 0.0f;
-      lastInput   = 0.0f;
-    }
+    /**
+     * @brief Re-initializes the PID controller.
+     * @note This destroys all the controller settings and state.
+     * @return void
+     */
+    void init();
+
+    /**
+     * @brief Resets the state of the PID controller.
+     * @note Only resets the state, not the PID settings.
+     * @return void
+     */
+    void resetState();
 
     /**
      * @brief Update the controller tunings accounting for discrete sampling
@@ -56,56 +53,18 @@ namespace Orbit::Control::Math
      * @param ki  Integral controller value
      * @param kd  Derivative controller value
      * @param dt  Sample time in seconds
+     * @return void
      */
-    void setTunings( const float kp, const float ki, const float kd, const float dt )
-    {
-      this->Kp = kp;
-      this->Ki = ki * dt;
-      this->Kd = kd / dt;
-    }
+    void setTunings( const float kp, const float ki, const float kd, const float dt );
 
     /**
      * @brief Runs the PID controller
      *
      * @param input   New input to inject
      * @param dt      Last sample delta
+     * @return New output value
      */
-    float run( const float input )
-    {
-      const float error = SetPoint - input;
-
-      /*-----------------------------------------------------------------------
-      Proportional Term
-      -----------------------------------------------------------------------*/
-      const float pTerm = Kp * error;
-
-      /*-----------------------------------------------------------------------
-      Integral Term w/Anti-Windup
-      -----------------------------------------------------------------------*/
-      iTerm += Ki * error;
-      iTerm = std::max( OutMinLimit, std::min( iTerm, OutMaxLimit ) );
-
-      /*-----------------------------------------------------------------------
-      Derivative Term w/Anti-Kick
-      -----------------------------------------------------------------------*/
-      float dTerm = Kd * ( input - lastInput );
-
-      /*-----------------------------------------------------------------------
-      Calculate the output and save off state for the next run
-      -----------------------------------------------------------------------*/
-      Output    = pTerm + iTerm + dTerm;
-      Output    = std::max( OutMinLimit, std::min( Output, OutMaxLimit ) );
-      lastInput = input;
-
-      return Output;
-    }
-
-    void resetState()
-    {
-      Output = 0.0f;
-      lastInput = 0.0f;
-      iTerm = 0.0f;
-    }
+    float run( const float input );
 
   private:
     float Kp;

@@ -16,20 +16,39 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <cstdint>
-#include <src/core/com/serial/serial_interface.pb.h>
+#include <src/core/com/proto/proto_defs.hpp>
 
 namespace Orbit::System
 {
   /*---------------------------------------------------------------------------
   Enumerations
   ---------------------------------------------------------------------------*/
-  enum class Mode : uint8_t
+
+  /**
+   * @brief Various fault codes that could occur during system operation
+   */
+  enum class Fault : uint32_t
   {
-    NORMAL = BootMode_BOOT_MODE_NORMAL, /**< Standard operational mode for flight */
-    CONFIG = BootMode_BOOT_MODE_CONFIG, /**< Non-flight mode for configuration and control */
-    TEST   = BootMode_BOOT_MODE_TEST,   /**< Non-flight mode for testing */
+    FS_MOUNT_FAILED, /**< Could not mount the filesystem drive */
+
     NUM_OPTIONS
   };
+
+
+  /*---------------------------------------------------------------------------
+  Structures
+  ---------------------------------------------------------------------------*/
+
+  /**
+   * @brief Stores a single fault log entry
+   */
+  struct FaultLogEntry
+  {
+    Fault    fault;           /**< Fault that occurred */
+    uint32_t timestamp;       /**< System time of the fault */
+    char     message[ 128 ];  /**< User error message */
+  };
+
 }  // namespace Orbit::System
 
 #endif  /* !ORBIT_SYSTEM_TYPES_HPP */

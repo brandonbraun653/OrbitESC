@@ -110,6 +110,56 @@ namespace Orbit::Control
     }
   };
 
+  /**
+   * @brief Attributes describing the state of the physical system under control.
+   */
+  struct SystemState
+  {
+    /*-------------------------------------------------------------------------
+    Measured Quantities
+    -------------------------------------------------------------------------*/
+    float theta; /**< Rotor electrical position in radians */
+    float omega; /**< Rotor speed in radians per second */
+
+    /*-------------------------------------------------------------------------
+    Estimated Quantities
+    -------------------------------------------------------------------------*/
+    float thetaEst; /**< Rotor electrical position estimate in radians */
+    float omegaEst; /**< Rotor speed estimate in radians per second */
+  };
+
+  extern SystemState foc_motor_state;
+
+
+  /**
+   * @brief State data for the inner current control loop
+   */
+  struct CurrentControlState
+  {
+    float              dt;    /**< Time delta between current control loop invocation */
+    float              ima;   /**< Current measured at phase A terminal */
+    float              imb;   /**< Current measured at phase B terminal */
+    float              imc;   /**< Current measured at phase C terminal */
+    float              vma;   /**< Voltage measured at phase A terminal */
+    float              vmb;   /**< Voltage measured at phase B terminal */
+    float              vmc;   /**< Voltage measured at phase C terminal */
+    float              iq;    /**< Current output measurement for the q-axis */
+    float              id;    /**< Current output measurement for the d-axis */
+    float              vq;    /**< Voltage command for the q-axis */
+    float              vd;    /**< Voltage command for the d-axis */
+    float              va;    /**< Voltage (alpha) after inverse-park transform */
+    float              vb;    /**< Voltage (beta) after inverse-park transform */
+    float              ia;    /**< Current (alpha) after clarke transform */
+    float              ib;    /**< Current (beta) after clarke transform */
+    float              iqRef; /**< Current reference for the q-axis */
+    float              idRef; /**< Current reference for the d-axis */
+    Control::Math::PID iqPID; /**< Current controller for the q-axis */
+    Control::Math::PID idPID; /**< Current controller for the d-axis */
+  };
+
+  extern CurrentControlState foc_ireg_state;
+
+
   struct ControllerData
   {
     /*-------------------------------------------------------------------------
@@ -141,10 +191,6 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Fast Loop Update Variables
     -------------------------------------------------------------------------*/
-    float   svpwm_a_duty; /**< Duty cycle for phase A */
-    float   svpwm_b_duty; /**< Duty cycle for phase B */
-    float   svpwm_c_duty; /**< Duty cycle for phase C */
-    uint8_t svpwm_comm;   /**< Commutation sector to use */
 
     /*-------------------------------------------------------------------------
     Estimated Quantities
@@ -165,10 +211,10 @@ namespace Orbit::Control
       posEst = 0.0f;
       spdEst = 0.0f;
       Vdd    = 0.0f;
-      Idm = 0.0f;
-      Idf = 0.0f;
-      Idr = 0.0f;
-      Vdr = 0.0f;
+      Idm    = 0.0f;
+      Idf    = 0.0f;
+      Idr    = 0.0f;
+      Vdr    = 0.0f;
       Dpid.init();
       DFIR = Math::FIR<float, 15>();
 
@@ -178,15 +224,8 @@ namespace Orbit::Control
       Vqr = 0.0f;
       Qpid.init();
       QFIR = Math::FIR<float, 15>();
-
-      svpwm_a_duty = 0.0f;
-      svpwm_b_duty = 0.0f;
-      svpwm_c_duty = 0.0f;
-      svpwm_comm = 0;
     }
   };
-
-
 
 
   /**
@@ -208,6 +247,16 @@ namespace Orbit::Control
       motorCtl.clear();
     }
   };
+
+  /*---------------------------------------------------------------------------
+  Public Functions
+  ---------------------------------------------------------------------------*/
+  /**
+   * @brief Initializes the global FOC data structures
+   * @return void
+   */
+  void initFOCData();
+
 }    // namespace Orbit::Control
 
 #endif /* !ORBIT_FOC_DATA_HPP */

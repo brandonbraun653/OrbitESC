@@ -5,7 +5,7 @@
  *  Description:
  *    System mode controller
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -18,8 +18,10 @@ Includes
 #include <Aurora/logging>
 #include <etl/fsm.h>
 #include <etl/message.h>
+#include <etl/string_view.h>
 #include <limits>
 #include <src/control/foc_data.hpp>
+#include <src/core/com/proto/motor_control.pb.h>
 
 namespace Orbit::Control
 {
@@ -39,11 +41,9 @@ namespace Orbit::Control
   {
     enum
     {
-      EMERGENCY_HALT, /**< Emergency stop the motor and place into a safe state */
       ARM,            /**< Prepare the motor control system to run */
-      DISARM,         /**< Move the motor controller to an idle state */
       ENGAGE,         /**< Engage the control system and drive the motor */
-      DISENGAGE,      /**< Disengage the control system and stop driving the motor */
+      DISABLE,        /**< Move the motor controller to an idle state */
       FAULT,          /**< Indicate a fault has occurred */
 
       NUM_EVENTS
@@ -58,27 +58,20 @@ namespace Orbit::Control
   {
     enum
     {
-      IDLE,    /**< Control system is not engaged */
-      ARMED,   /**< System is armed and ready to engage */
-      ENGAGED, /**< Controller is running normally */
-      FAULT,   /**< System is having problems */
+      IDLE    = MotorCtrlState_MOTOR_CTRL_STATE_IDLE,    /**< Control system is not engaged */
+      ARMED   = MotorCtrlState_MOTOR_CTRL_STATE_ARMED,   /**< System is armed and ready to engage */
+      ENGAGED = MotorCtrlState_MOTOR_CTRL_STATE_ENGAGED, /**< Controller is running normally */
+      FAULT   = MotorCtrlState_MOTOR_CTRL_STATE_FAULT,   /**< System is having problems */
 
-      NUM_STATES
+      NUM_STATES = 4
     };
   };
 
   /*---------------------------------------------------------------------------
   Event Message Types
   ---------------------------------------------------------------------------*/
-  class MsgEmergencyHalt : public etl::message<EventId::EMERGENCY_HALT>
-  {
-  };
 
   class MsgArm : public etl::message<EventId::ARM>
-  {
-  };
-
-  class MsgDisarm : public etl::message<EventId::DISARM>
   {
   };
 
@@ -86,7 +79,7 @@ namespace Orbit::Control
   {
   };
 
-  class MsgDisengage : public etl::message<EventId::DISENGAGE>
+  class MsgDisable : public etl::message<EventId::DISABLE>
   {
   };
 
@@ -102,17 +95,17 @@ namespace Orbit::Control
    * @brief Gets a stringified name of the event
    *
    * @param event   Which event to get the name of
-   * @return const std::string_view&
+   * @return const etl::string_view&
    */
-  const std::string_view &getMessageString( const EventId_t event );
+  const etl::string_view &getMessageString( const EventId_t event );
 
   /**
    * @brief Gets a stringified name of the mode
    *
    * @param state   Which mode to look up
-   * @return const std::string_view&
+   * @return const etl::string_view&
    */
-  const std::string_view &getModeString( const ModeId_t mode );
+  const etl::string_view &getModeString( const ModeId_t mode );
 
 }    // namespace Orbit::Control
 

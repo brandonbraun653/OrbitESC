@@ -27,6 +27,17 @@ namespace Orbit::Serial::Router
   using ParamIOQueue = etl::queue_spsc_atomic<Message::ParamIO, 3, etl::memory_model::MEMORY_MODEL_SMALL>;
 
   /*---------------------------------------------------------------------------
+  Enumerations
+  ---------------------------------------------------------------------------*/
+  enum RouterId : uint8_t
+  {
+    ROUTER_ID_PING = 0,
+    ROUTER_ID_PARAM_IO,
+    ROUTER_ID_SYS_CTRL,
+    ROUTER_ID_MAX
+  };
+
+  /*---------------------------------------------------------------------------
   Public Data
   ---------------------------------------------------------------------------*/
   /**
@@ -56,19 +67,11 @@ namespace Orbit::Serial::Router
     void on_receive_unknown( const etl::imessage &msg );
   };
 
-  class SysCtrlRouter : public etl::message_router<SysCtrlRouter, Message::SysCtrl>
+  class SysCtrlRouter : public etl::message_router<SysCtrlRouter, Message::SystemControl>
   {
   public:
     SysCtrlRouter();
-    void on_receive( const Message::SysCtrl &msg );
-    void on_receive_unknown( const etl::imessage &msg );
-  };
-
-  class SwitchModeRouter : public etl::message_router<SwitchModeRouter, Message::SwitchMode>
-  {
-  public:
-    SwitchModeRouter();
-    void on_receive( const Message::SwitchMode &msg );
+    void on_receive( const Message::SystemControl &msg );
     void on_receive_unknown( const etl::imessage &msg );
   };
 

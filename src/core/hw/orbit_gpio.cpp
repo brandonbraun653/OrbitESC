@@ -5,7 +5,7 @@
  *  Description:
  *    Orbit GPIO bus driver
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -16,33 +16,16 @@ Includes
 #include <Chimera/gpio>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/hw/orbit_gpio.hpp>
-#include <src/control/foc_driver.hpp>
 
 
 namespace Orbit::GPIO
 {
   /*---------------------------------------------------------------------------
-  Static Functions
-  ---------------------------------------------------------------------------*/
-  static void eStopISR( void * )
-  {
-    using namespace Orbit::Control;
-    // FOCDriver.sendSystemEvent( EventId::EMERGENCY_HALT );
-  }
-
-  /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
   void powerUp()
   {
-    /*-------------------------------------------------------------------------
-    Initialize the emergency stop button
-    -------------------------------------------------------------------------*/
-    Chimera::Function::vGeneric callback = Chimera::Function::vGeneric::create<eStopISR>();
-
-    auto gpio = Chimera::GPIO::getDriver( IO::Digital::eStopPort, IO::Digital::eStopPin );
-    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( IO::Digital::eStopPinInit ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == gpio->attachInterrupt( callback, Chimera::EXTI::EdgeTrigger::RISING_EDGE ) );
+    Chimera::GPIO::Driver_rPtr gpio = nullptr;
 
     /*-------------------------------------------------------------------------
     Initialize the LED output enable pin
@@ -50,6 +33,19 @@ namespace Orbit::GPIO
     #if defined( ORBIT_ESC_V2 )
     gpio = Chimera::GPIO::getDriver( IO::Digital::ledOEPort, IO::Digital::ledOEPin );
     RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( IO::Digital::ledOEPinInit ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->setState( Chimera::GPIO::State::LOW ) );
+    #endif
+
+    /*-------------------------------------------------------------------------
+    Intialize the debug output pins
+    -------------------------------------------------------------------------*/
+    #if defined( ORBIT_ESC_V3 )
+    gpio = Chimera::GPIO::getDriver( IO::Digital::dbg1Port, IO::Digital::dbg1Pin );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( IO::Digital::dbg1PinInit ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->setState( Chimera::GPIO::State::LOW ) );
+
+    gpio = Chimera::GPIO::getDriver( IO::Digital::dbg2Port, IO::Digital::dbg2Pin );
+    RT_HARD_ASSERT( Chimera::Status::OK == gpio->init( IO::Digital::dbg2PinInit ) );
     RT_HARD_ASSERT( Chimera::Status::OK == gpio->setState( Chimera::GPIO::State::LOW ) );
     #endif
   }

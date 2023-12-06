@@ -22,30 +22,32 @@ namespace Orbit::System
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
-  /**
-   * @brief Gets the currently executing mode of the system
-   * @return Mode
-   */
-  Mode getMode();
-
-  /**
-   * @brief Safely shuts down the system and transitions to a new mode
-   * @return void
-   */
-  void setMode( const Mode next );
-
-  /**
-   * @brief Converts a mode enum to a string
-   *
-   * @param mode  Mode to convert
-   * @return const char*
-   */
-  const char *modeString( const Mode mode );
 
   /**
    * @brief Performs a safe shutdown of the system
    */
   void doSafeShutdown();
+
+  /**
+   * @brief Logs a fault event with the system
+   *
+   * @param fault   Fault code
+   * @param msg     Message to associate with the fault
+   * @return void
+   */
+  void addFaultEvent( const Fault f, const std::string_view &msg );
+
+  /**
+   * @brief Gets the next fault log entry without removing it from the queue
+   * @return FaultLogEntry
+   */
+  FaultLogEntry peekFaultLog();
+
+  /**
+   * @brief Pops the next fault log entry off the queue
+   * @return void
+   */
+  void popFaultLog();
 
 }    // namespace Orbit::System
 
