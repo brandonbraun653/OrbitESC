@@ -13,7 +13,6 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/system>
 #include <src/control/modes/sys_mode_run.hpp>
-#include <src/core/hw/orbit_instrumentation.hpp>
 
 namespace Orbit::Control::State
 {
@@ -28,15 +27,6 @@ namespace Orbit::Control::State
   etl::fsm_state_id_t Engaged::on_enter_state()
   {
     LOG_INFO( "Entering RUN state" );
-
-    // TODO BMB: Configure this threshold with a parameter
-    if( Orbit::Instrumentation::getSupplyVoltage() < 10.0f )
-    {
-      LOG_WARN( "Cannot engage run state. Supply voltage is too low." );
-      return this->No_State_Change;
-    }
-
-
     return ModeId::ENGAGED;
   }
 

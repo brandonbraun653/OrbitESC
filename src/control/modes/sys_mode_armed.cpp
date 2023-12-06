@@ -12,9 +12,10 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/system>
-#include <src/control/modes/sys_mode_armed.hpp>
 #include <src/control/current_control.hpp>
+#include <src/control/modes/sys_mode_armed.hpp>
 #include <src/control/speed_control.hpp>
+#include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_led.hpp>
 
 namespace Orbit::Control::State
@@ -24,25 +25,31 @@ namespace Orbit::Control::State
   ---------------------------------------------------------------------------*/
   void Armed::on_exit_state()
   {
-    LOG_INFO( "Exiting ARMED state" );
     LED::clearChannel( LED::Channel::ARMED );
+    LOG_INFO( "Exiting ARMED state" );
   }
 
   etl::fsm_state_id_t Armed::on_enter_state()
   {
-    LOG_INFO( "Entered ARMED state" );
+    // TODO BMB: Configure this threshold with a parameter
+    if( float voltage = Orbit::Instrumentation::getSupplyVoltage(); voltage < 10.0f )
+    {
+      LOG_WARN( "Cannot engage ARMED state. Power supply [%.2fV] too low.", voltage );
+      return ModeId::IDLE;
+    }
 
     /*-------------------------------------------------------------------------
     Power up the motor control drivers
     -------------------------------------------------------------------------*/
-    // Control::Field::powerUp();
-    // Control::Speed::powerUp();
+    Control::Field::powerUp();
+    Control::Speed::powerUp();
 
     /*-------------------------------------------------------------------------
     Signal to the user that the system is armed
     -------------------------------------------------------------------------*/
     LED::setChannel( LED::Channel::ARMED );
 
+    LOG_INFO( "Entered ARMED state" );
     return ModeId::ARMED;
   }
 

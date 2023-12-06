@@ -27,8 +27,19 @@ pyqtgraph = "^0.13.3"
 pyudev = "^0.24.1"
 pytest-profiling = "^1.7.0"
 mypy-protobuf = "3.1.0"
+sip = "^6.8.0"
+astropy = "^6.0.0"
+h5py = "^3.10.0"
+tomli = "^2.0.1"
+iminuit = "^2.24.0"
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["pyorbit/tests"]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s"

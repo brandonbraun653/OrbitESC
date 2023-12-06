@@ -1,11 +1,15 @@
 import math
 import time
+import logging
 from typing import List
 from pyorbit.serial.messages import SystemDataPBMsg, SystemTickPBMsg, SystemStatusPBMsg
 from pyorbit.tests.fixtures import *
 from pyorbit.nanopb.system_data_pb2 import *
+from pyorbit.nanopb.motor_control_pb2 import *
 from pyorbit.serial.client import OrbitClient
 from pyorbit.utility.time import period_to_hz
+
+LOGGER = logging.getLogger(__name__)
 
 
 @pytest.mark.usefixtures("serial_client")
@@ -98,4 +102,30 @@ class TestStaticStreamingData:
         avg_hz /= float(len(messages) - 1)
         assert math.isclose(avg_hz, 30.0, rel_tol=0.05)
 
+    def test_phase_currents_when_armed(self, serial_client: OrbitClient) -> None:
+        """ Validates expected phase currents when motor is armed and not spinning """
+        LOGGER.info("Command transition to ARMED state")
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_IDLE)
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ARMED)
 
+        LOGGER.info("Acquiring phase current data sample")
+        assert serial_client.stream_phase_currents(True)
+
+        packets = serial_client.com_pipe.filter(
+            lambda msg: isinstance(msg, SystemDataPBMsg) and (msg.data_id == SystemDataId.ADC_PHASE_CURRENTS),
+            qty=100,
+            timeout=15)
+
+        assert serial_client.stream_phase_currents(False)
+
+        LOGGER.info("Command an IDLE state")
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_IDLE)
+
+        LOGGER.info("Validating phase currents are approximately zero for all samples")
+        messages = [msg.extract_payload() for msg in packets]
+        assert len(packets) == 100
+        for msg in messages:
+            assert isinstance(msg, ADCPhaseCurrentsPayload)
+            assert math.isclose(msg.ia, 0.0, rel_tol=0.1)
+            assert math.isclose(msg.ib, 0.0, rel_tol=0.1)
+            assert math.isclose(msg.ic, 0.0, rel_tol=0.1)
