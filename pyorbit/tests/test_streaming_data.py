@@ -102,6 +102,37 @@ class TestStaticStreamingData:
         avg_hz /= float(len(messages) - 1)
         assert math.isclose(avg_hz, 30.0, rel_tol=0.05)
 
+    def test_motor_phase_voltages(self, serial_client: OrbitClient) -> None:
+        """ Validates that motor phase voltage data is being reported periodically """
+
+        LOGGER.info("Acquiring phase voltage data sample")
+        serial_client.stream_phase_voltages(True)
+        packets = serial_client.com_pipe.filter(
+            lambda msg: isinstance(msg, SystemDataPBMsg) and (msg.data_id == SystemDataId.ADC_PHASE_VOLTAGES),
+            qty=15,
+            timeout=5.0)
+        serial_client.stream_phase_voltages(False)
+
+        messages = [msg.extract_payload() for msg in packets]
+
+        LOGGER.info("Validating phase voltage data and frequency")
+        assert len(packets) == 15
+        avg_hz = 0.0
+        for idx in range(1, len(messages)):
+            avg_hz += period_to_hz(packets[idx].timestamp, packets[idx - 1].timestamp)
+
+            # Ensure the message converted over to the expected type
+            assert isinstance(messages[idx], ADCPhaseVoltagesPayload)
+
+            # The motor drive isn't enabled, so the reported currents should be roughly zero
+            assert math.isclose(messages[idx].va, 0.0, rel_tol=0.1)
+            assert math.isclose(messages[idx].vb, 0.0, rel_tol=0.1)
+            assert math.isclose(messages[idx].vc, 0.0, rel_tol=0.1)
+
+        # The reported frequency should be roughly 30Hz
+        avg_hz /= float(len(messages) - 1)
+        assert math.isclose(avg_hz, 30.0, rel_tol=0.05)
+
     def test_phase_currents_when_armed(self, serial_client: OrbitClient) -> None:
         """ Validates expected phase currents when motor is armed and not spinning """
         LOGGER.info("Command transition to ARMED state")
@@ -129,3 +160,31 @@ class TestStaticStreamingData:
             assert math.isclose(msg.ia, 0.0, rel_tol=0.1)
             assert math.isclose(msg.ib, 0.0, rel_tol=0.1)
             assert math.isclose(msg.ic, 0.0, rel_tol=0.1)
+
+    def test_phase_voltages_when_armed(self, serial_client: OrbitClient) -> None:
+        """ Validates expected phase voltages when motor is armed and not spinning """
+        LOGGER.info("Command transition to ARMED state")
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_IDLE)
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ARMED)
+
+        LOGGER.info("Acquiring phase voltage data sample")
+        assert serial_client.stream_phase_voltages(True)
+
+        packets = serial_client.com_pipe.filter(
+            lambda msg: isinstance(msg, SystemDataPBMsg) and (msg.data_id == SystemDataId.ADC_PHASE_VOLTAGES),
+            qty=100,
+            timeout=15)
+
+        assert serial_client.stream_phase_voltages(False)
+
+        LOGGER.info("Command an IDLE state")
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_IDLE)
+
+        LOGGER.info("Validating phase voltages are approximately zero for all samples")
+        messages = [msg.extract_payload() for msg in packets]
+        assert len(packets) == 100
+        for msg in messages:
+            assert isinstance(msg, ADCPhaseVoltagesPayload)
+            assert math.isclose(msg.va, 0.0, rel_tol=0.1)
+            assert math.isclose(msg.vb, 0.0, rel_tol=0.1)
+            assert math.isclose(msg.vc, 0.0, rel_tol=0.1)

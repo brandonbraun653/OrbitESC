@@ -16,7 +16,7 @@ from functools import wraps
 from loguru import logger
 from typing import Any, Callable, Union
 
-from pyorbit.serial.intf.system_control import StreamPhaseCurrentsPBMsg, SystemResetPBMsg
+from pyorbit.serial.intf.system_control import StreamPhaseCurrentsPBMsg, SystemResetPBMsg, StreamPhaseVoltagesPBMsg
 from pyorbit.serial.pipe import SerialPipePublisher
 from pyorbit.exceptions import NotOnlineException
 from pyorbit.serial.messages import *
@@ -120,6 +120,19 @@ class OrbitClient:
         rsp = self.com_pipe.write_and_wait(StreamPhaseCurrentsPBMsg(enable=enable), timeout=3.0)
         return self.com_pipe.process_ack_nack_response(rsp, f"Failed to {'enable' if enable else 'disable'} "
                                                             f"phase current streaming")
+
+    def stream_phase_voltages(self, enable: bool) -> bool:
+        """
+        Enable or disable the streaming of phase voltage data from the ESC
+        Args:
+            enable: True to enable, False to disable
+
+        Returns:
+            True if the command was successful, False otherwise
+        """
+        rsp = self.com_pipe.write_and_wait(StreamPhaseVoltagesPBMsg(enable=enable), timeout=3.0)
+        return self.com_pipe.process_ack_nack_response(rsp, f"Failed to {'enable' if enable else 'disable'} "
+                                                            f"phase voltage streaming")
 
     def system_reset(self) -> None:
         """

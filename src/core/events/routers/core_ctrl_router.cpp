@@ -41,6 +41,21 @@ namespace Orbit::Event
     enableStream( STREAM_ID_PHASE_CURRENTS, msg.enable );
   }
 
+
+  void CoreControlRouter::on_receive( const StreamPhaseVoltages &msg )
+  {
+    using namespace Orbit::COM;
+    enableStream( STREAM_ID_PHASE_VOLTAGES, msg.enable );
+  }
+
+
+  void CoreControlRouter::on_receive( const StreamSystemVoltages &msg )
+  {
+    using namespace Orbit::COM;
+    enableStream( STREAM_ID_SYSTEM_VOLTAGES, msg.enable );
+  }
+
+
   void CoreControlRouter::on_receive_unknown( const etl::imessage &msg )
   {
     /* Do nothing */

@@ -6,6 +6,7 @@ from pyorbit.nanopb.system_control_pb2 import *
 
 
 class StreamPhaseCurrentsPBMsg(BasePBMsg):
+    """ Enable or disable the streaming of phase current data from the ESC """
 
     def __init__(self, enable: bool):
         super().__init__()
@@ -16,6 +17,20 @@ class StreamPhaseCurrentsPBMsg(BasePBMsg):
             self._pb_msg.header.subId = SystemControlSubId.ENABLE_STREAM_PHASE_CURRENTS
         else:
             self._pb_msg.header.subId = SystemControlSubId.DISABLE_STREAM_PHASE_CURRENTS
+
+
+class StreamPhaseVoltagesPBMsg(BasePBMsg):
+    """ Enable or disable the streaming of phase voltage data from the ESC """
+
+    def __init__(self, enable: bool):
+        super().__init__()
+        self._pb_msg = SystemControlMessage()
+        self._pb_msg.header.msgId = MsgId.MSG_SYS_CTRL
+
+        if enable:
+            self._pb_msg.header.subId = SystemControlSubId.ENABLE_STREAM_PHASE_VOLTAGES
+        else:
+            self._pb_msg.header.subId = SystemControlSubId.DISABLE_STREAM_PHASE_VOLTAGES
 
 
 class SystemResetPBMsg(BasePBMsg):

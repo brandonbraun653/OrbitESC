@@ -54,6 +54,24 @@ namespace Orbit::Serial::Router
         break;
       }
 
+      case SystemControlSubId_ENABLE_STREAM_PHASE_VOLTAGES:
+      case SystemControlSubId_DISABLE_STREAM_PHASE_VOLTAGES: {
+        Event::StreamPhaseVoltages event;
+        event.enable = ( msg.raw.header.subId == SystemControlSubId_ENABLE_STREAM_PHASE_VOLTAGES );
+
+        Orbit::Event::gControlBus.receive( event );
+        break;
+      }
+
+      case SystemControlSubId_DISABLE_STREAM_SYSTEM_VOLTAGES:
+      case SystemControlSubId_ENABLE_STREAM_SYSTEM_VOLTAGES: {
+        Event::StreamSystemVoltages event;
+        event.enable = ( msg.raw.header.subId == SystemControlSubId_ENABLE_STREAM_SYSTEM_VOLTAGES );
+
+        Orbit::Event::gControlBus.receive( event );
+        break;
+      }
+
       /*-----------------------------------------------------------------------
       Handle control system mode changes
       -----------------------------------------------------------------------*/

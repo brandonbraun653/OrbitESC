@@ -201,7 +201,6 @@
                     "${workspaceFolder}/lib/Aurora",
                     "${workspaceFolder}/lib/Chimera",
                     "${workspaceFolder}/lib/FreeRTOS",
-                    "${workspaceFolder}/lib/json",
                     "${workspaceFolder}/lib/Thor",
                     "${workspaceFolder}/lib/usb/tinyusb/src"
                 ],

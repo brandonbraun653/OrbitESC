@@ -32,6 +32,7 @@ namespace Orbit::Event
   {
     EVENT_SYS_RESET,
     EVENT_CFG_PHASE_CURRENT_STREAM,
+    EVENT_CFG_PHASE_VOLTAGE_STREAM,
     EVENT_CFG_SYSTEM_VOLTAGE_STREAM,
     EVENT_CFG_PWM_COMMAND_STREAM,
     EVENT_CFG_STATE_ESTIMATE_STREAM,
@@ -48,6 +49,11 @@ namespace Orbit::Event
   };
 
   struct StreamPhaseCurrents : public etl::message<EVENT_CFG_PHASE_CURRENT_STREAM>
+  {
+    bool enable;
+  };
+
+  struct StreamPhaseVoltages : public etl::message<EVENT_CFG_PHASE_VOLTAGE_STREAM>
   {
     bool enable;
   };

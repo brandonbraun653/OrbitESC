@@ -35,12 +35,15 @@ namespace Orbit::Event
   Classes
   ---------------------------------------------------------------------------*/
 
-  class CoreControlRouter : public etl::message_router<CoreControlRouter, SystemReset, StreamPhaseCurrents>
+  class CoreControlRouter : public etl::message_router<CoreControlRouter, SystemReset, StreamPhaseCurrents, StreamPhaseVoltages,
+                                                       StreamSystemVoltages>
   {
   public:
     CoreControlRouter();
     void on_receive( const SystemReset &msg );
     void on_receive( const StreamPhaseCurrents &msg );
+    void on_receive( const StreamPhaseVoltages &msg );
+    void on_receive( const StreamSystemVoltages &msg );
     void on_receive_unknown(const etl::imessage& msg);
   };
 }  // namespace Orbit::Event::Routers
