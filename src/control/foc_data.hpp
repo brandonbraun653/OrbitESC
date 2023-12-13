@@ -20,9 +20,9 @@ Includes
 #include <Chimera/common>
 #include <Chimera/adc>
 #include <Chimera/timer>
-#include <src/control/filter.hpp>
+#include <src/control/math/filter.hpp>
 #include <src/control/foc_math.hpp>
-#include <src/control/pid.hpp>
+#include <src/control/math/pid.hpp>
 #include <etl/circular_buffer.h>
 
 namespace Orbit::Control

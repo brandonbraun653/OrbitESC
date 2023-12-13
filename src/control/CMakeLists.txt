@@ -4,18 +4,20 @@ gen_static_lib_variants(
   TARGET
     lib_orbit_ctrl
   SOURCES
-    current_control.cpp
+    estimator/system_observer.cpp
     foc_data.cpp
     foc_driver.cpp
     foc_math.cpp
+    hardware/current_control.cpp
+    hardware/speed_control.cpp
+    math/pid.cpp
     modes/sys_mode_armed.cpp
     modes/sys_mode_base.cpp
     modes/sys_mode_fault.cpp
     modes/sys_mode_idle.cpp
     modes/sys_mode_run.cpp
-    pid.cpp
-    speed_control.cpp
-    system_observer.cpp
+    subroutines/subroutines.cpp
+    subroutines/idle/idle_subroutine.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc

@@ -20,7 +20,7 @@ Includes
 #include <Chimera/system>
 #include <cstdint>
 #include <etl/string.h>
-#include <src/control/filter.hpp>
+#include <src/control/math/filter.hpp>
 #include <src/core/hw/orbit_can.hpp>
 #include <src/core/system_types.hpp>
 

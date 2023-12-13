@@ -14,7 +14,7 @@ Includes
 #include <Chimera/function>
 #include <Chimera/gpio>
 #include <src/config/bsp/board_map.hpp>
-#include <src/control/current_control.hpp>
+#include <src/control/hardware/current_control.hpp>
 #include <src/control/foc_data.hpp>
 #include <src/control/foc_math.hpp>
 #include <src/core/data/orbit_data.hpp>

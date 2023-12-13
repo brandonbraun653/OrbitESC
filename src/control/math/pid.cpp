@@ -13,7 +13,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <algorithm>
 #include <limits>
-#include <src/control/pid.hpp>
+#include <src/control/math/pid.hpp>
 
 namespace Orbit::Control::Math
 {

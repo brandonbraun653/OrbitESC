@@ -13,7 +13,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <src/core/com/serial/serial_router.hpp>
 #include <src/core/com/serial/serial_server.hpp>
-#include <src/control/current_control.hpp>
+#include <src/control/hardware/current_control.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 #include <src/core/events/event_stream.hpp>
 #include <src/core/tasks.hpp>

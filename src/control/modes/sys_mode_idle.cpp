@@ -12,9 +12,9 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/system>
-#include <src/control/current_control.hpp>
+#include <src/control/hardware/current_control.hpp>
 #include <src/control/modes/sys_mode_idle.hpp>
-#include <src/control/speed_control.hpp>
+#include <src/control/hardware/speed_control.hpp>
 #include <src/core/hw/orbit_led.hpp>
 #include <src/monitor/orbit_monitors.hpp>
 

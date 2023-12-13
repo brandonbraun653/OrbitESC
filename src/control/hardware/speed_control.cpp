@@ -13,10 +13,10 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/timer>
 #include <src/config/bsp/board_map.hpp>
-#include <src/control/current_control.hpp>
+#include <src/control/hardware/current_control.hpp>
 #include <src/control/foc_data.hpp>
 #include <src/control/foc_math.hpp>
-#include <src/control/speed_control.hpp>
+#include <src/control/hardware/speed_control.hpp>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/data/orbit_data_defaults.hpp>
 #include <src/core/hw/orbit_motor.hpp>

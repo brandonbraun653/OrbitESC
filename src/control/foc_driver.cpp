@@ -132,7 +132,6 @@ namespace Orbit::Control::FOC
 
   void process()
   {
-    mState.motorCtl.isrCtlActive = true;
   }
 
 

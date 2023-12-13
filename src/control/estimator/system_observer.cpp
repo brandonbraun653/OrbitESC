@@ -11,7 +11,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <src/control/system_observer.hpp>
+#include <src/control/estimator/system_observer.hpp>
 
 namespace Orbit::Control
 {

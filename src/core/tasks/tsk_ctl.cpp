@@ -15,8 +15,9 @@ Includes
 #include <Chimera/adc>
 #include <Chimera/thread>
 #include <src/control/foc_driver.hpp>
-#include <src/control/current_control.hpp>
-#include <src/control/speed_control.hpp>
+#include <src/control/hardware/current_control.hpp>
+#include <src/control/hardware/speed_control.hpp>
+#include <src/control/subroutines/subroutines.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 #include <src/core/tasks.hpp>
@@ -93,9 +94,9 @@ namespace Orbit::Tasks::CTL
       process_task_messages();
 
       /*-----------------------------------------------------------------------
-      Process the FOC layer
+      Process the motor control application layer
       -----------------------------------------------------------------------*/
-      Control::FOC::process();
+      Control::Subroutine::process();
 
       /*-----------------------------------------------------------------------
       Pseudo attempt to run this task periodically
