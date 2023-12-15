@@ -17,7 +17,8 @@ gen_static_lib_variants(
     modes/sys_mode_idle.cpp
     modes/sys_mode_run.cpp
     subroutines/subroutines.cpp
-    subroutines/idle/idle_subroutine.cpp
+    subroutines/idle.cpp
+    subroutines/rotor_detector.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc

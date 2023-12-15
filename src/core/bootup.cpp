@@ -25,7 +25,7 @@ Includes
 #include <etl/circular_buffer.h>
 #include <src/config/bsp/board_map.hpp>
 #include <src/control/foc_driver.hpp>
-#include <src/control/subroutines/subroutines.hpp>
+#include <src/control/subroutines/interface.hpp>
 #include <src/core/bootup.hpp>
 #include <src/core/com/com_scheduler.hpp>
 #include <src/core/data/orbit_data.hpp>

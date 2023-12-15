@@ -27,8 +27,8 @@ namespace Orbit::Control::Subroutine
   enum class Routine : uint8_t
   {
     IDLE,
-    PARAMETER_ESTIMATOR,
     ALIGNMENT_DETECTION,
+    PARAMETER_ESTIMATOR,
     FORCE_ALIGNMENT,
     OPEN_LOOP_RAMP_FOC,
     CLOSED_LOOP_LOCK_FOC,
@@ -56,7 +56,6 @@ namespace Orbit::Control::Subroutine
   {
     UNINITIALIZED,  /**< Routine is idle and not ready */
     INITIALIZED,    /**< Init sequence has been performed */
-    STARTED,        /**< System has started */
     RUNNING,        /**< System is running */
     STOPPED,        /**< System has terminated */
     PANIC,          /**< System has encountered an error */
@@ -90,7 +89,7 @@ namespace Orbit::Control::Subroutine
      * @brief Perform any startup tasks to transition to the run state.
      *
      * Once the system has finished starting, it's expected it will report a
-     * new state of STARTED.
+     * new state of RUNNING or PANIC.
      *
      * @return void
      */
@@ -100,7 +99,7 @@ namespace Orbit::Control::Subroutine
      * @brief Perform any shutdown tasks to transition to the stopped state.
      *
      * Once the system has finished stopping, it's expected it will report a
-     * new state of STOPPED.
+     * new state of STOPPED or PANIC.
      *
      * @return void
      */

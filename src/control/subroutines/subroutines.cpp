@@ -11,9 +11,10 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Chimera/assert>
 #include <Aurora/utility>
 #include <etl/array.h>
-#include <src/control/subroutines/subroutines.hpp>
+#include <src/control/subroutines/interface.hpp>
 
 namespace Orbit::Control::Subroutine
 {
@@ -25,8 +26,9 @@ namespace Orbit::Control::Subroutine
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static RoutineArray  s_routine_map;
-  static ISubroutine * s_curr_routine;
+
+  static RoutineArray  s_routine_map;   /**< Storage of bound routines */
+  static ISubroutine * s_curr_routine;  /**< Currently executing routine */
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -42,6 +44,12 @@ namespace Orbit::Control::Subroutine
   {
     if ( routine < Routine::NUM_OPTIONS )
     {
+      if( pimpl )
+      {
+        RT_HARD_ASSERT( pimpl->id == routine );
+        pimpl->initialize();
+      }
+
       s_routine_map[ EnumValue( routine ) ] = pimpl;
     }
   }
@@ -70,7 +78,6 @@ namespace Orbit::Control::Subroutine
         s_curr_routine->start();
         break;
 
-      case State::STARTED:
       case State::RUNNING:
         s_curr_routine->process();
         break;

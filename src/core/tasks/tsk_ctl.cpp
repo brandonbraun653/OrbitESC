@@ -17,7 +17,8 @@ Includes
 #include <src/control/foc_driver.hpp>
 #include <src/control/hardware/current_control.hpp>
 #include <src/control/hardware/speed_control.hpp>
-#include <src/control/subroutines/subroutines.hpp>
+#include <src/control/subroutines/declarations.hpp>
+#include <src/control/subroutines/interface.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 #include <src/core/tasks.hpp>
@@ -26,6 +27,13 @@ Includes
 
 namespace Orbit::Tasks::CTL
 {
+  /*---------------------------------------------------------------------------
+  Static Data
+  ---------------------------------------------------------------------------*/
+
+  static Control::Subroutine::IdleSubroutine s_idle_routine;
+  static Control::Subroutine::RotorDetector  s_rotor_pos_detector_routine;
+
   /*---------------------------------------------------------------------------
   Static Functions
   ---------------------------------------------------------------------------*/
@@ -80,6 +88,12 @@ namespace Orbit::Tasks::CTL
     Wait for the start signal
     -------------------------------------------------------------------------*/
     waitInit();
+
+    /*-------------------------------------------------------------------------
+    Bind the motor control routines to define runtime behavior
+    -------------------------------------------------------------------------*/
+    Control::Subroutine::bind( Control::Subroutine::Routine::IDLE, &s_idle_routine );
+    Control::Subroutine::bind( Control::Subroutine::Routine::ALIGNMENT_DETECTION, &s_rotor_pos_detector_routine );
 
     /*-------------------------------------------------------------------------
     Run the CTL thread

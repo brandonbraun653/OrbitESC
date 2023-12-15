@@ -1,9 +1,9 @@
 /******************************************************************************
  *  File Name:
- *    idle_subroutine.hpp
+ *    declarations.hpp
  *
  *  Description:
- *    Basic idling subroutine
+ *    Subroutine class interface declarations
  *
  *  2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
@@ -15,15 +15,43 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <src/control/subroutines/subroutines.hpp>
+#include <src/control/subroutines/interface.hpp>
 
 namespace Orbit::Control::Subroutine
 {
+  /*---------------------------------------------------------------------------
+  Classes
+  ---------------------------------------------------------------------------*/
+
+  /**
+   * @brief Background routine to execute if nothing else is running.
+   */
   class IdleSubroutine : public ISubroutine
   {
   public:
     IdleSubroutine();
     ~IdleSubroutine();
+
+    void initialize() final override;
+    void start() final override;
+    void stop() final override;
+    void destroy() final override;
+    void process() final override;
+    State state() final override;
+  };
+
+
+  /**
+   * @brief Subroutine for detecting the static rotor position.
+   *
+   * Only intended to be used for startup algorithms that need to detect
+   * the initial position of the rotor for driving the stator properly.
+   */
+  class RotorDetector : public ISubroutine
+  {
+  public:
+    RotorDetector();
+    ~RotorDetector();
 
     void initialize() final override;
     void start() final override;

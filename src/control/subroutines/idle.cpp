@@ -11,12 +11,12 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <src/control/subroutines/idle/idle_subroutine.hpp>
+#include <src/control/subroutines/declarations.hpp>
 
 namespace Orbit::Control::Subroutine
 {
   /*-----------------------------------------------------------------------------
-  Public Functions
+  IdleSubroutine Implementation
   -----------------------------------------------------------------------------*/
   IdleSubroutine::IdleSubroutine()
   {
@@ -31,21 +31,25 @@ namespace Orbit::Control::Subroutine
 
   void IdleSubroutine::initialize()
   {
+    mState = State::INITIALIZED;
   }
 
 
   void IdleSubroutine::start()
   {
+    mState = State::RUNNING;
   }
 
 
   void IdleSubroutine::stop()
   {
+    mState = State::STOPPED;
   }
 
 
   void IdleSubroutine::destroy()
   {
+    mState = State::UNINITIALIZED;
   }
 
 
@@ -56,7 +60,7 @@ namespace Orbit::Control::Subroutine
 
   State IdleSubroutine::state()
   {
-    return State::UNINITIALIZED;
+    return mState;
   }
 
 }    // namespace Orbit::Control::Subroutine
