@@ -21,6 +21,8 @@ Includes
 #include <src/core/data/orbit_data_defaults.hpp>
 #include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_motor.hpp>
+#include <src/core/hw/orbit_motor_drive.hpp>
+#include <src/core/hw/orbit_motor_sense.hpp>
 
 namespace Orbit::Control::Field
 {
@@ -74,13 +76,13 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Map the current control function to the ADC DMA ISR
     -------------------------------------------------------------------------*/
-    Orbit::Motor::setSenseCallback( isr_current_control_loop );
+    Orbit::Motor::Sense::setSenseCallback( isr_current_control_loop );
 
     /*-------------------------------------------------------------------------
     Initialize the motor drive and feedback sense hardware
     -------------------------------------------------------------------------*/
-    Orbit::Motor::powerUpDrive();    // Drive timer first since it's the master
-    Orbit::Motor::powerUpSense();    // Sense timer second since it's the slave
+    Orbit::Motor::Drive::powerUpDrive();    // Drive timer first since it's the master
+    Orbit::Motor::Sense::powerUpSense();    // Sense timer second since it's the slave
 
     /*-------------------------------------------------------------------------
     Prepare the system for FOC operation
@@ -143,7 +145,7 @@ namespace Orbit::Control::Field
     switch( mode )
     {
       case Mode::DISABLED:
-        Orbit::Motor::disableDriveOutput();
+        Orbit::Motor::Drive::disableDriveOutput();
         break;
 
       case Mode::OPEN_LOOP:
@@ -159,7 +161,7 @@ namespace Orbit::Control::Field
         break;
 
       default:
-        Orbit::Motor::disableDriveOutput();
+        Orbit::Motor::Drive::disableDriveOutput();
         return false;
     }
 
@@ -192,7 +194,8 @@ namespace Orbit::Control::Field
   ---------------------------------------------------------------------------*/
   static void isr_current_control_loop()
   {
-    using namespace Orbit::Motor;
+    using namespace Orbit::Motor::Drive;
+    using namespace Orbit::Motor::Sense;
     using namespace Orbit::Instrumentation;
     using namespace Orbit::Control::Math;
 

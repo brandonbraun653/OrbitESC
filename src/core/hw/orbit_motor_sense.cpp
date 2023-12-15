@@ -23,9 +23,10 @@ Includes
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/hw/orbit_motor.hpp>
+#include <src/core/hw/orbit_motor_sense.hpp>
 #include <src/core/hw/orbit_timer.hpp>
 
-namespace Orbit::Motor
+namespace Orbit::Motor::Sense
 {
   /*---------------------------------------------------------------------------
   Structures

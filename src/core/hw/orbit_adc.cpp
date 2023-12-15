@@ -17,6 +17,7 @@ Includes
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_motor.hpp>
+#include <src/core/hw/orbit_motor_sense.hpp>
 #include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_timer.hpp>
 
@@ -214,16 +215,16 @@ namespace Orbit::ADC
     Sequence conversion configuration
     -------------------------------------------------------------------------*/
     s_motor_channels.fill( Chimera::ADC::Channel::UNKNOWN );
-    s_motor_channels[ Motor::CHANNEL_PHASE_A_CURRENT ] = IO::Analog::adcIPhaseA;
-    s_motor_channels[ Motor::CHANNEL_PHASE_B_CURRENT ] = IO::Analog::adcIPhaseB;
-    s_motor_channels[ Motor::CHANNEL_PHASE_C_CURRENT ] = IO::Analog::adcIPhaseC;
-    s_motor_channels[ Motor::CHANNEL_PHASE_A_VOLTAGE ] = IO::Analog::adcVPhaseA;
-    s_motor_channels[ Motor::CHANNEL_PHASE_B_VOLTAGE ] = IO::Analog::adcVPhaseB;
-    s_motor_channels[ Motor::CHANNEL_PHASE_C_VOLTAGE ] = IO::Analog::adcVPhaseC;
+    s_motor_channels[ Motor::Sense::CHANNEL_PHASE_A_CURRENT ] = IO::Analog::adcIPhaseA;
+    s_motor_channels[ Motor::Sense::CHANNEL_PHASE_B_CURRENT ] = IO::Analog::adcIPhaseB;
+    s_motor_channels[ Motor::Sense::CHANNEL_PHASE_C_CURRENT ] = IO::Analog::adcIPhaseC;
+    s_motor_channels[ Motor::Sense::CHANNEL_PHASE_A_VOLTAGE ] = IO::Analog::adcVPhaseA;
+    s_motor_channels[ Motor::Sense::CHANNEL_PHASE_B_VOLTAGE ] = IO::Analog::adcVPhaseB;
+    s_motor_channels[ Motor::Sense::CHANNEL_PHASE_C_VOLTAGE ] = IO::Analog::adcVPhaseC;
 
     seq.clear();
     seq.channels    = &s_motor_channels;
-    seq.numChannels = Motor::CHANNEL_COUNT;
+    seq.numChannels = Motor::Sense::CHANNEL_COUNT;
     seq.seqGroup    = Chimera::ADC::SequenceGroup::REGULAR;
     seq.seqMode     = Chimera::ADC::SamplingMode::TRIGGER;
     seq.trigMode    = Chimera::ADC::TriggerMode::RISING_EDGE;
@@ -315,7 +316,7 @@ namespace Orbit::ADC
     uint32_t sampleTimeNs = 0;
     auto     adc          = Chimera::ADC::getDriver( IO::Analog::MotorADC );
 
-    for ( size_t idx = 0; idx < Motor::CHANNEL_COUNT; idx++ )
+    for ( size_t idx = 0; idx < Motor::Sense::CHANNEL_COUNT; idx++ )
     {
       sampleTimeNs += adc->totalMeasureTime( adc->getSampleCycle( s_motor_channels[ idx ] ) );
     }

@@ -3,7 +3,7 @@
  *    orbit_motor_drive.cpp
  *
  *  Description:
- *    Hardware driver for controlling the motor power stage
+ *    Hardware driver for controlling the motor drive power stage
  *
  *  2023 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
@@ -16,14 +16,15 @@ Includes
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_motor.hpp>
+#include <src/core/hw/orbit_motor_drive.hpp>
 
 
-namespace Orbit::Motor
+namespace Orbit::Motor::Drive
 {
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static Chimera::Timer::Inverter::Driver s_motor_drive_timer; /**< Motor drive timer */
+  static Chimera::Timer::Inverter::Driver s_motor_drive_timer;
 
   /*---------------------------------------------------------------------------
   Public Functions
