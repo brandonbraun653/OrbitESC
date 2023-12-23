@@ -16,3 +16,6 @@ hw/sim/HalfBridgeDriver/HalfBridgeDriver-backups/
 
 # Testing and Profiling Outputs
 pyorbit/tests/prof
+
+# Doxygen Outputs
+docs/**
