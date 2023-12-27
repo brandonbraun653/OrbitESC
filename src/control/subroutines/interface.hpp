@@ -16,7 +16,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <cstdint>
-
+#include <etl/string.h>
 
 namespace Orbit::Control::Subroutine
 {
@@ -38,16 +38,6 @@ namespace Orbit::Control::Subroutine
     NUM_OPTIONS
   };
 
-  /**
-   * @brief Operational request to interact with the subroutines
-   */
-  enum class Request : uint8_t
-  {
-    START,
-    STOP,
-    DESTROY,
-    INVALID_REQUEST
-  };
 
   /**
    * @brief The various states a subroutine can be in
@@ -77,7 +67,8 @@ namespace Orbit::Control::Subroutine
   public:
     virtual ~ISubroutine() = default;
 
-    Routine id; /**< Which routine this is */
+    Routine         id;   /**< Which routine this is */
+    etl::string<16> name; /**< Name of the routine */
 
     /**
      * @brief Prepare the subroutine for use
@@ -164,15 +155,15 @@ namespace Orbit::Control::Subroutine
    * @brief Gets the currently executing routine
    * @return Routine
    */
-  Routine currentRoutine();
+  Routine getActiveSubroutine();
 
   /**
-   * @brief Modify the currently executing routine's state
+   * @brief Gets the name of a particular routine
    *
-   * @param request The request to send to the controller
-   * @return bool True if modified, false otherwise
+   * @param routine Which routine to get the name of
+   * @return const char*
    */
-  bool modifyState( const Request request );
+  const char *getSubroutineName( const Routine routine );
 
   /**
    * @brief Switch to the next routine to be executed

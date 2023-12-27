@@ -152,6 +152,12 @@ namespace Orbit::Data
   static constexpr float DFLT_PEAK_PHASE_CURRENT = 10.0f;
   static constexpr float DFLT_PEAK_VOLTAGE       = 16.0f;
 
+  /*---------------------------------------------------------------------------
+  Engagment Thresholds
+  ---------------------------------------------------------------------------*/
+  static constexpr float DFLT_MIN_ARM_VOLTAGE = 8.0f;
+  static constexpr float DFLT_MAX_ARM_VOLTAGE = 18.0f;
+
 }    // namespace Orbit::Data
 
 #endif /* !ORBIT_DATA_DEFAULTS_HPP */

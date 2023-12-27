@@ -13,16 +13,66 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/system>
 #include <src/control/hardware/current_control.hpp>
-#include <src/control/modes/sys_mode_armed.hpp>
 #include <src/control/hardware/speed_control.hpp>
+#include <src/control/modes/sys_mode_armed.hpp>
+#include <src/control/subroutines/interface.hpp>
+#include <src/core/data/orbit_data.hpp>
 #include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_led.hpp>
 
 namespace Orbit::Control::State
 {
   /*---------------------------------------------------------------------------
+  Static Methods
+  ---------------------------------------------------------------------------*/
+
+  /**
+   * @brief Validates the supply range.
+   *
+   * This function checks if the supply voltage is within the acceptable range.
+   *
+   * @return true if the supply voltage is within the acceptable range, false otherwise.
+   */
+  static bool armCheckVBusOk()
+  {
+    const float voltage = Orbit::Instrumentation::getSupplyVoltage();
+    if( voltage < Orbit::Data::SysConfig.minArmVoltage )
+    {
+      LOG_WARN( "Cannot engage ARMED state. Power supply [%.2fV] < [%.2fV].", voltage, Orbit::Data::SysConfig.minArmVoltage );
+      return false;
+    }
+    else if( voltage > Orbit::Data::SysConfig.maxArmVoltage )
+    {
+      LOG_WARN( "Cannot engage ARMED state. Power supply [%.2fV] > [%.2fV]", voltage, Orbit::Data::SysConfig.maxArmVoltage );
+      return false;
+    }
+
+    return true;
+  }
+
+
+  /**
+   * Checks if the system is currently in the expected subroutine.
+   *
+   * @return true if the system is in the expected subroutine, false otherwise.
+   */
+  static bool armCheckStartingRoutine()
+  {
+    using namespace Orbit::Control::Subroutine;
+
+    if( const auto sub = getActiveSubroutine(); sub != Routine::IDLE)
+    {
+      LOG_WARN( "Cannot engage ARMED state. Subroutine [%s] is active.", getSubroutineName( sub ) );
+      return false;
+    }
+
+    return true;
+  }
+
+  /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
+
   void Armed::on_exit_state()
   {
     LED::clearChannel( LED::Channel::ARMED );
@@ -31,18 +81,30 @@ namespace Orbit::Control::State
 
   etl::fsm_state_id_t Armed::on_enter_state()
   {
-    // TODO BMB: Configure this threshold with a parameter
-    if( float voltage = Orbit::Instrumentation::getSupplyVoltage(); voltage < 10.0f )
-    {
-      LOG_WARN( "Cannot engage ARMED state. Power supply [%.2fV] too low.", voltage );
-      return ModeId::IDLE;
-    }
+    using namespace Subroutine;
 
     /*-------------------------------------------------------------------------
-    Power up the motor control drivers
+    Perform entrance checks
     -------------------------------------------------------------------------*/
-    Control::Field::powerUp();
-    Control::Speed::powerUp();
+    // if( !armCheckVBusOk() || !armCheckStartingRoutine() )
+    // {
+    //   return ModeId::IDLE;
+    // }
+
+    /*-------------------------------------------------------------------------
+    Instruct the motor control subsystem to begin the rotor alignment detection
+    procedure.
+    -------------------------------------------------------------------------*/
+    // TODO BMB: Somehow this is triggering a full system reset when the external
+    // TODO BMB: power supply isn't connected. What's going on here?
+    // Control::Field::powerUp();
+    // Control::Speed::powerUp();
+
+    if( !switchRoutine( Routine::ALIGNMENT_DETECTION ) )
+    {
+      LOG_ERROR( "Failed to start alignment detection routine" );
+      return ModeId::IDLE;
+    }
 
     /*-------------------------------------------------------------------------
     Signal to the user that the system is armed
@@ -75,4 +137,4 @@ namespace Orbit::Control::State
     return this->No_State_Change;
   }
 
-}  // namespace Orbit::Control::State
+}    // namespace Orbit::Control::State

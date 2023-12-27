@@ -66,7 +66,10 @@ typedef enum _ParamId {
     ParamId_PARAM_STATOR_INDUCTANCE = 53, /* Stator inductance in Henrys */
     /* Monitor Thresholds */
     ParamId_PARAM_PEAK_CURRENT_THRESHOLD = 60, /* Peak current threshold in Amps */
-    ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD = 61 /* Peak voltage threshold in Volts */
+    ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD = 61, /* Peak voltage threshold in Volts */
+    /* Engagement Thresholds */
+    ParamId_PARAM_MIN_ARM_VOLTAGE = 70, /* Minimum voltage to allow ARM state transition */
+    ParamId_PARAM_MAX_ARM_VOLTAGE = 71 /* Maximum voltage to allow ARM state transition */
 } ParamId;
 
 typedef enum _ParamIOSubId {
@@ -99,8 +102,8 @@ extern "C" {
 #define _ParamType_ARRAYSIZE ((ParamType)(ParamType_STRING+1))
 
 #define _ParamId_MIN ParamId_PARAM_INVALID
-#define _ParamId_MAX ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD
-#define _ParamId_ARRAYSIZE ((ParamId)(ParamId_PARAM_PEAK_VOLTAGE_THRESHOLD+1))
+#define _ParamId_MAX ParamId_PARAM_MAX_ARM_VOLTAGE
+#define _ParamId_ARRAYSIZE ((ParamId)(ParamId_PARAM_MAX_ARM_VOLTAGE+1))
 
 #define _ParamIOSubId_MIN ParamIOSubId_GET
 #define _ParamIOSubId_MAX ParamIOSubId_LOAD

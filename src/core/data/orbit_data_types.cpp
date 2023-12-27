@@ -145,6 +145,10 @@ namespace Orbit::Data
     /* Monitor Thresholds */
     peakCurrentThreshold = 0.0f;
     peakVoltageThreshold = 0.0f;
+
+    /* Engagement Thresholds */
+    minArmVoltage = 0.0f;
+    maxArmVoltage = 0.0f;
   }
 
   void Configuration::setDefaults()
@@ -163,5 +167,9 @@ namespace Orbit::Data
     /* Monitor Thresholds */
     peakCurrentThreshold = DFLT_PEAK_PHASE_CURRENT;
     peakVoltageThreshold = DFLT_PEAK_VOLTAGE;
+
+    /* Engagement Thresholds */
+    minArmVoltage = DFLT_MIN_ARM_VOLTAGE;
+    maxArmVoltage = DFLT_MAX_ARM_VOLTAGE;
   }
 }    // namespace Orbit::Data

@@ -35,7 +35,7 @@ namespace Orbit::Data::Param
      * @brief Root declaration of all configurable parameters.
      *
      * These are not meant to be accessed directly but only serve as a declaration
-     * of the parameters that must exist. The final instance is declared elsewhere
+     * of the parameters that must exist. The final instance is instantiated elsewhere
      * after the parameter list has been sorted to allow fast lookup by ID. It doesn't
      * matter what order the parameters are declared in here.
      */
@@ -281,6 +281,23 @@ namespace Orbit::Data::Param
               .key       = "peak_voltage_threshold",
               .address   = &SysConfig.peakVoltageThreshold,
               .maxSize   = sizeof( SysConfig.peakVoltageThreshold ),
+              .validator = nullptr },
+
+        /*---------------------------------------------------------------------
+        Engagement Thresholds
+        ---------------------------------------------------------------------*/
+        Node{ .id        = ParamId_PARAM_MIN_ARM_VOLTAGE,
+              .type      = ParamType_FLOAT,
+              .key       = "min_arm_voltage",
+              .address   = &SysConfig.minArmVoltage,
+              .maxSize   = sizeof( SysConfig.minArmVoltage ),
+              .validator = nullptr },
+
+        Node{ .id        = ParamId_PARAM_MAX_ARM_VOLTAGE,
+              .type      = ParamType_FLOAT,
+              .key       = "max_arm_voltage",
+              .address   = &SysConfig.maxArmVoltage,
+              .maxSize   = sizeof( SysConfig.maxArmVoltage ),
               .validator = nullptr },
 
         /***** Add new entries above here *****/

@@ -122,6 +122,12 @@ namespace Orbit::Data
     float peakCurrentThreshold; /**< PARAM_PEAK_CURRENT_THRESHOLD */
     float peakVoltageThreshold; /**< PARAM_PEAK_VOLTAGE_THRESHOLD */
 
+    /*-------------------------------------------------------------------------
+    Engagement Thresholds
+    -------------------------------------------------------------------------*/
+    float minArmVoltage; /**< PARAM_MIN_ARM_VOLTAGE */
+    float maxArmVoltage; /**< PARAM_MAX_ARM_VOLTAGE */
+
     void clear();
     void setDefaults();
   };

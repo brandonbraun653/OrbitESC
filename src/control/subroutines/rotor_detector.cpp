@@ -11,18 +11,22 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Aurora/logging>
 #include <src/control/subroutines/declarations.hpp>
 
 namespace Orbit::Control::Subroutine
 {
-  /*-----------------------------------------------------------------------------
+  /*---------------------------------------------------------------------------
   RotorDetector Implementation
-  -----------------------------------------------------------------------------*/
+  ---------------------------------------------------------------------------*/
+
   RotorDetector::RotorDetector()
   {
     id     = Routine::ALIGNMENT_DETECTION;
+    name   = "Rotor Alignment Detector";
     mState = State::UNINITIALIZED;
   }
+
 
   RotorDetector::~RotorDetector()
   {
@@ -31,12 +35,14 @@ namespace Orbit::Control::Subroutine
 
   void RotorDetector::initialize()
   {
+    LOG_INFO( "Initialized rotor detector" );
     mState = State::INITIALIZED;
   }
 
 
   void RotorDetector::start()
   {
+    LOG_INFO( "Running rotor detector" );
     mState = State::RUNNING;
   }
 

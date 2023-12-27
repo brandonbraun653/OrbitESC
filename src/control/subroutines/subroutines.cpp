@@ -11,8 +11,9 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <Chimera/assert>
+#include <Aurora/logging>
 #include <Aurora/utility>
+#include <Chimera/assert>
 #include <etl/array.h>
 #include <src/control/subroutines/interface.hpp>
 
@@ -29,6 +30,32 @@ namespace Orbit::Control::Subroutine
 
   static RoutineArray  s_routine_map;   /**< Storage of bound routines */
   static ISubroutine * s_curr_routine;  /**< Currently executing routine */
+
+
+  /*---------------------------------------------------------------------------
+  Static Functions
+  ---------------------------------------------------------------------------*/
+
+  /**
+   * @brief Performs a reset routine for a given subroutine.
+   *
+   * @param r The subroutine to be reset.
+   * @return true if the reset routine was successful, false otherwise.
+   */
+  static bool reset_routine( ISubroutine& r )
+  {
+    r.stop();
+    r.destroy();
+
+    if( r.state() != State::UNINITIALIZED )
+    {
+      LOG_WARN( "Unexpected state after manually terminating [%s]", s_curr_routine->name );
+      return false;
+    }
+
+    return true;
+  }
+
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -47,7 +74,6 @@ namespace Orbit::Control::Subroutine
       if( pimpl )
       {
         RT_HARD_ASSERT( pimpl->id == routine );
-        pimpl->initialize();
       }
 
       s_routine_map[ EnumValue( routine ) ] = pimpl;
@@ -88,38 +114,59 @@ namespace Orbit::Control::Subroutine
 
       case State::STOPPED:
         s_curr_routine->destroy();
+        s_curr_routine = nullptr;
         break;
 
       default:
+        LOG_ERROR( "Unhandled subroutine state %d from [%s]", EnumValue( s_curr_routine->state() ), s_curr_routine->name );
+        s_curr_routine = nullptr;
         break;
     }
-
-    /*-------------------------------------------------------------------------
-    Process pending requests for state transitions
-    -------------------------------------------------------------------------*/
-
-    /*-------------------------------------------------------------------------
-    Process pending requests for routine transitions
-    -------------------------------------------------------------------------*/
-    // maybe do another mini state machine here to handle the transition
   }
 
 
-  Routine currentRoutine()
+  Routine getActiveSubroutine()
   {
     return s_curr_routine->id;
   }
 
 
-  bool modifyState( const Request request )
+  const char *getSubroutineName( const Routine routine )
   {
-    return false;
+    if ( routine < Routine::NUM_OPTIONS )
+    {
+      return s_routine_map[ EnumValue( routine ) ]->name.c_str();
+    }
+    else
+    {
+      return "Subroutine Not Bound";
+    }
   }
 
 
   bool switchRoutine( const Routine next )
   {
-    return false;
+    /*-------------------------------------------------------------------------
+    Input Protection
+    -------------------------------------------------------------------------*/
+    if( next >= Routine::NUM_OPTIONS )
+    {
+      return false;
+    }
+
+    /*-------------------------------------------------------------------------
+    Stop the current routine if present
+    -------------------------------------------------------------------------*/
+    if( s_curr_routine && !reset_routine( *s_curr_routine ) )
+    {
+      return false;
+    }
+
+    /*-------------------------------------------------------------------------
+    Swap in the requested routine and ensure it's reset
+    -------------------------------------------------------------------------*/
+    s_curr_routine = s_routine_map[ EnumValue( next ) ];
+    return s_curr_routine && reset_routine( *s_curr_routine );
   }
 
 }    // namespace Orbit::Control::Subroutine

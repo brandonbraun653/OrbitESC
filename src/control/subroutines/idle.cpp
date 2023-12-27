@@ -21,6 +21,7 @@ namespace Orbit::Control::Subroutine
   IdleSubroutine::IdleSubroutine()
   {
     id     = Routine::IDLE;
+    name   = "Idle";
     mState = State::UNINITIALIZED;
   }
 

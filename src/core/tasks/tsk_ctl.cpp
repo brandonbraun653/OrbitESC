@@ -95,6 +95,8 @@ namespace Orbit::Tasks::CTL
     Control::Subroutine::bind( Control::Subroutine::Routine::IDLE, &s_idle_routine );
     Control::Subroutine::bind( Control::Subroutine::Routine::ALIGNMENT_DETECTION, &s_rotor_pos_detector_routine );
 
+    Control::Subroutine::switchRoutine( Control::Subroutine::Routine::IDLE );
+
     /*-------------------------------------------------------------------------
     Run the CTL thread
     -------------------------------------------------------------------------*/

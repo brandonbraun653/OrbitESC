@@ -166,6 +166,14 @@ class _ParamIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTy
     PARAM_PEAK_VOLTAGE_THRESHOLD: ParamId.ValueType = ...  # 61
     """Peak voltage threshold in Volts"""
 
+    PARAM_MIN_ARM_VOLTAGE: ParamId.ValueType = ...  # 70
+    """Engagement Thresholds
+    Minimum voltage to allow ARM state transition
+    """
+
+    PARAM_MAX_ARM_VOLTAGE: ParamId.ValueType = ...  # 71
+    """Maximum voltage to allow ARM state transition"""
+
 class ParamId(_ParamId, metaclass=_ParamIdEnumTypeWrapper):
     pass
 
@@ -288,6 +296,14 @@ Peak current threshold in Amps
 
 PARAM_PEAK_VOLTAGE_THRESHOLD: ParamId.ValueType = ...  # 61
 """Peak voltage threshold in Volts"""
+
+PARAM_MIN_ARM_VOLTAGE: ParamId.ValueType = ...  # 70
+"""Engagement Thresholds
+Minimum voltage to allow ARM state transition
+"""
+
+PARAM_MAX_ARM_VOLTAGE: ParamId.ValueType = ...  # 71
+"""Maximum voltage to allow ARM state transition"""
 
 global___ParamId = ParamId
 

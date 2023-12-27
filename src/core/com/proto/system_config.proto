@@ -63,6 +63,10 @@ enum ParamId {
   // Monitor Thresholds
   PARAM_PEAK_CURRENT_THRESHOLD = 60; // Peak current threshold in Amps
   PARAM_PEAK_VOLTAGE_THRESHOLD = 61; // Peak voltage threshold in Volts
+
+  // Engagement Thresholds
+  PARAM_MIN_ARM_VOLTAGE = 70; // Minimum voltage to allow ARM state transition
+  PARAM_MAX_ARM_VOLTAGE = 71; // Maximum voltage to allow ARM state transition
 }
 
 enum ParamIOSubId {
