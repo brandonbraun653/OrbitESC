@@ -5,7 +5,7 @@
  *  Description:
  *    Subroutine class interface declarations
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -40,26 +40,6 @@ namespace Orbit::Control::Subroutine
     State state() final override;
   };
 
-
-  /**
-   * @brief Subroutine for detecting the static rotor position.
-   *
-   * Only intended to be used for startup algorithms that need to detect
-   * the initial position of the rotor for driving the stator properly.
-   */
-  class RotorDetector : public ISubroutine
-  {
-  public:
-    RotorDetector();
-    ~RotorDetector();
-
-    void initialize() final override;
-    void start() final override;
-    void stop() final override;
-    void destroy() final override;
-    void process() final override;
-    State state() final override;
-  };
 }  // namespace Orbit::Control::Subroutine
 
 #endif  /* !ORBIT_ESC_SUBROUTINE_IDLE_HPP */

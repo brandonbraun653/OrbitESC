@@ -86,10 +86,10 @@ namespace Orbit::Control::State
     /*-------------------------------------------------------------------------
     Perform entrance checks
     -------------------------------------------------------------------------*/
-    // if( !armCheckVBusOk() || !armCheckStartingRoutine() )
-    // {
-    //   return ModeId::IDLE;
-    // }
+    if( !armCheckVBusOk() || !armCheckStartingRoutine() )
+    {
+      return ModeId::IDLE;
+    }
 
     /*-------------------------------------------------------------------------
     Instruct the motor control subsystem to begin the rotor alignment detection
@@ -97,8 +97,8 @@ namespace Orbit::Control::State
     -------------------------------------------------------------------------*/
     // TODO BMB: Somehow this is triggering a full system reset when the external
     // TODO BMB: power supply isn't connected. What's going on here?
-    // Control::Field::powerUp();
-    // Control::Speed::powerUp();
+    Control::Field::powerUp();
+    Control::Speed::powerUp();
 
     if( !switchRoutine( Routine::ALIGNMENT_DETECTION ) )
     {
