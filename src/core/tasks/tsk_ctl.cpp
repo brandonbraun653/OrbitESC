@@ -19,6 +19,7 @@ Includes
 #include <src/control/hardware/speed_control.hpp>
 #include <src/control/subroutines/declarations.hpp>
 #include <src/control/subroutines/interface.hpp>
+#include <src/control/subroutines/rotor_detector.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 #include <src/core/tasks.hpp>

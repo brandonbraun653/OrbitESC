@@ -21,7 +21,7 @@ namespace Orbit::Control::Subroutine
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr float DRIVE_DUTY_CYCLE = 0.05f;
+  static constexpr float DRIVE_DUTY_CYCLE = 0.10f;
 
   /*---------------------------------------------------------------------------
   RotorDetector Implementation
@@ -101,15 +101,9 @@ namespace Orbit::Control::Subroutine
   void RotorDetector::stop()
   {
     mState = State::STOPPED;
-    mTimer->disableOutput();
-
-    /*-------------------------------------------------------------------------
-    Report all currents to the console
-    -------------------------------------------------------------------------*/
-    LOG_INFO( "Rotor Detector Results" );
-    for ( size_t idx = 0; idx < mMeasurements.size(); idx++ )
+    if( mTimer )
     {
-      LOG_INFO( "  Measurement %d: %f", idx, mMeasurements[ idx ].accCurrent );
+      mTimer->disableOutput();
     }
   }
 
@@ -153,8 +147,9 @@ namespace Orbit::Control::Subroutine
           break;
       }
 
-      if( ( Chimera::micros() - mStartTimeUs ) > 5000 )
+      if( mMeasurements[ mIdx ].accCurrent > 1.0f )
       {
+        mMeasurements[ mIdx ].accTime = Chimera::micros() - mStartTimeUs;
         mTimer->shortLowSideWindings();
         mSampleActive = false;
         mStartTimeUs = Chimera::micros();
@@ -180,6 +175,11 @@ namespace Orbit::Control::Subroutine
     {
       mState = State::STOPPED;
       mTimer->disableOutput();
+      LOG_INFO( "Rotor Detector Results" );
+      for ( size_t idx = 0; idx < mMeasurements.size(); idx++ )
+      {
+        LOG_INFO( "  Measurement %d: %d", idx, mMeasurements[ idx ].accTime );
+      }
     }
   }
 

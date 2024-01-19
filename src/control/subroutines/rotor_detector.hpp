@@ -31,6 +31,7 @@ namespace Orbit::Control::Subroutine
     Chimera::Timer::Inverter::SwitchIO hiSide;
     Chimera::Timer::Inverter::SwitchIO loSide;
     float                              accCurrent;
+    size_t                             accTime;
   };
 
 
