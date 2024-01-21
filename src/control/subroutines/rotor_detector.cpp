@@ -21,7 +21,7 @@ namespace Orbit::Control::Subroutine
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr float DRIVE_DUTY_CYCLE = 0.10f;
+  static constexpr float DRIVE_DUTY_CYCLE = 0.01f;
 
   /*---------------------------------------------------------------------------
   RotorDetector Implementation
