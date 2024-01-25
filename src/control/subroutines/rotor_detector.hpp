@@ -61,7 +61,7 @@ namespace Orbit::Control::Subroutine
   private:
     Chimera::Timer::Inverter::Driver *mTimer;
     etl::array<RDMeasurement, 6>      mMeasurements;
-    size_t                            mStartTimeUs;
+    size_t                            mStartTime;
     uint32_t                          mIdx;
     bool                              mSampleActive;
   };

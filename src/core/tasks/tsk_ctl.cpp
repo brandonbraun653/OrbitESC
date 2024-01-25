@@ -20,6 +20,7 @@ Includes
 #include <src/control/subroutines/declarations.hpp>
 #include <src/control/subroutines/interface.hpp>
 #include <src/control/subroutines/rotor_detector.hpp>
+#include <src/control/subroutines/optimize_sample_point.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 #include <src/core/tasks.hpp>
@@ -34,6 +35,7 @@ namespace Orbit::Tasks::CTL
 
   static Control::Subroutine::IdleSubroutine s_idle_routine;
   static Control::Subroutine::RotorDetector  s_rotor_pos_detector_routine;
+  static Control::Subroutine::SampleTimeOptimizer s_sample_time_routine;
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -95,6 +97,7 @@ namespace Orbit::Tasks::CTL
     -------------------------------------------------------------------------*/
     Control::Subroutine::bind( Control::Subroutine::Routine::IDLE, &s_idle_routine );
     Control::Subroutine::bind( Control::Subroutine::Routine::ALIGNMENT_DETECTION, &s_rotor_pos_detector_routine );
+    Control::Subroutine::bind( Control::Subroutine::Routine::ADC_SAMPLE_POINT_OPTIMIZER, &s_sample_time_routine );
 
     Control::Subroutine::switchRoutine( Control::Subroutine::Routine::IDLE );
 

@@ -71,6 +71,9 @@ namespace Orbit::Data
     -------------------------------------------------------------------------*/
     init_system_identity();
 
+    // TODO BMB: Remove this
+    SysControl.statorPWMFreq = 15000.0f;
+
     return true;
   }
 

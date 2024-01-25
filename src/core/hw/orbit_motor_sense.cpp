@@ -181,6 +181,13 @@ namespace Orbit::Motor::Sense
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+
+  Chimera::Timer::Trigger::Slave* getTimer()
+  {
+    return &s_motor_sense_timer;
+  }
+
+
   void powerUpSense()
   {
     /*-------------------------------------------------------------------------
@@ -222,15 +229,17 @@ namespace Orbit::Motor::Sense
     trig_cfg.coreConfig.baseFreq    = TIMER_BASE_FREQ;
     trig_cfg.coreConfig.tolerance   = 1.0f;
     trig_cfg.coreConfig.clockSource = Chimera::Clock::Bus::SYSCLK;
-    trig_cfg.frequency              = Orbit::Data::SysControl.statorPWMFreq / 10.0f;
+    trig_cfg.frequency              = Orbit::Data::SysControl.statorPWMFreq;
     trig_cfg.trigSyncAction         = Chimera::Timer::Trigger::SyncAction::SYNC_RESET;
     trig_cfg.trigSyncSignal         = Chimera::Timer::Trigger::Signal::TRIG_SIG_0; /**< ITR0: TIM1 TRGO->TIM8*/
 
     RT_HARD_ASSERT( Chimera::Status::OK == s_motor_sense_timer.init( trig_cfg ) );
 
-    // TODO BMB: Need to manually set this based on the motor pwm timer reload value. There is no great way
-    // TODO BMB: to do this automatically.
-
+    /*-------------------------------------------------------------------------
+    From running the SampleTimeOptimizer routine, I was able to experimentally
+    determine that setting this offset to 45 will result in the ADC sampling
+    with enough overhead, down to about 6% duty cycle. We'll see if this is ok.
+    -------------------------------------------------------------------------*/
     s_motor_sense_timer.setEventOffset( 0 );
     s_motor_sense_timer.enable();
 

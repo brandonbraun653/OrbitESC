@@ -13,8 +13,9 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/system>
 #include <src/control/hardware/current_control.hpp>
-#include <src/control/modes/sys_mode_idle.hpp>
 #include <src/control/hardware/speed_control.hpp>
+#include <src/control/modes/sys_mode_idle.hpp>
+#include <src/control/subroutines/interface.hpp>
 #include <src/core/hw/orbit_led.hpp>
 #include <src/monitor/orbit_monitors.hpp>
 
@@ -30,7 +31,7 @@ namespace Orbit::Control::State
   ---------------------------------------------------------------------------*/
   void Idle::on_exit_state()
   {
-    LOG_INFO( "Exiting Idle state" );
+    LOG_INFO( "Exiting IDLE state" );
   }
 
 
@@ -43,6 +44,11 @@ namespace Orbit::Control::State
     -------------------------------------------------------------------------*/
     Control::Field::powerDn();
     Control::Speed::powerDn();
+
+    if( !Subroutine::switchRoutine( Subroutine::Routine::IDLE ) )
+    {
+      LOG_ERROR( "Failed to start IDLE routine" );
+    }
 
     // /*-------------------------------------------------------------------------
     // Disable the drive signals going to the motor

@@ -21,7 +21,7 @@ namespace Orbit::Control::Subroutine
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr float DRIVE_DUTY_CYCLE = 0.01f;
+  static constexpr float DRIVE_DUTY_CYCLE = 0.03f;
 
   /*---------------------------------------------------------------------------
   RotorDetector Implementation
@@ -30,11 +30,11 @@ namespace Orbit::Control::Subroutine
   RotorDetector::RotorDetector()
   {
     mMeasurements.fill( {} );
-    id           = Routine::ALIGNMENT_DETECTION;
-    name         = "Rotor Alignment Detector";
-    mState       = State::UNINITIALIZED;
-    mStartTimeUs = 0;
-    mIdx         = 0;
+    id         = Routine::ALIGNMENT_DETECTION;
+    name       = "Rotor Alignment Detector";
+    mState     = State::UNINITIALIZED;
+    mStartTime = 0;
+    mIdx       = 0;
   }
 
 
@@ -56,28 +56,28 @@ namespace Orbit::Control::Subroutine
     /*-------------------------------------------------------------------------
     Configure the 6 commutation sampling sequences
     -------------------------------------------------------------------------*/
-    mMeasurements[ 0 ].hiSide     = SwitchIO::SWITCH_B_HI;
-    mMeasurements[ 0 ].loSide     = SwitchIO::SWITCH_C_LO;
+    mMeasurements[ 0 ].hiSide     = SwitchIO::SWITCH_2_HI;
+    mMeasurements[ 0 ].loSide     = SwitchIO::SWITCH_3_LO;
     mMeasurements[ 0 ].accCurrent = 0.0f;
 
-    mMeasurements[ 1 ].hiSide     = SwitchIO::SWITCH_C_HI;
-    mMeasurements[ 1 ].loSide     = SwitchIO::SWITCH_B_LO;
+    mMeasurements[ 1 ].hiSide     = SwitchIO::SWITCH_3_HI;
+    mMeasurements[ 1 ].loSide     = SwitchIO::SWITCH_2_LO;
     mMeasurements[ 1 ].accCurrent = 0.0f;
 
-    mMeasurements[ 2 ].hiSide     = SwitchIO::SWITCH_A_HI;
-    mMeasurements[ 2 ].loSide     = SwitchIO::SWITCH_B_LO;
+    mMeasurements[ 2 ].hiSide     = SwitchIO::SWITCH_1_HI;
+    mMeasurements[ 2 ].loSide     = SwitchIO::SWITCH_2_LO;
     mMeasurements[ 2 ].accCurrent = 0.0f;
 
-    mMeasurements[ 3 ].hiSide     = SwitchIO::SWITCH_B_HI;
-    mMeasurements[ 3 ].loSide     = SwitchIO::SWITCH_A_LO;
+    mMeasurements[ 3 ].hiSide     = SwitchIO::SWITCH_2_HI;
+    mMeasurements[ 3 ].loSide     = SwitchIO::SWITCH_1_LO;
     mMeasurements[ 3 ].accCurrent = 0.0f;
 
-    mMeasurements[ 4 ].hiSide     = SwitchIO::SWITCH_C_HI;
-    mMeasurements[ 4 ].loSide     = SwitchIO::SWITCH_A_LO;
+    mMeasurements[ 4 ].hiSide     = SwitchIO::SWITCH_3_HI;
+    mMeasurements[ 4 ].loSide     = SwitchIO::SWITCH_1_LO;
     mMeasurements[ 4 ].accCurrent = 0.0f;
 
-    mMeasurements[ 5 ].hiSide     = SwitchIO::SWITCH_A_HI;
-    mMeasurements[ 5 ].loSide     = SwitchIO::SWITCH_C_LO;
+    mMeasurements[ 5 ].hiSide     = SwitchIO::SWITCH_1_HI;
+    mMeasurements[ 5 ].loSide     = SwitchIO::SWITCH_3_LO;
     mMeasurements[ 5 ].accCurrent = 0.0f;
 
     mState = State::INITIALIZED;
@@ -92,9 +92,8 @@ namespace Orbit::Control::Subroutine
 
     mIdx = 0;
     mTimer->energizeWinding( mMeasurements[ mIdx ].hiSide, mMeasurements[ mIdx ].loSide, DRIVE_DUTY_CYCLE );
-    mStartTimeUs = Chimera::micros();
+    mStartTime    = Chimera::millis();
     mSampleActive = true;
-    mIdx++;
   }
 
 
@@ -127,19 +126,19 @@ namespace Orbit::Control::Subroutine
     /*-------------------------------------------------------------------------
     Accumulate current readings if we're actively sampling
     -------------------------------------------------------------------------*/
-    if ( mSampleActive )
+    if( mSampleActive )
     {
       switch( mMeasurements[ mIdx ].loSide )
       {
-        case SwitchIO::SWITCH_A_LO:
+        case SwitchIO::SWITCH_1_LO:
           mMeasurements[ mIdx ].accCurrent += sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
           break;
 
-        case SwitchIO::SWITCH_B_LO:
+        case SwitchIO::SWITCH_2_LO:
           mMeasurements[ mIdx ].accCurrent += sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
           break;
 
-        case SwitchIO::SWITCH_C_LO:
+        case SwitchIO::SWITCH_3_LO:
           mMeasurements[ mIdx ].accCurrent += sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
           break;
 
@@ -147,12 +146,13 @@ namespace Orbit::Control::Subroutine
           break;
       }
 
-      if( mMeasurements[ mIdx ].accCurrent > 1.0f )
+      if( mMeasurements[ mIdx ].accCurrent > 100.0f )
       {
-        mMeasurements[ mIdx ].accTime = Chimera::micros() - mStartTimeUs;
-        mTimer->shortLowSideWindings();
+        mMeasurements[ mIdx ].accTime = Chimera::millis() - mStartTime;
+        // mTimer->shortLowSideWindings();
+        mTimer->energizeWinding( mMeasurements[ mIdx ].hiSide, mMeasurements[ mIdx ].loSide, 0.0f );
         mSampleActive = false;
-        mStartTimeUs = Chimera::micros();
+        mStartTime    = Chimera::millis();
       }
     }
 
@@ -160,26 +160,35 @@ namespace Orbit::Control::Subroutine
     Windings fully discharged, move to next measurement
     -------------------------------------------------------------------------*/
     // TODO: Could probably do this in a more efficient way, maybe by using the actual measurements
-    if( !mSampleActive && ( ( Chimera::micros() - mStartTimeUs ) > 10'000 ) )
+    if( !mSampleActive && ( ( Chimera::millis() - mStartTime ) > 100 ) )
     {
-      mTimer->energizeWinding( mMeasurements[ mIdx ].hiSide, mMeasurements[ mIdx ].loSide, DRIVE_DUTY_CYCLE );
-      mStartTimeUs = Chimera::micros();
-      mSampleActive = true;
       mIdx++;
+      mTimer->energizeWinding( mMeasurements[ mIdx ].hiSide, mMeasurements[ mIdx ].loSide, DRIVE_DUTY_CYCLE );
+      mStartTime    = Chimera::millis();
+      mSampleActive = true;
     }
 
     /*-------------------------------------------------------------------------
     Check if all measurements are complete
     -------------------------------------------------------------------------*/
-    if ( mIdx >= mMeasurements.size() )
+    if( mIdx >= mMeasurements.size() )
     {
       mState = State::STOPPED;
       mTimer->disableOutput();
       LOG_INFO( "Rotor Detector Results" );
-      for ( size_t idx = 0; idx < mMeasurements.size(); idx++ )
+      size_t lowest_idx = 0;
+      size_t lowest_val = 0xFFFFFFFF;
+      for( size_t idx = 0; idx < mMeasurements.size(); idx++ )
       {
         LOG_INFO( "  Measurement %d: %d", idx, mMeasurements[ idx ].accTime );
+        if( mMeasurements[ idx ].accTime < lowest_val )
+        {
+          lowest_idx = idx;
+          lowest_val = mMeasurements[ idx ].accTime;
+        }
       }
+
+      LOG_INFO( "  Lowest: %d", lowest_idx );
     }
   }
 
