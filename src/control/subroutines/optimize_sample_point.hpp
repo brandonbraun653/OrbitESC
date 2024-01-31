@@ -1,16 +1,17 @@
 /******************************************************************************
  *  File Name:
- *    declarations.hpp
+ *    optimize_sample_point.hpp
  *
  *  Description:
- *    Subroutine class interface declarations
+ *    Subroutine for development purposes only. Used to find the optimal
+ *    sample timing for the ADC triggering.
  *
- *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
-#ifndef ORBIT_ESC_SUBROUTINE_IDLE_HPP
-#define ORBIT_ESC_SUBROUTINE_IDLE_HPP
+#ifndef ORBIT_ESC_OPTIMAL_ADC_SAMPLING_TIME_HPP
+#define ORBIT_ESC_OPTIMAL_ADC_SAMPLING_TIME_HPP
 
 /*-----------------------------------------------------------------------------
 Includes
@@ -23,23 +24,20 @@ namespace Orbit::Control::Subroutine
   Classes
   ---------------------------------------------------------------------------*/
 
-  /**
-   * @brief Background routine to execute if nothing else is running.
-   */
-  class IdleSubroutine : public ISubroutine
+  class SampleTimeOptimizer : public ISubroutine
   {
   public:
-    IdleSubroutine();
-    ~IdleSubroutine();
+    SampleTimeOptimizer();
+    ~SampleTimeOptimizer();
 
-    void initialize() final override;
-    void start() final override;
-    void stop() final override;
-    void destroy() final override;
-    void process() final override;
+    void  initialize() final override;
+    void  start() final override;
+    void  stop() final override;
+    void  destroy() final override;
+    void  process() final override;
     State state() final override;
   };
 
 }  // namespace Orbit::Control::Subroutine
 
-#endif  /* !ORBIT_ESC_SUBROUTINE_IDLE_HPP */
+#endif  /* !ORBIT_ESC_OPTIMAL_ADC_SAMPLING_TIME_HPP */

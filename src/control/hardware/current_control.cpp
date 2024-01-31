@@ -199,6 +199,9 @@ namespace Orbit::Control::Field
     using namespace Orbit::Instrumentation;
     using namespace Orbit::Control::Math;
 
+    s_dbg_pin->setState( Chimera::GPIO::State::HIGH );
+    s_dbg_pin->setState( Chimera::GPIO::State::LOW );
+
     /*-------------------------------------------------------------------------
     Decide how to proceed depending on our current mode
     -------------------------------------------------------------------------*/
@@ -340,6 +343,5 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Set the debug pin low to indicate the end of the control loop
     -------------------------------------------------------------------------*/
-    s_dbg_pin->setState( Chimera::GPIO::State::LOW );
   }
 }    // namespace Orbit::Control::Field

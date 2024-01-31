@@ -14,6 +14,14 @@ class TestSystemControlCommands:
         LOGGER.info("Transitioning to idle state")
         assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_IDLE)
 
+    def test_arm_transition(self, serial_client: OrbitClient) -> None:
+        """ Checks behavior on transition to arm state. """
+        LOGGER.info("Transitioning to idle state")
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_IDLE)
+
+        LOGGER.info("Validate IDLE->ARM transition")
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ARMED)
+
     def test_arm_idle_transition(self, serial_client: OrbitClient) -> None:
         """ Checks behavior on transition to arm state. """
         LOGGER.info("Transitioning to idle state")

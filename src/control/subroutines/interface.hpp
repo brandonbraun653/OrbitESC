@@ -34,6 +34,7 @@ namespace Orbit::Control::Subroutine
     CLOSED_LOOP_LOCK_FOC,
     CLOSED_LOOP_CTRL_FOC,
     FAULT_DETECTION,
+    ADC_SAMPLE_POINT_OPTIMIZER,
 
     NUM_OPTIONS
   };

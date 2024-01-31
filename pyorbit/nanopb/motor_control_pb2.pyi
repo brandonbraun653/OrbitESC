@@ -6,101 +6,92 @@ import builtins
 import google.protobuf.descriptor
 import google.protobuf.internal.enum_type_wrapper
 import google.protobuf.message
+import sys
 import typing
-import typing_extensions
 
-DESCRIPTOR: google.protobuf.descriptor.FileDescriptor = ...
+if sys.version_info >= (3, 10):
+    import typing as typing_extensions
+else:
+    import typing_extensions
+
+DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
 class _MotorCtrlState:
-    ValueType = typing.NewType('ValueType', builtins.int)
+    ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
+
 class _MotorCtrlStateEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_MotorCtrlState.ValueType], builtins.type):
-    DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor = ...
-    MOTOR_CTRL_STATE_IDLE: MotorCtrlState.ValueType = ...  # 0
+    DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+    MOTOR_CTRL_STATE_IDLE: _MotorCtrlState.ValueType  # 0
     """Motor control is idle"""
-
-    MOTOR_CTRL_STATE_ARMED: MotorCtrlState.ValueType = ...  # 1
+    MOTOR_CTRL_STATE_ARMED: _MotorCtrlState.ValueType  # 1
     """Motor control is armed"""
-
-    MOTOR_CTRL_STATE_ENGAGED: MotorCtrlState.ValueType = ...  # 2
+    MOTOR_CTRL_STATE_ENGAGED: _MotorCtrlState.ValueType  # 2
     """Motor control is engaged"""
-
-    MOTOR_CTRL_STATE_FAULT: MotorCtrlState.ValueType = ...  # 3
+    MOTOR_CTRL_STATE_FAULT: _MotorCtrlState.ValueType  # 3
     """Motor control is in a fault state"""
-
-    MOTOR_CTRL_STATE_INVALID: MotorCtrlState.ValueType = ...  # 4
+    MOTOR_CTRL_STATE_INVALID: _MotorCtrlState.ValueType  # 4
     """Invalid motor control state"""
 
-class MotorCtrlState(_MotorCtrlState, metaclass=_MotorCtrlStateEnumTypeWrapper):
-    pass
+class MotorCtrlState(_MotorCtrlState, metaclass=_MotorCtrlStateEnumTypeWrapper): ...
 
-MOTOR_CTRL_STATE_IDLE: MotorCtrlState.ValueType = ...  # 0
+MOTOR_CTRL_STATE_IDLE: MotorCtrlState.ValueType  # 0
 """Motor control is idle"""
-
-MOTOR_CTRL_STATE_ARMED: MotorCtrlState.ValueType = ...  # 1
+MOTOR_CTRL_STATE_ARMED: MotorCtrlState.ValueType  # 1
 """Motor control is armed"""
-
-MOTOR_CTRL_STATE_ENGAGED: MotorCtrlState.ValueType = ...  # 2
+MOTOR_CTRL_STATE_ENGAGED: MotorCtrlState.ValueType  # 2
 """Motor control is engaged"""
-
-MOTOR_CTRL_STATE_FAULT: MotorCtrlState.ValueType = ...  # 3
+MOTOR_CTRL_STATE_FAULT: MotorCtrlState.ValueType  # 3
 """Motor control is in a fault state"""
-
-MOTOR_CTRL_STATE_INVALID: MotorCtrlState.ValueType = ...  # 4
+MOTOR_CTRL_STATE_INVALID: MotorCtrlState.ValueType  # 4
 """Invalid motor control state"""
-
 global___MotorCtrlState = MotorCtrlState
 
-
 class _MotorCtrlCmd:
-    ValueType = typing.NewType('ValueType', builtins.int)
+    ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
+
 class _MotorCtrlCmdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_MotorCtrlCmd.ValueType], builtins.type):
-    DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor = ...
-    MOTOR_CTRL_CMD_INVALID: MotorCtrlCmd.ValueType = ...  # 0
+    DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+    MOTOR_CTRL_CMD_INVALID: _MotorCtrlCmd.ValueType  # 0
     """Invalid motor control command"""
-
-    MOTOR_CTRL_CMD_ENABLE_OUTPUT_STAGE: MotorCtrlCmd.ValueType = ...  # 1
+    MOTOR_CTRL_CMD_ENABLE_OUTPUT_STAGE: _MotorCtrlCmd.ValueType  # 1
     """Allow the power stage to drive the motor"""
-
-    MOTOR_CTRL_CMD_DISABLE_OUTPUT_STAGE: MotorCtrlCmd.ValueType = ...  # 2
+    MOTOR_CTRL_CMD_DISABLE_OUTPUT_STAGE: _MotorCtrlCmd.ValueType  # 2
     """Disable the power stage"""
-
-    MOTOR_CTRL_CMD_EMERGENCY_STOP: MotorCtrlCmd.ValueType = ...  # 3
+    MOTOR_CTRL_CMD_EMERGENCY_STOP: _MotorCtrlCmd.ValueType  # 3
     """Immediately stop driving the power stage and halt"""
 
-class MotorCtrlCmd(_MotorCtrlCmd, metaclass=_MotorCtrlCmdEnumTypeWrapper):
-    pass
+class MotorCtrlCmd(_MotorCtrlCmd, metaclass=_MotorCtrlCmdEnumTypeWrapper): ...
 
-MOTOR_CTRL_CMD_INVALID: MotorCtrlCmd.ValueType = ...  # 0
+MOTOR_CTRL_CMD_INVALID: MotorCtrlCmd.ValueType  # 0
 """Invalid motor control command"""
-
-MOTOR_CTRL_CMD_ENABLE_OUTPUT_STAGE: MotorCtrlCmd.ValueType = ...  # 1
+MOTOR_CTRL_CMD_ENABLE_OUTPUT_STAGE: MotorCtrlCmd.ValueType  # 1
 """Allow the power stage to drive the motor"""
-
-MOTOR_CTRL_CMD_DISABLE_OUTPUT_STAGE: MotorCtrlCmd.ValueType = ...  # 2
+MOTOR_CTRL_CMD_DISABLE_OUTPUT_STAGE: MotorCtrlCmd.ValueType  # 2
 """Disable the power stage"""
-
-MOTOR_CTRL_CMD_EMERGENCY_STOP: MotorCtrlCmd.ValueType = ...  # 3
+MOTOR_CTRL_CMD_EMERGENCY_STOP: MotorCtrlCmd.ValueType  # 3
 """Immediately stop driving the power stage and halt"""
-
 global___MotorCtrlCmd = MotorCtrlCmd
 
-
+@typing_extensions.final
 class ManualICtrlSetPoint(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor = ...
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
     ROTOR_THETA_RAD_FIELD_NUMBER: builtins.int
     ID_REF_FIELD_NUMBER: builtins.int
     IQ_REF_FIELD_NUMBER: builtins.int
-    rotor_theta_rad: builtins.float = ...
-    id_ref: builtins.float = ...
-    iq_ref: builtins.float = ...
-    def __init__(self,
+    rotor_theta_rad: builtins.float
+    id_ref: builtins.float
+    iq_ref: builtins.float
+    def __init__(
+        self,
         *,
-        rotor_theta_rad : typing.Optional[builtins.float] = ...,
-        id_ref : typing.Optional[builtins.float] = ...,
-        iq_ref : typing.Optional[builtins.float] = ...,
-        ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["id_ref",b"id_ref","iq_ref",b"iq_ref","rotor_theta_rad",b"rotor_theta_rad"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["id_ref",b"id_ref","iq_ref",b"iq_ref","rotor_theta_rad",b"rotor_theta_rad"]) -> None: ...
+        rotor_theta_rad: builtins.float | None = ...,
+        id_ref: builtins.float | None = ...,
+        iq_ref: builtins.float | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["id_ref", b"id_ref", "iq_ref", b"iq_ref", "rotor_theta_rad", b"rotor_theta_rad"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["id_ref", b"id_ref", "iq_ref", b"iq_ref", "rotor_theta_rad", b"rotor_theta_rad"]) -> None: ...
+
 global___ManualICtrlSetPoint = ManualICtrlSetPoint

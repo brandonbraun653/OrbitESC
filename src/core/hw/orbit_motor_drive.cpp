@@ -29,6 +29,13 @@ namespace Orbit::Motor::Drive
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+
+  Chimera::Timer::Inverter::Driver *getDriver()
+  {
+    return &s_motor_drive_timer;
+  }
+
+
   void powerUpDrive()
   {
     /*-------------------------------------------------------------------------
@@ -41,18 +48,11 @@ namespace Orbit::Motor::Drive
     pwm_cfg.coreCfg.clockSource = Chimera::Clock::Bus::SYSCLK;
     pwm_cfg.coreCfg.baseFreq    = TIMER_BASE_FREQ;
     pwm_cfg.coreCfg.tolerance   = 1.0f;
-    pwm_cfg.adcPeripheral       = Orbit::IO::Analog::MotorADC;
     pwm_cfg.breakIOLevel        = Chimera::GPIO::State::LOW;
     pwm_cfg.deadTimeNs          = 250.0f;
     pwm_cfg.pwmFrequency        = Orbit::Data::SysControl.statorPWMFreq;
 
     RT_HARD_ASSERT( Chimera::Status::OK == s_motor_drive_timer.init( pwm_cfg ) );
-
-    /*-------------------------------------------------------------------------
-    Compute the optimal trigger update timing based on how long it takes the
-    ADC to sample all the channels and convert them.
-    -------------------------------------------------------------------------*/
-    s_motor_drive_timer.updateTriggerTiming( Orbit::ADC::motorChannelSampleTimeNs(), 50 );
   }
 
 

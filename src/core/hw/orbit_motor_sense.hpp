@@ -17,6 +17,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <cstdint>
 #include <Chimera/function>
+#include <Chimera/timer>
 #include <src/core/hw/orbit_motor.hpp>
 
 
@@ -68,6 +69,8 @@ namespace Orbit::Motor::Sense
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+
+  Chimera::Timer::Trigger::Slave* getTimer();
 
   /**
    * @brief Powers up the motor driver sensor subsystem.

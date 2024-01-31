@@ -28,7 +28,6 @@ void tusb_configure_clocks()
 {
   RCC_TypeDef           *rcc     = ( ( RCC_TypeDef               *)RCC_BASE );
   USB_OTG_GlobalTypeDef *usb_otg = ( ( USB_OTG_GlobalTypeDef * )USB_OTG_HS_PERIPH_BASE );
-  USB_OTG_DeviceTypeDef *usb_dev = ( USB_OTG_DeviceTypeDef * )( USB_OTG_HS_PERIPH_BASE + USB_OTG_DEVICE_BASE );
 
   /*---------------------------------------------------------------------------
   Enable the USB HS core peripheral clock

@@ -43,7 +43,6 @@ namespace Orbit::Utility
     /*-------------------------------------------------------------------------
     Pre-calculate some data
     -------------------------------------------------------------------------*/
-    const float  period = 1.0f / freqSwitch;               /**< PWM switching period */
     const size_t cpm    = eComEventsPerRev( poles ) * rpm; /**< Commutation events per minute */
     const float  cps    = static_cast<float>( cpm / 60 );  /**< Commutation events per second */
 

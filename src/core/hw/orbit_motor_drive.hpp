@@ -5,7 +5,7 @@
  *  Description:
  *    Motor controller HW interface
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -17,6 +17,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <cstdint>
 #include <Chimera/function>
+#include <Chimera/timer>
 #include <src/core/hw/orbit_motor.hpp>
 
 
@@ -48,6 +49,11 @@ namespace Orbit::Motor::Drive
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+  /**
+   * @brief Retrieves the driver instance
+   * @return Chimera::Timer::Inverter::Driver*
+   */
+  Chimera::Timer::Inverter::Driver *getDriver();
 
   /**
    * @brief Powers up the motor driver output subsystem.
