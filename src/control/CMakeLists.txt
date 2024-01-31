@@ -20,6 +20,7 @@ gen_static_lib_variants(
     subroutines/idle.cpp
     subroutines/optimize_sample_point.cpp
     subroutines/rotor_detector.cpp
+    subroutines/rotor_ramp.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc

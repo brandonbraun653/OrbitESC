@@ -47,7 +47,7 @@ namespace Orbit::Control::Subroutine
   {
     using namespace Chimera::Timer::Inverter;
 
-    LOG_INFO( "Initialized rotor detector" );
+    LOG_INFO( "Initialized %s", this->name.c_str() );
 
     mTimer = Motor::Drive::getDriver();
     mTimer->enableOutput();
@@ -86,7 +86,7 @@ namespace Orbit::Control::Subroutine
 
   void RotorDetector::start()
   {
-    LOG_INFO( "Running rotor detector" );
+    LOG_INFO( "Running %s", this->name.c_str() );
     mState = State::RUNNING;
 
 
@@ -99,6 +99,7 @@ namespace Orbit::Control::Subroutine
 
   void RotorDetector::stop()
   {
+    LOG_INFO( "Stopped %s", this->name.c_str() );
     mState = State::STOPPED;
     if( mTimer )
     {
@@ -146,7 +147,7 @@ namespace Orbit::Control::Subroutine
           break;
       }
 
-      if( mMeasurements[ mIdx ].accCurrent > 100.0f )
+      if( mMeasurements[ mIdx ].accCurrent > 25.0f )
       {
         mMeasurements[ mIdx ].accTime = Chimera::millis() - mStartTime;
         // mTimer->shortLowSideWindings();
