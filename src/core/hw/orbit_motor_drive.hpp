@@ -15,9 +15,9 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <cstdint>
 #include <Chimera/function>
 #include <Chimera/timer>
+#include <cstdint>
 #include <src/core/hw/orbit_motor.hpp>
 
 
@@ -59,11 +59,17 @@ namespace Orbit::Motor::Drive
    * @brief Powers up the motor driver output subsystem.
    * @return void
    */
-  void powerUpDrive();
+  void initialize();
+
+  /**
+   * @brief Reset the motor driver to a known state.
+   * @return void
+   */
+  void reset();
 
   /**
    * @brief Immediately stops the power stage and disables the motor driver via HW signal.
-   * @note Only use in panic situations. Use disableDriveOutput() for controlled stops.
+   * @note Only use in panic situations. Use disableOutput() for controlled stops.
    *
    * Sends a break input to the timer generating the PWM signal, effectively cutting off
    * the power stage from the motor. This is a hard stop and may result in damage to the
@@ -77,7 +83,7 @@ namespace Orbit::Motor::Drive
    * @brief Enable the power stage drive signals
    * @return void
    */
-  void enableDriveOutput();
+  void enableOutput();
 
   /**
    * @brief Disable the power stage drive signals.
@@ -86,7 +92,7 @@ namespace Orbit::Motor::Drive
    * intended for controlled stops only. Use emergencyStop() for panic situations
    * where the power stage needs to shut off immediately.
    */
-  void disableDriveOutput();
+  void disableOutput();
 
   /**
    * @brief Updates drive outputs using space vector modulation

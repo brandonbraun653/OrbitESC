@@ -144,6 +144,17 @@ namespace Orbit::Control::Math
 
 
   /**
+   * @brief A simple low pass filter
+   * @see https://github.com/vedderb/bldc/blob/master/util/utils_math.h
+   *
+   * @param value  Filtered value
+   * @param sample Next sample
+   * @param filter_constant  Filter constant (0.0 to 1.0) where 1.0 is no filtering.
+   */
+   #define UTILS_LP_FAST(value, sample, filter_constant)	(value -= (filter_constant) * ((value) - (sample)))
+
+
+  /**
    * @brief Computes the sine and cosine of an input angle
    * @see https://github.com/vedderb/bldc/blob/master/util/utils_math.c
    *

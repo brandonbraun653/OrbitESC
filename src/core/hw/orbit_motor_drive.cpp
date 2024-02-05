@@ -3,9 +3,11 @@
  *    orbit_motor_drive.cpp
  *
  *  Description:
- *    Hardware driver for controlling the motor drive power stage
+ *    Hardware driver interface for controlling the motor drive power stage.
+ *    This is a thin veneer over the Chimera timer driver, mainly to manage the
+ *    lifetime of the HW.
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -36,7 +38,7 @@ namespace Orbit::Motor::Drive
   }
 
 
-  void powerUpDrive()
+  void initialize()
   {
     /*-------------------------------------------------------------------------
     Configure the Advanced Timer for center-aligned 3-phase PWM
@@ -56,19 +58,26 @@ namespace Orbit::Motor::Drive
   }
 
 
+  void reset()
+  {
+    // TODO: Don't call this unless you have a way to restart the power up sequence.
+    // s_motor_drive_timer.reset();
+  }
+
+
   void emergencyStop()
   {
     s_motor_drive_timer.emergencyBreak();
   }
 
 
-  void enableDriveOutput()
+  void enableOutput()
   {
     s_motor_drive_timer.enableOutput();
   }
 
 
-  void disableDriveOutput()
+  void disableOutput()
   {
     s_motor_drive_timer.disableOutput();
   }

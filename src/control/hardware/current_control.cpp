@@ -27,6 +27,11 @@ Includes
 namespace Orbit::Control::Field
 {
   /*---------------------------------------------------------------------------
+  Constants
+  ---------------------------------------------------------------------------*/
+  static constexpr float MAX_DUTY = 0.9f;   /* Testing: Limit max commandable duty cycle? */
+
+  /*---------------------------------------------------------------------------
   Structures
   ---------------------------------------------------------------------------*/
   struct ControlState
@@ -48,14 +53,18 @@ namespace Orbit::Control::Field
   Static Function Declarations
   ---------------------------------------------------------------------------*/
 
-  /**
-   * @brief Executes a single cycle of the current control algorithm.
-   * @note  This function is called from the ADC DMA ISR.
-   *
-   * This function consumes the latest ADC samples, runs the control algorithm,
-   * and updates the PWM outputs for the next cycle.
-   */
   static void isr_current_control_loop();
+
+  static void reset_state()
+  {
+    s_state.ctl_mode = Mode::DISABLED;
+    s_state.open_loop_theta = 0.0f;
+    s_state.open_loop_iq_ref = 0.0f;
+    s_state.open_loop_id_ref = 0.0f;
+
+    foc_ireg_state.iqPID.resetState();
+    foc_ireg_state.idPID.resetState();
+  }
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -76,13 +85,13 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Map the current control function to the ADC DMA ISR
     -------------------------------------------------------------------------*/
-    Orbit::Motor::Sense::setSenseCallback( isr_current_control_loop );
+    Orbit::Motor::Sense::onComplete( isr_current_control_loop );
 
     /*-------------------------------------------------------------------------
     Initialize the motor drive and feedback sense hardware
     -------------------------------------------------------------------------*/
-    Orbit::Motor::Drive::powerUpDrive();    // Drive timer first since it's the master
-    Orbit::Motor::Sense::powerUpSense();    // Sense timer second since it's the slave
+    Orbit::Motor::Drive::initialize();    // Drive timer first since it's the master
+    Orbit::Motor::Sense::initialize();    // Sense timer second since it's the slave
 
     /*-------------------------------------------------------------------------
     Prepare the system for FOC operation
@@ -95,22 +104,23 @@ namespace Orbit::Control::Field
     foc_ireg_state.dt = 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ;
 
     foc_ireg_state.iqPID.init();
-    foc_ireg_state.iqPID.OutMinLimit = -1.0f;
-    foc_ireg_state.iqPID.OutMaxLimit = 1.0f;
-    foc_ireg_state.iqPID.setTunings( Data::SysControl.currentCtrl_Q_Kp, Data::SysControl.currentCtrl_Q_Ki,
-                                     Data::SysControl.currentCtrl_Q_Kd, foc_ireg_state.dt );
+    foc_ireg_state.iqPID.OutMinLimit = -20.0f;
+    foc_ireg_state.iqPID.OutMaxLimit = 20.0f;
+    // foc_ireg_state.iqPID.setTunings( Data::SysControl.currentCtrl_Q_Kp, Data::SysControl.currentCtrl_Q_Ki,
+    //                                  Data::SysControl.currentCtrl_Q_Kd, foc_ireg_state.dt );
+    foc_ireg_state.iqPID.setTunings( 5.0f, 0.1f, 0.0f, foc_ireg_state.dt );
 
     foc_ireg_state.idPID.init();
-    foc_ireg_state.idPID.OutMinLimit = -1.0f;
-    foc_ireg_state.idPID.OutMaxLimit = 1.0f;
-    foc_ireg_state.idPID.setTunings( Data::SysControl.currentCtrl_D_Kp, Data::SysControl.currentCtrl_D_Ki,
-                                     Data::SysControl.currentCtrl_D_Kd, foc_ireg_state.dt );
+    foc_ireg_state.idPID.OutMinLimit = -20.0f;
+    foc_ireg_state.idPID.OutMaxLimit = 20.0f;
+    // foc_ireg_state.idPID.setTunings( Data::SysControl.currentCtrl_D_Kp, Data::SysControl.currentCtrl_D_Ki,
+    //                                  Data::SysControl.currentCtrl_D_Kd, foc_ireg_state.dt );
 
-    // TODO: Move this elsewhere
-    // Orbit::Motor::enableDriveOutput();
-    // Orbit::Motor::svmUpdate( 1.0f, 1.0f, 1.0f ); // Have to call this to kick initial PWM update
-    // foc_ireg_state.iqRef = 0.0f;
-    // foc_ireg_state.idRef = 0.001f; // Torque command
+    foc_ireg_state.idPID.setTunings( 5.0f, 0.1f, 0.0f, foc_ireg_state.dt );
+
+
+    foc_ireg_state.mod_vd = 0.0f;
+    foc_ireg_state.mod_vq = 0.0f;
 
     setControlMode( Mode::DISABLED );
   }
@@ -118,6 +128,17 @@ namespace Orbit::Control::Field
 
   void powerDn()
   {
+    /*-------------------------------------------------------------------------
+    Tear down in the opposite order of initialization
+    -------------------------------------------------------------------------*/
+    setControlMode( Mode::DISABLED );
+    Orbit::Motor::Sense::reset();
+    Orbit::Motor::Drive::reset();
+
+    /*-------------------------------------------------------------------------
+    Reset module memory
+    -------------------------------------------------------------------------*/
+    reset_state();
   }
 
 
@@ -134,7 +155,9 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Gate the ISR from running temporarily while state data gets updated
     -------------------------------------------------------------------------*/
+    auto isr_msk = Chimera::System::disableInterrupts();
     s_state.ctl_mode = Mode::DISABLED;
+    Chimera::System::enableInterrupts( isr_msk );
 
     /*-------------------------------------------------------------------------
     Otherwise, cleanly transition to the new mode
@@ -145,13 +168,16 @@ namespace Orbit::Control::Field
     switch( mode )
     {
       case Mode::DISABLED:
-        Orbit::Motor::Drive::disableDriveOutput();
+        Orbit::Motor::Drive::disableOutput();
         break;
 
       case Mode::OPEN_LOOP:
         s_state.open_loop_id_ref = 0.0f;
         s_state.open_loop_iq_ref = 0.0f;
         s_state.open_loop_theta  = 0.0f;
+
+        Orbit::Motor::Drive::svmUpdate( 0.0f, 0.0f, 0.0f );
+        Orbit::Motor::Drive::enableOutput();
         break;
 
       case Mode::CLOSED_LOOP:
@@ -161,7 +187,7 @@ namespace Orbit::Control::Field
         break;
 
       default:
-        Orbit::Motor::Drive::disableDriveOutput();
+        Orbit::Motor::Drive::disableOutput();
         return false;
     }
 
@@ -192,15 +218,23 @@ namespace Orbit::Control::Field
   /*---------------------------------------------------------------------------
   Static Functions
   ---------------------------------------------------------------------------*/
+
+  /**
+   * @brief Executes a single cycle of the current control algorithm.
+   * @note  This function is called from the ADC DMA ISR.
+   * @see AN1078: Sensorless Field Oriented Control of PMSM Motors Figure 6
+   *
+   * This function consumes the latest ADC samples, runs the control algorithm,
+   * and updates the PWM outputs for the next cycle.
+   */
   static void isr_current_control_loop()
   {
+    // TODO: This is function is computing sine/cos twice in Park/Inverse Park for the same theta. Can we optimize this?
+
     using namespace Orbit::Motor::Drive;
     using namespace Orbit::Motor::Sense;
     using namespace Orbit::Instrumentation;
     using namespace Orbit::Control::Math;
-
-    s_dbg_pin->setState( Chimera::GPIO::State::HIGH );
-    s_dbg_pin->setState( Chimera::GPIO::State::LOW );
 
     /*-------------------------------------------------------------------------
     Decide how to proceed depending on our current mode
@@ -249,6 +283,10 @@ namespace Orbit::Control::Field
     foc_ireg_state.vmb = sense_data.channel[ CHANNEL_PHASE_B_VOLTAGE ];
     foc_ireg_state.vmc = sense_data.channel[ CHANNEL_PHASE_C_VOLTAGE ];
 
+    foc_ireg_state.ima = sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
+    foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
+    foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
+
     /*-------------------------------------------------------------------------
     Reconstruct 3-phase currents from two phases. One phase could have the
     low side switch active for a very short amount of time, leading to a bad
@@ -258,90 +296,83 @@ namespace Orbit::Control::Field
 
     See: TIDUCY7 Figure 3. "Using Three-Shunt Current Sampling Technique"
     -------------------------------------------------------------------------*/
-    uint32_t tOnHighA, tOnHighB, tOnHighC;
-    svmOnTicks( tOnHighA, tOnHighB, tOnHighC );
+    // uint32_t tOnHighA, tOnHighB, tOnHighC;
+    // svmOnTicks( tOnHighA, tOnHighB, tOnHighC );
 
-    if ( ( tOnHighA > tOnHighB ) && ( tOnHighA > tOnHighC ) )
-    {
-      /*-----------------------------------------------------------------------
-      Phase A low side is on for the shortest amount of time. Reconstruct it.
-      -----------------------------------------------------------------------*/
-      foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
-      foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
-      foc_ireg_state.ima = -1.0f * ( foc_ireg_state.imb + foc_ireg_state.imc );
-    }
-    else if ( ( tOnHighB > tOnHighA ) && ( tOnHighB > tOnHighC ) )
-    {
-      /*-----------------------------------------------------------------------
-      Phase B low side is on for the shortest amount of time. Reconstruct it.
-      -----------------------------------------------------------------------*/
-      foc_ireg_state.ima = sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
-      foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
-      foc_ireg_state.imb = -1.0f * ( foc_ireg_state.ima + foc_ireg_state.imc );
-    }
-    else if ( ( tOnHighC > tOnHighA ) && ( tOnHighC > tOnHighB ) )
-    {
-      /*-----------------------------------------------------------------------
-      Phase C low side is on for the shortest amount of time. Reconstruct it.
-      -----------------------------------------------------------------------*/
-      foc_ireg_state.ima = sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
-      foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
-      foc_ireg_state.imc = -1.0f * ( foc_ireg_state.ima + foc_ireg_state.imb );
-    }
-    else
-    {
-      /*-----------------------------------------------------------------------
-      Something went wrong, so bugger out now.
-      -----------------------------------------------------------------------*/
-      return;
-    }
+    // if ( ( tOnHighA >= tOnHighB ) && ( tOnHighA >= tOnHighC ) )
+    // {
+    //   /*-----------------------------------------------------------------------
+    //   Phase A low side is on for the shortest amount of time. Reconstruct it.
+    //   -----------------------------------------------------------------------*/
+    //   foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
+    //   foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
+    //   foc_ireg_state.ima = -1.0f * ( foc_ireg_state.imb + foc_ireg_state.imc );
+    // }
+    // else if ( ( tOnHighB >= tOnHighA ) && ( tOnHighB >= tOnHighC ) )
+    // {
+    //   /*-----------------------------------------------------------------------
+    //   Phase B low side is on for the shortest amount of time. Reconstruct it.
+    //   -----------------------------------------------------------------------*/
+    //   foc_ireg_state.ima = sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
+    //   foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
+    //   foc_ireg_state.imb = -1.0f * ( foc_ireg_state.ima + foc_ireg_state.imc );
+    // }
+    // else if ( ( tOnHighC >= tOnHighA ) && ( tOnHighC >= tOnHighB ) )
+    // {
+    //   /*-----------------------------------------------------------------------
+    //   Phase C low side is on for the shortest amount of time. Reconstruct it.
+    //   -----------------------------------------------------------------------*/
+    //   foc_ireg_state.ima = sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
+    //   foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
+    //   foc_ireg_state.imc = -1.0f * ( foc_ireg_state.ima + foc_ireg_state.imb );
+    // }
+    // else
+    // {
+    //   /*-----------------------------------------------------------------------
+    //   Something went wrong, so bugger out now.
+    //   -----------------------------------------------------------------------*/
+    //   RT_DBG_ASSERT( false );
+    //   return;
+    // }
 
     /*-------------------------------------------------------------------------
     Use Clarke Transform to convert phase currents from 3-axis to 2-axis
     -------------------------------------------------------------------------*/
     clarke_transform( foc_ireg_state.ima, foc_ireg_state.imb, foc_ireg_state.ia, foc_ireg_state.ib );
 
-    // observerUpdate( s_state );
-
     /*-------------------------------------------------------------------------
     Use Park Transform to convert phase currents from 2-axis to d-q axis
     -------------------------------------------------------------------------*/
     park_transform( foc_ireg_state.ia, foc_ireg_state.ib, theta, foc_ireg_state.iq, foc_ireg_state.id );
 
-
-    // /*-------------------------------------------------------------------------
-    // Use sliding mode controller to estimate rotor speed and position
-    // -------------------------------------------------------------------------*/
-    // updateCurrentObserver();
-    // updateSpeedPosObserver();
-
     /*-------------------------------------------------------------------------
     Run PI controllers for motor currents to generate voltage commands
     -------------------------------------------------------------------------*/
-    foc_ireg_state.vq -= foc_ireg_state.iqPID.run( iqRef - foc_ireg_state.iq );
-    foc_ireg_state.vd += foc_ireg_state.idPID.run( idRef - foc_ireg_state.id );
+    foc_ireg_state.vq = foc_ireg_state.iqPID.run( iqRef - foc_ireg_state.iq );
+    foc_ireg_state.vd = foc_ireg_state.idPID.run( idRef - foc_ireg_state.id );
 
-    const float max_duty  = 1.0;
-    const float max_v_mag = ONE_OVER_SQRT3 * max_duty * vSupply;
+    // TODO: From mcpwm_foc:4299 (Vedder), once I switch into closed loop control I probably
+    // TODO: should add decoupling of the d-q currents.
 
-    Control::Math::truncate_fabs( foc_ireg_state.vd, max_v_mag );
+    // Compute the max length of the voltage space vector without overmodulation
+    float max_v_mag = ONE_OVER_SQRT3 * MAX_DUTY * vSupply;
 
-    float max_vq = sqrtf( ( max_v_mag * max_v_mag ) - ( foc_ireg_state.vd * foc_ireg_state.vd ) );
-    Control::Math::truncate_fabs( foc_ireg_state.vq, max_vq );
-    Control::Math::saturate_vector_2d( foc_ireg_state.vd, foc_ireg_state.vq, max_v_mag );
+    // Scale the voltage commands to fit within the allowable space vector
+    saturate_vector_2d( foc_ireg_state.vd, foc_ireg_state.vq, max_v_mag );
+
+    const float v_norm = 1.5f / vSupply;
+    foc_ireg_state.mod_vd = foc_ireg_state.vd * v_norm;
+    foc_ireg_state.mod_vq = foc_ireg_state.vq * v_norm;
+    // TODO: Possibly filter vq for something later? Not sure yet.
 
     /*-------------------------------------------------------------------------
     Use Inverse Park Transform to convert d-q voltages to 2-axis phase voltages
     -------------------------------------------------------------------------*/
-    inverse_park_transform( foc_ireg_state.vq, foc_ireg_state.vd, theta, foc_ireg_state.va, foc_ireg_state.vb );
+    inverse_park_transform( foc_ireg_state.mod_vq, foc_ireg_state.mod_vd, theta, foc_ireg_state.va, foc_ireg_state.vb );
 
     /*-------------------------------------------------------------------------
     Apply the SVM updates
     -------------------------------------------------------------------------*/
     svmUpdate( foc_ireg_state.va, foc_ireg_state.vb, theta );
-
-    /*-------------------------------------------------------------------------
-    Set the debug pin low to indicate the end of the control loop
-    -------------------------------------------------------------------------*/
   }
 }    // namespace Orbit::Control::Field

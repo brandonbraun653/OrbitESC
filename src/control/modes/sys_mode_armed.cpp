@@ -100,11 +100,11 @@ namespace Orbit::Control::State
     Control::Field::powerUp();
     Control::Speed::powerUp();
 
-    if( !switchRoutine( Routine::ALIGNMENT_DETECTION ) )
-    {
-      LOG_ERROR( "Failed to start alignment detection routine" );
-      return ModeId::IDLE;
-    }
+    // if( !switchRoutine( Routine::ALIGNMENT_DETECTION ) )
+    // {
+    //   LOG_ERROR( "Failed to start alignment detection routine" );
+    //   return ModeId::IDLE;
+    // }
 
     /*-------------------------------------------------------------------------
     Signal to the user that the system is armed
@@ -114,6 +114,16 @@ namespace Orbit::Control::State
     LOG_INFO( "Entered ARMED state" );
     return ModeId::ARMED;
   }
+
+
+  etl::fsm_state_id_t Armed::on_event( const MsgEngage &msg )
+  {
+    /*-------------------------------------------------------------------------
+    Transition directly to the ENGAGED state. Let on_enter_state() do the work.
+    -------------------------------------------------------------------------*/
+    return ModeId::ENGAGED;
+  }
+
 
   etl::fsm_state_id_t Armed::on_event( const MsgDisable &msg )
   {

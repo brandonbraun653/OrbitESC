@@ -3,9 +3,9 @@
  *    orbit_motor_sense.hpp
  *
  *  Description:
- *    Motor controller HW interface
+ *    Motor controller HW sensor interface
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -15,9 +15,9 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <cstdint>
 #include <Chimera/function>
 #include <Chimera/timer>
+#include <cstdint>
 #include <src/core/hw/orbit_motor.hpp>
 
 
@@ -69,14 +69,23 @@ namespace Orbit::Motor::Sense
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
-
-  Chimera::Timer::Trigger::Slave* getTimer();
+  /**
+   * @brief Gets the timer used for triggering ADC conversions
+   * @return Chimera::Timer::Trigger::Slave*
+   */
+  Chimera::Timer::Trigger::Slave *getTimer();
 
   /**
    * @brief Powers up the motor driver sensor subsystem.
    * @return void
    */
-  void powerUpSense();
+  void initialize();
+
+  /**
+   * @brief Reset the motor sense subsystem
+   * @return void
+   */
+  void reset();
 
   /**
    * @brief Sets the callback to invoke when the ADC completes a conversion
@@ -84,7 +93,7 @@ namespace Orbit::Motor::Sense
    * @param callback  Callback to invoke
    * @return void
    */
-  void setSenseCallback( SenseCallback callback );
+  void onComplete( SenseCallback callback );
 
   /**
    * @brief Gets the latest motor sense data
@@ -96,8 +105,8 @@ namespace Orbit::Motor::Sense
    * @brief Calibrate the motor current/voltage sense inputs
    * @return void
    */
-  void calibrateSenseInputs();
+  void calibrate();
 
-}    // namespace Orbit::Motor
+}    // namespace Orbit::Motor::Sense
 
 #endif /* !ORBIT_MOTOR_SENSEHPP */

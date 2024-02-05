@@ -147,6 +147,8 @@ namespace Orbit::Control
     float              id;    /**< Current output measurement for the d-axis */
     float              vq;    /**< Voltage command for the q-axis */
     float              vd;    /**< Voltage command for the d-axis */
+    float              mod_vq; /**< Modulated voltage for the q-axis */
+    float              mod_vd; /**< Modulated voltage for the d-axis */
     float              va;    /**< Voltage (alpha) after inverse-park transform */
     float              vb;    /**< Voltage (beta) after inverse-park transform */
     float              ia;    /**< Current (alpha) after clarke transform */
