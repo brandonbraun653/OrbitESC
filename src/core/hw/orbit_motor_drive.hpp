@@ -104,19 +104,6 @@ namespace Orbit::Motor::Drive
    */
   void svmUpdate( const float &alpha, const float &beta, const float &theta );
 
-  /**
-   * @brief Retrieves the number of timer ticks each high side switch is on for.
-   *
-   * These values can be used to determine which phases have the most time
-   * available for ADC sampling.
-   *
-   * @param tOnA  Phase A high side on time in timer ticks
-   * @param tOnB  Phase B high side on time in timer ticks
-   * @param tOnC  Phase C high side on time in timer ticks
-   * @return void
-   */
-  void svmOnTicks( uint32_t &tOnA, uint32_t &tOnB, uint32_t &tOnC );
-
 }    // namespace Orbit::Motor
 
 #endif /* !ORBIT_MOTOR_DRIVE_HPP */

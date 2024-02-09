@@ -29,7 +29,7 @@ namespace Orbit::Control::Field
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr float MAX_DUTY = 0.9f;   /* Testing: Limit max commandable duty cycle? */
+  static constexpr float MAX_DUTY = 0.10f;   /* Testing: Limit max commandable duty cycle? */
 
   /*---------------------------------------------------------------------------
   Structures
@@ -229,8 +229,6 @@ namespace Orbit::Control::Field
    */
   static void isr_current_control_loop()
   {
-    // TODO: This is function is computing sine/cos twice in Park/Inverse Park for the same theta. Can we optimize this?
-
     using namespace Orbit::Motor::Drive;
     using namespace Orbit::Motor::Sense;
     using namespace Orbit::Instrumentation;
@@ -296,44 +294,44 @@ namespace Orbit::Control::Field
 
     See: TIDUCY7 Figure 3. "Using Three-Shunt Current Sampling Technique"
     -------------------------------------------------------------------------*/
-    // uint32_t tOnHighA, tOnHighB, tOnHighC;
-    // svmOnTicks( tOnHighA, tOnHighB, tOnHighC );
+    const auto svmState = Orbit::Motor::Drive::getDriver()->svmState();
 
-    // if ( ( tOnHighA >= tOnHighB ) && ( tOnHighA >= tOnHighC ) )
-    // {
-    //   /*-----------------------------------------------------------------------
-    //   Phase A low side is on for the shortest amount of time. Reconstruct it.
-    //   -----------------------------------------------------------------------*/
-    //   foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
-    //   foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
-    //   foc_ireg_state.ima = -1.0f * ( foc_ireg_state.imb + foc_ireg_state.imc );
-    // }
-    // else if ( ( tOnHighB >= tOnHighA ) && ( tOnHighB >= tOnHighC ) )
-    // {
-    //   /*-----------------------------------------------------------------------
-    //   Phase B low side is on for the shortest amount of time. Reconstruct it.
-    //   -----------------------------------------------------------------------*/
-    //   foc_ireg_state.ima = sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
-    //   foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
-    //   foc_ireg_state.imb = -1.0f * ( foc_ireg_state.ima + foc_ireg_state.imc );
-    // }
-    // else if ( ( tOnHighC >= tOnHighA ) && ( tOnHighC >= tOnHighB ) )
-    // {
-    //   /*-----------------------------------------------------------------------
-    //   Phase C low side is on for the shortest amount of time. Reconstruct it.
-    //   -----------------------------------------------------------------------*/
-    //   foc_ireg_state.ima = sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
-    //   foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
-    //   foc_ireg_state.imc = -1.0f * ( foc_ireg_state.ima + foc_ireg_state.imb );
-    // }
-    // else
-    // {
-    //   /*-----------------------------------------------------------------------
-    //   Something went wrong, so bugger out now.
-    //   -----------------------------------------------------------------------*/
-    //   RT_DBG_ASSERT( false );
-    //   return;
-    // }
+    if( ( svmState.phase1 == Chimera::Timer::Channel::CHANNEL_2 ) && ( svmState.phase2 == Chimera::Timer::Channel::CHANNEL_3 ) )
+    {
+      /*-----------------------------------------------------------------------
+      Phase A low side is on for the shortest amount of time. Reconstruct it.
+      -----------------------------------------------------------------------*/
+      foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
+      foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
+      foc_ireg_state.ima = -1.0f * ( foc_ireg_state.imb + foc_ireg_state.imc );
+    }
+    else if ( ( svmState.phase1 == Chimera::Timer::Channel::CHANNEL_1 ) && ( svmState.phase2 == Chimera::Timer::Channel::CHANNEL_3 ) )
+    {
+      /*-----------------------------------------------------------------------
+      Phase B low side is on for the shortest amount of time. Reconstruct it.
+      -----------------------------------------------------------------------*/
+      foc_ireg_state.ima = sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
+      foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
+      foc_ireg_state.imb = -1.0f * ( foc_ireg_state.ima + foc_ireg_state.imc );
+    }
+    else if ( ( svmState.phase1 == Chimera::Timer::Channel::CHANNEL_1 ) && ( svmState.phase2 == Chimera::Timer::Channel::CHANNEL_2 ) )
+    {
+      /*-----------------------------------------------------------------------
+      Phase C low side is on for the shortest amount of time. Reconstruct it.
+      -----------------------------------------------------------------------*/
+      foc_ireg_state.ima = sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
+      foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
+      foc_ireg_state.imc = -1.0f * ( foc_ireg_state.ima + foc_ireg_state.imb );
+    }
+    else
+    {
+      /*-----------------------------------------------------------------------
+      Something went wrong, so bugger out now.
+      -----------------------------------------------------------------------*/
+      emergencyStop();
+      RT_DBG_ASSERT( false );
+      return;
+    }
 
     /*-------------------------------------------------------------------------
     Use Clarke Transform to convert phase currents from 3-axis to 2-axis

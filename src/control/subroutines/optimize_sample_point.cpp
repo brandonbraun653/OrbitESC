@@ -87,10 +87,7 @@ namespace Orbit::Control::Subroutine
     s_motor_timer = Motor::Drive::getDriver();
     s_sense_timer = Motor::Sense::getTimer();
 
-
-
     s_motor_timer->enableOutput();
-    s_motor_timer->shortLowSideWindings();
 
     mState = State::INITIALIZED;
   }

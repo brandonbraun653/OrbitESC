@@ -51,8 +51,10 @@ namespace Orbit::Motor::Drive
     pwm_cfg.coreCfg.baseFreq    = TIMER_BASE_FREQ;
     pwm_cfg.coreCfg.tolerance   = 1.0f;
     pwm_cfg.breakIOLevel        = Chimera::GPIO::State::LOW;
-    pwm_cfg.deadTimeNs          = 250.0f;
     pwm_cfg.pwmFrequency        = Orbit::Data::SysControl.statorPWMFreq;
+    pwm_cfg.deadTimeNs          = 250.0f;
+    pwm_cfg.adcSampleTimeNs     = 1800.0f;
+    pwm_cfg.settleTimeNs        = 2000.0f;
 
     RT_HARD_ASSERT( Chimera::Status::OK == s_motor_drive_timer.init( pwm_cfg ) );
   }
@@ -88,9 +90,4 @@ namespace Orbit::Motor::Drive
     s_motor_drive_timer.svmUpdate( alpha, beta, theta );
   }
 
-
-  void svmOnTicks( uint32_t &tOnA, uint32_t &tOnB, uint32_t &tOnC )
-  {
-    s_motor_drive_timer.getSVMOnTicks( tOnA, tOnB, tOnC );
-  }
 }    // namespace Orbit::Motor

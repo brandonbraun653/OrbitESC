@@ -218,9 +218,9 @@ namespace Orbit::ADC
     s_motor_channels[ Motor::Sense::CHANNEL_PHASE_A_CURRENT ] = IO::Analog::adcIPhaseA;
     s_motor_channels[ Motor::Sense::CHANNEL_PHASE_B_CURRENT ] = IO::Analog::adcIPhaseB;
     s_motor_channels[ Motor::Sense::CHANNEL_PHASE_C_CURRENT ] = IO::Analog::adcIPhaseC;
-    s_motor_channels[ Motor::Sense::CHANNEL_PHASE_A_VOLTAGE ] = IO::Analog::adcVPhaseA;
-    s_motor_channels[ Motor::Sense::CHANNEL_PHASE_B_VOLTAGE ] = IO::Analog::adcVPhaseB;
-    s_motor_channels[ Motor::Sense::CHANNEL_PHASE_C_VOLTAGE ] = IO::Analog::adcVPhaseC;
+    // s_motor_channels[ Motor::Sense::CHANNEL_PHASE_A_VOLTAGE ] = IO::Analog::adcVPhaseA;
+    // s_motor_channels[ Motor::Sense::CHANNEL_PHASE_B_VOLTAGE ] = IO::Analog::adcVPhaseB;
+    // s_motor_channels[ Motor::Sense::CHANNEL_PHASE_C_VOLTAGE ] = IO::Analog::adcVPhaseC;
 
     seq.clear();
     seq.channels    = &s_motor_channels;
@@ -232,11 +232,11 @@ namespace Orbit::ADC
 
     RT_HARD_ASSERT( Chimera::Status::OK == adc->configSequence( seq ) );
     RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseA, 12 ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseA, 12 ) );
     RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseB, 12 ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseB, 12 ) );
     RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseC, 12 ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseC, 12 ) );
+    // RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseA, 12 ) );
+    // RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseB, 12 ) );
+    // RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseC, 12 ) );
   }
 
 
@@ -301,6 +301,9 @@ namespace Orbit::ADC
     init_gpio_pins();
     cfg_motor_adc();
     cfg_instrumentation_adc();
+
+    const uint32_t ns_sample_time = motorChannelSampleTimeNs();
+    LOG_DEBUG_IF( ns_sample_time > 0, "Motor ADC Sample Time: %d ns", ns_sample_time );
   }
 
 
@@ -308,6 +311,7 @@ namespace Orbit::ADC
   {
     using namespace Chimera::Timer;
     using namespace Chimera::ADC;
+    using namespace Orbit::Motor::Sense;
 
     /*-------------------------------------------------------------------------
     Compute the total time it takes to sample all the motor channels in
@@ -316,7 +320,7 @@ namespace Orbit::ADC
     uint32_t sampleTimeNs = 0;
     auto     adc          = Chimera::ADC::getDriver( IO::Analog::MotorADC );
 
-    for ( size_t idx = 0; idx < Motor::Sense::CHANNEL_COUNT; idx++ )
+    for ( size_t idx = CHANNEL_CURRENT_START; idx <= CHANNEL_CURRENT_END; idx++ )
     {
       sampleTimeNs += adc->totalMeasureTime( adc->getSampleCycle( s_motor_channels[ idx ] ) );
     }

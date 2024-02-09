@@ -51,7 +51,6 @@ namespace Orbit::Control::Subroutine
 
     mTimer = Motor::Drive::getDriver();
     mTimer->enableOutput();
-    mTimer->shortLowSideWindings();
 
     /*-------------------------------------------------------------------------
     Configure the 6 commutation sampling sequences

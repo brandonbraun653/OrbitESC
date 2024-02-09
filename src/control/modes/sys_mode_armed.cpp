@@ -106,6 +106,13 @@ namespace Orbit::Control::State
     //   return ModeId::IDLE;
     // }
 
+
+    // if( !switchRoutine( Routine::ADC_SAMPLE_POINT_OPTIMIZER ) )
+    // {
+    //   LOG_ERROR( "Failed to start alignment detection routine" );
+    //   return ModeId::IDLE;
+    // }
+
     /*-------------------------------------------------------------------------
     Signal to the user that the system is armed
     -------------------------------------------------------------------------*/

@@ -19,6 +19,7 @@ Includes
 #include <src/control/subroutines/rotor_ramp.hpp>
 #include <src/core/hw/orbit_motor_drive.hpp>
 #include <src/core/hw/orbit_motor_sense.hpp>
+#include <src/control/foc_math.hpp>
 
 
 namespace Orbit::Control::Subroutine
@@ -36,6 +37,12 @@ namespace Orbit::Control::Subroutine
    * and running again. It needs a bit of polishing.
    *
    */
+
+  static uint32_t start_time;
+  static float theta_incr;
+  static float theta_ref;
+  static float start_time_us;
+  static float dt;
 
   /*---------------------------------------------------------------------------
   RotorRamp Implementation
@@ -64,6 +71,11 @@ namespace Orbit::Control::Subroutine
     -------------------------------------------------------------------------*/
     Field::powerDn();
     Field::powerUp();
+
+    theta_ref = 0.0f;
+    theta_incr = 0.0f;
+    start_time_us = 0.0f;
+    dt = 0.0f;
   }
 
 
@@ -74,9 +86,11 @@ namespace Orbit::Control::Subroutine
     /*-----------------------------------------------------------------------------
     Reinitialize the current control loop
     -----------------------------------------------------------------------------*/
-
     Field::setControlMode( Field::Mode::OPEN_LOOP );
-    Field::setInnerLoopReferences( 0.1f, 0.0f, 0.0f );
+    Field::setInnerLoopReferences( 0.1f, 0.0f, theta_ref );
+
+    start_time_us = static_cast<float>( Chimera::micros() ) / 1e6f;
+    start_time = Chimera::millis();
 
     mState = State::RUNNING;
   }
@@ -97,6 +111,33 @@ namespace Orbit::Control::Subroutine
 
   void RotorRamp::process()
   {
+    using namespace Control::Math;
+
+    static constexpr float a = 0.1f;
+    static constexpr float b = 1.0f;
+    static constexpr float c = 0.0;
+
+
+    // if( ( Chimera::millis() - start_time ) < 10000 )
+    // {
+      float curr_time_us = static_cast<float>( Chimera::micros() ) / 1e6f;
+
+      dt         = curr_time_us - start_time_us;
+      theta_incr = ( a * dt * dt ) + ( b * dt ) + c;
+
+      if( theta_incr > M_PI_F )
+      {
+        theta_incr = M_PI_F;
+      }
+    // }
+
+    theta_ref += theta_incr;
+    while( theta_ref > M_2PI_F )
+    {
+      theta_ref -= M_2PI_F;
+    }
+
+    Field::setInnerLoopReferences( 0.1f, 0.0f, theta_ref );
   }
 
 
