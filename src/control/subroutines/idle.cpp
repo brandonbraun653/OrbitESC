@@ -5,7 +5,7 @@
  *  Description:
  *    Basic idling subroutine
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -22,7 +22,7 @@ namespace Orbit::Control::Subroutine
   {
     id     = Routine::IDLE;
     name   = "Idle";
-    mState = State::UNINITIALIZED;
+    mState = RunState::UNINITIALIZED;
   }
 
   IdleSubroutine::~IdleSubroutine()
@@ -32,25 +32,25 @@ namespace Orbit::Control::Subroutine
 
   void IdleSubroutine::initialize()
   {
-    mState = State::INITIALIZED;
+    mState = RunState::INITIALIZED;
   }
 
 
   void IdleSubroutine::start()
   {
-    mState = State::RUNNING;
+    mState = RunState::RUNNING;
   }
 
 
   void IdleSubroutine::stop()
   {
-    mState = State::STOPPED;
+    mState = RunState::STOPPED;
   }
 
 
   void IdleSubroutine::destroy()
   {
-    mState = State::UNINITIALIZED;
+    mState = RunState::UNINITIALIZED;
   }
 
 
@@ -59,7 +59,7 @@ namespace Orbit::Control::Subroutine
   }
 
 
-  State IdleSubroutine::state()
+  RunState IdleSubroutine::state()
   {
     return mState;
   }

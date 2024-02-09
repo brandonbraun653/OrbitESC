@@ -7,114 +7,139 @@ import google.protobuf.descriptor
 import google.protobuf.internal.enum_type_wrapper
 import google.protobuf.message
 import serial_interface_pb2
-import sys
 import typing
+import typing_extensions
 
-if sys.version_info >= (3, 10):
-    import typing as typing_extensions
-else:
-    import typing_extensions
-
-DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
+DESCRIPTOR: google.protobuf.descriptor.FileDescriptor = ...
 
 class _SystemControlSubId:
-    ValueType = typing.NewType("ValueType", builtins.int)
+    ValueType = typing.NewType('ValueType', builtins.int)
     V: typing_extensions.TypeAlias = ValueType
-
 class _SystemControlSubIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_SystemControlSubId.ValueType], builtins.type):
-    DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
-    RESET: _SystemControlSubId.ValueType  # 1
+    DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor = ...
+    RESET: SystemControlSubId.ValueType = ...  # 1
     """Reset the system"""
-    MOTOR: _SystemControlSubId.ValueType  # 2
+
+    MOTOR: SystemControlSubId.ValueType = ...  # 2
     """Inject manual motor control commands"""
-    CAL_ADC: _SystemControlSubId.ValueType  # 3
+
+    CAL_ADC: SystemControlSubId.ValueType = ...  # 3
     """Calibrate the ADC"""
-    MANUAL_INNER_LOOP: _SystemControlSubId.ValueType  # 4
+
+    MANUAL_INNER_LOOP: SystemControlSubId.ValueType = ...  # 4
     """Manual inner loop control enable/disable"""
-    MANUAL_INNER_LOOP_REF: _SystemControlSubId.ValueType  # 5
+
+    MANUAL_INNER_LOOP_REF: SystemControlSubId.ValueType = ...  # 5
     """New references to use for manual inner loop control"""
-    ENABLE_STREAM_PHASE_CURRENTS: _SystemControlSubId.ValueType  # 6
+
+    ENABLE_STREAM_PHASE_CURRENTS: SystemControlSubId.ValueType = ...  # 6
     """Enable streaming of phase currents"""
-    DISABLE_STREAM_PHASE_CURRENTS: _SystemControlSubId.ValueType  # 7
+
+    DISABLE_STREAM_PHASE_CURRENTS: SystemControlSubId.ValueType = ...  # 7
     """Disable streaming of phase currents"""
-    ENABLE_STREAM_SYSTEM_VOLTAGES: _SystemControlSubId.ValueType  # 8
+
+    ENABLE_STREAM_SYSTEM_VOLTAGES: SystemControlSubId.ValueType = ...  # 8
     """Enable streaming of system voltages"""
-    DISABLE_STREAM_SYSTEM_VOLTAGES: _SystemControlSubId.ValueType  # 9
+
+    DISABLE_STREAM_SYSTEM_VOLTAGES: SystemControlSubId.ValueType = ...  # 9
     """Disable streaming of system voltages"""
-    ENABLE_STREAM_PHASE_VOLTAGES: _SystemControlSubId.ValueType  # 10
+
+    ENABLE_STREAM_PHASE_VOLTAGES: SystemControlSubId.ValueType = ...  # 10
     """Enable streaming of phase voltage commands"""
-    DISABLE_STREAM_PHASE_VOLTAGES: _SystemControlSubId.ValueType  # 11
+
+    DISABLE_STREAM_PHASE_VOLTAGES: SystemControlSubId.ValueType = ...  # 11
     """Disable streaming of phase voltage commands"""
-    ENABLE_STREAM_STATE_ESTIMATES: _SystemControlSubId.ValueType  # 12
+
+    ENABLE_STREAM_STATE_ESTIMATES: SystemControlSubId.ValueType = ...  # 12
     """Enable streaming of state estimates"""
-    DISABLE_STREAM_STATE_ESTIMATES: _SystemControlSubId.ValueType  # 13
+
+    DISABLE_STREAM_STATE_ESTIMATES: SystemControlSubId.ValueType = ...  # 13
     """Disable streaming of state estimates"""
-    ARM: _SystemControlSubId.ValueType  # 14
+
+    ARM: SystemControlSubId.ValueType = ...  # 14
     """Arm the motor control system for driving the system"""
-    ENGAGE: _SystemControlSubId.ValueType  # 15
+
+    ENGAGE: SystemControlSubId.ValueType = ...  # 15
     """Engage the motor control system to actively drive the motor"""
-    DISABLE: _SystemControlSubId.ValueType  # 16
+
+    DISABLE: SystemControlSubId.ValueType = ...  # 16
     """Normal disengagement of the motor control system"""
-    FAULT: _SystemControlSubId.ValueType  # 17
+
+    FAULT: SystemControlSubId.ValueType = ...  # 17
     """High priority disengagement of the motor control system (for safety), bypassing normal disengagement flow"""
 
 class SystemControlSubId(_SystemControlSubId, metaclass=_SystemControlSubIdEnumTypeWrapper):
     """Sub Ids used to specify the type of system control message. This is set in the
     header of the message.
     """
+    pass
 
-RESET: SystemControlSubId.ValueType  # 1
+RESET: SystemControlSubId.ValueType = ...  # 1
 """Reset the system"""
-MOTOR: SystemControlSubId.ValueType  # 2
+
+MOTOR: SystemControlSubId.ValueType = ...  # 2
 """Inject manual motor control commands"""
-CAL_ADC: SystemControlSubId.ValueType  # 3
+
+CAL_ADC: SystemControlSubId.ValueType = ...  # 3
 """Calibrate the ADC"""
-MANUAL_INNER_LOOP: SystemControlSubId.ValueType  # 4
+
+MANUAL_INNER_LOOP: SystemControlSubId.ValueType = ...  # 4
 """Manual inner loop control enable/disable"""
-MANUAL_INNER_LOOP_REF: SystemControlSubId.ValueType  # 5
+
+MANUAL_INNER_LOOP_REF: SystemControlSubId.ValueType = ...  # 5
 """New references to use for manual inner loop control"""
-ENABLE_STREAM_PHASE_CURRENTS: SystemControlSubId.ValueType  # 6
+
+ENABLE_STREAM_PHASE_CURRENTS: SystemControlSubId.ValueType = ...  # 6
 """Enable streaming of phase currents"""
-DISABLE_STREAM_PHASE_CURRENTS: SystemControlSubId.ValueType  # 7
+
+DISABLE_STREAM_PHASE_CURRENTS: SystemControlSubId.ValueType = ...  # 7
 """Disable streaming of phase currents"""
-ENABLE_STREAM_SYSTEM_VOLTAGES: SystemControlSubId.ValueType  # 8
+
+ENABLE_STREAM_SYSTEM_VOLTAGES: SystemControlSubId.ValueType = ...  # 8
 """Enable streaming of system voltages"""
-DISABLE_STREAM_SYSTEM_VOLTAGES: SystemControlSubId.ValueType  # 9
+
+DISABLE_STREAM_SYSTEM_VOLTAGES: SystemControlSubId.ValueType = ...  # 9
 """Disable streaming of system voltages"""
-ENABLE_STREAM_PHASE_VOLTAGES: SystemControlSubId.ValueType  # 10
+
+ENABLE_STREAM_PHASE_VOLTAGES: SystemControlSubId.ValueType = ...  # 10
 """Enable streaming of phase voltage commands"""
-DISABLE_STREAM_PHASE_VOLTAGES: SystemControlSubId.ValueType  # 11
+
+DISABLE_STREAM_PHASE_VOLTAGES: SystemControlSubId.ValueType = ...  # 11
 """Disable streaming of phase voltage commands"""
-ENABLE_STREAM_STATE_ESTIMATES: SystemControlSubId.ValueType  # 12
+
+ENABLE_STREAM_STATE_ESTIMATES: SystemControlSubId.ValueType = ...  # 12
 """Enable streaming of state estimates"""
-DISABLE_STREAM_STATE_ESTIMATES: SystemControlSubId.ValueType  # 13
+
+DISABLE_STREAM_STATE_ESTIMATES: SystemControlSubId.ValueType = ...  # 13
 """Disable streaming of state estimates"""
-ARM: SystemControlSubId.ValueType  # 14
+
+ARM: SystemControlSubId.ValueType = ...  # 14
 """Arm the motor control system for driving the system"""
-ENGAGE: SystemControlSubId.ValueType  # 15
+
+ENGAGE: SystemControlSubId.ValueType = ...  # 15
 """Engage the motor control system to actively drive the motor"""
-DISABLE: SystemControlSubId.ValueType  # 16
+
+DISABLE: SystemControlSubId.ValueType = ...  # 16
 """Normal disengagement of the motor control system"""
-FAULT: SystemControlSubId.ValueType  # 17
+
+FAULT: SystemControlSubId.ValueType = ...  # 17
 """High priority disengagement of the motor control system (for safety), bypassing normal disengagement flow"""
+
 global___SystemControlSubId = SystemControlSubId
 
-@typing_extensions.final
-class SystemControlMessage(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
+class SystemControlMessage(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor = ...
     HEADER_FIELD_NUMBER: builtins.int
     DATA_FIELD_NUMBER: builtins.int
     @property
     def header(self) -> serial_interface_pb2.Header: ...
-    data: builtins.bytes
-    def __init__(
-        self,
+    data: builtins.bytes = ...
+    def __init__(self,
         *,
-        header: serial_interface_pb2.Header | None = ...,
-        data: builtins.bytes | None = ...,
-    ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["data", b"data", "header", b"header"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["data", b"data", "header", b"header"]) -> None: ...
-
+        header : typing.Optional[serial_interface_pb2.Header] = ...,
+        data : typing.Optional[builtins.bytes] = ...,
+        ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["data",b"data","header",b"header"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["data",b"data","header",b"header"]) -> None: ...
 global___SystemControlMessage = SystemControlMessage

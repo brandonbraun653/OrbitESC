@@ -59,6 +59,7 @@ typedef enum _ParamId {
     ParamId_PARAM_RAMP_CTRL_RAMP_TIME_SEC = 36, /* Ramp time of the ramp controller in seconds */
     ParamId_PARAM_CURRENT_OBSERVER_KSLIDE = 37, /* Current observer sliding mode controller K gain value */
     ParamId_PARAM_CURRENT_OBSERVER_MAX_ERROR = 38, /* Current observer maximum error value */
+    ParamId_PARAM_PWM_DRIVE_MAX_DUTY = 39, /* Maximum duty cycle of the PWM drive */
     /* Motor Description */
     ParamId_PARAM_ROTOR_POLES = 50, /* Number of poles in the motor */
     ParamId_PARAM_STATOR_SLOTS = 51, /* Number of slots in the motor */

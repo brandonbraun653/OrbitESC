@@ -64,7 +64,7 @@ namespace Orbit::Control::Subroutine
   {
     id     = Routine::ADC_SAMPLE_POINT_OPTIMIZER;
     name   = "ADC Sample Point Optimizer";
-    mState = State::UNINITIALIZED;
+    mState = RunState::UNINITIALIZED;
   }
 
 
@@ -89,27 +89,27 @@ namespace Orbit::Control::Subroutine
 
     s_motor_timer->enableOutput();
 
-    mState = State::INITIALIZED;
+    mState = RunState::INITIALIZED;
   }
 
 
   void SampleTimeOptimizer::start()
   {
     LOG_INFO( "Running %s", this->name.c_str() );
-    mState = State::RUNNING;
+    mState = RunState::RUNNING;
   }
 
 
   void SampleTimeOptimizer::stop()
   {
     LOG_INFO( "Stopped %s", this->name.c_str() );
-    mState = State::STOPPED;
+    mState = RunState::STOPPED;
   }
 
 
   void SampleTimeOptimizer::destroy()
   {
-    mState = State::UNINITIALIZED;
+    mState = RunState::UNINITIALIZED;
   }
 
 
@@ -125,7 +125,7 @@ namespace Orbit::Control::Subroutine
     const float               current    = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
 
     /*-------------------------------------------------------------------------
-    State machine to find the optimal sample point. This sweeps the ADC sample
+    RunState machine to find the optimal sample point. This sweeps the ADC sample
     time across the PWM output to find the best point to sample the current.
     Eventually this will find the lowest duty cycle that can be used in the
     motor control loop. This is just for debugging and experimentation.
@@ -214,7 +214,7 @@ namespace Orbit::Control::Subroutine
   }
 
 
-  State SampleTimeOptimizer::state()
+  RunState SampleTimeOptimizer::state()
   {
     return mState;
   }

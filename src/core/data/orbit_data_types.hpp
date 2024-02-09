@@ -5,7 +5,7 @@
  *  Description:
  *    Type declarations for system data
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -78,6 +78,12 @@ namespace Orbit::Data
     float rampCtrlFirstOrderTerm;                         /**< PARAM_RAMP_CTRL_FIRST_ORDER_TERM */
     float rampCtrlSecondOrderTerm;                        /**< PARAM_RAMP_CTRL_SECOND_ORDER_TERM */
     float rampCtrlRampTimeSec;                            /**< PARAM_RAMP_CTRL_RAMP_TIME_SEC */
+    float pwmDriveMaxDutyCycle;                           /**< PARAM_PWM_DRIVE_MAX_DUTY */
+
+    /*-------------------------------------------------------------------------
+    Runtime Derived Controls
+    -------------------------------------------------------------------------*/
+    uint32_t parkSector; /**< Which sector to drive for Park alignment */
 
     void clear();
     void setDefaults();

@@ -238,6 +238,13 @@ namespace Orbit::Data::Param
               .maxSize   = sizeof( SysControl.currentObserver_MaxError ),
               .validator = nullptr },
 
+        Node{ .id        = ParamId_PARAM_PWM_DRIVE_MAX_DUTY,
+              .type      = ParamType_FLOAT,
+              .key       = "pwm_max_duty",
+              .address   = &SysControl.pwmDriveMaxDutyCycle,
+              .maxSize   = sizeof( SysControl.pwmDriveMaxDutyCycle ),
+              .validator = nullptr },
+
         /*-----------------------------------------------------------------------
         Motor Description Parameters
         -----------------------------------------------------------------------*/

@@ -96,22 +96,16 @@ namespace Orbit::Control::State
     procedure.
     -------------------------------------------------------------------------*/
     // TODO BMB: Somehow this is triggering a full system reset when the external
-    // TODO BMB: power supply isn't connected. What's going on here?
+    // TODO BMB: power supply isn't connected. What's going on here? Do I need more
+    // TODO BMB: bulk capacitance?
     Control::Field::powerUp();
     Control::Speed::powerUp();
 
-    // if( !switchRoutine( Routine::ALIGNMENT_DETECTION ) )
-    // {
-    //   LOG_ERROR( "Failed to start alignment detection routine" );
-    //   return ModeId::IDLE;
-    // }
-
-
-    // if( !switchRoutine( Routine::ADC_SAMPLE_POINT_OPTIMIZER ) )
-    // {
-    //   LOG_ERROR( "Failed to start alignment detection routine" );
-    //   return ModeId::IDLE;
-    // }
+    if( !switchRoutine( Routine::ALIGNMENT_DETECTION ) )
+    {
+      LOG_ERROR( "Failed to start alignment detection routine" );
+      return ModeId::IDLE;
+    }
 
     /*-------------------------------------------------------------------------
     Signal to the user that the system is armed
@@ -125,9 +119,18 @@ namespace Orbit::Control::State
 
   etl::fsm_state_id_t Armed::on_event( const MsgEngage &msg )
   {
+    using namespace Subroutine;
+
     /*-------------------------------------------------------------------------
-    Transition directly to the ENGAGED state. Let on_enter_state() do the work.
+    Validate we can transition. It's expected the alignment detection routine
+    will have completed before we can engage.
     -------------------------------------------------------------------------*/
+    if( auto active_routine = getActiveSubroutine(); active_routine != Routine::IDLE )
+    {
+      LOG_WARN( "ARM -> ENGAGE fail. Subroutine [%s] is active.", getSubroutineName( active_routine ) );
+      return this->No_State_Change;
+    }
+
     return ModeId::ENGAGED;
   }
 

@@ -53,6 +53,7 @@ enum ParamId {
   PARAM_RAMP_CTRL_RAMP_TIME_SEC = 36; // Ramp time of the ramp controller in seconds
   PARAM_CURRENT_OBSERVER_KSLIDE = 37; // Current observer sliding mode controller K gain value
   PARAM_CURRENT_OBSERVER_MAX_ERROR = 38; // Current observer maximum error value
+  PARAM_PWM_DRIVE_MAX_DUTY = 39; // Maximum duty cycle of the PWM drive
 
   // Motor Description
   PARAM_ROTOR_POLES = 50; // Number of poles in the motor

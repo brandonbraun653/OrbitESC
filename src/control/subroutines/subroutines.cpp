@@ -5,7 +5,7 @@
  *  Description:
  *    Motor control subroutine driver implementation
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -47,7 +47,7 @@ namespace Orbit::Control::Subroutine
     r.stop();
     r.destroy();
 
-    if( r.state() != State::UNINITIALIZED )
+    if( r.state() != RunState::UNINITIALIZED )
     {
       LOG_WARN( "Unexpected state after manually terminating [%s]", s_curr_routine->name );
       return false;
@@ -96,23 +96,23 @@ namespace Orbit::Control::Subroutine
     ---------------------------------------------------------------------------*/
     switch( s_curr_routine->state() )
     {
-      case State::UNINITIALIZED:
+      case RunState::UNINITIALIZED:
         s_curr_routine->initialize();
         break;
 
-      case State::INITIALIZED:
+      case RunState::INITIALIZED:
         s_curr_routine->start();
         break;
 
-      case State::RUNNING:
+      case RunState::RUNNING:
         s_curr_routine->process();
         break;
 
-      case State::PANIC:
+      case RunState::PANIC:
         s_curr_routine->stop();
         break;
 
-      case State::STOPPED:
+      case RunState::STOPPED:
         s_curr_routine->destroy();
         s_curr_routine = nullptr;
         break;
@@ -157,9 +157,16 @@ namespace Orbit::Control::Subroutine
     /*-------------------------------------------------------------------------
     Stop the current routine if present
     -------------------------------------------------------------------------*/
-    if( s_curr_routine && !reset_routine( *s_curr_routine ) )
+    if( s_curr_routine )
     {
-      return false;
+      if( s_curr_routine->id == next )
+      {
+        return true;
+      }
+      else if( !reset_routine( *s_curr_routine ) )
+      {
+        return false;
+      }
     }
 
     /*-------------------------------------------------------------------------

@@ -24,26 +24,6 @@ Includes
 
 namespace Orbit::Control::Subroutine
 {
-
-  // TODO: If the system needs to bail mid-ramp, post an event to the FOC::sendSystemEvent method.
-  /** Implementation Notes
-   *
-   * Ok. The important thing to remember here is that all control aspects are
-   * occuring from the DQ frame only. There are HW timers, DMA engines, and
-   * high frequency interrupts that are all running in the background to make
-   * the current control loop functional.
-   *
-   * That being said, the first thing I probably should do is get that loop up
-   * and running again. It needs a bit of polishing.
-   *
-   */
-
-  static uint32_t start_time;
-  static float theta_incr;
-  static float theta_ref;
-  static float start_time_us;
-  static float dt;
-
   /*---------------------------------------------------------------------------
   RotorRamp Implementation
   ---------------------------------------------------------------------------*/
@@ -51,8 +31,8 @@ namespace Orbit::Control::Subroutine
   RotorRamp::RotorRamp()
   {
     id     = Routine::OPEN_LOOP_RAMP_FOC;
-    name   = "OL Rotor Ramp FOC";
-    mState = State::UNINITIALIZED;
+    name   = "FOC Rotor Ramp";
+    mState = RunState::UNINITIALIZED;
   }
 
 
@@ -64,7 +44,7 @@ namespace Orbit::Control::Subroutine
   void RotorRamp::initialize()
   {
     LOG_INFO( "Initialized %s", this->name.c_str() );
-    mState = State::INITIALIZED;
+    mState = RunState::INITIALIZED;
 
     /*-------------------------------------------------------------------------
     Reset the current control loop
@@ -72,10 +52,7 @@ namespace Orbit::Control::Subroutine
     Field::powerDn();
     Field::powerUp();
 
-    theta_ref = 0.0f;
-    theta_incr = 0.0f;
-    start_time_us = 0.0f;
-    dt = 0.0f;
+
   }
 
 
@@ -87,25 +64,22 @@ namespace Orbit::Control::Subroutine
     Reinitialize the current control loop
     -----------------------------------------------------------------------------*/
     Field::setControlMode( Field::Mode::OPEN_LOOP );
-    Field::setInnerLoopReferences( 0.1f, 0.0f, theta_ref );
+    Field::setInnerLoopReferences( 0.0f, 0.0f, 0.0f );
 
-    start_time_us = static_cast<float>( Chimera::micros() ) / 1e6f;
-    start_time = Chimera::millis();
-
-    mState = State::RUNNING;
+    mState = RunState::RUNNING;
   }
 
 
   void RotorRamp::stop()
   {
     LOG_INFO( "Stopped %s", this->name.c_str() );
-    mState = State::STOPPED;
+    mState = RunState::STOPPED;
   }
 
 
   void RotorRamp::destroy()
   {
-    mState = State::UNINITIALIZED;
+    mState = RunState::UNINITIALIZED;
   }
 
 
@@ -120,28 +94,28 @@ namespace Orbit::Control::Subroutine
 
     // if( ( Chimera::millis() - start_time ) < 10000 )
     // {
-      float curr_time_us = static_cast<float>( Chimera::micros() ) / 1e6f;
+    //   float curr_time_us = static_cast<float>( Chimera::micros() ) / 1e6f;
 
-      dt         = curr_time_us - start_time_us;
-      theta_incr = ( a * dt * dt ) + ( b * dt ) + c;
+    //   dt         = curr_time_us - start_time_us;
+    //   theta_incr = ( a * dt * dt ) + ( b * dt ) + c;
 
-      if( theta_incr > M_PI_F )
-      {
-        theta_incr = M_PI_F;
-      }
+    //   if( theta_incr > M_PI_F )
+    //   {
+    //     theta_incr = M_PI_F;
+    //   }
     // }
 
-    theta_ref += theta_incr;
-    while( theta_ref > M_2PI_F )
-    {
-      theta_ref -= M_2PI_F;
-    }
+    // theta_ref += theta_incr;
+    // while( theta_ref > M_2PI_F )
+    // {
+    //   theta_ref -= M_2PI_F;
+    // }
 
-    Field::setInnerLoopReferences( 0.1f, 0.0f, theta_ref );
+    // Field::setInnerLoopReferences( 0.1f, 0.0f, theta_ref );
   }
 
 
-  State RotorRamp::state()
+  RunState RotorRamp::state()
   {
     return mState;
   }

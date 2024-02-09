@@ -43,7 +43,7 @@ namespace Orbit::Control::Subroutine
   /**
    * @brief The various states a subroutine can be in
    */
-  enum class State : uint8_t
+  enum class RunState : uint8_t
   {
     UNINITIALIZED,  /**< Routine is idle and not ready */
     INITIALIZED,    /**< Init sequence has been performed */
@@ -121,10 +121,10 @@ namespace Orbit::Control::Subroutine
      * @brief Perform any cleanup tasks to transition to the uninitialized state.
      * @return void
      */
-    virtual State state() = 0;
+    virtual RunState state() = 0;
 
   protected:
-    State mState; /**< Current state of the routine */
+    RunState mState; /**< Current state of the routine */
   };
 
   /*---------------------------------------------------------------------------

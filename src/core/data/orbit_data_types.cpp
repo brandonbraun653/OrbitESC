@@ -5,7 +5,7 @@
  *  Description:
  *    Functional details of initializing the data storage layer
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -82,12 +82,17 @@ namespace Orbit::Data
     rampCtrlFirstOrderTerm   = 0.0f;
     rampCtrlSecondOrderTerm  = 0.0f;
     rampCtrlRampTimeSec      = 0.0f;
+    pwmDriveMaxDutyCycle     = 0.0f;
+    parkSector               = 0;
     memset( currentCtrl_Q_FIR, 0, sizeof( currentCtrl_Q_FIR ) );
     memset( currentCtrl_D_FIR, 0, sizeof( currentCtrl_D_FIR ) );
   }
 
   void Controls::setDefaults()
   {
+    /*-------------------------------------------------------------------------
+    Parameter Defaults
+    -------------------------------------------------------------------------*/
     statorPWMFreq            = DFLT_STATOR_PWM_FREQ_HZ;
     speedCtrlUpdateFreq      = DFLT_SPEED_CTL_UPDT_FREQ_HZ;
     speedCtrlKp              = DFLT_SPEED_PID_KP;
@@ -105,6 +110,12 @@ namespace Orbit::Data
     rampCtrlFirstOrderTerm   = DFLT_RAMP_CTRL_FIRST_ORDER_TERM;
     rampCtrlSecondOrderTerm  = DFLT_RAMP_CTRL_SECOND_ORDER_TERM;
     rampCtrlRampTimeSec      = DFLT_RAMP_CTRL_RAMP_TIME_SEC;
+    pwmDriveMaxDutyCycle     = DFLT_PWM_DRIVE_MAX_DUTY;
+
+    /*-------------------------------------------------------------------------
+    Runtime Defaults
+    -------------------------------------------------------------------------*/
+    parkSector               = 0;
     memcpy( currentCtrl_Q_FIR, DFLT_ICTRL_DQ_FIR_FILTER, sizeof( currentCtrl_Q_FIR ) );
     memcpy( currentCtrl_D_FIR, DFLT_ICTRL_DQ_FIR_FILTER, sizeof( currentCtrl_D_FIR ) );
   }

@@ -144,6 +144,11 @@ namespace Orbit::Data
   static constexpr float DFLT_SPEED_PID_KI = 0.0f;
   static constexpr float DFLT_SPEED_PID_KD = 0.0f;
 
+  /**
+   * @brief Scale the maximum drive strength of the motor drive output.
+   */
+  static constexpr float DFLT_PWM_DRIVE_MAX_DUTY = 0.95f;
+
   /*---------------------------------------------------------------------------
   Motor Description
   ---------------------------------------------------------------------------*/

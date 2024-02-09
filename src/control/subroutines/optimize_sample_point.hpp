@@ -35,7 +35,7 @@ namespace Orbit::Control::Subroutine
     void  stop() final override;
     void  destroy() final override;
     void  process() final override;
-    State state() final override;
+    RunState state() final override;
   };
 
 }  // namespace Orbit::Control::Subroutine
