@@ -24,32 +24,6 @@ Includes
 namespace Orbit::Control::Subroutine
 {
   /*---------------------------------------------------------------------------
-  Enumerations
-  ---------------------------------------------------------------------------*/
-
-  enum class RampStep : uint8_t
-  {
-    ALIGN,    /**< Aligning the rotor to a starting vector */
-    RAMP,     /**< Controlled ramp from zero to idle speed */
-    COMPLETE, /**< Rotor is at idle speed */
-    ERROR     /**< Ramp subroutine failed */
-  };
-
-
-  /*---------------------------------------------------------------------------
-  Structures
-  ---------------------------------------------------------------------------*/
-
-  struct RampState
-  {
-    RampStep rampStep;     /**< Current step in the ramping process */
-    uint32_t startTimeRef; /**< Time reference for the start of a process */
-    float    thetaRefRad;  /**< Reference angle (radians) to drive the FOC vector */
-    float    iqRef;        /**< Reference current on the Q-axis to drive the FOC vector */
-    float    idRef;        /**< Reference current on the D-axis to drive the FOC vector */
-  };
-
-  /*---------------------------------------------------------------------------
   Classes
   ---------------------------------------------------------------------------*/
 
@@ -68,9 +42,6 @@ namespace Orbit::Control::Subroutine
     void     destroy() final override;
     void     process() final override;
     RunState state() final override;
-
-  private:
-    RampState mRampState;
   };
 
 }    // namespace Orbit::Control::Subroutine

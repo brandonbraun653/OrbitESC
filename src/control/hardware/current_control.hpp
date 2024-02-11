@@ -5,7 +5,7 @@
  *  Description:
  *    Field Oriented Control (FOC) Driver
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -19,6 +19,11 @@ Includes
 
 namespace Orbit::Control::Field
 {
+  /*---------------------------------------------------------------------------
+  Aliases
+  ---------------------------------------------------------------------------*/
+  typedef void ( *ISRInnerLoopCallback )( void );
+
   /*---------------------------------------------------------------------------
   Enumerations
   ---------------------------------------------------------------------------*/
@@ -62,15 +67,15 @@ namespace Orbit::Control::Field
   Mode getControlMode();
 
   /**
-   * @brief Sets the input references for the inner loop current controller.
-   * @note Only active in manual (open loop) control mode.
+   * @brief Sets the inner loop callback function.
    *
-   * @param iq_ref  Current reference in the q-axis
-   * @param id_ref  Current reference in the d-axis
-   * @param theta   Rotor angle in radians
+   * This function will be invoked after all the SVM current control operations have
+   * been performed for the current control loop iteration.
+   *
+   * @param callback  Function to be invoked
    * @return void
    */
-  void setInnerLoopReferences( const float iq_ref, const float id_ref, const float theta );
+  void setInnerLoopCallback( ISRInnerLoopCallback callback );
 
 }    // namespace Orbit::Control::Field
 

@@ -83,7 +83,7 @@ namespace Orbit::Data
     /*-------------------------------------------------------------------------
     Runtime Derived Controls
     -------------------------------------------------------------------------*/
-    uint32_t parkSector; /**< Which sector to drive for Park alignment */
+    uint32_t parkTheta; /**< Which angle to drive for Park alignment */
 
     void clear();
     void setDefaults();

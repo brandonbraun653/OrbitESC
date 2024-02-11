@@ -5,13 +5,14 @@
  *  Description:
  *    State machine control logic for the ARMED state
  *
- *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/system>
+#include <src/control/foc_math.hpp>
 #include <src/control/hardware/current_control.hpp>
 #include <src/control/hardware/speed_control.hpp>
 #include <src/control/modes/sys_mode_armed.hpp>
@@ -101,11 +102,14 @@ namespace Orbit::Control::State
     Control::Field::powerUp();
     Control::Speed::powerUp();
 
-    if( !switchRoutine( Routine::ALIGNMENT_DETECTION ) )
-    {
-      LOG_ERROR( "Failed to start alignment detection routine" );
-      return ModeId::IDLE;
-    }
+    // if( !switchRoutine( Routine::ALIGNMENT_DETECTION ) )
+    // {
+    //   LOG_ERROR( "Failed to start alignment detection routine" );
+    //   return ModeId::IDLE;
+    // }
+
+    // Temporarily drive a fixed park vector
+    Data::SysControl.parkTheta = DEG_TO_RAD( 1.0f * 60.0f );
 
     /*-------------------------------------------------------------------------
     Signal to the user that the system is armed

@@ -164,7 +164,7 @@ namespace Orbit::Control::Subroutine
     Windings fully discharged, move to next measurement
     -------------------------------------------------------------------------*/
     // TODO: Could probably do this in a more efficient way, maybe by using the actual measurements
-    if( !mSampleActive && ( ( Chimera::millis() - mStartTime ) > 100 ) )
+    if( !mSampleActive && ( ( Chimera::millis() - mStartTime ) > 10 ) )
     {
       mIdx++;
       mTimer->energizeWinding( mMeasurements[ mIdx ].hiSide, mMeasurements[ mIdx ].loSide, DRIVE_DUTY_CYCLE );
@@ -198,7 +198,7 @@ namespace Orbit::Control::Subroutine
       Propagate the decision for the park sector up to the rest of the system.
       This will be used by the ARM state as a starting point for the ramp up.
       -----------------------------------------------------------------------*/
-      Data::SysControl.parkSector = lowest_idx;
+      Data::SysControl.parkTheta = lowest_idx * 60.0f;
     }
   }
 

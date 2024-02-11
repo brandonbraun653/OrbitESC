@@ -144,6 +144,25 @@ namespace Orbit::Control::Math
 
 
   /**
+   * @brief Normalizes a radian angle to lie within 0-2*pi.
+   *
+   * @param x Value to normalize
+   * @return void
+   */
+  static inline void normalize_radians( float &x )
+  {
+    while( x < 0.0f )
+    {
+      x += M_2PI_F;
+    }
+
+    while( x > M_2PI_F )
+    {
+      x -= M_2PI_F;
+    }
+  }
+
+  /**
    * @brief A simple low pass filter
    * @see https://github.com/vedderb/bldc/blob/master/util/utils_math.h
    *

@@ -83,7 +83,7 @@ namespace Orbit::Data
     rampCtrlSecondOrderTerm  = 0.0f;
     rampCtrlRampTimeSec      = 0.0f;
     pwmDriveMaxDutyCycle     = 0.0f;
-    parkSector               = 0;
+    parkTheta               = 0;
     memset( currentCtrl_Q_FIR, 0, sizeof( currentCtrl_Q_FIR ) );
     memset( currentCtrl_D_FIR, 0, sizeof( currentCtrl_D_FIR ) );
   }
@@ -115,7 +115,7 @@ namespace Orbit::Data
     /*-------------------------------------------------------------------------
     Runtime Defaults
     -------------------------------------------------------------------------*/
-    parkSector               = 0;
+    parkTheta               = 0;
     memcpy( currentCtrl_Q_FIR, DFLT_ICTRL_DQ_FIR_FILTER, sizeof( currentCtrl_Q_FIR ) );
     memcpy( currentCtrl_D_FIR, DFLT_ICTRL_DQ_FIR_FILTER, sizeof( currentCtrl_D_FIR ) );
   }

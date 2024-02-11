@@ -5,7 +5,7 @@
  *  Description:
  *    Implements the current control loop for a FOC motor
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -29,25 +29,15 @@ namespace Orbit::Control::Field
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr float MAX_DUTY = 0.10f;   /* Testing: Limit max commandable duty cycle? */
-
-  /*---------------------------------------------------------------------------
-  Structures
-  ---------------------------------------------------------------------------*/
-  struct ControlState
-  {
-    volatile Mode ctl_mode; /**< Current control mode */
-    volatile float open_loop_theta;
-    volatile float open_loop_iq_ref;
-    volatile float open_loop_id_ref;
-  };
-
+  static constexpr float MAX_DUTY = 0.30f;   /* Testing: Limit max commandable duty cycle? */
 
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static volatile ControlState               s_state;   /**< Current state of the control loop */
-  static volatile Chimera::GPIO::Driver_rPtr s_dbg_pin; /**< Debug pin for timing measurements */
+
+  volatile Mode                              s_ctl_mode;      /**< Current control mode */
+  static volatile Chimera::GPIO::Driver_rPtr s_dbg_pin;       /**< Debug pin for timing measurements */
+  static volatile ISRInnerLoopCallback       s_inner_loop_cb; /**< Callback for inner loop custom behaviors */
 
   /*---------------------------------------------------------------------------
   Static Function Declarations
@@ -57,11 +47,7 @@ namespace Orbit::Control::Field
 
   static void reset_state()
   {
-    s_state.ctl_mode = Mode::DISABLED;
-    s_state.open_loop_theta = 0.0f;
-    s_state.open_loop_iq_ref = 0.0f;
-    s_state.open_loop_id_ref = 0.0f;
-
+    s_ctl_mode = Mode::DISABLED;
     foc_ireg_state.iqPID.resetState();
     foc_ireg_state.idPID.resetState();
   }
@@ -74,7 +60,8 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Initialize the control state
     -------------------------------------------------------------------------*/
-    s_state.ctl_mode = Mode::UNKNOWN;
+    s_ctl_mode = Mode::UNKNOWN;
+    s_inner_loop_cb = nullptr;
 
     /*-------------------------------------------------------------------------
     Get a reference to the debug pin. This is used for timing measurements.
@@ -101,7 +88,7 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Assign PID current control parameters
     -------------------------------------------------------------------------*/
-    foc_ireg_state.dt = 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ;
+    foc_ireg_state.dt = 1.0f / Data::SysControl.statorPWMFreq;
 
     foc_ireg_state.iqPID.init();
     foc_ireg_state.iqPID.OutMinLimit = -20.0f;
@@ -147,7 +134,7 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Check if the mode is already set
     -------------------------------------------------------------------------*/
-    if( mode == s_state.ctl_mode )
+    if( mode == s_ctl_mode )
     {
       return true;
     }
@@ -156,7 +143,7 @@ namespace Orbit::Control::Field
     Gate the ISR from running temporarily while state data gets updated
     -------------------------------------------------------------------------*/
     auto isr_msk = Chimera::System::disableInterrupts();
-    s_state.ctl_mode = Mode::DISABLED;
+    s_ctl_mode = Mode::DISABLED;
     Chimera::System::enableInterrupts( isr_msk );
 
     /*-------------------------------------------------------------------------
@@ -172,9 +159,9 @@ namespace Orbit::Control::Field
         break;
 
       case Mode::OPEN_LOOP:
-        s_state.open_loop_id_ref = 0.0f;
-        s_state.open_loop_iq_ref = 0.0f;
-        s_state.open_loop_theta  = 0.0f;
+        foc_motor_state.thetaEst = 0.0f;
+        foc_ireg_state.iqRef     = 0.0f;
+        foc_ireg_state.idRef     = 0.0f;
 
         Orbit::Motor::Drive::svmUpdate( 0.0f, 0.0f, 0.0f );
         Orbit::Motor::Drive::enableOutput();
@@ -194,25 +181,22 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Activate the new mode
     -------------------------------------------------------------------------*/
-    s_state.ctl_mode = mode;
+    s_ctl_mode = mode;
     return true;
   }
 
 
   Mode getControlMode()
   {
-    return s_state.ctl_mode;
+    return s_ctl_mode;
   }
 
 
-  void setInnerLoopReferences( const float iq_ref, const float id_ref, const float theta )
+  void setInnerLoopCallback( ISRInnerLoopCallback callback )
   {
-    if( s_state.ctl_mode == Mode::OPEN_LOOP )
-    {
-      s_state.open_loop_iq_ref = iq_ref;
-      s_state.open_loop_id_ref = id_ref;
-      s_state.open_loop_theta  = theta;
-    }
+    auto isr_msk = Chimera::System::disableInterrupts();
+    s_inner_loop_cb = callback;
+    Chimera::System::enableInterrupts( isr_msk );
   }
 
   /*---------------------------------------------------------------------------
@@ -237,38 +221,9 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Decide how to proceed depending on our current mode
     -------------------------------------------------------------------------*/
-    float theta = 0.0f;
-    float iqRef = 0.0f;
-    float idRef = 0.0f;
-
-    switch( s_state.ctl_mode )
+    if( ( s_ctl_mode == Mode::DISABLED ) || !s_inner_loop_cb )
     {
-      /*-----------------------------------------------------------------------
-      Use external references for the current control loop. This is used for
-      manual control.
-      -----------------------------------------------------------------------*/
-      case Mode::OPEN_LOOP:
-        theta = s_state.open_loop_theta;
-        iqRef = s_state.open_loop_iq_ref;
-        idRef = s_state.open_loop_id_ref;
-        break;
-
-      /*-----------------------------------------------------------------------
-      Use internal references generated by state estimator and speed control
-      outer loop to generate current control references.
-      -----------------------------------------------------------------------*/
-      case Mode::CLOSED_LOOP:
-        theta = foc_motor_state.thetaEst;
-        iqRef = foc_ireg_state.iqRef;
-        idRef = foc_ireg_state.idRef;
-        break;
-
-      /*-----------------------------------------------------------------------
-      Default case is to do nothing and immediately return.
-      -----------------------------------------------------------------------*/
-      case Mode::DISABLED:
-      default:
-        return;
+      return;
     }
 
     /*-------------------------------------------------------------------------
@@ -334,20 +289,19 @@ namespace Orbit::Control::Field
     }
 
     /*-------------------------------------------------------------------------
-    Use Clarke Transform to convert phase currents from 3-axis to 2-axis
+    Use Clarke Transform to convert phase currents from 3-axis to 2-axis, then
+    use Park Transform to convert from 2-axis into the d-q axis.
     -------------------------------------------------------------------------*/
     clarke_transform( foc_ireg_state.ima, foc_ireg_state.imb, foc_ireg_state.ia, foc_ireg_state.ib );
 
-    /*-------------------------------------------------------------------------
-    Use Park Transform to convert phase currents from 2-axis to d-q axis
-    -------------------------------------------------------------------------*/
-    park_transform( foc_ireg_state.ia, foc_ireg_state.ib, theta, foc_ireg_state.iq, foc_ireg_state.id );
+    // TODO BMB: I think I need to update the rotor observer before doing the park transform.
+    park_transform( foc_ireg_state.ia, foc_ireg_state.ib, foc_motor_state.thetaEst, foc_ireg_state.iq, foc_ireg_state.id );
 
     /*-------------------------------------------------------------------------
     Run PI controllers for motor currents to generate voltage commands
     -------------------------------------------------------------------------*/
-    foc_ireg_state.vq = foc_ireg_state.iqPID.run( iqRef - foc_ireg_state.iq );
-    foc_ireg_state.vd = foc_ireg_state.idPID.run( idRef - foc_ireg_state.id );
+    foc_ireg_state.vq = foc_ireg_state.iqPID.run( foc_ireg_state.iqRef - foc_ireg_state.iq );
+    foc_ireg_state.vd = foc_ireg_state.idPID.run( foc_ireg_state.idRef - foc_ireg_state.id );
 
     // TODO: From mcpwm_foc:4299 (Vedder), once I switch into closed loop control I probably
     // TODO: should add decoupling of the d-q currents.
@@ -364,13 +318,15 @@ namespace Orbit::Control::Field
     // TODO: Possibly filter vq for something later? Not sure yet.
 
     /*-------------------------------------------------------------------------
-    Use Inverse Park Transform to convert d-q voltages to 2-axis phase voltages
+    Use Inverse Park Transform to convert d-q voltages to alpha-beta axis, then
+    apply the SVM updates.
     -------------------------------------------------------------------------*/
-    inverse_park_transform( foc_ireg_state.mod_vq, foc_ireg_state.mod_vd, theta, foc_ireg_state.va, foc_ireg_state.vb );
+    inverse_park_transform( foc_ireg_state.mod_vq, foc_ireg_state.mod_vd, foc_motor_state.thetaEst, foc_ireg_state.va, foc_ireg_state.vb );
+    svmUpdate( foc_ireg_state.va, foc_ireg_state.vb, foc_motor_state.thetaEst );
 
     /*-------------------------------------------------------------------------
-    Apply the SVM updates
+    Invoke control system callback to swap in custom behaviors
     -------------------------------------------------------------------------*/
-    svmUpdate( foc_ireg_state.va, foc_ireg_state.vb, theta );
+    s_inner_loop_cb();
   }
 }    // namespace Orbit::Control::Field

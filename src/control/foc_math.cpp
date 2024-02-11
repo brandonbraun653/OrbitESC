@@ -5,7 +5,7 @@
  *  Description:
  *    Field Oriented Control Math Utilities
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -184,6 +184,7 @@ namespace Orbit::Control::Math
     return std::max( min, std::min( v, max ) );
   }
 
+  // TODO BMB: Does this need removal? I think I'm already doing this in the HW timer class.
   void space_vector_modulation( const float alpha, const float beta, const uint32_t timer_pwm_arr, uint32_t &timer_pwm_ccr1,
                                 uint32_t &timer_pwm_ccr2, uint32_t &timer_pwm_ccr3, uint32_t &commutation_sector )
   {
