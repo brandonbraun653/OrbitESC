@@ -49,7 +49,7 @@ namespace Orbit::Control::Subroutine
   /*---------------------------------------------------------------------------
   Temporary Values
   ---------------------------------------------------------------------------*/
-  static constexpr float s_rpm_desired = 8000.0f;
+  static constexpr float s_rpm_desired = 15000.0f;
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -150,12 +150,14 @@ namespace Orbit::Control::Subroutine
           Engage the high speed current control loop behavior
           -------------------------------------------------------------------*/
           foc_motor_state.thetaEst = Data::SysControl.parkTheta;
-          foc_ireg_state.iqRef     = 1.0f;
+          foc_ireg_state.iqRef     = 0.0f;
           foc_ireg_state.idRef     = 0.0f;
 
           // TODO: I'm going to need to scale this omega by the rotor "gearing" ratio
           mRampState.rampStart_us  = Chimera::micros();
           mRampState.omega_desired = ( s_rpm_desired / 60.0f ) * Math::M_2PI_F;
+          foc_ireg_state.max_drive = 0.0f;
+          foc_ireg_state.iqRef     = 0.0f;
           Field::setInnerLoopCallback( isrRampControl );
         }
         break;
@@ -214,9 +216,20 @@ namespace Orbit::Control::Subroutine
     if( foc_motor_state.omegaEst < mRampState.omega_desired )
     {
       const float now_us      = static_cast<float>( Chimera::micros() - mRampState.rampStart_us ) * 1e-6f;
-      const float omega_scale = 1.0f / ( 1.0f + 5.0f * expf( -( now_us - 3.0f ) ) );
+
+      // Sigmoid scaling
+      // const float omega_scale = 1.0f / ( 1.0f + 5.0f * expf( -( now_us - 3.0f ) ) );
+
+      // Linear scaling
+      const float omega_scale = now_us / 3.0f;
 
       foc_motor_state.omegaEst = mRampState.omega_desired * omega_scale;
+      foc_ireg_state.max_drive = 0.3f * omega_scale;
+      foc_ireg_state.iqRef     = 2.0f;
+    }
+    else
+    {
+      foc_ireg_state.iqRef = 0.5f;
     }
 
     /*-------------------------------------------------------------------------

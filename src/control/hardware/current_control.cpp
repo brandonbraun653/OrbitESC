@@ -300,14 +300,14 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Run PI controllers for motor currents to generate voltage commands
     -------------------------------------------------------------------------*/
-    foc_ireg_state.vq = foc_ireg_state.iqPID.run( foc_ireg_state.iqRef - foc_ireg_state.iq );
+    foc_ireg_state.vq = -1.0f * foc_ireg_state.iqPID.run( foc_ireg_state.iqRef - foc_ireg_state.iq );
     foc_ireg_state.vd = foc_ireg_state.idPID.run( foc_ireg_state.idRef - foc_ireg_state.id );
 
     // TODO: From mcpwm_foc:4299 (Vedder), once I switch into closed loop control I probably
     // TODO: should add decoupling of the d-q currents.
 
     // Compute the max length of the voltage space vector without overmodulation
-    float max_v_mag = ONE_OVER_SQRT3 * MAX_DUTY * vSupply;
+    float max_v_mag = ONE_OVER_SQRT3 * foc_ireg_state.max_drive * vSupply;
 
     // Scale the voltage commands to fit within the allowable space vector
     saturate_vector_2d( foc_ireg_state.vd, foc_ireg_state.vq, max_v_mag );

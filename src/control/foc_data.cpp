@@ -38,23 +38,24 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     Reset current control state
     -------------------------------------------------------------------------*/
-    foc_ireg_state.dt    = 0.0f;
-    foc_ireg_state.ima   = 0.0f;
-    foc_ireg_state.imb   = 0.0f;
-    foc_ireg_state.imc   = 0.0f;
-    foc_ireg_state.vma   = 0.0f;
-    foc_ireg_state.vmb   = 0.0f;
-    foc_ireg_state.vmc   = 0.0f;
-    foc_ireg_state.iq    = 0.0f;
-    foc_ireg_state.id    = 0.0f;
-    foc_ireg_state.vq    = 0.0f;
-    foc_ireg_state.vd    = 0.0f;
-    foc_ireg_state.va    = 0.0f;
-    foc_ireg_state.vb    = 0.0f;
-    foc_ireg_state.ia    = 0.0f;
-    foc_ireg_state.ib    = 0.0f;
-    foc_ireg_state.iqRef = 0.0f;
-    foc_ireg_state.idRef = 0.0f;
+    foc_ireg_state.dt        = 0.0f;
+    foc_ireg_state.ima       = 0.0f;
+    foc_ireg_state.imb       = 0.0f;
+    foc_ireg_state.imc       = 0.0f;
+    foc_ireg_state.vma       = 0.0f;
+    foc_ireg_state.vmb       = 0.0f;
+    foc_ireg_state.vmc       = 0.0f;
+    foc_ireg_state.iq        = 0.0f;
+    foc_ireg_state.id        = 0.0f;
+    foc_ireg_state.vq        = 0.0f;
+    foc_ireg_state.vd        = 0.0f;
+    foc_ireg_state.va        = 0.0f;
+    foc_ireg_state.vb        = 0.0f;
+    foc_ireg_state.ia        = 0.0f;
+    foc_ireg_state.ib        = 0.0f;
+    foc_ireg_state.iqRef     = 0.0f;
+    foc_ireg_state.idRef     = 0.0f;
+    foc_ireg_state.max_drive = 0.0f;
     foc_ireg_state.iqPID.init();
     foc_ireg_state.idPID.init();
   }
