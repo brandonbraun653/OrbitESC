@@ -94,16 +94,6 @@ namespace Orbit::Motor::Drive
    */
   void disableOutput();
 
-  /**
-   * @brief Updates drive outputs using space vector modulation
-   *
-   * @param alpha   Output of inverse park transform
-   * @param beta    Output of inverse park transform
-   * @param theta   Desired electrical angle of the resulting drive vector in radians
-   * @return Chimera::Status_t
-   */
-  void svmUpdate( const float &alpha, const float &beta, const float &theta );
-
 }    // namespace Orbit::Motor
 
 #endif /* !ORBIT_MOTOR_DRIVE_HPP */

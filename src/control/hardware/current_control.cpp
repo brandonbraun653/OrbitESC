@@ -24,6 +24,11 @@ Includes
 #include <src/core/hw/orbit_motor_drive.hpp>
 #include <src/core/hw/orbit_motor_sense.hpp>
 
+
+#if defined( EMBEDDED ) && defined( SEGGER_SYS_VIEW )
+#include "SEGGER_SYSVIEW.h"
+#endif /* EMBEDDED */
+
 namespace Orbit::Control::Field
 {
   /*---------------------------------------------------------------------------
@@ -102,7 +107,6 @@ namespace Orbit::Control::Field
     foc_ireg_state.idPID.OutMaxLimit = 20.0f;
     // foc_ireg_state.idPID.setTunings( Data::SysControl.currentCtrl_D_Kp, Data::SysControl.currentCtrl_D_Ki,
     //                                  Data::SysControl.currentCtrl_D_Kd, foc_ireg_state.dt );
-
     foc_ireg_state.idPID.setTunings( 5.0f, 0.1f, 0.0f, foc_ireg_state.dt );
 
 
@@ -139,6 +143,8 @@ namespace Orbit::Control::Field
       return true;
     }
 
+    Chimera::Timer::Inverter::Driver *const inverter = Motor::Drive::getDriver();
+
     /*-------------------------------------------------------------------------
     Gate the ISR from running temporarily while state data gets updated
     -------------------------------------------------------------------------*/
@@ -155,7 +161,7 @@ namespace Orbit::Control::Field
     switch( mode )
     {
       case Mode::DISABLED:
-        Orbit::Motor::Drive::disableOutput();
+        inverter->disableOutput();
         break;
 
       case Mode::OPEN_LOOP:
@@ -163,8 +169,8 @@ namespace Orbit::Control::Field
         foc_ireg_state.iqRef     = 0.0f;
         foc_ireg_state.idRef     = 0.0f;
 
-        Orbit::Motor::Drive::svmUpdate( 0.0f, 0.0f, 0.0f );
-        Orbit::Motor::Drive::enableOutput();
+        inverter->svmUpdate( 0.0f, 0.0f, 0.0f, 0.0f );
+        inverter->enableOutput();
         break;
 
       case Mode::CLOSED_LOOP:
@@ -174,7 +180,7 @@ namespace Orbit::Control::Field
         break;
 
       default:
-        Orbit::Motor::Drive::disableOutput();
+        inverter->disableOutput();
         return false;
     }
 
@@ -218,6 +224,8 @@ namespace Orbit::Control::Field
     using namespace Orbit::Instrumentation;
     using namespace Orbit::Control::Math;
 
+    Chimera::Timer::Inverter::Driver *const inverter = Motor::Drive::getDriver();
+
     /*-------------------------------------------------------------------------
     Decide how to proceed depending on our current mode
     -------------------------------------------------------------------------*/
@@ -225,6 +233,8 @@ namespace Orbit::Control::Field
     {
       return;
     }
+
+    SEGGER_SYSVIEW_RecordEnterISR();
 
     /*-------------------------------------------------------------------------
     Pull the latest ADC samples
@@ -300,7 +310,7 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Run PI controllers for motor currents to generate voltage commands
     -------------------------------------------------------------------------*/
-    foc_ireg_state.vq = -1.0f * foc_ireg_state.iqPID.run( foc_ireg_state.iqRef - foc_ireg_state.iq );
+    foc_ireg_state.vq = foc_ireg_state.iqPID.run( foc_ireg_state.iqRef - foc_ireg_state.iq );
     foc_ireg_state.vd = foc_ireg_state.idPID.run( foc_ireg_state.idRef - foc_ireg_state.id );
 
     // TODO: From mcpwm_foc:4299 (Vedder), once I switch into closed loop control I probably
@@ -322,11 +332,17 @@ namespace Orbit::Control::Field
     apply the SVM updates.
     -------------------------------------------------------------------------*/
     inverse_park_transform( foc_ireg_state.mod_vq, foc_ireg_state.mod_vd, foc_motor_state.thetaEst, foc_ireg_state.va, foc_ireg_state.vb );
-    svmUpdate( foc_ireg_state.va, foc_ireg_state.vb, foc_motor_state.thetaEst );
+
+    float modulation_index = hypotf( foc_ireg_state.va, foc_ireg_state.vb );
+
+    inverter->svmUpdate( foc_ireg_state.va, foc_ireg_state.vb, foc_motor_state.thetaEst, modulation_index );
 
     /*-------------------------------------------------------------------------
     Invoke control system callback to swap in custom behaviors
     -------------------------------------------------------------------------*/
     s_inner_loop_cb();
+
+    SEGGER_SYSVIEW_RecordExitISR();
+
   }
 }    // namespace Orbit::Control::Field

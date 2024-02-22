@@ -84,10 +84,4 @@ namespace Orbit::Motor::Drive
     s_motor_drive_timer.disableOutput();
   }
 
-
-  void svmUpdate( const float &alpha, const float &beta, const float &theta )
-  {
-    s_motor_drive_timer.svmUpdate( alpha, beta, theta );
-  }
-
 }    // namespace Orbit::Motor
