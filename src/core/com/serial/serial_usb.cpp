@@ -5,14 +5,16 @@
  *  Description:
  *    Tiny USB Serial Driver Implementation
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <src/core/com/serial/serial_usb.hpp>
+#include <Chimera/thread>
 #include <src/core/com/serial/serial_config.hpp>
+#include <src/core/com/serial/serial_usb.hpp>
+#include <src/core/tasks.hpp>
 #include <tusb.h>
 
 namespace Orbit::Serial
@@ -65,20 +67,22 @@ namespace Orbit::Serial
   }
 
 
-  Chimera::Status_t USBSerial::init( const size_t endpoint, CircularBuffer prx, CircularBuffer ptx )
+  Chimera::Status_t USBSerial::init( const size_t endpoint, CircularBuffer prx, CircularBuffer ptx, ISRLockedQueue ptx_isr )
   {
     /*-------------------------------------------------------------------------
     Assign the configuration
     -------------------------------------------------------------------------*/
-    mEndpoint = endpoint;
-    mRXBuffer = prx;
-    mTXBuffer = ptx;
+    mEndpoint    = endpoint;
+    mRXBuffer    = prx;
+    mTXBuffer    = ptx;
+    mTXBufferISR = ptx_isr;
 
     /*-------------------------------------------------------------------------
     Reset the buffers
     -------------------------------------------------------------------------*/
     mRXBuffer->clear();
     mTXBuffer->clear();
+    mTXBufferISR->clear();
 
     return Chimera::Status::OK;
   }
@@ -178,6 +182,8 @@ namespace Orbit::Serial
 
   int USBSerial::write( const void *const buffer, const size_t length, const size_t timeout )
   {
+    using namespace Orbit::Tasks;
+
     /*-------------------------------------------------------------------------
     Validate input arguments
     -------------------------------------------------------------------------*/
@@ -207,6 +213,16 @@ namespace Orbit::Serial
     {
       mTXBuffer->push( static_cast<const uint8_t *>( buffer )[ bytes_written ] );
       bytes_written++;
+    }
+
+    /*-------------------------------------------------------------------------
+
+    -------------------------------------------------------------------------*/
+    if( bytes_written > 0 )
+    {
+      Chimera::Thread::sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CDC ),
+                                    TASK_MSG_CDC_WAKEUP,
+                                    Chimera::Thread::TIMEOUT_DONT_WAIT );
     }
 
     return bytes_written;

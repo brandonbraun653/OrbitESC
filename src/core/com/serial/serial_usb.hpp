@@ -5,7 +5,7 @@
  *  Description:
  *    Serial driver for the Tiny USB CDC interface
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -17,7 +17,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/serial>
 #include <etl/circular_buffer.h>
-
+#include <etl/queue_spsc_locked.h>
 
 namespace Orbit::Serial
 {
@@ -26,6 +26,7 @@ namespace Orbit::Serial
   ---------------------------------------------------------------------------*/
 
   using CircularBuffer = etl::icircular_buffer<uint8_t> *;
+  using ISRLockedQueue = etl::iqueue_spsc_locked<uint8_t> *;
 
 
   /*---------------------------------------------------------------------------
@@ -74,11 +75,12 @@ namespace Orbit::Serial
      * @brief Map buffers to the USB driver
      *
      * @param endpoint Which CDC endpoint to push/pull from
-     * @param prx RX buffer to use
-     * @param ptx TX buffer to use
+     * @param prx RX buffer to use for normal multi-threaded operation
+     * @param ptx TX buffer to use for normal multi-threaded operation
+     * @param ptx_isr TX buffer to use for ISR generated data
      * @return Chimera::Status_t
      */
-    Chimera::Status_t init( const size_t endpoint, CircularBuffer prx, CircularBuffer ptx );
+    Chimera::Status_t init( const size_t endpoint, CircularBuffer prx, CircularBuffer ptx, ISRLockedQueue ptx_isr );
 
     /**
      * @brief Periodic processing to flush IO buffers as data arrives.
@@ -88,6 +90,18 @@ namespace Orbit::Serial
      * @return void
      */
     void process();
+
+    /**
+     * @brief Write to the serial endpoint from an ISR context.
+     *
+     * This operation assumes a single producer, single consumer model. Calling from
+     * multiple ISRs that can preempt each other will result in data corruption.
+     *
+     * @param buffer Data to write
+     * @param length Number of bytes to write
+     * @return int Number of bytes written
+     */
+    int writeFromISR( const void *const buffer, const size_t length );
 
     /*-------------------------------------------------------------------------
     Chimera::Serial::Driver Implementation
@@ -103,6 +117,7 @@ namespace Orbit::Serial
     size_t         mEndpoint;
     CircularBuffer mRXBuffer;
     CircularBuffer mTXBuffer;
+    ISRLockedQueue mTXBufferISR;
   };
 }    // namespace Orbit::Serial
 

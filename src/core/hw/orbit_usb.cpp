@@ -109,6 +109,18 @@ namespace Orbit::USB
     s_disconnect_callbacks.push_back( std::move( callback ) );
     return true;
   }
+
+
+  void disableInterrupts()
+  {
+    //Thor::LLD::INT::disableIRQ( OTG_HS_IRQn );
+  }
+
+
+  void enableInterrupts()
+  {
+    //Thor::LLD::INT::enableIRQ( OTG_HS_IRQn );
+  }
 }    // namespace Orbit::USB
 
 

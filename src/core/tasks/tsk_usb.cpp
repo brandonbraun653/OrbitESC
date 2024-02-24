@@ -5,7 +5,7 @@
  *  Description:
  *    USB task implementation
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -42,10 +42,9 @@ namespace Orbit::Tasks::USB
       Process high priority USB interrupts
       -----------------------------------------------------------------------*/
       tud_task();
-      tud_cdc_write_flush();
 
       /*-----------------------------------------------------------------------
-      Notify the CDC thread of any pending work
+      Notify the CDC thread of any pending work RX data that needs processing.
       -----------------------------------------------------------------------*/
       if( tud_cdc_available() )
       {
