@@ -13,9 +13,10 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/timer>
 #include <src/config/bsp/board_map.hpp>
-#include <src/control/hardware/current_control.hpp>
+#include <src/config/orbit_esc_cfg.hpp>
 #include <src/control/foc_data.hpp>
 #include <src/control/foc_math.hpp>
+#include <src/control/hardware/current_control.hpp>
 #include <src/control/hardware/speed_control.hpp>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/data/orbit_data_defaults.hpp>
@@ -23,11 +24,11 @@ Includes
 
 #if defined( EMBEDDED )
 #include <Thor/lld/interface/inc/timer>
+#endif /* EMBEDDED */
 
 #if defined( SEGGER_SYS_VIEW )
 #include "SEGGER_SYSVIEW.h"
 #endif /* SEGGER_SYS_VIEW */
-#endif /* EMBEDDED */
 
 
 namespace Orbit::Control::Speed

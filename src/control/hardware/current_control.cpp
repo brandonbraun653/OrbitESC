@@ -14,9 +14,12 @@ Includes
 #include <Chimera/function>
 #include <Chimera/gpio>
 #include <src/config/bsp/board_map.hpp>
-#include <src/control/hardware/current_control.hpp>
+#include <src/config/orbit_esc_cfg.hpp>
 #include <src/control/foc_data.hpp>
 #include <src/control/foc_math.hpp>
+#include <src/control/hardware/current_control.hpp>
+#include <src/core/com/serial/serial_async_message.hpp>
+#include <src/core/com/serial/serial_usb.hpp>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/data/orbit_data_defaults.hpp>
 #include <src/core/hw/orbit_instrumentation.hpp>
@@ -25,24 +28,20 @@ Includes
 #include <src/core/hw/orbit_motor_sense.hpp>
 
 
-#if defined( EMBEDDED ) && defined( SEGGER_SYS_VIEW )
+#if defined( SEGGER_SYS_VIEW )
 #include "SEGGER_SYSVIEW.h"
 #endif /* EMBEDDED */
 
 namespace Orbit::Control::Field
 {
   /*---------------------------------------------------------------------------
-  Constants
-  ---------------------------------------------------------------------------*/
-  static constexpr float MAX_DUTY = 0.30f;   /* Testing: Limit max commandable duty cycle? */
-
-  /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
 
-  volatile Mode                              s_ctl_mode;      /**< Current control mode */
-  static volatile Chimera::GPIO::Driver_rPtr s_dbg_pin;       /**< Debug pin for timing measurements */
-  static volatile ISRInnerLoopCallback       s_inner_loop_cb; /**< Callback for inner loop custom behaviors */
+  static volatile Mode                        s_ctl_mode;      /**< Current control mode */
+  static volatile Chimera::GPIO::Driver_rPtr  s_dbg_pin;       /**< Debug pin for timing measurements */
+  static volatile ISRInnerLoopCallback        s_inner_loop_cb; /**< Callback for inner loop custom behaviors */
+
 
   /*---------------------------------------------------------------------------
   Static Function Declarations
@@ -224,7 +223,10 @@ namespace Orbit::Control::Field
     using namespace Orbit::Instrumentation;
     using namespace Orbit::Control::Math;
 
-    Chimera::Timer::Inverter::Driver *const inverter = Motor::Drive::getDriver();
+    static volatile uint32_t isr_monitor_count = 0;
+
+    Chimera::Timer::Inverter::Driver *const inverter   = Motor::Drive::getDriver();
+    Serial::USBSerial *const                usb_serial = Serial::getUSBSerialDriver();
 
     /*-------------------------------------------------------------------------
     Decide how to proceed depending on our current mode
@@ -233,8 +235,6 @@ namespace Orbit::Control::Field
     {
       return;
     }
-
-    SEGGER_SYSVIEW_RecordEnterISR();
 
     /*-------------------------------------------------------------------------
     Pull the latest ADC samples
@@ -342,7 +342,57 @@ namespace Orbit::Control::Field
     -------------------------------------------------------------------------*/
     s_inner_loop_cb();
 
-    SEGGER_SYSVIEW_RecordExitISR();
+    /*-------------------------------------------------------------------------
+    Send the control state over the serial port for monitoring
+    -------------------------------------------------------------------------*/
+    // TODO: if some control flag is set (parameter or compile time)
+    if( isr_monitor_count++ >= 15 )
+    {
+      isr_monitor_count = 0;
+
+      /*-----------------------------------------------------------------------
+      Pack the message data
+      -----------------------------------------------------------------------*/
+      Serial::Message::SystemData s_ctl_monitor;
+
+      s_ctl_monitor.raw.header.msgId = MsgId_MSG_SYS_DATA;
+      s_ctl_monitor.raw.header.subId = 0;
+      s_ctl_monitor.raw.header.uuid  = Serial::Message::getNextUUID();
+      s_ctl_monitor.raw.id           = SystemDataId_CURRENT_CONTROL_MONITOR;
+      s_ctl_monitor.raw.timestamp    = Chimera::micros();
+      s_ctl_monitor.raw.has_payload  = true;
+      s_ctl_monitor.raw.payload.size = sizeof( CurrentControlMonitorPayload );
+
+      /*-----------------------------------------------------------------------
+      Pack and encode the payload data
+      -----------------------------------------------------------------------*/
+      Serial::Message::Payload::CurrentControlMonitorPayload payload;
+
+      payload.raw.ia        = foc_ireg_state.ima;
+      payload.raw.ib        = foc_ireg_state.imb;
+      payload.raw.ic        = foc_ireg_state.imc;
+      payload.raw.iq_ref    = foc_ireg_state.iqRef;
+      payload.raw.id_ref    = foc_ireg_state.idRef;
+      payload.raw.iq        = foc_ireg_state.iq;
+      payload.raw.id        = foc_ireg_state.id;
+      payload.raw.vd        = foc_ireg_state.vd;
+      payload.raw.vq        = foc_ireg_state.vq;
+      payload.raw.theta_est = foc_motor_state.thetaEst;
+      payload.raw.omega_est = foc_motor_state.omegaEst;
+
+      const bool payload_encoded = Serial::Message::encode( &payload.state, Serial::Message::ENCODE_NO_COBS );
+      memcpy( s_ctl_monitor.raw.payload.bytes, payload.data(), payload.size() );
+      s_ctl_monitor.raw.payload.size = payload.size();
+
+      /*-----------------------------------------------------------------------
+      Encode the full message with COBS and queue it for sending. Use best
+      effort to send the message, but don't block the control loop.
+      -----------------------------------------------------------------------*/
+      if( payload_encoded && Serial::Message::encode( &s_ctl_monitor.state ) )
+      {
+        usb_serial->writeFromISR( s_ctl_monitor.data(), s_ctl_monitor.size() );
+      }
+    }
 
   }
 }    // namespace Orbit::Control::Field

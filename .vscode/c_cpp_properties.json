@@ -59,6 +59,7 @@
             "${workspaceFolder}/lib/usb/tinyusb/src/device",
             "${workspaceFolder}/lib/usb/tinyusb/src/host",
             "${workspaceFolder}/src",
+            "${workspaceFolder}/src/config",
             "${workspaceFolder}/src/config/aurora",
             "${workspaceFolder}/src/config/bsp",
             "${workspaceFolder}/src/config/fatfs",
@@ -141,7 +142,6 @@
         "defaultEmbeddedDefines": [
             "EMBEDDED",
             "FREERTOS_CFG_PORT_ARM_CM4F=1",
-            "SEGGER_SYS_VIEW",
             "USING_FREERTOS_THREADS",
             "${defaultDefines}"
         ],

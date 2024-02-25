@@ -1,6 +1,8 @@
+import csv
 import math
 import time
 import logging
+from pathlib import Path
 from typing import List
 from pyorbit.serial.messages import SystemDataPBMsg, SystemTickPBMsg, SystemStatusPBMsg
 from pyorbit.tests.fixtures import *
@@ -188,3 +190,38 @@ class TestStaticStreamingData:
             assert math.isclose(msg.va, 0.0, rel_tol=0.1)
             assert math.isclose(msg.vb, 0.0, rel_tol=0.1)
             assert math.isclose(msg.vc, 0.0, rel_tol=0.1)
+
+    def test_current_control_monitor_stream(self, serial_client: OrbitClient) -> None:
+        """ Validates that the current control monitor data is being reported """
+        LOGGER.info("Command transition to ENGAGED state")
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_IDLE)
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ARMED)
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ENGAGED)
+
+        LOGGER.info("Acquiring current control loop monitor data")
+        exp_quantity = 5000
+        packets = serial_client.com_pipe.filter(
+            lambda msg: isinstance(msg, SystemDataPBMsg) and (msg.data_id == SystemDataId.CURRENT_CONTROL_MONITOR),
+            qty=exp_quantity,
+            timeout=8)
+
+        LOGGER.info("Command an IDLE state")
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_IDLE)
+
+        LOGGER.info("Exporting data")
+        messages = [msg.extract_payload() for msg in packets]
+        # assert len(packets) == exp_quantity
+        assert all(isinstance(msg, CurrentControlMonitorPayload) for msg in messages)
+
+        # Write all the data to a CSV file for post-processing
+        output_file = Path(__file__).parent / "data_output" / "current_control_monitor.csv"
+        with output_file.open("w") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["timestamp", "ia", "ib", "ic", "id_ref", "iq_ref", "id", "iq", "vd", "vq", "theta_est",
+                             "omega_est"])
+            for idx in range(len(messages)):
+                writer.writerow([packets[idx].timestamp,
+                                 messages[idx].ia, messages[idx].ib, messages[idx].ic,
+                                 messages[idx].id_ref, messages[idx].iq_ref, messages[idx].id, messages[idx].iq,
+                                 messages[idx].vd, messages[idx].vq, messages[idx].theta_est, messages[idx].omega_est])
+

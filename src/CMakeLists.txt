@@ -159,23 +159,23 @@ target_link_libraries(OrbitESC PRIVATE
   thor_intf_inc
 
   # Project Libraries
-  aurora_libs
-  chimera_core
+  aurora_libs_rel
+  chimera_core_rel
   lib_cobs_rel
-  lib_flash_db
+  lib_flash_db_rel
   lib_nanopb_rel
-  lib_tiny_usb
+  lib_tiny_usb_dbg
 
   # Orbit Libraries
-  lib_orbit_com
-  lib_orbit_core
-  lib_orbit_ctrl
-  lib_orbit_data
-  lib_orbit_events
-  lib_orbit_hw
-  lib_orbit_monitor
-  lib_orbit_runtime
-  lib_orbit_tasks
+  lib_orbit_com_rel
+  lib_orbit_core_rel
+  lib_orbit_ctrl_rel_dbg
+  lib_orbit_data_rel
+  lib_orbit_events_rel
+  lib_orbit_hw_rel
+  lib_orbit_monitor_rel
+  lib_orbit_runtime_rel
+  lib_orbit_tasks_rel
 
   # Target Properties
   prj_device_target
@@ -184,12 +184,12 @@ target_link_libraries(OrbitESC PRIVATE
 
 # Hardware Driver Model
 if(${DEVICE_TARGET} MATCHES "^stm32[lf]4")
-  target_link_libraries(OrbitESC PRIVATE embedded_core_libs)
+  target_link_libraries(OrbitESC PRIVATE embedded_core_libs_rel)
 
   if(${DEVICE_TARGET} MATCHES "^stm32l4")
     target_link_libraries(OrbitESC PRIVATE stm32l4_libs)
   elseif(${DEVICE_TARGET} MATCHES "^stm32f4")
-    target_link_libraries(OrbitESC PRIVATE stm32f4_libs)
+    target_link_libraries(OrbitESC PRIVATE stm32f4_libs_rel)
   endif()
 
 elseif(${DEVICE_TARGET} MATCHES "^sim")

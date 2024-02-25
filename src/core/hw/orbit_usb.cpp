@@ -5,7 +5,7 @@
  *  Description:
  *    USB driver implementation
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -24,6 +24,12 @@ Includes
 
 namespace Orbit::USB
 {
+  /*---------------------------------------------------------------------------
+  Constants
+  ---------------------------------------------------------------------------*/
+
+  static constexpr IRQn_Type USB_IRQn = OTG_HS_IRQn;
+
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
@@ -76,8 +82,8 @@ namespace Orbit::USB
     /*-------------------------------------------------------------------------
     Configure Interrupts
     -------------------------------------------------------------------------*/
-    Thor::LLD::INT::setPriority( OTG_HS_IRQn, 2u, 0u );
-    Thor::LLD::INT::enableIRQ( OTG_HS_IRQn );
+    Thor::LLD::INT::setPriority( USB_IRQn, 2u, 0u );
+    Thor::LLD::INT::enableIRQ( USB_IRQn );
 
     /*-------------------------------------------------------------------------
     Initialize TinyUSB
@@ -113,13 +119,13 @@ namespace Orbit::USB
 
   void disableInterrupts()
   {
-    //Thor::LLD::INT::disableIRQ( OTG_HS_IRQn );
+    Thor::LLD::INT::disableIRQ( USB_IRQn );
   }
 
 
   void enableInterrupts()
   {
-    //Thor::LLD::INT::enableIRQ( OTG_HS_IRQn );
+    Thor::LLD::INT::enableIRQ( USB_IRQn );
   }
 }    // namespace Orbit::USB
 

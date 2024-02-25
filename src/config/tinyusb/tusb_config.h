@@ -106,11 +106,19 @@ extern "C"
 #define CFG_TUD_MSC 0 // TODO: Might turn this on later for reading SD card.
 
 // CDC FIFO size of TX and RX
-#define CFG_TUD_CDC_RX_BUFSIZE ( TUD_OPT_HIGH_SPEED ? 512 : 64 )
-#define CFG_TUD_CDC_TX_BUFSIZE ( TUD_OPT_HIGH_SPEED ? 512 : 64 )
+/*-------------------------------------------------------------------
+Buffer size was set to accommodate a few milliseconds of high speed
+ISR data. There is an unfortunate side-effect where the USB stack
+won't work properly if the RX FIFO size is less than the EP buffer
+size. So until that's fixed, we get to waste some memory.
 
-// CDC Endpoint transfer buffer size, more is faster
-#define CFG_TUD_CDC_EP_BUFSIZE ( TUD_OPT_HIGH_SPEED ? 512 : 64 )
+https://github.com/hathach/tinyusb/issues/1924
+-------------------------------------------------------------------*/
+#define _RTX_BUFFER_SIZE ( 4096 )
+
+#define CFG_TUD_CDC_RX_BUFSIZE ( _RTX_BUFFER_SIZE )
+#define CFG_TUD_CDC_TX_BUFSIZE ( _RTX_BUFFER_SIZE )
+#define CFG_TUD_CDC_EP_BUFSIZE ( _RTX_BUFFER_SIZE )
 
 #ifdef __cplusplus
 }

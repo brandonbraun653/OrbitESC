@@ -30,5 +30,8 @@ PB_BIND(ADCPhaseVoltagesPayload, ADCPhaseVoltagesPayload, AUTO)
 PB_BIND(ADCSystemVoltagesPayload, ADCSystemVoltagesPayload, AUTO)
 
 
+PB_BIND(CurrentControlMonitorPayload, CurrentControlMonitorPayload, AUTO)
+
+
 
 

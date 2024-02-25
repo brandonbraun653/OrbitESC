@@ -16,7 +16,8 @@ typedef enum _SystemDataId {
     SystemDataId_SYS_DATA_INVALID = 0, /* Invalid data ID */
     SystemDataId_ADC_PHASE_CURRENTS = 1, /* ADC readings of the phase currents */
     SystemDataId_ADC_PHASE_VOLTAGES = 2, /* Voltage commands being sent to the motor */
-    SystemDataId_ADC_SYSTEM_VOLTAGES = 3 /* Measurements of less-critical system voltages */
+    SystemDataId_ADC_SYSTEM_VOLTAGES = 3, /* Measurements of less-critical system voltages */
+    SystemDataId_CURRENT_CONTROL_MONITOR = 4 /* Current control monitor data */
 } SystemDataId;
 
 /* Struct definitions */
@@ -51,7 +52,7 @@ typedef struct _SystemStatusMessage {
     MotorCtrlState motorCtrlState; /* High level current motor control state */
 } SystemStatusMessage;
 
-typedef PB_BYTES_ARRAY_T(32) SystemDataMessage_payload_t;
+typedef PB_BYTES_ARRAY_T(80) SystemDataMessage_payload_t;
 /* Message type for streaming out raw data from the system in real time */
 typedef struct _SystemDataMessage {
     Header header;
@@ -83,6 +84,20 @@ typedef struct _ADCSystemVoltagesPayload {
     float v_isense; /* Current sense amplifier voltage reference in Volts */
 } ADCSystemVoltagesPayload;
 
+typedef struct _CurrentControlMonitorPayload {
+    float ia; /* Phase A current in Amps */
+    float ib; /* Phase B current in Amps */
+    float ic; /* Phase C current in Amps */
+    float iq_ref; /* Q-axis current reference in Amps */
+    float id_ref; /* D-axis current reference in Amps */
+    float iq; /* Q-axis actual current in Amps */
+    float id; /* D-axis actual current in Amps */
+    float vq; /* Q-axis voltage command in Volts */
+    float vd; /* D-axis voltage command in Volts */
+    float theta_est; /* Electrical angle in radians */
+    float omega_est; /* Electrical speed in radians per second */
+} CurrentControlMonitorPayload;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -90,8 +105,8 @@ extern "C" {
 
 /* Helper constants for enums */
 #define _SystemDataId_MIN SystemDataId_SYS_DATA_INVALID
-#define _SystemDataId_MAX SystemDataId_ADC_SYSTEM_VOLTAGES
-#define _SystemDataId_ARRAYSIZE ((SystemDataId)(SystemDataId_ADC_SYSTEM_VOLTAGES+1))
+#define _SystemDataId_MAX SystemDataId_CURRENT_CONTROL_MONITOR
+#define _SystemDataId_ARRAYSIZE ((SystemDataId)(SystemDataId_CURRENT_CONTROL_MONITOR+1))
 
 
 
@@ -99,6 +114,7 @@ extern "C" {
 #define SystemStatusMessage_motorCtrlState_ENUMTYPE MotorCtrlState
 
 #define SystemDataMessage_id_ENUMTYPE SystemDataId
+
 
 
 
@@ -113,6 +129,7 @@ extern "C" {
 #define ADCPhaseCurrentsPayload_init_default     {0, 0, 0}
 #define ADCPhaseVoltagesPayload_init_default     {0, 0, 0}
 #define ADCSystemVoltagesPayload_init_default    {0, 0, 0, 0}
+#define CurrentControlMonitorPayload_init_default {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define SystemTickMessage_init_zero              {Header_init_zero, 0}
 #define ConsoleMessage_init_zero                 {Header_init_zero, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_zero              {Header_init_zero, 0, "", "", ""}
@@ -121,6 +138,7 @@ extern "C" {
 #define ADCPhaseCurrentsPayload_init_zero        {0, 0, 0}
 #define ADCPhaseVoltagesPayload_init_zero        {0, 0, 0}
 #define ADCSystemVoltagesPayload_init_zero       {0, 0, 0, 0}
+#define CurrentControlMonitorPayload_init_zero   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define SystemTickMessage_header_tag             1
@@ -151,6 +169,17 @@ extern "C" {
 #define ADCSystemVoltagesPayload_v_dc_link_tag   2
 #define ADCSystemVoltagesPayload_v_temp_tag      3
 #define ADCSystemVoltagesPayload_v_isense_tag    4
+#define CurrentControlMonitorPayload_ia_tag      1
+#define CurrentControlMonitorPayload_ib_tag      2
+#define CurrentControlMonitorPayload_ic_tag      3
+#define CurrentControlMonitorPayload_iq_ref_tag  4
+#define CurrentControlMonitorPayload_id_ref_tag  5
+#define CurrentControlMonitorPayload_iq_tag      6
+#define CurrentControlMonitorPayload_id_tag      7
+#define CurrentControlMonitorPayload_vq_tag      8
+#define CurrentControlMonitorPayload_vd_tag      9
+#define CurrentControlMonitorPayload_theta_est_tag 10
+#define CurrentControlMonitorPayload_omega_est_tag 11
 
 /* Struct field encoding specification for nanopb */
 #define SystemTickMessage_FIELDLIST(X, a) \
@@ -218,6 +247,21 @@ X(a, STATIC,   REQUIRED, FLOAT,    v_isense,          4)
 #define ADCSystemVoltagesPayload_CALLBACK NULL
 #define ADCSystemVoltagesPayload_DEFAULT NULL
 
+#define CurrentControlMonitorPayload_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, FLOAT,    ia,                1) \
+X(a, STATIC,   REQUIRED, FLOAT,    ib,                2) \
+X(a, STATIC,   REQUIRED, FLOAT,    ic,                3) \
+X(a, STATIC,   REQUIRED, FLOAT,    iq_ref,            4) \
+X(a, STATIC,   REQUIRED, FLOAT,    id_ref,            5) \
+X(a, STATIC,   REQUIRED, FLOAT,    iq,                6) \
+X(a, STATIC,   REQUIRED, FLOAT,    id,                7) \
+X(a, STATIC,   REQUIRED, FLOAT,    vq,                8) \
+X(a, STATIC,   REQUIRED, FLOAT,    vd,                9) \
+X(a, STATIC,   REQUIRED, FLOAT,    theta_est,        10) \
+X(a, STATIC,   REQUIRED, FLOAT,    omega_est,        11)
+#define CurrentControlMonitorPayload_CALLBACK NULL
+#define CurrentControlMonitorPayload_DEFAULT NULL
+
 extern const pb_msgdesc_t SystemTickMessage_msg;
 extern const pb_msgdesc_t ConsoleMessage_msg;
 extern const pb_msgdesc_t SystemInfoMessage_msg;
@@ -226,6 +270,7 @@ extern const pb_msgdesc_t SystemDataMessage_msg;
 extern const pb_msgdesc_t ADCPhaseCurrentsPayload_msg;
 extern const pb_msgdesc_t ADCPhaseVoltagesPayload_msg;
 extern const pb_msgdesc_t ADCSystemVoltagesPayload_msg;
+extern const pb_msgdesc_t CurrentControlMonitorPayload_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define SystemTickMessage_fields &SystemTickMessage_msg
@@ -236,14 +281,16 @@ extern const pb_msgdesc_t ADCSystemVoltagesPayload_msg;
 #define ADCPhaseCurrentsPayload_fields &ADCPhaseCurrentsPayload_msg
 #define ADCPhaseVoltagesPayload_fields &ADCPhaseVoltagesPayload_msg
 #define ADCSystemVoltagesPayload_fields &ADCSystemVoltagesPayload_msg
+#define CurrentControlMonitorPayload_fields &CurrentControlMonitorPayload_msg
 
 /* Maximum encoded size of messages (where known) */
 #define ADCPhaseCurrentsPayload_size             15
 #define ADCPhaseVoltagesPayload_size             15
 #define ADCSystemVoltagesPayload_size            20
 #define ConsoleMessage_size                      149
+#define CurrentControlMonitorPayload_size        55
 #define SYSTEM_DATA_PB_H_MAX_SIZE                ConsoleMessage_size
-#define SystemDataMessage_size                   54
+#define SystemDataMessage_size                   102
 #define SystemInfoMessage_size                   69
 #define SystemStatusMessage_size                 20
 #define SystemTickMessage_size                   18
@@ -309,6 +356,13 @@ struct MessageDescriptor<ADCSystemVoltagesPayload> {
     static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 4;
     static inline const pb_msgdesc_t* fields() {
         return &ADCSystemVoltagesPayload_msg;
+    }
+};
+template <>
+struct MessageDescriptor<CurrentControlMonitorPayload> {
+    static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 11;
+    static inline const pb_msgdesc_t* fields() {
+        return &CurrentControlMonitorPayload_msg;
     }
 };
 }  // namespace nanopb

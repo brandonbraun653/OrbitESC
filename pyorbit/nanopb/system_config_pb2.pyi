@@ -7,366 +7,291 @@ import google.protobuf.descriptor
 import google.protobuf.internal.enum_type_wrapper
 import google.protobuf.message
 import serial_interface_pb2
+import sys
 import typing
-import typing_extensions
 
-DESCRIPTOR: google.protobuf.descriptor.FileDescriptor = ...
+if sys.version_info >= (3, 10):
+    import typing as typing_extensions
+else:
+    import typing_extensions
+
+DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
 class _ParamType:
-    ValueType = typing.NewType('ValueType', builtins.int)
+    ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
-class _ParamTypeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_ParamType.ValueType], builtins.type):
-    DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor = ...
-    UNKNOWN: ParamType.ValueType = ...  # 0
-    BOOL: ParamType.ValueType = ...  # 1
-    UINT8: ParamType.ValueType = ...  # 2
-    UINT16: ParamType.ValueType = ...  # 3
-    UINT32: ParamType.ValueType = ...  # 4
-    FLOAT: ParamType.ValueType = ...  # 5
-    DOUBLE: ParamType.ValueType = ...  # 6
-    BYTES: ParamType.ValueType = ...  # 7
-    STRING: ParamType.ValueType = ...  # 8
-class ParamType(_ParamType, metaclass=_ParamTypeEnumTypeWrapper):
-    pass
 
-UNKNOWN: ParamType.ValueType = ...  # 0
-BOOL: ParamType.ValueType = ...  # 1
-UINT8: ParamType.ValueType = ...  # 2
-UINT16: ParamType.ValueType = ...  # 3
-UINT32: ParamType.ValueType = ...  # 4
-FLOAT: ParamType.ValueType = ...  # 5
-DOUBLE: ParamType.ValueType = ...  # 6
-BYTES: ParamType.ValueType = ...  # 7
-STRING: ParamType.ValueType = ...  # 8
+class _ParamTypeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_ParamType.ValueType], builtins.type):
+    DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+    UNKNOWN: _ParamType.ValueType  # 0
+    BOOL: _ParamType.ValueType  # 1
+    UINT8: _ParamType.ValueType  # 2
+    UINT16: _ParamType.ValueType  # 3
+    UINT32: _ParamType.ValueType  # 4
+    FLOAT: _ParamType.ValueType  # 5
+    DOUBLE: _ParamType.ValueType  # 6
+    BYTES: _ParamType.ValueType  # 7
+    STRING: _ParamType.ValueType  # 8
+
+class ParamType(_ParamType, metaclass=_ParamTypeEnumTypeWrapper): ...
+
+UNKNOWN: ParamType.ValueType  # 0
+BOOL: ParamType.ValueType  # 1
+UINT8: ParamType.ValueType  # 2
+UINT16: ParamType.ValueType  # 3
+UINT32: ParamType.ValueType  # 4
+FLOAT: ParamType.ValueType  # 5
+DOUBLE: ParamType.ValueType  # 6
+BYTES: ParamType.ValueType  # 7
+STRING: ParamType.ValueType  # 8
 global___ParamType = ParamType
 
-
 class _ParamId:
-    ValueType = typing.NewType('ValueType', builtins.int)
+    ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
+
 class _ParamIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_ParamId.ValueType], builtins.type):
-    DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor = ...
-    PARAM_INVALID: ParamId.ValueType = ...  # -1
+    DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+    PARAM_INVALID: _ParamId.ValueType  # -1
     """Housekeeping parameters
     Invalid parameter
     """
-
-    PARAM_BOOT_COUNT: ParamId.ValueType = ...  # 0
+    PARAM_BOOT_COUNT: _ParamId.ValueType  # 0
     """Read Only Parameters
     Number of times the software has booted
     """
-
-    PARAM_HW_VERSION: ParamId.ValueType = ...  # 1
+    PARAM_HW_VERSION: _ParamId.ValueType  # 1
     """Hardware version of the PCB"""
-
-    PARAM_SW_VERSION: ParamId.ValueType = ...  # 2
+    PARAM_SW_VERSION: _ParamId.ValueType  # 2
     """Software version of the firmware"""
-
-    PARAM_DEVICE_ID: ParamId.ValueType = ...  # 3
+    PARAM_DEVICE_ID: _ParamId.ValueType  # 3
     """Factory programmed unique device ID"""
-
-    PARAM_BOARD_NAME: ParamId.ValueType = ...  # 4
+    PARAM_BOARD_NAME: _ParamId.ValueType  # 4
     """Name of the board"""
-
-    PARAM_DESCRIPTION: ParamId.ValueType = ...  # 5
+    PARAM_DESCRIPTION: _ParamId.ValueType  # 5
     """Description of the project"""
-
-    PARAM_SERIAL_NUMBER: ParamId.ValueType = ...  # 10
+    PARAM_SERIAL_NUMBER: _ParamId.ValueType  # 10
     """Read/Write Parameters
     Serial number of the device
     """
-
-    PARAM_DISK_UPDATE_RATE_MS: ParamId.ValueType = ...  # 11
+    PARAM_DISK_UPDATE_RATE_MS: _ParamId.ValueType  # 11
     """How often to write parameters to disk"""
-
-    PARAM_ACTIVITY_LED_SCALER: ParamId.ValueType = ...  # 12
+    PARAM_ACTIVITY_LED_SCALER: _ParamId.ValueType  # 12
     """Scale the activity LED blink rate"""
-
-    PARAM_BOOT_MODE: ParamId.ValueType = ...  # 13
+    PARAM_BOOT_MODE: _ParamId.ValueType  # 13
     """Boot mode of the device"""
-
-    PARAM_CAN_NODE_ID: ParamId.ValueType = ...  # 14
+    PARAM_CAN_NODE_ID: _ParamId.ValueType  # 14
     """CAN node ID of the device"""
-
-    PARAM_STATOR_PWM_FREQ: ParamId.ValueType = ...  # 20
+    PARAM_STATOR_PWM_FREQ: _ParamId.ValueType  # 20
     """Motor Control Parameters
     PWM frequency of the motor drive in Hz
     """
-
-    PARAM_SPEED_CTRL_FREQ: ParamId.ValueType = ...  # 21
+    PARAM_SPEED_CTRL_FREQ: _ParamId.ValueType  # 21
     """Speed controller core update frequency in Hz"""
-
-    PARAM_TARGET_IDLE_RPM: ParamId.ValueType = ...  # 22
+    PARAM_TARGET_IDLE_RPM: _ParamId.ValueType  # 22
     """Target RPM when the motor is idle"""
-
-    PARAM_SPEED_CTRL_KP: ParamId.ValueType = ...  # 23
+    PARAM_SPEED_CTRL_KP: _ParamId.ValueType  # 23
     """Speed controller proportional gain"""
-
-    PARAM_SPEED_CTRL_KI: ParamId.ValueType = ...  # 24
+    PARAM_SPEED_CTRL_KI: _ParamId.ValueType  # 24
     """Speed controller integral gain"""
-
-    PARAM_SPEED_CTRL_KD: ParamId.ValueType = ...  # 25
+    PARAM_SPEED_CTRL_KD: _ParamId.ValueType  # 25
     """Speed controller derivative gain"""
-
-    PARAM_CURRENT_CTRL_Q_AXIS_KP: ParamId.ValueType = ...  # 26
+    PARAM_CURRENT_CTRL_Q_AXIS_KP: _ParamId.ValueType  # 26
     """Current controller Q-axis proportional gain"""
-
-    PARAM_CURRENT_CTRL_Q_AXIS_KI: ParamId.ValueType = ...  # 27
+    PARAM_CURRENT_CTRL_Q_AXIS_KI: _ParamId.ValueType  # 27
     """Current controller Q-axis integral gain"""
-
-    PARAM_CURRENT_CTRL_Q_AXIS_KD: ParamId.ValueType = ...  # 28
+    PARAM_CURRENT_CTRL_Q_AXIS_KD: _ParamId.ValueType  # 28
     """Current controller Q-axis derivative gain"""
-
-    PARAM_CURRENT_CTRL_D_AXIS_KP: ParamId.ValueType = ...  # 29
+    PARAM_CURRENT_CTRL_D_AXIS_KP: _ParamId.ValueType  # 29
     """Current controller D-axis proportional gain"""
-
-    PARAM_CURRENT_CTRL_D_AXIS_KI: ParamId.ValueType = ...  # 30
+    PARAM_CURRENT_CTRL_D_AXIS_KI: _ParamId.ValueType  # 30
     """Current controller D-axis integral gain"""
-
-    PARAM_CURRENT_CTRL_D_AXIS_KD: ParamId.ValueType = ...  # 31
+    PARAM_CURRENT_CTRL_D_AXIS_KD: _ParamId.ValueType  # 31
     """Current controller D-axis derivative gain"""
-
-    PARAM_RAMP_CTRL_FIRST_ORDER_TERM: ParamId.ValueType = ...  # 34
+    PARAM_RAMP_CTRL_FIRST_ORDER_TERM: _ParamId.ValueType  # 34
     """PARAM_CURRENT_CTRL_Q_FIR_COEFFS = 32; // Current controller Q-axis FIR filter coefficients
     PARAM_CURRENT_CTRL_D_FIR_COEFFS = 33; // Current controller D-axis FIR filter coefficients
     First order term of the ramp controller
     """
-
-    PARAM_RAMP_CTRL_SECOND_ORDER_TERM: ParamId.ValueType = ...  # 35
+    PARAM_RAMP_CTRL_SECOND_ORDER_TERM: _ParamId.ValueType  # 35
     """Second order term of the ramp controller"""
-
-    PARAM_RAMP_CTRL_RAMP_TIME_SEC: ParamId.ValueType = ...  # 36
+    PARAM_RAMP_CTRL_RAMP_TIME_SEC: _ParamId.ValueType  # 36
     """Ramp time of the ramp controller in seconds"""
-
-    PARAM_CURRENT_OBSERVER_KSLIDE: ParamId.ValueType = ...  # 37
+    PARAM_CURRENT_OBSERVER_KSLIDE: _ParamId.ValueType  # 37
     """Current observer sliding mode controller K gain value"""
-
-    PARAM_CURRENT_OBSERVER_MAX_ERROR: ParamId.ValueType = ...  # 38
+    PARAM_CURRENT_OBSERVER_MAX_ERROR: _ParamId.ValueType  # 38
     """Current observer maximum error value"""
-
-    PARAM_PWM_DRIVE_MAX_DUTY: ParamId.ValueType = ...  # 39
+    PARAM_PWM_DRIVE_MAX_DUTY: _ParamId.ValueType  # 39
     """Maximum duty cycle of the PWM drive"""
-
-    PARAM_ROTOR_POLES: ParamId.ValueType = ...  # 50
+    PARAM_ROTOR_POLES: _ParamId.ValueType  # 50
     """Motor Description
     Number of poles in the motor
     """
-
-    PARAM_STATOR_SLOTS: ParamId.ValueType = ...  # 51
+    PARAM_STATOR_SLOTS: _ParamId.ValueType  # 51
     """Number of slots in the motor"""
-
-    PARAM_STATOR_RESISTANCE: ParamId.ValueType = ...  # 52
+    PARAM_STATOR_RESISTANCE: _ParamId.ValueType  # 52
     """Stator resistance in Ohms"""
-
-    PARAM_STATOR_INDUCTANCE: ParamId.ValueType = ...  # 53
+    PARAM_STATOR_INDUCTANCE: _ParamId.ValueType  # 53
     """Stator inductance in Henrys"""
-
-    PARAM_PEAK_CURRENT_THRESHOLD: ParamId.ValueType = ...  # 60
+    PARAM_PEAK_CURRENT_THRESHOLD: _ParamId.ValueType  # 60
     """Monitor Thresholds
     Peak current threshold in Amps
     """
-
-    PARAM_PEAK_VOLTAGE_THRESHOLD: ParamId.ValueType = ...  # 61
+    PARAM_PEAK_VOLTAGE_THRESHOLD: _ParamId.ValueType  # 61
     """Peak voltage threshold in Volts"""
-
-    PARAM_MIN_ARM_VOLTAGE: ParamId.ValueType = ...  # 70
+    PARAM_MIN_ARM_VOLTAGE: _ParamId.ValueType  # 70
     """Engagement Thresholds
     Minimum voltage to allow ARM state transition
     """
-
-    PARAM_MAX_ARM_VOLTAGE: ParamId.ValueType = ...  # 71
+    PARAM_MAX_ARM_VOLTAGE: _ParamId.ValueType  # 71
     """Maximum voltage to allow ARM state transition"""
 
-class ParamId(_ParamId, metaclass=_ParamIdEnumTypeWrapper):
-    pass
+class ParamId(_ParamId, metaclass=_ParamIdEnumTypeWrapper): ...
 
-PARAM_INVALID: ParamId.ValueType = ...  # -1
+PARAM_INVALID: ParamId.ValueType  # -1
 """Housekeeping parameters
 Invalid parameter
 """
-
-PARAM_BOOT_COUNT: ParamId.ValueType = ...  # 0
+PARAM_BOOT_COUNT: ParamId.ValueType  # 0
 """Read Only Parameters
 Number of times the software has booted
 """
-
-PARAM_HW_VERSION: ParamId.ValueType = ...  # 1
+PARAM_HW_VERSION: ParamId.ValueType  # 1
 """Hardware version of the PCB"""
-
-PARAM_SW_VERSION: ParamId.ValueType = ...  # 2
+PARAM_SW_VERSION: ParamId.ValueType  # 2
 """Software version of the firmware"""
-
-PARAM_DEVICE_ID: ParamId.ValueType = ...  # 3
+PARAM_DEVICE_ID: ParamId.ValueType  # 3
 """Factory programmed unique device ID"""
-
-PARAM_BOARD_NAME: ParamId.ValueType = ...  # 4
+PARAM_BOARD_NAME: ParamId.ValueType  # 4
 """Name of the board"""
-
-PARAM_DESCRIPTION: ParamId.ValueType = ...  # 5
+PARAM_DESCRIPTION: ParamId.ValueType  # 5
 """Description of the project"""
-
-PARAM_SERIAL_NUMBER: ParamId.ValueType = ...  # 10
+PARAM_SERIAL_NUMBER: ParamId.ValueType  # 10
 """Read/Write Parameters
 Serial number of the device
 """
-
-PARAM_DISK_UPDATE_RATE_MS: ParamId.ValueType = ...  # 11
+PARAM_DISK_UPDATE_RATE_MS: ParamId.ValueType  # 11
 """How often to write parameters to disk"""
-
-PARAM_ACTIVITY_LED_SCALER: ParamId.ValueType = ...  # 12
+PARAM_ACTIVITY_LED_SCALER: ParamId.ValueType  # 12
 """Scale the activity LED blink rate"""
-
-PARAM_BOOT_MODE: ParamId.ValueType = ...  # 13
+PARAM_BOOT_MODE: ParamId.ValueType  # 13
 """Boot mode of the device"""
-
-PARAM_CAN_NODE_ID: ParamId.ValueType = ...  # 14
+PARAM_CAN_NODE_ID: ParamId.ValueType  # 14
 """CAN node ID of the device"""
-
-PARAM_STATOR_PWM_FREQ: ParamId.ValueType = ...  # 20
+PARAM_STATOR_PWM_FREQ: ParamId.ValueType  # 20
 """Motor Control Parameters
 PWM frequency of the motor drive in Hz
 """
-
-PARAM_SPEED_CTRL_FREQ: ParamId.ValueType = ...  # 21
+PARAM_SPEED_CTRL_FREQ: ParamId.ValueType  # 21
 """Speed controller core update frequency in Hz"""
-
-PARAM_TARGET_IDLE_RPM: ParamId.ValueType = ...  # 22
+PARAM_TARGET_IDLE_RPM: ParamId.ValueType  # 22
 """Target RPM when the motor is idle"""
-
-PARAM_SPEED_CTRL_KP: ParamId.ValueType = ...  # 23
+PARAM_SPEED_CTRL_KP: ParamId.ValueType  # 23
 """Speed controller proportional gain"""
-
-PARAM_SPEED_CTRL_KI: ParamId.ValueType = ...  # 24
+PARAM_SPEED_CTRL_KI: ParamId.ValueType  # 24
 """Speed controller integral gain"""
-
-PARAM_SPEED_CTRL_KD: ParamId.ValueType = ...  # 25
+PARAM_SPEED_CTRL_KD: ParamId.ValueType  # 25
 """Speed controller derivative gain"""
-
-PARAM_CURRENT_CTRL_Q_AXIS_KP: ParamId.ValueType = ...  # 26
+PARAM_CURRENT_CTRL_Q_AXIS_KP: ParamId.ValueType  # 26
 """Current controller Q-axis proportional gain"""
-
-PARAM_CURRENT_CTRL_Q_AXIS_KI: ParamId.ValueType = ...  # 27
+PARAM_CURRENT_CTRL_Q_AXIS_KI: ParamId.ValueType  # 27
 """Current controller Q-axis integral gain"""
-
-PARAM_CURRENT_CTRL_Q_AXIS_KD: ParamId.ValueType = ...  # 28
+PARAM_CURRENT_CTRL_Q_AXIS_KD: ParamId.ValueType  # 28
 """Current controller Q-axis derivative gain"""
-
-PARAM_CURRENT_CTRL_D_AXIS_KP: ParamId.ValueType = ...  # 29
+PARAM_CURRENT_CTRL_D_AXIS_KP: ParamId.ValueType  # 29
 """Current controller D-axis proportional gain"""
-
-PARAM_CURRENT_CTRL_D_AXIS_KI: ParamId.ValueType = ...  # 30
+PARAM_CURRENT_CTRL_D_AXIS_KI: ParamId.ValueType  # 30
 """Current controller D-axis integral gain"""
-
-PARAM_CURRENT_CTRL_D_AXIS_KD: ParamId.ValueType = ...  # 31
+PARAM_CURRENT_CTRL_D_AXIS_KD: ParamId.ValueType  # 31
 """Current controller D-axis derivative gain"""
-
-PARAM_RAMP_CTRL_FIRST_ORDER_TERM: ParamId.ValueType = ...  # 34
+PARAM_RAMP_CTRL_FIRST_ORDER_TERM: ParamId.ValueType  # 34
 """PARAM_CURRENT_CTRL_Q_FIR_COEFFS = 32; // Current controller Q-axis FIR filter coefficients
 PARAM_CURRENT_CTRL_D_FIR_COEFFS = 33; // Current controller D-axis FIR filter coefficients
 First order term of the ramp controller
 """
-
-PARAM_RAMP_CTRL_SECOND_ORDER_TERM: ParamId.ValueType = ...  # 35
+PARAM_RAMP_CTRL_SECOND_ORDER_TERM: ParamId.ValueType  # 35
 """Second order term of the ramp controller"""
-
-PARAM_RAMP_CTRL_RAMP_TIME_SEC: ParamId.ValueType = ...  # 36
+PARAM_RAMP_CTRL_RAMP_TIME_SEC: ParamId.ValueType  # 36
 """Ramp time of the ramp controller in seconds"""
-
-PARAM_CURRENT_OBSERVER_KSLIDE: ParamId.ValueType = ...  # 37
+PARAM_CURRENT_OBSERVER_KSLIDE: ParamId.ValueType  # 37
 """Current observer sliding mode controller K gain value"""
-
-PARAM_CURRENT_OBSERVER_MAX_ERROR: ParamId.ValueType = ...  # 38
+PARAM_CURRENT_OBSERVER_MAX_ERROR: ParamId.ValueType  # 38
 """Current observer maximum error value"""
-
-PARAM_PWM_DRIVE_MAX_DUTY: ParamId.ValueType = ...  # 39
+PARAM_PWM_DRIVE_MAX_DUTY: ParamId.ValueType  # 39
 """Maximum duty cycle of the PWM drive"""
-
-PARAM_ROTOR_POLES: ParamId.ValueType = ...  # 50
+PARAM_ROTOR_POLES: ParamId.ValueType  # 50
 """Motor Description
 Number of poles in the motor
 """
-
-PARAM_STATOR_SLOTS: ParamId.ValueType = ...  # 51
+PARAM_STATOR_SLOTS: ParamId.ValueType  # 51
 """Number of slots in the motor"""
-
-PARAM_STATOR_RESISTANCE: ParamId.ValueType = ...  # 52
+PARAM_STATOR_RESISTANCE: ParamId.ValueType  # 52
 """Stator resistance in Ohms"""
-
-PARAM_STATOR_INDUCTANCE: ParamId.ValueType = ...  # 53
+PARAM_STATOR_INDUCTANCE: ParamId.ValueType  # 53
 """Stator inductance in Henrys"""
-
-PARAM_PEAK_CURRENT_THRESHOLD: ParamId.ValueType = ...  # 60
+PARAM_PEAK_CURRENT_THRESHOLD: ParamId.ValueType  # 60
 """Monitor Thresholds
 Peak current threshold in Amps
 """
-
-PARAM_PEAK_VOLTAGE_THRESHOLD: ParamId.ValueType = ...  # 61
+PARAM_PEAK_VOLTAGE_THRESHOLD: ParamId.ValueType  # 61
 """Peak voltage threshold in Volts"""
-
-PARAM_MIN_ARM_VOLTAGE: ParamId.ValueType = ...  # 70
+PARAM_MIN_ARM_VOLTAGE: ParamId.ValueType  # 70
 """Engagement Thresholds
 Minimum voltage to allow ARM state transition
 """
-
-PARAM_MAX_ARM_VOLTAGE: ParamId.ValueType = ...  # 71
+PARAM_MAX_ARM_VOLTAGE: ParamId.ValueType  # 71
 """Maximum voltage to allow ARM state transition"""
-
 global___ParamId = ParamId
 
-
 class _ParamIOSubId:
-    ValueType = typing.NewType('ValueType', builtins.int)
+    ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
+
 class _ParamIOSubIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_ParamIOSubId.ValueType], builtins.type):
-    DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor = ...
-    GET: ParamIOSubId.ValueType = ...  # 1
+    DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+    GET: _ParamIOSubId.ValueType  # 1
     """Retrieve the current value of a parameter"""
-
-    SET: ParamIOSubId.ValueType = ...  # 2
+    SET: _ParamIOSubId.ValueType  # 2
     """Commit a new value of a parameter"""
-
-    SYNC: ParamIOSubId.ValueType = ...  # 3
+    SYNC: _ParamIOSubId.ValueType  # 3
     """Synchronize all parameters to disk"""
-
-    LOAD: ParamIOSubId.ValueType = ...  # 4
+    LOAD: _ParamIOSubId.ValueType  # 4
     """Load all parameters from disk"""
 
-class ParamIOSubId(_ParamIOSubId, metaclass=_ParamIOSubIdEnumTypeWrapper):
-    pass
+class ParamIOSubId(_ParamIOSubId, metaclass=_ParamIOSubIdEnumTypeWrapper): ...
 
-GET: ParamIOSubId.ValueType = ...  # 1
+GET: ParamIOSubId.ValueType  # 1
 """Retrieve the current value of a parameter"""
-
-SET: ParamIOSubId.ValueType = ...  # 2
+SET: ParamIOSubId.ValueType  # 2
 """Commit a new value of a parameter"""
-
-SYNC: ParamIOSubId.ValueType = ...  # 3
+SYNC: ParamIOSubId.ValueType  # 3
 """Synchronize all parameters to disk"""
-
-LOAD: ParamIOSubId.ValueType = ...  # 4
+LOAD: ParamIOSubId.ValueType  # 4
 """Load all parameters from disk"""
-
 global___ParamIOSubId = ParamIOSubId
 
-
+@typing_extensions.final
 class ParamIOMessage(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor = ...
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
     HEADER_FIELD_NUMBER: builtins.int
     ID_FIELD_NUMBER: builtins.int
     TYPE_FIELD_NUMBER: builtins.int
     DATA_FIELD_NUMBER: builtins.int
     @property
     def header(self) -> serial_interface_pb2.Header: ...
-    id: global___ParamId.ValueType = ...
-    type: global___ParamType.ValueType = ...
-    data: builtins.bytes = ...
-    def __init__(self,
+    id: global___ParamId.ValueType
+    type: global___ParamType.ValueType
+    data: builtins.bytes
+    def __init__(
+        self,
         *,
-        header : typing.Optional[serial_interface_pb2.Header] = ...,
-        id : typing.Optional[global___ParamId.ValueType] = ...,
-        type : typing.Optional[global___ParamType.ValueType] = ...,
-        data : typing.Optional[builtins.bytes] = ...,
-        ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["data",b"data","header",b"header","id",b"id","type",b"type"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["data",b"data","header",b"header","id",b"id","type",b"type"]) -> None: ...
+        header: serial_interface_pb2.Header | None = ...,
+        id: global___ParamId.ValueType | None = ...,
+        type: global___ParamType.ValueType | None = ...,
+        data: builtins.bytes | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["data", b"data", "header", b"header", "id", b"id", "type", b"type"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["data", b"data", "header", b"header", "id", b"id", "type", b"type"]) -> None: ...
+
 global___ParamIOMessage = ParamIOMessage

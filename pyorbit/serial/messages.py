@@ -249,6 +249,7 @@ class SystemDataPBMsg(BasePBMsg):
             SystemDataId.ADC_PHASE_CURRENTS: ADCPhaseCurrentsPayload,
             SystemDataId.ADC_PHASE_VOLTAGES: ADCPhaseVoltagesPayload,
             SystemDataId.ADC_SYSTEM_VOLTAGES: ADCSystemVoltagesPayload,
+            SystemDataId.CURRENT_CONTROL_MONITOR: CurrentControlMonitorPayload,
         }
 
         try:

@@ -5,7 +5,7 @@
  *  Description:
  *    OrbitESC firmware entry point
  *
- *  2022-2023 | Brandon Braun | brandonbraun653@gmail.com
+ *  2022-2024 | Brandon Braun | brandonbraun653@gmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -13,17 +13,16 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/common>
 #include <Chimera/thread>
+#include <src/config/orbit_esc_cfg.hpp>
 #include <src/core/tasks.hpp>
 
 #if defined( EMBEDDED )
 #include <Thor/lld/common/cortex-m4/debug.hpp>
+#endif  /* EMBEDDED */
 
 #if defined( SEGGER_SYS_VIEW )
 #include "SEGGER_SYSVIEW.h"
 #endif /* SEGGER_SYS_VIEW */
-
-#endif  /* EMBEDDED */
-
 
 /*-----------------------------------------------------------------------------
 Public Functions
@@ -60,7 +59,7 @@ int main()
   /*---------------------------------------------------------------------------
   Initialize the SystemView driver
   ---------------------------------------------------------------------------*/
-#if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
+#if defined( SEGGER_SYS_VIEW )
   SEGGER_SYSVIEW_Conf();
 #endif
 

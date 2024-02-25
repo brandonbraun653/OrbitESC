@@ -84,7 +84,7 @@ namespace Orbit::COM
     /*-------------------------------------------------------------------------
     Update the task data
     -------------------------------------------------------------------------*/
-    if( Serial::Message::encode( &s_phase_currents.state ) == Chimera::Status::OK )
+    if( Serial::Message::encode( &s_phase_currents.state ) )
     {
       task->data = s_phase_currents.data();
       task->size = s_phase_currents.size();
@@ -127,7 +127,7 @@ namespace Orbit::COM
     /*-------------------------------------------------------------------------
     Update the task data
     -------------------------------------------------------------------------*/
-    if( Serial::Message::encode( &s_system_voltages.state ) == Chimera::Status::OK )
+    if( Serial::Message::encode( &s_system_voltages.state ) )
     {
       task->data = s_system_voltages.data();
       task->size = s_system_voltages.size();
@@ -168,7 +168,7 @@ namespace Orbit::COM
     /*-------------------------------------------------------------------------
     Update the task data
     -------------------------------------------------------------------------*/
-    if( Serial::Message::encode( &s_phase_voltages.state ) == Chimera::Status::OK )
+    if( Serial::Message::encode( &s_phase_voltages.state ) )
     {
       task->data = s_phase_voltages.data();
       task->size = s_phase_voltages.size();
@@ -195,7 +195,7 @@ namespace Orbit::COM
     /*-------------------------------------------------------------------------
     Update the task data
     -------------------------------------------------------------------------*/
-    if( Serial::Message::encode( &s_system_tick.state ) == Chimera::Status::OK )
+    if( Serial::Message::encode( &s_system_tick.state ) )
     {
       task->data = s_system_tick.data();
       task->size = s_system_tick.size();
@@ -223,7 +223,7 @@ namespace Orbit::COM
     /*-------------------------------------------------------------------------
     Update the task data
     -------------------------------------------------------------------------*/
-    if( Serial::Message::encode( &s_system_status.state ) == Chimera::Status::OK )
+    if( Serial::Message::encode( &s_system_status.state ) )
     {
       task->data = s_system_status.data();
       task->size = s_system_status.size();

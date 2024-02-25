@@ -174,6 +174,9 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 #define xPortPendSVHandler PendSV_Handler
 #define xPortSysTickHandler SysTick_Handler
 
+
+#include "orbit_esc_cfg.hpp"
+
 #if defined( SEGGER_SYS_VIEW ) && defined( EMBEDDED )
 #include "SEGGER_SYSVIEW.h"
 #include "SEGGER_SYSVIEW_FreeRTOS.h"

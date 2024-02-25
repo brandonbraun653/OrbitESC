@@ -5,7 +5,7 @@
  *  Description:
  *    Utility functions for serial messages
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -77,25 +77,23 @@ namespace Orbit::Serial::Message
     RT_DBG_ASSERT( src );
 
     /*-------------------------------------------------------------------------
-    Allocate some memory on the heap for the encoded message. Use the COBS
-    message size as an upper limit on the size of the nanopb encoded message.
-    Increase to the next power of two to avoid heap fragmentation.
+    Allocate scratch memory for NanoPB to encode with.
     -------------------------------------------------------------------------*/
     static constexpr size_t ALLOC_SIZE = 256;
     static_assert( MAX_COBS_MSG_SIZE <= ALLOC_SIZE );
-    pb_byte_t *PBBuffer = new pb_byte_t[ ALLOC_SIZE ];
-    RT_HARD_ASSERT( PBBuffer );
+
+    pb_byte_t PBEncodeBuffer[ ALLOC_SIZE ];
 
     /*-----------------------------------------------------------------------
     Reset the working memory
     -----------------------------------------------------------------------*/
     memset( msg->IOBuffer, 0, msg->IOBufferSize );
-    memset( PBBuffer, 0, ALLOC_SIZE );
+    memset( PBEncodeBuffer, 0, ALLOC_SIZE );
 
     /*-----------------------------------------------------------------------
     Encode the data type using nanopb
     -----------------------------------------------------------------------*/
-    pb_ostream_t stream    = pb_ostream_from_buffer( PBBuffer, ALLOC_SIZE );
+    pb_ostream_t stream    = pb_ostream_from_buffer( PBEncodeBuffer, ALLOC_SIZE );
     bool         pbSuccess = pb_encode( &stream, msg->PBPayloadFields, src );
 
     /*-----------------------------------------------------------------------
@@ -105,18 +103,17 @@ namespace Orbit::Serial::Message
     cobs_encode_result cobsResult;
     if( use_cobs )
     {
-      cobsResult       = cobs_encode( msg->IOBuffer, msg->IOBufferSize, PBBuffer, stream.bytes_written );
+      cobsResult       = cobs_encode( msg->IOBuffer, msg->IOBufferSize, PBEncodeBuffer, stream.bytes_written );
       msg->EncodedSize = cobsResult.out_len + 1u;
     }
     else
     {
-      memcpy( msg->IOBuffer, PBBuffer, stream.bytes_written );
+      memcpy( msg->IOBuffer, PBEncodeBuffer, stream.bytes_written );
       msg->EncodedSize  = stream.bytes_written;
       cobsResult.status = COBS_ENCODE_OK;
     }
 
     RT_DBG_ASSERT( msg->EncodedSize <= msg->IOBufferSize );
-    delete[] PBBuffer;
     return ( pbSuccess && ( cobsResult.status == COBS_ENCODE_OK ) );
   }
 

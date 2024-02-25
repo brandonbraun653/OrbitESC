@@ -69,6 +69,7 @@ namespace Orbit::Serial::Message
       ADCPhaseCurrentsPayload_size,
       ADCPhaseVoltagesPayload_size,
       ADCSystemVoltagesPayload_size,
+      CurrentControlMonitorPayload_size
       /* clang-format on */
     };
 
@@ -224,6 +225,8 @@ namespace Orbit::Serial::Message
                                         ADCPhaseVoltagesPayload_fields>;
     using ADCSystemVoltages = _CustomMsg<SystemDataId_ADC_SYSTEM_VOLTAGES, ADCSystemVoltagesPayload,
                                          ADCSystemVoltagesPayload_size, ADCSystemVoltagesPayload_fields>;
+    using CurrentControlMonitorPayload = _CustomMsg<SystemDataId_CURRENT_CONTROL_MONITOR, CurrentControlMonitorPayload,
+                                                    CurrentControlMonitorPayload_size, CurrentControlMonitorPayload_fields>;
   }    // namespace Payload
 
 }    // namespace Orbit::Serial::Message

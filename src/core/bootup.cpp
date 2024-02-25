@@ -144,10 +144,15 @@ namespace Orbit::Boot
 
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_IDLE ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_HWM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_USB ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+    Chimera::delayMilliseconds( 500 );
+
+    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CDC ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+    Chimera::delayMilliseconds( 15 );
+
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_COM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CTL ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
-    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CDC ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
-    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_USB ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+    Chimera::delayMilliseconds( 25 );
   }
 
 }    // namespace Orbit::Boot

@@ -11,6 +11,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Chimera/serial>
 #include <Chimera/thread>
 #include <src/core/com/serial/serial_config.hpp>
 #include <src/core/com/serial/serial_usb.hpp>
@@ -50,7 +51,7 @@ namespace Orbit::Serial
 
   Chimera::Serial::Driver_rPtr Config::getCommandPort()
   {
-    return &s_usb_serial;
+    return reinterpret_cast<Chimera::Serial::Driver_rPtr>( &s_usb_serial );
   }
 
   /*---------------------------------------------------------------------------
@@ -130,7 +131,8 @@ namespace Orbit::Serial
     }
 
     /*-------------------------------------------------------------------------
-    Pull data out from the TX buffer and push it into the USB driver
+    Process the normal TX buffer second. It only gets processed if the ISR
+    hasn't filled the CDC write FIFO.
     -------------------------------------------------------------------------*/
     while( !mTXBuffer->empty() )
     {
@@ -165,6 +167,48 @@ namespace Orbit::Serial
         }
       }
     }
+
+    /*-------------------------------------------------------------------------
+    Process the ISR TX buffer first as it has priority. Usually this buffer is
+    used for realtime data monitoring and needs to be serviced as quickly as
+    possible.
+    -------------------------------------------------------------------------*/
+    size_t processed_bytes = 0;
+    while( ( processed_bytes <= mTXBufferISR->max_size() ) && !mTXBufferISR->empty() )
+    {
+      /*-----------------------------------------------------------------------
+      Ensure there is data available to write and a place to put it
+      -----------------------------------------------------------------------*/
+      const size_t usb_bytes = tud_cdc_n_write_available( mEndpoint );
+      const size_t buf_bytes = mTXBufferISR->size();
+
+      if( !usb_bytes || !buf_bytes )
+      {
+        break;
+      }
+
+      /*-----------------------------------------------------------------------
+      Write the data from the TX buffer into the USB driver. The buffer isn't
+      guaranteed to be contiguous, so write byte by byte.
+      -----------------------------------------------------------------------*/
+      int write_size = static_cast<int>( std::min( usb_bytes, buf_bytes ) );
+
+      while( write_size > 0 )
+      {
+        const uint32_t write_count = tud_cdc_n_write_char( mEndpoint, mTXBufferISR->front() );
+        if( write_count == 1u )
+        {
+          mTXBufferISR->pop();
+          write_size--;
+          processed_bytes++;
+        }
+        else
+        {
+          break;
+        }
+      }
+    }
+
   }
 
 
@@ -225,7 +269,40 @@ namespace Orbit::Serial
                                     Chimera::Thread::TIMEOUT_DONT_WAIT );
     }
 
-    return bytes_written;
+    return static_cast<int>( bytes_written );
+  }
+
+
+  int USBSerial::writeFromISR( const void *const buffer, const size_t length )
+  {
+    using namespace Orbit::Tasks;
+
+    /*-------------------------------------------------------------------------
+    Validate input arguments
+    -------------------------------------------------------------------------*/
+    RT_DBG_ASSERT( buffer );
+    RT_DBG_ASSERT( length );
+    RT_DBG_ASSERT( mTXBufferISR );
+
+    /*-------------------------------------------------------------------------
+    Enqueue the data into the TX buffer
+    -------------------------------------------------------------------------*/
+    if( length <= mTXBufferISR->available_from_unlocked() )
+    {
+      size_t bytes_written = 0;
+      while( bytes_written < length )
+      {
+        mTXBufferISR->push_from_unlocked( static_cast<const uint8_t *const>( buffer )[ bytes_written++ ] );
+      }
+
+      Chimera::Thread::sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CDC ),
+                                    TASK_MSG_CDC_WAKEUP,
+                                    Chimera::Thread::TIMEOUT_DONT_WAIT );
+
+      return static_cast<int>( length );
+    }
+
+    return 0;
   }
 
 
@@ -255,7 +332,7 @@ namespace Orbit::Serial
       bytes_read++;
     }
 
-    return bytes_read;
+    return static_cast<int>( bytes_read );
   }
 
 }    // namespace Orbit::Serial

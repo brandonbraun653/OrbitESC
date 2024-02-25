@@ -8,6 +8,7 @@ enum SystemDataId {
   ADC_PHASE_CURRENTS = 1;   // ADC readings of the phase currents
   ADC_PHASE_VOLTAGES = 2;   // Voltage commands being sent to the motor
   ADC_SYSTEM_VOLTAGES = 3;  // Measurements of less-critical system voltages
+  CURRENT_CONTROL_MONITOR = 4; // Current control monitor data
 }
 
 // Message type for announcing the current system tick
@@ -46,7 +47,7 @@ message SystemDataMessage {
   required Header header = 1;
   required SystemDataId id = 2 [(nanopb).int_size = IS_8]; // Which data stream is this?
   required uint32 timestamp = 3;  // System time of measurement in microseconds
-  optional bytes payload = 4 [(nanopb).max_size = 32 ]; // Data payload
+  optional bytes payload = 4 [(nanopb).max_size = 80 ]; // Data payload
 
 }
 // Data payload type for SystemDataId::ADC_PHASE_CURRENTS
@@ -69,4 +70,18 @@ message ADCSystemVoltagesPayload {
   required float v_dc_link = 2;   // DC link voltage in Volts
   required float v_temp = 3;      // Temperature sensor voltage in Volts
   required float v_isense = 4;    // Current sense amplifier voltage reference in Volts
+}
+
+message CurrentControlMonitorPayload {
+  required float ia = 1;          // Phase A current in Amps
+  required float ib = 2;          // Phase B current in Amps
+  required float ic = 3;          // Phase C current in Amps
+  required float iq_ref = 4;      // Q-axis current reference in Amps
+  required float id_ref = 5;      // D-axis current reference in Amps
+  required float iq = 6;          // Q-axis actual current in Amps
+  required float id = 7;          // D-axis actual current in Amps
+  required float vq = 8;          // Q-axis voltage command in Volts
+  required float vd = 9;          // D-axis voltage command in Volts
+  required float theta_est = 10;  // Electrical angle in radians
+  required float omega_est = 11;  // Electrical speed in radians per second
 }
