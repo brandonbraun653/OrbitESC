@@ -217,11 +217,11 @@ class TestStaticStreamingData:
         output_file = Path(__file__).parent / "data_output" / "current_control_monitor.csv"
         with output_file.open("w") as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(["timestamp", "ia", "ib", "ic", "id_ref", "iq_ref", "id", "iq", "vd", "vq", "theta_est",
-                             "omega_est"])
+            writer.writerow(["timestamp", "ia", "ib", "ic", "id_ref", "iq_ref", "id", "iq", "vd", "vq", "va",
+                             "vb"])
             for idx in range(len(messages)):
                 writer.writerow([packets[idx].timestamp,
                                  messages[idx].ia, messages[idx].ib, messages[idx].ic,
                                  messages[idx].id_ref, messages[idx].iq_ref, messages[idx].id, messages[idx].iq,
-                                 messages[idx].vd, messages[idx].vq, messages[idx].theta_est, messages[idx].omega_est])
+                                 messages[idx].vd, messages[idx].vq, messages[idx].va, messages[idx].vb])
 

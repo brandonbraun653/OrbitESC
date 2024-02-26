@@ -294,8 +294,8 @@ class CurrentControlMonitorPayload(google.protobuf.message.Message):
     ID_FIELD_NUMBER: builtins.int
     VQ_FIELD_NUMBER: builtins.int
     VD_FIELD_NUMBER: builtins.int
-    THETA_EST_FIELD_NUMBER: builtins.int
-    OMEGA_EST_FIELD_NUMBER: builtins.int
+    VA_FIELD_NUMBER: builtins.int
+    VB_FIELD_NUMBER: builtins.int
     ia: builtins.float
     """Phase A current in Amps"""
     ib: builtins.float
@@ -314,10 +314,10 @@ class CurrentControlMonitorPayload(google.protobuf.message.Message):
     """Q-axis voltage command in Volts"""
     vd: builtins.float
     """D-axis voltage command in Volts"""
-    theta_est: builtins.float
-    """Electrical angle in radians"""
-    omega_est: builtins.float
-    """Electrical speed in radians per second"""
+    va: builtins.float
+    """Voltage command for the Alpha axis in Volts"""
+    vb: builtins.float
+    """Voltage command for the Beta axis in Volts"""
     def __init__(
         self,
         *,
@@ -330,10 +330,10 @@ class CurrentControlMonitorPayload(google.protobuf.message.Message):
         id: builtins.float | None = ...,
         vq: builtins.float | None = ...,
         vd: builtins.float | None = ...,
-        theta_est: builtins.float | None = ...,
-        omega_est: builtins.float | None = ...,
+        va: builtins.float | None = ...,
+        vb: builtins.float | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["ia", b"ia", "ib", b"ib", "ic", b"ic", "id", b"id", "id_ref", b"id_ref", "iq", b"iq", "iq_ref", b"iq_ref", "omega_est", b"omega_est", "theta_est", b"theta_est", "vd", b"vd", "vq", b"vq"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["ia", b"ia", "ib", b"ib", "ic", b"ic", "id", b"id", "id_ref", b"id_ref", "iq", b"iq", "iq_ref", b"iq_ref", "omega_est", b"omega_est", "theta_est", b"theta_est", "vd", b"vd", "vq", b"vq"]) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["ia", b"ia", "ib", b"ib", "ic", b"ic", "id", b"id", "id_ref", b"id_ref", "iq", b"iq", "iq_ref", b"iq_ref", "va", b"va", "vb", b"vb", "vd", b"vd", "vq", b"vq"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["ia", b"ia", "ib", b"ib", "ic", b"ic", "id", b"id", "id_ref", b"id_ref", "iq", b"iq", "iq_ref", b"iq_ref", "va", b"va", "vb", b"vb", "vd", b"vd", "vq", b"vq"]) -> None: ...
 
 global___CurrentControlMonitorPayload = CurrentControlMonitorPayload

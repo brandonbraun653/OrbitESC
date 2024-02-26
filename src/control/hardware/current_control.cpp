@@ -225,8 +225,7 @@ namespace Orbit::Control::Field
 
     static volatile uint32_t isr_monitor_count = 0;
 
-    Chimera::Timer::Inverter::Driver *const inverter   = Motor::Drive::getDriver();
-    Serial::USBSerial *const                usb_serial = Serial::getUSBSerialDriver();
+    Chimera::Timer::Inverter::Driver *const inverter = Motor::Drive::getDriver();
 
     /*-------------------------------------------------------------------------
     Decide how to proceed depending on our current mode
@@ -368,17 +367,17 @@ namespace Orbit::Control::Field
       -----------------------------------------------------------------------*/
       Serial::Message::Payload::CurrentControlMonitorPayload payload;
 
-      payload.raw.ia        = foc_ireg_state.ima;
-      payload.raw.ib        = foc_ireg_state.imb;
-      payload.raw.ic        = foc_ireg_state.imc;
-      payload.raw.iq_ref    = foc_ireg_state.iqRef;
-      payload.raw.id_ref    = foc_ireg_state.idRef;
-      payload.raw.iq        = foc_ireg_state.iq;
-      payload.raw.id        = foc_ireg_state.id;
-      payload.raw.vd        = foc_ireg_state.vd;
-      payload.raw.vq        = foc_ireg_state.vq;
-      payload.raw.theta_est = foc_motor_state.thetaEst;
-      payload.raw.omega_est = foc_motor_state.omegaEst;
+      payload.raw.ia     = foc_ireg_state.ima;
+      payload.raw.ib     = foc_ireg_state.imb;
+      payload.raw.ic     = foc_ireg_state.imc;
+      payload.raw.iq_ref = foc_ireg_state.iqRef;
+      payload.raw.id_ref = foc_ireg_state.idRef;
+      payload.raw.iq     = foc_ireg_state.iq;
+      payload.raw.id     = foc_ireg_state.id;
+      payload.raw.vd     = foc_ireg_state.mod_vd;
+      payload.raw.vq     = foc_ireg_state.mod_vq;
+      payload.raw.va     = foc_ireg_state.va;
+      payload.raw.vb     = foc_ireg_state.vb;
 
       const bool payload_encoded = Serial::Message::encode( &payload.state, Serial::Message::ENCODE_NO_COBS );
       memcpy( s_ctl_monitor.raw.payload.bytes, payload.data(), payload.size() );
@@ -390,7 +389,7 @@ namespace Orbit::Control::Field
       -----------------------------------------------------------------------*/
       if( payload_encoded && Serial::Message::encode( &s_ctl_monitor.state ) )
       {
-        usb_serial->writeFromISR( s_ctl_monitor.data(), s_ctl_monitor.size() );
+        Serial::getUSBSerialDriver()->writeFromISR( s_ctl_monitor.data(), s_ctl_monitor.size() );
       }
     }
 

@@ -94,8 +94,8 @@ typedef struct _CurrentControlMonitorPayload {
     float id; /* D-axis actual current in Amps */
     float vq; /* Q-axis voltage command in Volts */
     float vd; /* D-axis voltage command in Volts */
-    float theta_est; /* Electrical angle in radians */
-    float omega_est; /* Electrical speed in radians per second */
+    float va; /* Voltage command for the Alpha axis in Volts */
+    float vb; /* Voltage command for the Beta axis in Volts */
 } CurrentControlMonitorPayload;
 
 
@@ -178,8 +178,8 @@ extern "C" {
 #define CurrentControlMonitorPayload_id_tag      7
 #define CurrentControlMonitorPayload_vq_tag      8
 #define CurrentControlMonitorPayload_vd_tag      9
-#define CurrentControlMonitorPayload_theta_est_tag 10
-#define CurrentControlMonitorPayload_omega_est_tag 11
+#define CurrentControlMonitorPayload_va_tag      10
+#define CurrentControlMonitorPayload_vb_tag      11
 
 /* Struct field encoding specification for nanopb */
 #define SystemTickMessage_FIELDLIST(X, a) \
@@ -257,8 +257,8 @@ X(a, STATIC,   REQUIRED, FLOAT,    iq,                6) \
 X(a, STATIC,   REQUIRED, FLOAT,    id,                7) \
 X(a, STATIC,   REQUIRED, FLOAT,    vq,                8) \
 X(a, STATIC,   REQUIRED, FLOAT,    vd,                9) \
-X(a, STATIC,   REQUIRED, FLOAT,    theta_est,        10) \
-X(a, STATIC,   REQUIRED, FLOAT,    omega_est,        11)
+X(a, STATIC,   REQUIRED, FLOAT,    va,               10) \
+X(a, STATIC,   REQUIRED, FLOAT,    vb,               11)
 #define CurrentControlMonitorPayload_CALLBACK NULL
 #define CurrentControlMonitorPayload_DEFAULT NULL
 

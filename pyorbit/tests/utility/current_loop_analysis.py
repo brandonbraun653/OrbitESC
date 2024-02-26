@@ -17,8 +17,7 @@ def process_current_loop_data(input_file: Path) -> None:
         dq_reference_currents = np.array([[float(row[i]) for i in range(4, 6)] for row in csv_data[1:]])
         dq_measured_currents = np.array([[float(row[i]) for i in range(6, 8)] for row in csv_data[1:]])
         dq_voltage_commands = np.array([[float(row[i]) for i in range(8, 10)] for row in csv_data[1:]])
-        theta = np.array([float(row[10]) for row in csv_data[1:]])
-        omega = np.array([float(row[11]) for row in csv_data[1:]])
+        ab_voltage_commands = np.array([[float(row[i]) for i in range(10, 12)]for row in csv_data[1:]])
 
     # Plot the phase currents
     # plt.figure()
@@ -55,23 +54,42 @@ def process_current_loop_data(input_file: Path) -> None:
     plt.tight_layout()
     plt.show()
 
-    # Plot IqRef vs Iq and IdRef vs Id
-    fig, axs = plt.subplots(2)
+    # # Plot IqRef vs Iq and IdRef vs Id
+    # fig, axs = plt.subplots(2)
+    #
+    # # Subplot for IqRef vs Iq
+    # axs[0].plot(timestamps, dq_reference_currents[:, 1])
+    # axs[0].plot(timestamps, dq_measured_currents[:, 1])
+    # axs[0].set(xlabel="Time (s)", ylabel="Current (A)", title="IqRef vs Iq")
+    #
+    # # Subplot for IdRef vs Id
+    # axs[1].plot(timestamps, dq_reference_currents[:, 0])
+    # axs[1].plot(timestamps, dq_measured_currents[:, 0])
+    # axs[1].set(xlabel="Time (s)", ylabel="Current (A)", title="IdRef vs Id")
+    #
+    # # Display the figure
+    # plt.tight_layout()
+    # plt.show()
 
-    # Subplot for IqRef vs Iq
-    axs[0].plot(timestamps, dq_reference_currents[:, 1])
-    axs[0].plot(timestamps, dq_measured_currents[:, 1])
-    axs[0].set(xlabel="Time (s)", ylabel="Current (A)", title="IqRef vs Iq")
+    # # Plot Iq Error vs Vq Command
+    # err = 0.01 * (dq_reference_currents[:, 1] - dq_measured_currents[:, 1])
+    # plt.figure()
+    # plt.plot(timestamps, err)
+    # plt.plot(timestamps, dq_voltage_commands[:, 1])
+    # plt.xlabel("Time (s)")
+    # plt.ylabel("Value")
+    # plt.title("Iq Error vs Vq Command")
+    # plt.legend(["Iq Error", "Vq Command"])
+    # plt.show()
 
-    # Subplot for IdRef vs Id
-    axs[1].plot(timestamps, dq_reference_currents[:, 0])
-    axs[1].plot(timestamps, dq_measured_currents[:, 0])
-    axs[1].set(xlabel="Time (s)", ylabel="Current (A)", title="IdRef vs Id")
-
-    # Display the figure
-    plt.tight_layout()
-    plt.show()
-    
+    # # Plot Alpha-Beta voltage commands
+    # plt.figure()
+    # plt.plot(timestamps, ab_voltage_commands)
+    # plt.xlabel("Time (s)")
+    # plt.ylabel("Voltage (V)")
+    # plt.title("Alpha-Beta Voltage Commands")
+    # plt.legend(["Alpha", "Beta"])
+    # plt.show()
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ Includes
 namespace Orbit::Control::Math
 {
   PID::PID() :
-      SetPoint( 0 ), Output( 0 ), OutMinLimit( 0 ), OutMaxLimit( 0 ), Kp( 0 ), Ki( 0 ), Kd( 0 ), iTerm( 0 ), lastInput( 0 )
+      SetPoint( 0 ), Output( 0 ), OutMinLimit( 0 ), OutMaxLimit( 0 ), Kp( 0 ), Ki( 0 ), Kd( 0 ), iTerm( 0 ), lastError( 0 )
   {
   }
 
@@ -32,22 +32,22 @@ namespace Orbit::Control::Math
     Ki          = 0.0f;
     Kd          = 0.0f;
     iTerm       = 0.0f;
-    lastInput   = 0.0f;
+    lastError   = 0.0f;
   }
 
 
   void PID::setTunings( const float kp, const float ki, const float kd, const float dt )
   {
     this->Kp = kp;
-    this->Ki = ki * dt;
-    this->Kd = kd / dt;
+    this->Ki = kp * dt * ( 1.0f / ki );
+    this->Kd = kp * ( kd / dt );
   }
 
 
   void PID::resetState()
   {
     Output    = 0.0f;
-    lastInput = 0.0f;
+    lastError = 0.0f;
     iTerm     = 0.0f;
   }
 
@@ -70,14 +70,14 @@ namespace Orbit::Control::Math
     /*-----------------------------------------------------------------------
     Derivative Term w/Anti-Kick
     -----------------------------------------------------------------------*/
-    float dTerm = Kd * ( input - lastInput );
+    float dTerm = Kd * ( error - lastError );
 
     /*-----------------------------------------------------------------------
     Calculate the output and save off state for the next run
     -----------------------------------------------------------------------*/
     Output    = pTerm + iTerm + dTerm;
     Output    = std::max( OutMinLimit, std::min( Output, OutMaxLimit ) );
-    lastInput = input;
+    lastError = error;
 
     return Output;
   }
