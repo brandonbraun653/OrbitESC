@@ -44,17 +44,17 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_STANDARD": "20",
         "CMAKE_VERBOSE_MAKEFILE": "OFF",
-        "FREERTOS_THREADS": "ON",
-        "TOOLCHAIN": "arm-none-eabi",
-        "DEVICE_TARGET": "STM32F446RE",
-        "THOR_IMPL": "HW"
+        "NATIVE_THREADS": "ON",
+        "TOOLCHAIN": "gcc",
+        "DEVICE_TARGET": "sim",
+        "THOR_IMPL": "SIM"
       }
     }
   ],
   "buildPresets": [
     {
       "name": "OrbitESC_V3 Debug",
-      "description":"Build release variant of OrbitESC software",
+      "description":"Build debug variant of OrbitESC software",
       "displayName": "OrbitESC_V3 Debug",
       "configurePreset": "OrbitESC_V3 Debug",
       "targets": [
@@ -67,6 +67,16 @@
       "description":"Build release variant of OrbitESC software",
       "displayName": "OrbitESC_V3 Release",
       "configurePreset": "OrbitESC_V3 Release",
+      "targets": [
+        "OrbitESC"
+      ],
+      "jobs": 8
+    },
+    {
+      "name": "OrbitESC Simulator",
+      "description":"Build simulator variant of OrbitESC software",
+      "displayName": "OrbitESC Simulator",
+      "configurePreset": "OrbitESC Simulator",
       "targets": [
         "OrbitESC"
       ],

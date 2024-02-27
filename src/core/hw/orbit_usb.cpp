@@ -14,13 +14,15 @@ Includes
 #include <Aurora/logging>
 #include <Chimera/function>
 #include <Chimera/gpio>
-#include <Thor/lld/interface/inc/interrupt>
 #include <etl/vector.h>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/hw/orbit_tusb.h>
 #include <src/monitor/debug/segger_modules_intf.h>
 
+#if defined( EMBEDDED )
 #include <tusb.h>
+#include <Thor/lld/interface/inc/interrupt>
+#endif
 
 namespace Orbit::USB
 {
@@ -28,7 +30,9 @@ namespace Orbit::USB
   Constants
   ---------------------------------------------------------------------------*/
 
+  #if defined( EMBEDDED )
   static constexpr IRQn_Type USB_IRQn = OTG_HS_IRQn;
+  #endif
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -74,6 +78,7 @@ namespace Orbit::USB
     RT_HARD_ASSERT( pin );
     RT_HARD_ASSERT( Chimera::Status::OK == pin->init( IO::USB::enumPinInit ) );
 
+    #if defined( EMBEDDED )
     /*-------------------------------------------------------------------------
     Configure USB clocks
     -------------------------------------------------------------------------*/
@@ -90,6 +95,7 @@ namespace Orbit::USB
     -------------------------------------------------------------------------*/
     RT_HARD_ASSERT( true == tusb_init() );
     OrbitMonitorRecordEvent_TUSB( TUSB_Init );
+    #endif  /* EMBEDDED */
   }
 
 
@@ -119,13 +125,17 @@ namespace Orbit::USB
 
   void disableInterrupts()
   {
+    #if defined( EMBEDDED )
     Thor::LLD::INT::disableIRQ( USB_IRQn );
+    #endif
   }
 
 
   void enableInterrupts()
   {
+    #if defined( EMBEDDED )
     Thor::LLD::INT::enableIRQ( USB_IRQn );
+    #endif
   }
 }    // namespace Orbit::USB
 

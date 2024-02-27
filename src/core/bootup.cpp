@@ -5,7 +5,7 @@
  *  Description:
  *    Device driver power up procedures
  *
- *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -158,6 +158,7 @@ namespace Orbit::Boot
 }    // namespace Orbit::Boot
 
 
+#if defined( EMBEDDED )
 namespace Thor::LLD::RCC
 {
   /**
@@ -250,3 +251,4 @@ namespace Thor::LLD::RCC
     RT_HARD_ASSERT( targetUSBClk == rcc->getClockFrequency( Chimera::Clock::Bus::PLLSAI_P ) );
   }
 }
+#endif   /* EMBEDDED */

@@ -16,7 +16,10 @@ Includes
 #include <src/core/com/serial/serial_config.hpp>
 #include <src/core/com/serial/serial_usb.hpp>
 #include <src/core/tasks.hpp>
+
+#if defined( EMBEDDED )
 #include <tusb.h>
+#endif
 
 namespace Orbit::Serial
 {
@@ -45,7 +48,11 @@ namespace Orbit::Serial
 
   bool isConnected()
   {
+    #if defined( EMBEDDED )
     return tud_cdc_n_connected( USB_SERIAL_ENDPOINT );
+    #else
+    return false;
+    #endif  /* EMBEDDED */
   }
 
 
@@ -91,6 +98,7 @@ namespace Orbit::Serial
 
   void USBSerial::process()
   {
+    #if defined( EMBEDDED )
     Chimera::Thread::LockGuard _lock( *this );
 
     /*-------------------------------------------------------------------------
@@ -208,7 +216,7 @@ namespace Orbit::Serial
         }
       }
     }
-
+    #endif  /* EMBEDDED */
   }
 
 
@@ -226,6 +234,7 @@ namespace Orbit::Serial
 
   int USBSerial::write( const void *const buffer, const size_t length, const size_t timeout )
   {
+    #if defined( EMBEDDED )
     using namespace Orbit::Tasks;
 
     /*-------------------------------------------------------------------------
@@ -270,11 +279,15 @@ namespace Orbit::Serial
     }
 
     return static_cast<int>( bytes_written );
+    #else
+    return 0;
+    #endif /* EMBEDDED */
   }
 
 
   int USBSerial::writeFromISR( const void *const buffer, const size_t length )
   {
+    #if defined( EMBEDDED )
     using namespace Orbit::Tasks;
 
     /*-------------------------------------------------------------------------
@@ -301,6 +314,7 @@ namespace Orbit::Serial
 
       return static_cast<int>( length );
     }
+    #endif /* EMBEDDED */
 
     return 0;
   }

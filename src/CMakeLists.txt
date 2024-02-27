@@ -164,7 +164,6 @@ target_link_libraries(OrbitESC PRIVATE
   lib_cobs_rel
   lib_flash_db_rel
   lib_nanopb_rel
-  lib_tiny_usb_dbg
 
   # Orbit Libraries
   lib_orbit_com_rel
@@ -184,7 +183,10 @@ target_link_libraries(OrbitESC PRIVATE
 
 # Hardware Driver Model
 if(${DEVICE_TARGET} MATCHES "^stm32[lf]4")
-  target_link_libraries(OrbitESC PRIVATE embedded_core_libs_rel)
+  target_link_libraries(OrbitESC PRIVATE
+    embedded_core_libs_rel
+    lib_tiny_usb_rel
+    )
 
   if(${DEVICE_TARGET} MATCHES "^stm32l4")
     target_link_libraries(OrbitESC PRIVATE stm32l4_libs)

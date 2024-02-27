@@ -16,7 +16,10 @@ Includes
 #include <src/core/hw/orbit_usb.hpp>
 #include <src/core/tasks.hpp>
 #include <src/core/tasks/tsk_usb.hpp>
+
+#if defined( EMBEDDED )
 #include <tusb.h>
+#endif
 
 namespace Orbit::Tasks::USB
 {
@@ -38,6 +41,7 @@ namespace Orbit::Tasks::USB
 
     while ( 1 )
     {
+      #if defined( EMBEDDED )
       /*-----------------------------------------------------------------------
       Process high priority USB interrupts
       -----------------------------------------------------------------------*/
@@ -51,6 +55,9 @@ namespace Orbit::Tasks::USB
         Chimera::Thread::sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CDC ), TASK_MSG_CDC_WAKEUP,
                                       Chimera::Thread::TIMEOUT_DONT_WAIT );
       }
+      #else
+      Chimera::delayMilliseconds( 100 );
+      #endif  /* EMBEDDED */
     }
   }
 }    // namespace Orbit::Tasks::USB

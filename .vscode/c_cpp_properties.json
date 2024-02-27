@@ -215,7 +215,8 @@
                 "${defaultIncludePaths}"
             ],
             "defines": [
-                "${defaultSimDefines}"
+                "${defaultSimDefines}",
+                "THOR_USER_CONFIG"
             ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "gnu17",

@@ -62,6 +62,7 @@ gen_intf_lib(
 )
 
 # FreeRTOS Configuration
+if(Toolchain::HAS_GCC_ARM_NONE_EABI)
 gen_intf_lib(
   TARGET
     freertos_cfg
@@ -86,6 +87,26 @@ gen_intf_lib(
   EXPORT_DIR
     "${PROJECT_BINARY_DIR}/Project"
 )
+elseif(Toolchain::HAS_GCC)
+gen_intf_lib(
+  TARGET
+    freertos_cfg
+  INTF_INCLUDES
+    "${PROJECT_ROOT}/src/config"
+    "${PROJECT_ROOT}/src/config/freertos"
+  EXPORT_DIR
+    "${PROJECT_BINARY_DIR}/Project"
+)
+
+gen_intf_lib(
+  TARGET
+    freertos_port
+  INTF_INCLUDES
+    "${PROJECT_ROOT}/lib/FreeRTOS/portable/GCC/Posix"
+  EXPORT_DIR
+    "${PROJECT_BINARY_DIR}/Project"
+)
+endif()
 
 gen_intf_lib(
   TARGET
