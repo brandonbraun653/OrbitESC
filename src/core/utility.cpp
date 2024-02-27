@@ -5,7 +5,7 @@
  *  Description:
  *    Utility function implementation
  *
- *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -18,7 +18,9 @@ Includes
 #include <src/core/utility.hpp>
 #include <src/control/foc_math.hpp>
 
+#if defined( EMBEDDED )
 #include "SEGGER_SYSVIEW.h"
+#endif
 
 namespace Orbit::Utility
 {
@@ -64,6 +66,7 @@ namespace Orbit::Utility
  */
 extern "C" int orbit_esc_printf( const char *format, ... )
 {
+  #if defined( EMBEDDED )
   using namespace Orbit::Utility;
   using namespace Aurora::Logging;
 
@@ -90,4 +93,7 @@ extern "C" int orbit_esc_printf( const char *format, ... )
   {
     return 0;
   }
+  #else
+  return 0;
+  #endif
 }

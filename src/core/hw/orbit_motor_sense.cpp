@@ -12,20 +12,23 @@
  *    is synchronized with the motor power stage PWM timer. This ensures that
  *    the ADC samples are taken at the same time as the power stage is active.
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/adc>
-#include <Thor/lld/common/cortex-m4/system_time.hpp>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 #include <src/core/hw/orbit_motor_sense.hpp>
 #include <src/core/hw/orbit_timer.hpp>
 #include <src/control/foc_math.hpp>
+
+#if defined( EMBEDDED )
+#include <Thor/lld/common/cortex-m4/system_time.hpp>
+#endif /* EMBEDDED */
 
 namespace Orbit::Motor::Sense
 {
@@ -80,7 +83,11 @@ namespace Orbit::Motor::Sense
    */
   static inline float current_time_sec()
   {
+    #if defined( EMBEDDED )
     return static_cast<float>( CortexM4::SYSTick::getMicroseconds() ) / 1e6f;
+    #else
+    return Chimera::micros() / 1e6f;
+    #endif  /* EMBEDDED */
   }
 
 

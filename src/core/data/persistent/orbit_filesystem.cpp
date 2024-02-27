@@ -49,6 +49,7 @@ namespace Orbit::Data::FileSystem
    */
   static void onCardInsert( void *unused )
   {
+    #if defined( EMBEDDED )
     bool fs_mounted = true;
     auto intf       = FS::FatFs::getInterface( &s_fatfs_volume );
 
@@ -83,6 +84,7 @@ namespace Orbit::Data::FileSystem
     }
 
     LOG_DEBUG_IF( fs_mounted, "SD card mounted" );
+    #endif /* EMBEDDED */
   }
 
 
@@ -94,6 +96,7 @@ namespace Orbit::Data::FileSystem
    */
   static void onCardRemove( void *unused )
   {
+    #if defined( EMBEDDED )
     /*-------------------------------------------------------------------------
     If the filesystem isn't mounted, then there's nothing to do
     -------------------------------------------------------------------------*/
@@ -108,6 +111,7 @@ namespace Orbit::Data::FileSystem
     LOG_DEBUG( "SD card removed" );
     FS::unmount( s_mounted_vol );
     s_mounted_vol = -1;
+    #endif /* EMBEDDED */
   }
 
 
@@ -117,6 +121,7 @@ namespace Orbit::Data::FileSystem
 
   void init()
   {
+    #if defined( EMBEDDED )
     /*-------------------------------------------------------------------------
     Initialize the filesystem FatFs backend
     -------------------------------------------------------------------------*/
@@ -154,6 +159,7 @@ namespace Orbit::Data::FileSystem
     {
       onCardInsert( nullptr );
     }
+    #endif /* EMBEDDED */
   }
 
 

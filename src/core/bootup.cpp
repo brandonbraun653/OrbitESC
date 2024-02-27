@@ -16,12 +16,6 @@ Includes
 #include <Chimera/assert>
 #include <Chimera/gpio>
 #include <Chimera/serial>
-#include <Thor/lld/common/cortex-m4/system_time.hpp>
-#include <Thor/lld/interface/inc/flash>
-#include <Thor/lld/interface/inc/flash>
-#include <Thor/lld/interface/inc/power>
-#include <Thor/lld/interface/inc/rcc>
-#include <Thor/lld/stm32f4x/rcc/hw_rcc_prv.hpp>
 #include <etl/circular_buffer.h>
 #include <src/config/bsp/board_map.hpp>
 #include <src/control/foc_driver.hpp>
@@ -43,6 +37,15 @@ Includes
 #include <src/core/tasks.hpp>
 #include <src/monitor/orbit_metrics.hpp>
 #include <src/monitor/orbit_monitors.hpp>
+
+#if defined( EMBEDDED )
+#include <Thor/lld/common/cortex-m4/system_time.hpp>
+#include <Thor/lld/interface/inc/flash>
+#include <Thor/lld/interface/inc/flash>
+#include <Thor/lld/interface/inc/power>
+#include <Thor/lld/interface/inc/rcc>
+#include <Thor/lld/stm32f4x/rcc/hw_rcc_prv.hpp>
+#endif  /* EMBEDDED */
 
 
 namespace Orbit::Boot

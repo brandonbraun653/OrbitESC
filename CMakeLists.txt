@@ -24,6 +24,7 @@ if(Toolchain::HAS_GCC_ARM_NONE_EABI)
   add_compile_definitions(EMBEDDED)
 elseif(Toolchain::HAS_GCC)
   add_compile_definitions(SIMULATOR)
+  add_subdirectory("${COMMON_TOOL_ROOT}/cmake/device/generic" ${PROJECT_BINARY_DIR}/DeviceTarget)
 endif()
 
 # ====================================================

@@ -46,8 +46,7 @@
         "CMAKE_VERBOSE_MAKEFILE": "OFF",
         "NATIVE_THREADS": "ON",
         "TOOLCHAIN": "gcc",
-        "DEVICE_TARGET": "sim",
-        "THOR_IMPL": "SIM"
+        "DEVICE_TARGET": "sim"
       }
     }
   ],
