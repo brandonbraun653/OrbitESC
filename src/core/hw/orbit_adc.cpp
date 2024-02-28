@@ -20,7 +20,7 @@ Includes
 #include <src/core/hw/orbit_motor_sense.hpp>
 #include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_timer.hpp>
-
+#include <src/simulator/sim_adc.hpp>
 
 namespace Orbit::ADC
 {
@@ -207,6 +207,10 @@ namespace Orbit::ADC
     adc_cfg.transferMode    = Chimera::ADC::TransferMode::DMA;
     adc_cfg.analogVRef      = 3.30f;
 
+    #if defined( SIMULATOR )
+    Sim::ADC::initialize( adc_cfg.analogVRef, adc_cfg.analogVRef / 4096.0f );
+    #endif  /* SIMULATOR */
+
     adc = Chimera::ADC::getDriver( adc_cfg.periph );
     RT_DBG_ASSERT( adc );
     RT_HARD_ASSERT( Chimera::Status::OK == adc->open( adc_cfg ) );
@@ -218,9 +222,9 @@ namespace Orbit::ADC
     s_motor_channels[ Motor::Sense::CHANNEL_PHASE_A_CURRENT ] = IO::Analog::adcIPhaseA;
     s_motor_channels[ Motor::Sense::CHANNEL_PHASE_B_CURRENT ] = IO::Analog::adcIPhaseB;
     s_motor_channels[ Motor::Sense::CHANNEL_PHASE_C_CURRENT ] = IO::Analog::adcIPhaseC;
-    // s_motor_channels[ Motor::Sense::CHANNEL_PHASE_A_VOLTAGE ] = IO::Analog::adcVPhaseA;
-    // s_motor_channels[ Motor::Sense::CHANNEL_PHASE_B_VOLTAGE ] = IO::Analog::adcVPhaseB;
-    // s_motor_channels[ Motor::Sense::CHANNEL_PHASE_C_VOLTAGE ] = IO::Analog::adcVPhaseC;
+    s_motor_channels[ Motor::Sense::CHANNEL_PHASE_A_VOLTAGE ] = IO::Analog::adcVPhaseA;
+    s_motor_channels[ Motor::Sense::CHANNEL_PHASE_B_VOLTAGE ] = IO::Analog::adcVPhaseB;
+    s_motor_channels[ Motor::Sense::CHANNEL_PHASE_C_VOLTAGE ] = IO::Analog::adcVPhaseC;
 
     seq.clear();
     seq.channels    = &s_motor_channels;
@@ -234,9 +238,9 @@ namespace Orbit::ADC
     RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseA, 12 ) );
     RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseB, 12 ) );
     RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseC, 12 ) );
-    // RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseA, 12 ) );
-    // RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseB, 12 ) );
-    // RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseC, 12 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseA, 3 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseB, 3 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseC, 3 ) );
   }
 
 

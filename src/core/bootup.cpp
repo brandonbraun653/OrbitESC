@@ -45,7 +45,7 @@ Includes
 #include <Thor/lld/interface/inc/power>
 #include <Thor/lld/interface/inc/rcc>
 #include <Thor/lld/stm32f4x/rcc/hw_rcc_prv.hpp>
-#endif  /* EMBEDDED */
+#endif /* EMBEDDED */
 
 
 namespace Orbit::Boot
@@ -156,6 +156,10 @@ namespace Orbit::Boot
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_COM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CTL ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     Chimera::delayMilliseconds( 25 );
+
+#if defined( SIMULATOR )
+    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_SIM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+#endif
   }
 
 }    // namespace Orbit::Boot
@@ -222,8 +226,8 @@ namespace Thor::LLD::RCC
     clkCfg.PLLCore.M = 24;
     clkCfg.PLLCore.N = 360;
     clkCfg.PLLCore.P = 2;
-    clkCfg.PLLCore.Q = 8;   // Doesn't matter, not used
-    clkCfg.PLLCore.R = 7;   // Doesn't matter, not used
+    clkCfg.PLLCore.Q = 8;    // Doesn't matter, not used
+    clkCfg.PLLCore.R = 7;    // Doesn't matter, not used
 
     /* SAI PLL configuration settings */
     clkCfg.PLLSAI.M = 16;
@@ -253,5 +257,5 @@ namespace Thor::LLD::RCC
     auto rcc = getCoreClockCtrl();
     RT_HARD_ASSERT( targetUSBClk == rcc->getClockFrequency( Chimera::Clock::Bus::PLLSAI_P ) );
   }
-}
-#endif   /* EMBEDDED */
+}    // namespace Thor::LLD::RCC
+#endif /* EMBEDDED */

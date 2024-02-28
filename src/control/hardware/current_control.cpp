@@ -26,6 +26,7 @@ Includes
 #include <src/core/hw/orbit_motor.hpp>
 #include <src/core/hw/orbit_motor_drive.hpp>
 #include <src/core/hw/orbit_motor_sense.hpp>
+#include <src/simulator/sim_motor.hpp>
 
 
 #if defined( SEGGER_SYS_VIEW )
@@ -223,7 +224,7 @@ namespace Orbit::Control::Field
     using namespace Orbit::Instrumentation;
     using namespace Orbit::Control::Math;
 
-    static volatile uint32_t isr_monitor_count = 0;
+    static uint32_t isr_monitor_count = 0;
 
     Chimera::Timer::Inverter::Driver *const inverter = Motor::Drive::getDriver();
 
@@ -335,6 +336,13 @@ namespace Orbit::Control::Field
     float modulation_index = hypotf( foc_ireg_state.va, foc_ireg_state.vb );
 
     inverter->svmUpdate( foc_ireg_state.va, foc_ireg_state.vb, foc_motor_state.thetaEst, modulation_index );
+
+    /*-------------------------------------------------------------------------
+    Apply the voltage commands to the simulated motor
+    -------------------------------------------------------------------------*/
+    #if defined( SIMULATOR )
+    Orbit::Sim::Motor::stepModel( foc_ireg_state.va, foc_ireg_state.vb, 0.0f );
+    #endif
 
     /*-------------------------------------------------------------------------
     Invoke control system callback to swap in custom behaviors

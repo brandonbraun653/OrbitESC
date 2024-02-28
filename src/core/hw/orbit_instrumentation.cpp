@@ -5,7 +5,7 @@
  *  Description:
  *    Implementation of sensor interface for the OrbitESC board
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -33,31 +33,6 @@ namespace Orbit::Instrumentation
   /*---------------------------------------------------------------------------
   Static Functions
   ---------------------------------------------------------------------------*/
-  /**
-   * @brief Callback to handle results of ADC conversions
-   * @note This is called from an ISR context and invoked as a result of a
-   *       timer triggered DMA transfer.
-   *
-   * @param isr  Results of the ADC conversion
-   * @return void
-   */
-  static void adcISRTxfrComplete( const Chimera::ADC::InterruptDetail &isr )
-  {
-    /*-------------------------------------------------------------------------
-    Update our notion of the ADC configuration
-    -------------------------------------------------------------------------*/
-    s_adc_vref = isr.vref;
-    s_adc_vres = isr.resolution;
-
-    /*-------------------------------------------------------------------------
-    Copy the ADC samples into the module buffer
-    -------------------------------------------------------------------------*/
-    for( auto i = 0; i < isr.num_samples; i++ )
-    {
-      s_adc_samples[ i ] = isr.samples[ i ];
-    }
-  }
-
 
   /**
    * @brief Converts an ADC count to a voltage
@@ -82,7 +57,8 @@ namespace Orbit::Instrumentation
     /*-------------------------------------------------------------------------
     Link the ADC's DMA end-of-transfer interrupt to this module's ISR handler
     -------------------------------------------------------------------------*/
-    Chimera::ADC::ISRCallback callback = Chimera::ADC::ISRCallback::create<adcISRTxfrComplete>();
+    Chimera::ADC::ISRCallback callback =
+        Chimera::ADC::ISRCallback::create<Private::isr_on_instrumentation_adc_conversion_complete>();
     pADC->onInterrupt( Chimera::ADC::Interrupt::EOC_SEQUENCE, callback );
 
     /*-------------------------------------------------------------------------
@@ -180,6 +156,28 @@ namespace Orbit::Instrumentation
   float getCurrentSenseReferenceVoltage()
   {
     return counts_to_voltage( s_adc_samples[ CHANNEL_VREF ] );
+  }
+
+
+  /*---------------------------------------------------------------------------
+  Private Functions
+  ---------------------------------------------------------------------------*/
+
+  void Private::isr_on_instrumentation_adc_conversion_complete( const Chimera::ADC::InterruptDetail &isr )
+  {
+    /*-------------------------------------------------------------------------
+    Update our notion of the ADC configuration
+    -------------------------------------------------------------------------*/
+    s_adc_vref = isr.vref;
+    s_adc_vres = isr.resolution;
+
+    /*-------------------------------------------------------------------------
+    Copy the ADC samples into the module buffer
+    -------------------------------------------------------------------------*/
+    for( auto i = 0; i < isr.num_samples; i++ )
+    {
+      s_adc_samples[ i ] = isr.samples[ i ];
+    }
   }
 
 }    // namespace Orbit::Instrumentation

@@ -20,6 +20,7 @@ Includes
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_led.hpp>
+#include <src/simulator/sim_motor.hpp>
 
 namespace Orbit::Control::State
 {
@@ -91,6 +92,18 @@ namespace Orbit::Control::State
     {
       return ModeId::IDLE;
     }
+
+    /*-------------------------------------------------------------------------
+    Connect the virtualized motor to the system
+    -------------------------------------------------------------------------*/
+    #if defined( SIMULATOR )
+    Orbit::Sim::Motor::Parameters params;
+    CLEAR_STRUCT( params );
+
+    // TODO BMB: Need to fill in the default motor parameters here
+
+    Orbit::Sim::Motor::connect( params );
+    #endif
 
     /*-------------------------------------------------------------------------
     Instruct the motor control subsystem to begin the rotor alignment detection

@@ -72,7 +72,9 @@
             "${workspaceFolder}/src/core/data/persistent",
             "${workspaceFolder}/src/core/data/volatile",
             "${workspaceFolder}/src/core/hw",
-            "${workspaceFolder}/src/core/tasks"
+            "${workspaceFolder}/src/core/tasks",
+            "${workspaceFolder}/test",
+            "${workspaceFolder}/test/harness",
         ],
         "thorIncludePaths_HLD": [
             "${workspaceFolder}/lib/Thor/hld",

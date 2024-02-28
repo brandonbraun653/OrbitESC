@@ -5,7 +5,7 @@
  *  Description:
  *    Idle state
  *
- *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -18,6 +18,7 @@ Includes
 #include <src/control/subroutines/interface.hpp>
 #include <src/core/hw/orbit_led.hpp>
 #include <src/monitor/orbit_monitors.hpp>
+#include <src/simulator/sim_motor.hpp>
 
 namespace Orbit::Control::State
 {
@@ -49,6 +50,13 @@ namespace Orbit::Control::State
     {
       LOG_ERROR( "Failed to start IDLE routine" );
     }
+
+    /*-------------------------------------------------------------------------
+    Disconnect the virtualized motor from the system
+    -------------------------------------------------------------------------*/
+    #if defined( SIMULATOR )
+    Orbit::Sim::Motor::disconnect();
+    #endif
 
     // /*-------------------------------------------------------------------------
     // Disable the drive signals going to the motor

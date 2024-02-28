@@ -112,6 +112,20 @@ namespace Orbit::Motor::Sense
    */
   void calibrate();
 
+  /*---------------------------------------------------------------------------
+  Private Functions
+  ---------------------------------------------------------------------------*/
+  namespace Private
+  {
+    /**
+     * @brief Callback to handle results of ADC conversions
+     *
+     * @param isrData Results of the ADC conversion
+     * @return void
+     */
+    void isr_on_motor_sense_adc_conversion_complete( const Chimera::ADC::InterruptDetail &isr );
+  }    // namespace Private
+
 }    // namespace Orbit::Motor::Sense
 
 #endif /* !ORBIT_MOTOR_SENSEHPP */

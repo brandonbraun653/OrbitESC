@@ -5,7 +5,7 @@
  *  Description:
  *    Project task support drivers
  *
- *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -22,7 +22,7 @@ Includes
 #include <src/core/tasks/tsk_hwm.hpp>
 #include <src/core/tasks/tsk_idle.hpp>
 #include <src/core/tasks/tsk_usb.hpp>
-
+#include <src/simulator/sim_tsk.hpp>
 
 namespace Orbit::Tasks
 {
@@ -30,13 +30,17 @@ namespace Orbit::Tasks
   Static Data
   ---------------------------------------------------------------------------*/
   static Chimera::Thread::TaskId s_thread_id[ TASK_NUM_OPTIONS ];
-  static uint32_t                s_bkd_thread_stack[ STACK_BYTES( BKD::STACK ) ] __attribute__((section(".app_stack")));
-  static uint32_t                s_hwm_thread_stack[ STACK_BYTES( HWM::STACK ) ] __attribute__((section(".app_stack")));
-  static uint32_t                s_dio_thread_stack[ STACK_BYTES( DIO::STACK ) ] __attribute__((section(".app_stack")));
-  static uint32_t                s_ctl_thread_stack[ STACK_BYTES( CTL::STACK ) ] __attribute__((section(".app_stack")));
-  static uint32_t                s_com_thread_stack[ STACK_BYTES( COM::STACK ) ] __attribute__((section(".app_stack")));
-  static uint32_t                s_usb_thread_stack[ STACK_BYTES( USB::STACK ) ] __attribute__((section(".app_stack")));
-  static uint32_t                s_cdc_thread_stack[ STACK_BYTES( USB::CDC::STACK ) ] __attribute__((section(".app_stack")));
+  static uint32_t                s_bkd_thread_stack[ STACK_BYTES( BKD::STACK ) ] __attribute__( ( section( ".app_stack" ) ) );
+  static uint32_t                s_hwm_thread_stack[ STACK_BYTES( HWM::STACK ) ] __attribute__( ( section( ".app_stack" ) ) );
+  static uint32_t                s_dio_thread_stack[ STACK_BYTES( DIO::STACK ) ] __attribute__( ( section( ".app_stack" ) ) );
+  static uint32_t                s_ctl_thread_stack[ STACK_BYTES( CTL::STACK ) ] __attribute__( ( section( ".app_stack" ) ) );
+  static uint32_t                s_com_thread_stack[ STACK_BYTES( COM::STACK ) ] __attribute__( ( section( ".app_stack" ) ) );
+  static uint32_t                s_usb_thread_stack[ STACK_BYTES( USB::STACK ) ] __attribute__( ( section( ".app_stack" ) ) );
+  static uint32_t s_cdc_thread_stack[ STACK_BYTES( USB::CDC::STACK ) ] __attribute__( ( section( ".app_stack" ) ) );
+
+#if defined( SIMULATOR )
+  static uint32_t s_sim_thread_stack[ STACK_BYTES( SIM::STACK ) ] __attribute__( ( section( ".app_stack" ) ) );
+#endif
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -187,6 +191,28 @@ namespace Orbit::Tasks
     s_thread_id[ TASK_CDC ] = tsk.start();
   }
 
+#if defined( SIMULATOR )
+  static void init_sim_task()
+  {
+    using namespace Chimera::Thread;
+
+    TaskConfig cfg;
+    Task       tsk;
+
+    cfg.name                                  = SIM::NAME.data();
+    cfg.arg                                   = nullptr;
+    cfg.function                              = SIM::SIMThread;
+    cfg.priority                              = SIM::PRIORITY;
+    cfg.stackWords                            = STACK_BYTES( sizeof( s_sim_thread_stack ) );
+    cfg.type                                  = TaskInitType::STATIC;
+    cfg.specialization.staticTask.stackBuffer = s_sim_thread_stack;
+    cfg.specialization.staticTask.stackSize   = sizeof( s_sim_thread_stack );
+
+    tsk.create( cfg );
+    s_thread_id[ TASK_SIM ] = tsk.start();
+  }
+#endif /* SIMULATOR */
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
@@ -197,7 +223,7 @@ namespace Orbit::Tasks
     /*-------------------------------------------------------------------------
     Initialize local memory
     -------------------------------------------------------------------------*/
-    for ( size_t x = 0; x < ARRAY_COUNT( s_thread_id ); x++ )
+    for( size_t x = 0; x < ARRAY_COUNT( s_thread_id ); x++ )
     {
       s_thread_id[ x ] = THREAD_ID_INVALID;
     }
@@ -209,13 +235,17 @@ namespace Orbit::Tasks
     to handle RAM expensive operations like powering on the filesystem and
     loading in the configuration file. All other tasks are order agnostic.
     -------------------------------------------------------------------------*/
-    init_hwm_dio_task();  /* This one must run first */
+    init_hwm_dio_task(); /* This one must run first */
     init_idle_task();
     init_hwm_task();
     init_ctrl_sys_task();
     init_com_task();
     init_usb_task();
     init_cdc_task();
+
+#if defined( SIMULATOR )
+    init_sim_task();
+#endif /* SIMULATOR */
   }
 
 
@@ -236,9 +266,9 @@ namespace Orbit::Tasks
     Wait for the expected task message to arrive
     -------------------------------------------------------------------------*/
     TaskMsg msg = ITCMsg::TSK_MSG_NOP;
-    while ( true )
+    while( true )
     {
-      if ( this_thread::receiveTaskMsg( msg, TIMEOUT_BLOCK ) && ( msg == ITCMsg::TSK_MSG_WAKEUP ) )
+      if( this_thread::receiveTaskMsg( msg, TIMEOUT_BLOCK ) && ( msg == ITCMsg::TSK_MSG_WAKEUP ) )
       {
         break;
       }
@@ -252,7 +282,7 @@ namespace Orbit::Tasks
 
   Chimera::Thread::TaskId getTaskId( const PrjTaskId task )
   {
-    if ( !( task < TASK_NUM_OPTIONS ) )
+    if( !( task < TASK_NUM_OPTIONS ) )
     {
       return Chimera::Thread::THREAD_ID_INVALID;
     }

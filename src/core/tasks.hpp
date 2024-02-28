@@ -34,6 +34,10 @@ namespace Orbit::Tasks
     TASK_USB,  /**< USB hardware stack */
     TASK_CDC,  /**< USB CDC driver */
 
+    #if defined( SIMULATOR )
+    TASK_SIM,  /**< Simulation task */
+    #endif /* SIMULATOR */
+
     TASK_NUM_OPTIONS,
     TASK_UNKNOWN
   };
