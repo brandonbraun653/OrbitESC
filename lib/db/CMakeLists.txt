@@ -21,6 +21,16 @@ gen_static_lib_variants(
     flashdb/src/fdb_tsdb.c
     flashdb/src/fdb_utils.c
     flashdb/src/fdb.c
+  PRV_LIBRARIES
+    flash_db_intf_inc
+  EXPORT_DIR
+    "${PROJECT_BINARY_DIR}/flashdb"
+)
+
+gen_static_lib_variants(
+  TARGET
+    lib_flash_db_fal
+  SOURCES
     flashdb/port/fal/src/fal_flash.c
     flashdb/port/fal/src/fal_partition.c
     flashdb/port/fal/src/fal_rtt.c

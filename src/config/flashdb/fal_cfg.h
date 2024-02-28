@@ -22,6 +22,7 @@ extern "C"
 #define NOR_FLASH_DEV_NAME "norflash0"
 #define KVDB_PARTITION_NAME "fdb_kv_db"
 
+#if defined( EMBEDDED )
   extern const struct fal_flash_dev fdb_nor_flash0;
 #define FAL_FLASH_DEV_TABLE \
   {                         \
@@ -41,6 +42,11 @@ Partition Configuration
 Override default printf with the OrbitESC version
 -----------------------------------------------------------------------------*/
 #define FAL_PRINTF orbit_esc_printf
+
+#elif defined( SIMULATOR )
+
+
+#endif  /* EMBEDDED */
 
 #ifdef __cplusplus
 }

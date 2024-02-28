@@ -155,6 +155,7 @@ if(${DEVICE_TARGET} MATCHES "^stm32f4")
     # Hardware Drivers
     embedded_core_libs
     lib_tiny_usb
+    lib_flash_db_fal
 
     # Threading Library
     freertos_intf_inc_all

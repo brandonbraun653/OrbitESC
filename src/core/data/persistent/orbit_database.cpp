@@ -11,10 +11,12 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <Aurora/logging>
 #include <Aurora/filesystem>
+#include <Aurora/logging>
 #include <Aurora/memory>
+#include <etl/string.h>
 #include <src/config/bsp/board_map.hpp>
+#include <src/config/flashdb/fal_cfg.h>
 #include <src/core/data/orbit_data_defaults.hpp>
 #include <src/core/data/persistent/orbit_database.hpp>
 #include <src/core/data/volatile/orbit_parameter.hpp>
@@ -23,6 +25,9 @@ Includes
 
 #include <flashdb.h>
 
+#if defined( SIMULATOR )
+#include <filesystem>
+#endif /* SIMULATOR */
 
 namespace Orbit::Data::Persistent
 {
@@ -34,7 +39,11 @@ namespace Orbit::Data::Persistent
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr size_t DB_MAX_SIZE = 4 * 1024; /**< 512KB */
+#if defined( EMBEDDED )
+  static constexpr size_t DB_MAX_SIZE = 4 * 1024; /**< 4KB */
+#elif defined( SIMULATOR )
+  static constexpr size_t DB_MAX_SIZE = 1024 * 1024; /**< 512KB */
+#endif
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -43,7 +52,7 @@ namespace Orbit::Data::Persistent
   /**
    * @brief The FlashDB Key-Value database instance
    */
-  static fdb_kvdb  s_kv_db;
+  static fdb_kvdb s_kv_db;
 
   /**
    * @brief Maps the memory backing for each parameter.
@@ -58,6 +67,8 @@ namespace Orbit::Data::Persistent
    * @brief The NOR flash memory driver for the database
    */
   static Aurora::Memory::Flash::NOR::Driver s_nor;
+
+  static etl::string<256> s_database_path;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -83,7 +94,7 @@ namespace Orbit::Data::Persistent
     Initialize default KV table
     -------------------------------------------------------------------------*/
     size_t idx = 0;
-    for ( const Param::Node &node : Param::list() )
+    for( const Param::Node &node : Param::list() )
     {
       RT_DBG_ASSERT( idx < ARRAY_COUNT( s_dflt_kv_table ) );
 
@@ -113,7 +124,13 @@ namespace Orbit::Data::Persistent
     /*-------------------------------------------------------------------------
     Initialize the KV database
     -------------------------------------------------------------------------*/
-    auto ready = fdb_kvdb_init( &s_kv_db, "orbit_db", KVDB_PARTITION_NAME, &default_table, NULL );
+#if defined( EMBEDDED )
+    s_database_path = KVDB_PARTITION_NAME;
+#else
+    s_database_path = ( std::filesystem::canonical( "/proc/self/exe" ).parent_path() ).string().c_str();
+#endif /* EMBEDDED */
+
+    auto ready = fdb_kvdb_init( &s_kv_db, "orbit_db", s_database_path.c_str(), &default_table, NULL );
     LOG_ERROR_IF( ready != FDB_NO_ERR, "Failed to initialize FlashDB" );
   }
 
@@ -151,6 +168,7 @@ extern "C"
 #endif
   using namespace Orbit::Data::Persistent;
 
+#if defined( EMBEDDED )
   static int _fdb_flash_init( void );
   static int _fdb_flash_read( long offset, uint8_t *buf, size_t size );
   static int _fdb_flash_write( long offset, const uint8_t *buf, size_t size );
@@ -192,6 +210,7 @@ extern "C"
   {
     return ( s_nor.erase( offset, size ) == Aurora::Memory::Status::ERR_OK ) ? size : -1;
   }
+#endif /* EMBEDDED */
 
 #ifdef __cplusplus
 }

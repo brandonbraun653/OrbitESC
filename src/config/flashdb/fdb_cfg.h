@@ -5,7 +5,7 @@
  *  Description:
  *    OrbitESC Flash Database Configuration
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -26,8 +26,13 @@ Using Time-Series Database feature
 /*-----------------------------------------------------------------------------
 Using flash abstraction layer
 -----------------------------------------------------------------------------*/
-#define FDB_USING_FAL_MODE
 #define FDB_WRITE_GRAN 1
+
+#if defined( EMBEDDED )
+#define FDB_USING_FAL_MODE
+#elif defined( SIMULATOR )
+#define FDB_USING_FILE_POSIX_MODE
+#endif
 
 /*-----------------------------------------------------------------------------
 Override default printf with the OrbitESC version

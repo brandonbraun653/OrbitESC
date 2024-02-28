@@ -63,6 +63,7 @@
             "${workspaceFolder}/src/config/aurora",
             "${workspaceFolder}/src/config/bsp",
             "${workspaceFolder}/src/config/fatfs",
+            "${workspaceFolder}/src/config/flashdb",
             "${workspaceFolder}/src/config/freertos",
             "${workspaceFolder}/src/config/thor",
             "${workspaceFolder}/src/control",
