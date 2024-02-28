@@ -1,39 +1,86 @@
 /******************************************************************************
  *  File Name:
- *    serial_usb.cpp
+ *    sim_usb_serial.cpp
  *
  *  Description:
- *    Tiny USB Serial Driver Implementation
+ *    Socket based implementation of the USB serial interface. This runs a very
+ *    simple server that listens for incoming connections and then processes
+ *    the data as it comes in.
  *
- *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
-#if defined( EMBEDDED )
+#if defined( SIMULATOR )
 
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Aurora/logging>
 #include <Chimera/serial>
 #include <Chimera/thread>
 #include <src/core/com/serial/serial_config.hpp>
 #include <src/core/com/serial/serial_usb.hpp>
 #include <src/core/tasks.hpp>
 
-#include <tusb.h>
+#include <cstdlib>
+#include <fcntl.h>
+#include <iostream>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 namespace Orbit::Serial
 {
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
+  static constexpr int PORT     = 37218;
+  static constexpr int MAX_CONN = 1;
 
-  static constexpr uint8_t USB_SERIAL_ENDPOINT = 0;
+  /*---------------------------------------------------------------------------
+  Structures
+  ---------------------------------------------------------------------------*/
+  struct ServerConfig
+  {
+    int                server_fd;
+    int                client_fd;
+    struct sockaddr_in address;
+    int                opt;
+    int                addrlen;
+    bool               connected;
+  };
+
 
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
 
-  static USBSerial s_usb_serial;
+  static USBSerial    s_usb_serial;
+  static ServerConfig s_server_config;
+
+
+  /*---------------------------------------------------------------------------
+  Static Functions
+  ---------------------------------------------------------------------------*/
+
+  /**
+   * @brief Ensures any open file descriptors are closed when the program exits
+   * @return void
+   */
+  static void close_socket()
+  {
+    if( s_server_config.client_fd > 0 )
+    {
+      ::close( s_server_config.client_fd );
+      s_server_config.client_fd = -1;
+    }
+
+    if( s_server_config.server_fd > 0 )
+    {
+      ::close( s_server_config.server_fd );
+      s_server_config.server_fd = -1;
+    }
+  }
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -47,7 +94,7 @@ namespace Orbit::Serial
 
   bool isConnected()
   {
-    return tud_cdc_n_connected( USB_SERIAL_ENDPOINT );
+    return s_server_config.connected;
   }
 
 
@@ -60,7 +107,7 @@ namespace Orbit::Serial
   USBSerial Implementation
   ---------------------------------------------------------------------------*/
 
-  USBSerial::USBSerial() : mEndpoint( USB_SERIAL_ENDPOINT ), mRXBuffer( nullptr ), mTXBuffer( nullptr )
+  USBSerial::USBSerial() : mEndpoint( 0 ), mRXBuffer( nullptr ), mTXBuffer( nullptr )
   {
   }
 
@@ -87,128 +134,194 @@ namespace Orbit::Serial
     mTXBuffer->clear();
     mTXBufferISR->clear();
 
+    /*-------------------------------------------------------------------------
+    Initialize the server
+    -------------------------------------------------------------------------*/
+    s_server_config.server_fd = 0;
+    s_server_config.client_fd = 0;
+    s_server_config.opt       = 1;
+    s_server_config.addrlen   = sizeof( s_server_config.address );
+    s_server_config.connected = false;
+
+    if( std::atexit( close_socket ) )
+    {
+      std::cerr << "Failed to register exit handler" << std::endl;
+      return Chimera::Status::FAILED_INIT;
+    }
+
+    if( ( s_server_config.server_fd = socket( AF_INET, SOCK_STREAM, 0 ) ) == 0 )
+    {
+      std::cerr << "Failed to create socket" << std::endl;
+      return Chimera::Status::FAILED_INIT;
+    }
+
+    if( setsockopt( s_server_config.server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &s_server_config.opt,
+                    sizeof( s_server_config.opt ) ) )
+    {
+      std::cerr << "Failed to set socket options" << std::endl;
+      return Chimera::Status::FAILED_INIT;
+    }
+
+    s_server_config.address.sin_family      = AF_INET;
+    s_server_config.address.sin_addr.s_addr = INADDR_ANY;
+    s_server_config.address.sin_port        = htons( PORT );
+
+    if( bind( s_server_config.server_fd, ( struct sockaddr * )&s_server_config.address, sizeof( s_server_config.address ) ) <
+        0 )
+    {
+      std::cerr << "Failed to bind socket" << std::endl;
+      return Chimera::Status::FAILED_INIT;
+    }
+
+    if( listen( s_server_config.server_fd, MAX_CONN ) < 0 )
+    {
+      std::cerr << "Failed to listen on socket" << std::endl;
+      return Chimera::Status::FAILED_INIT;
+    }
+
+    if( fcntl( s_server_config.server_fd, F_SETFL, O_NONBLOCK ) < 0 )
+    {
+      std::cerr << "Failed to configure the socket as non-blocking" << std::endl;
+      return Chimera::Status::FAILED_INIT;
+    }
+
     return Chimera::Status::OK;
   }
 
 
   void USBSerial::process()
   {
+    /*-------------------------------------------------------------------------
+    Establish the connection if it hasn't been done yet
+    -------------------------------------------------------------------------*/
+    if( !s_server_config.connected )
+    {
+      s_server_config.client_fd = accept( s_server_config.server_fd, ( struct sockaddr * )&s_server_config.address,
+                                          ( socklen_t * )&s_server_config.addrlen );
+      if( s_server_config.client_fd > 0 )
+      {
+        s_server_config.connected = true;
+      }
+      else
+      {
+        return;
+      }
+    }
+
     Chimera::Thread::LockGuard _lock( *this );
 
     /*-------------------------------------------------------------------------
-    Pull data out from the USB driver and push it into the RX buffer
+    Process the RX buffer
     -------------------------------------------------------------------------*/
     while( !mRXBuffer->full() )
     {
       /*-----------------------------------------------------------------------
       Ensure there is data available to read and a place to put it
       -----------------------------------------------------------------------*/
-      const size_t usb_bytes = tud_cdc_n_available( mEndpoint );
       const size_t buf_bytes = mRXBuffer->available();
-
-      if( !usb_bytes || !buf_bytes )
+      if( !buf_bytes )
       {
         break;
       }
 
-      /*-----------------------------------------------------------------------
-      Read the data from the USB driver and push it into the RX buffer. The
-      buffer isn't guaranteed to be contiguous, so read byte by byte.
-      -----------------------------------------------------------------------*/
-      int read_size = static_cast<int>( std::min( usb_bytes, buf_bytes ) );
+      uint8_t *input_buffer = new uint8_t[ buf_bytes ];
+      RT_HARD_ASSERT( input_buffer );
 
-      while( read_size > 0 )
+      /*-----------------------------------------------------------------------
+      Read the data from the socket and push it into the RX buffer
+      -----------------------------------------------------------------------*/
+      const ssize_t act_size = recv( s_server_config.client_fd, input_buffer, buf_bytes, 0 );
+      if( act_size < 0 && errno != EAGAIN )
       {
-        const int32_t byte = tud_cdc_n_read_char( mEndpoint );
-        if( byte >= 0 )
-        {
-          mRXBuffer->push( static_cast<uint8_t>( byte ) );
-          read_size--;
-        }
-        else
-        {
-          break;
-        }
+        LOG_ERROR( "Failed to read from socket: %d", errno );
+        delete[] input_buffer;
+        break;
       }
+      else if( act_size == 0 )
+      {
+        LOG_INFO( "Client disconnected" );
+        ::close( s_server_config.client_fd );
+        s_server_config.client_fd = -1;
+        s_server_config.connected = false;
+
+        delete[] input_buffer;
+
+        /* Return here b/c the following "send" calls require a connection */
+        return;
+      }
+
+      for( ssize_t i = 0; i < act_size; i++ )
+      {
+        mRXBuffer->push( input_buffer[ i ] );
+      }
+
+      delete[] input_buffer;
     }
 
     /*-------------------------------------------------------------------------
-    Process the normal TX buffer second. It only gets processed if the ISR
-    hasn't filled the CDC write FIFO.
+    Process the TX buffer
     -------------------------------------------------------------------------*/
     while( !mTXBuffer->empty() )
     {
-      /*-----------------------------------------------------------------------
-      Ensure there is data available to write and a place to put it
-      -----------------------------------------------------------------------*/
-      const size_t usb_bytes = tud_cdc_n_write_available( mEndpoint );
       const size_t buf_bytes = mTXBuffer->size();
-
-      if( !usb_bytes || !buf_bytes )
+      if( !buf_bytes )
       {
         break;
       }
 
-      /*-----------------------------------------------------------------------
-      Write the data from the TX buffer into the USB driver. The buffer isn't
-      guaranteed to be contiguous, so write byte by byte.
-      -----------------------------------------------------------------------*/
-      int write_size = static_cast<int>( std::min( usb_bytes, buf_bytes ) );
+      uint8_t *output_buffer = new uint8_t[ buf_bytes ];
+      RT_HARD_ASSERT( output_buffer );
 
-      while( write_size > 0 )
+      for( size_t i = 0; i < buf_bytes; i++ )
       {
-        const uint32_t write_count = tud_cdc_n_write_char( mEndpoint, mTXBuffer->front() );
-        if( write_count == 1u )
-        {
-          mTXBuffer->pop();
-          write_size--;
-        }
-        else
-        {
-          break;
-        }
+        output_buffer[ i ] = mTXBuffer->front();
+        mTXBuffer->pop();
       }
+
+      const ssize_t act_sent = send( s_server_config.client_fd, output_buffer, buf_bytes, 0 );
+      if( act_sent < 0 && errno != EAGAIN )
+      {
+        LOG_ERROR( "Failed to send to socket: %d", errno );
+      }
+      else if( act_sent != buf_bytes )
+      {
+        LOG_ERROR( "Failed to send all data to socket. Attempted: %d, Actual: %d", buf_bytes, act_sent );
+      }
+
+      delete[] output_buffer;
     }
 
     /*-------------------------------------------------------------------------
-    Process the ISR TX buffer first as it has priority. Usually this buffer is
-    used for realtime data monitoring and needs to be serviced as quickly as
-    possible.
+    Process the ISR TX buffer
     -------------------------------------------------------------------------*/
-    size_t processed_bytes = 0;
-    while( ( processed_bytes <= mTXBufferISR->max_size() ) && !mTXBufferISR->empty() )
+    while( !mTXBufferISR->empty() )
     {
-      /*-----------------------------------------------------------------------
-      Ensure there is data available to write and a place to put it
-      -----------------------------------------------------------------------*/
-      const size_t usb_bytes = tud_cdc_n_write_available( mEndpoint );
       const size_t buf_bytes = mTXBufferISR->size();
-
-      if( !usb_bytes || !buf_bytes )
+      if( !buf_bytes )
       {
         break;
       }
 
-      /*-----------------------------------------------------------------------
-      Write the data from the TX buffer into the USB driver. The buffer isn't
-      guaranteed to be contiguous, so write byte by byte.
-      -----------------------------------------------------------------------*/
-      int write_size = static_cast<int>( std::min( usb_bytes, buf_bytes ) );
+      uint8_t *output_buffer = new uint8_t[ buf_bytes ];
+      RT_HARD_ASSERT( output_buffer );
 
-      while( write_size > 0 )
+      for( size_t i = 0; i < buf_bytes; i++ )
       {
-        const uint32_t write_count = tud_cdc_n_write_char( mEndpoint, mTXBufferISR->front() );
-        if( write_count == 1u )
-        {
-          mTXBufferISR->pop();
-          write_size--;
-          processed_bytes++;
-        }
-        else
-        {
-          break;
-        }
+        output_buffer[ i ] = mTXBufferISR->front();
+        mTXBufferISR->pop();
       }
+
+      const ssize_t act_sent = send( s_server_config.client_fd, output_buffer, buf_bytes, 0 );
+      if( act_sent < 0 && errno != EAGAIN )
+      {
+        LOG_ERROR( "Failed to send to socket: %d", errno );
+      }
+      else if( act_sent != buf_bytes )
+      {
+        LOG_ERROR( "Failed to send all data to socket. Attempted: %d, Actual: %d", buf_bytes, act_sent );
+      }
+
+      delete[] output_buffer;
     }
   }
 
@@ -232,15 +345,7 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Validate input arguments
     -------------------------------------------------------------------------*/
-    if( !buffer || !length || !mTXBuffer )
-    {
-      return 0;
-    }
-
-    /*-------------------------------------------------------------------------
-    Make sure the device is connected before doing anything
-    -------------------------------------------------------------------------*/
-    if( !tud_cdc_n_connected( mEndpoint ) )
+    if( !buffer || !length || !mTXBuffer || !s_server_config.connected )
     {
       return 0;
     }
@@ -261,12 +366,11 @@ namespace Orbit::Serial
     }
 
     /*-------------------------------------------------------------------------
-
+    Notify the CDC thread there is data to process
     -------------------------------------------------------------------------*/
     if( bytes_written > 0 )
     {
-      Chimera::Thread::sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CDC ),
-                                    TASK_MSG_CDC_WAKEUP,
+      Chimera::Thread::sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CDC ), TASK_MSG_CDC_WAKEUP,
                                     Chimera::Thread::TIMEOUT_DONT_WAIT );
     }
 
@@ -296,8 +400,7 @@ namespace Orbit::Serial
         mTXBufferISR->push_from_unlocked( static_cast<const uint8_t *const>( buffer )[ bytes_written++ ] );
       }
 
-      Chimera::Thread::sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CDC ),
-                                    TASK_MSG_CDC_WAKEUP,
+      Chimera::Thread::sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CDC ), TASK_MSG_CDC_WAKEUP,
                                     Chimera::Thread::TIMEOUT_DONT_WAIT );
 
       return static_cast<int>( length );
@@ -338,4 +441,4 @@ namespace Orbit::Serial
 
 }    // namespace Orbit::Serial
 
-#endif /* EMBEDDED */
+#endif /* SIMULATOR */

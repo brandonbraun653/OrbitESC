@@ -156,6 +156,7 @@ if(${DEVICE_TARGET} MATCHES "^stm32f4")
     embedded_core_libs
     lib_tiny_usb
     lib_flash_db_fal
+    lib_orbit_com_hw
 
     # Threading Library
     freertos_intf_inc_all

@@ -33,3 +33,17 @@ gen_static_lib_variants(
   EXPORT_DIR
     "${PROJECT_BINARY_DIR}/OrbitESC"
 )
+
+gen_static_lib_variants(
+  TARGET
+    lib_orbit_com_hw
+  SOURCES
+    serial/serial_usb.cpp
+  PRV_LIBRARIES
+    aurora_intf_inc
+    chimera_intf_inc
+    project_intf_inc
+    tiny_usb_intf_inc
+  EXPORT_DIR
+    "${PROJECT_BINARY_DIR}/OrbitESC"
+)
