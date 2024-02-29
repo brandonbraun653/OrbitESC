@@ -34,7 +34,7 @@ namespace Orbit::Data
   public:
     etl::string<16> boardName;    /**< PARAM_BOARD_NAME */
     etl::string<32> description;  /**< PARAM_DESCRIPTION */
-    etl::string<8>  serialNumber; /**< PARAM_SERIAL_NUMBER */
+    etl::string<16> serialNumber; /**< PARAM_SERIAL_NUMBER */
     etl::string<8>  swVersion;    /**< PARAM_SW_VERSION */
     uint8_t         hwVersion;    /**< PARAM_HW_VERSION */
     uint32_t        deviceId;     /**< PARAM_DEVICE_ID */

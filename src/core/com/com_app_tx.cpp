@@ -255,6 +255,7 @@ namespace Orbit::COM
     tsk.ttl      = Scheduler::TTL_INFINITE;
     tsk.data     = s_phase_currents.data();
     tsk.size     = 0;
+    tsk.name     = "PublishPhaseCurrents";
 
     s_stream_ids[ STREAM_ID_PHASE_CURRENTS ] = Scheduler::add( tsk );
     RT_DBG_ASSERT( s_stream_ids[ STREAM_ID_PHASE_CURRENTS ] != Scheduler::INVALID_TASK_ID );
@@ -270,6 +271,7 @@ namespace Orbit::COM
     tsk.ttl      = Scheduler::TTL_INFINITE;
     tsk.data     = s_phase_voltages.data();
     tsk.size     = 0;
+    tsk.name     = "PublishPhaseVoltages";
 
     s_stream_ids[ STREAM_ID_PHASE_VOLTAGES ] = Scheduler::add( tsk );
     RT_DBG_ASSERT( s_stream_ids[ STREAM_ID_PHASE_VOLTAGES ] != Scheduler::INVALID_TASK_ID );
@@ -285,6 +287,7 @@ namespace Orbit::COM
     tsk.ttl      = Scheduler::TTL_INFINITE;
     tsk.data     = s_system_voltages.data();
     tsk.size     = 0;
+    tsk.name     = "PublishSystemVoltages";
 
     s_stream_ids[ STREAM_ID_SYSTEM_VOLTAGES ] = Scheduler::add( tsk, true );
     RT_DBG_ASSERT( s_stream_ids[ STREAM_ID_SYSTEM_VOLTAGES ] != Scheduler::INVALID_TASK_ID );
@@ -300,6 +303,7 @@ namespace Orbit::COM
     tsk.ttl      = Scheduler::TTL_INFINITE;
     tsk.data     = s_system_tick.data();
     tsk.size     = 0;
+    tsk.name     = "PublishSystemTick";
 
     s_stream_ids[ STREAM_ID_SYSTEM_TICK ] = Scheduler::add( tsk, true );
     RT_DBG_ASSERT( s_stream_ids[ STREAM_ID_SYSTEM_TICK ] != Scheduler::INVALID_TASK_ID );
@@ -315,6 +319,7 @@ namespace Orbit::COM
     tsk.ttl      = Scheduler::TTL_INFINITE;
     tsk.data     = s_system_status.data();
     tsk.size     = 0;
+    tsk.name     = "PublishSystemStatus";
 
     s_stream_ids[ STREAM_ID_SYSTEM_STATUS ] = Scheduler::add( tsk, true );
     RT_DBG_ASSERT( s_stream_ids[ STREAM_ID_SYSTEM_STATUS ] != Scheduler::INVALID_TASK_ID );

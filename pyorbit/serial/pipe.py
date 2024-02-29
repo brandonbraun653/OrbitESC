@@ -22,6 +22,7 @@ from pyorbit.publisher import Publisher
 from pyorbit.serial.messages import BasePBMsg, AckNackPBMsg, StatusCode, BasePBMsgInheritor
 from pyorbit.serial.observers import TransactionResponseObserver, PredicateObserver
 from pyorbit.serial.parameters import MessageTypeMap
+from pyorbit.serial.socket import SerialSocket
 
 
 class SerialPipePublisher(Publisher):
@@ -32,7 +33,7 @@ class SerialPipePublisher(Publisher):
 
     def __init__(self):
         super().__init__()
-        self._serial = Serial(timeout=5)
+        self._serial: Optional[Serial, SerialSocket] = None
         self._kill_event = Event()
 
         # TX resources
@@ -47,23 +48,30 @@ class SerialPipePublisher(Publisher):
         # Dispatch resources
         self._dispatch_thread = Thread()
 
-    def open(self, port: str, baudrate: int) -> None:
+    def open(self, port: Union[str, int], baudrate: int = None) -> None:
         """
         Opens a serial port for communication
         Args:
-            port: Serial port endpoint to connect with
+            port: Serial port connection. Assumed a COM port if a string, Socket if an integer.
             baudrate: Desired communication baudrate
 
         Returns:
             None
         """
+        # Create the serial port object
+        if isinstance(port, str):
+            self._serial = Serial(timeout=5)
+            self._serial.port = port
+            self._serial.baudrate = baudrate
+            self._serial.exclusive = True
+        elif isinstance(port, int):
+            self._serial = SerialSocket(port=port)
+
+
         # Clear memory
         self._rx_msgs = Queue()
 
         # Open the serial port with the desired configuration
-        self._serial.port = port
-        self._serial.baudrate = baudrate
-        self._serial.exclusive = True
         self._serial.open()
         logger.trace(f"Opened serial port {port} at {baudrate} baud")
 

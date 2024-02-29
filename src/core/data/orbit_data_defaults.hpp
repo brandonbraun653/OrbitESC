@@ -64,10 +64,10 @@ namespace Orbit::Data
   ---------------------------------------------------------------------------*/
   static constexpr etl::string_view DFLT_BOARD_NAME       = "OrbitESC";
   static constexpr etl::string_view DFLT_DESCRIPTION      = "BLDC Motor Controller";
-  static constexpr etl::string_view DFLT_SERIAL_NUMBER    = "xxxxxx";
+  static constexpr etl::string_view DFLT_SERIAL_NUMBER    = "ESCxxxxxx";
   static constexpr etl::string_view DFLT_FIRMWARE_VERSION = "0.3.0";
-  static constexpr uint8_t          DFLT_HARDWARE_VERSION = 2;
-  static constexpr uint32_t         DFLT_DEVICE_ID        = 0x00000000;
+  static constexpr uint8_t          DFLT_HARDWARE_VERSION = 3;
+  static constexpr uint32_t         DFLT_DEVICE_ID        = 0xDEADBEEF;
 
   /*---------------------------------------------------------------------------
   Motor Characteristics

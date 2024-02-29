@@ -59,10 +59,10 @@ def online_checker(method: Callable) -> Any:
 class OrbitClient:
     """ High level serial client to connect with the debug server running on OrbitESC """
 
-    def __init__(self, port: str, baudrate: int):
+    def __init__(self, port: Union[str, int], baudrate: int = None):
         """
         Args:
-            port: Serial port endpoint to connect with
+            port: Serial port connection. Assumed a COM port if a string, Socket if an integer.
             baudrate: Desired communication baudrate
         """
         self._transport = SerialPipePublisher()

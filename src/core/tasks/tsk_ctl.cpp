@@ -5,7 +5,7 @@
  *  Description:
  *    Control system task
  *
- *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -17,11 +17,7 @@ Includes
 #include <src/control/foc_driver.hpp>
 #include <src/control/hardware/current_control.hpp>
 #include <src/control/hardware/speed_control.hpp>
-#include <src/control/subroutines/declarations.hpp>
 #include <src/control/subroutines/interface.hpp>
-#include <src/control/subroutines/rotor_detector.hpp>
-#include <src/control/subroutines/rotor_ramp.hpp>
-#include <src/control/subroutines/optimize_sample_point.hpp>
 #include <src/core/hw/orbit_adc.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 #include <src/core/tasks.hpp>
@@ -30,14 +26,6 @@ Includes
 
 namespace Orbit::Tasks::CTL
 {
-  /*---------------------------------------------------------------------------
-  Static Data
-  ---------------------------------------------------------------------------*/
-
-  static Control::Subroutine::IdleSubroutine s_idle_routine;
-  static Control::Subroutine::RotorDetector  s_rotor_pos_detector_routine;
-  static Control::Subroutine::SampleTimeOptimizer s_sample_time_routine;
-  static Control::Subroutine::RotorRamp s_rotor_ramp_routine;
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -93,16 +81,6 @@ namespace Orbit::Tasks::CTL
     Wait for the start signal
     -------------------------------------------------------------------------*/
     waitInit();
-
-    /*-------------------------------------------------------------------------
-    Bind the motor control routines to define runtime behavior
-    -------------------------------------------------------------------------*/
-    Control::Subroutine::bind( Control::Subroutine::Routine::IDLE, &s_idle_routine );
-    Control::Subroutine::bind( Control::Subroutine::Routine::ALIGNMENT_DETECTION, &s_rotor_pos_detector_routine );
-    Control::Subroutine::bind( Control::Subroutine::Routine::ADC_SAMPLE_POINT_OPTIMIZER, &s_sample_time_routine );
-    Control::Subroutine::bind( Control::Subroutine::Routine::OPEN_LOOP_RAMP_FOC, &s_rotor_ramp_routine );
-
-    Control::Subroutine::switchRoutine( Control::Subroutine::Routine::IDLE );
 
     /*-------------------------------------------------------------------------
     Run the CTL thread

@@ -178,7 +178,7 @@ namespace Orbit::COM::Scheduler
         if( ( task->nextRun < currentTick ) && ( task->period > 0 ) )
         {
           task->nextRun = currentTick + task->period;
-          LOG_WARN( "Com Scheduler: Task %d period skipped", task->uuid );
+          LOG_WARN( "%s task period skipped", task->name.c_str() );
         }
 
         /*---------------------------------------------------------------------
@@ -205,21 +205,21 @@ namespace Orbit::COM::Scheduler
         if( task->endpoint & Endpoint::UART )
         {
           const auto size = sSerial->write( task->data, task->size, Chimera::Thread::TIMEOUT_DONT_WAIT );
-          LOG_WARN_IF( Serial::isConnected() && size != static_cast<int>( task->size ), "Com Scheduler: Task %d UART write failed", task->uuid );
+          LOG_WARN_IF( Serial::isConnected() && size != static_cast<int>( task->size ), "Task %s UART write failed", task->name.c_str() );
           Monitor::putDataTXEvent();
         }
 
         if( task->endpoint & Endpoint::USB )
         {
           const auto size = sUSB->write( task->data, task->size, Chimera::Thread::TIMEOUT_DONT_WAIT );
-          LOG_WARN_IF( Serial::isConnected() && size != static_cast<int>( task->size ), "Com Scheduler: Task %d USB write failed", task->uuid );
+          LOG_WARN_IF( Serial::isConnected() && size != static_cast<int>( task->size ), "Task %s USB write failed", task->name.c_str() );
           Monitor::putDataTXEvent();
         }
 
         if( task->endpoint & Endpoint::CAN )
         {
           const auto status = sCAN->send( *reinterpret_cast<Chimera::CAN::BasicFrame *>( task->data ) );
-          LOG_WARN_IF( Serial::isConnected() && status != Chimera::Status::OK, "Com Scheduler: Task %d CAN write failed", task->uuid );
+          LOG_WARN_IF( Serial::isConnected() && status != Chimera::Status::OK, "Task %s CAN write failed", task->name.c_str() );
           Monitor::putDataTXEvent();
         }
       }

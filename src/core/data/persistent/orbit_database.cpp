@@ -127,9 +127,12 @@ namespace Orbit::Data::Persistent
 #if defined( EMBEDDED )
     s_database_path = KVDB_PARTITION_NAME;
 #else
-    s_database_path = ( std::filesystem::canonical( "/proc/self/exe" ).parent_path() ).string().c_str();
+    auto db_path = ( std::filesystem::canonical( "/proc/self/exe" ).parent_path() / "flash_db_mem" );
+    std::filesystem::create_directories(db_path);
+    s_database_path = db_path.string().c_str();
 #endif /* EMBEDDED */
 
+    LOG_INFO( "Initializing FlashDB..." );
     auto ready = fdb_kvdb_init( &s_kv_db, "orbit_db", s_database_path.c_str(), &default_table, NULL );
     LOG_ERROR_IF( ready != FDB_NO_ERR, "Failed to initialize FlashDB" );
   }

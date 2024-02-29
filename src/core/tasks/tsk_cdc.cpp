@@ -73,6 +73,7 @@ namespace Orbit::Tasks::USB::CDC
     -------------------------------------------------------------------------*/
     USBSerial *const usb = getUSBSerialDriver();
     usb->init( 0, &s_rx_buffer, &s_tx_buffer, &s_tx_isr_buffer );
+    usb->open( {} );
 
     while( 1 )
     {

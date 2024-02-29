@@ -47,6 +47,11 @@ namespace Orbit::Data
     Param::write( ParamId_PARAM_DESCRIPTION, DFLT_DESCRIPTION.cbegin(), DFLT_DESCRIPTION.size() );
     Param::write( ParamId_PARAM_SW_VERSION, DFLT_FIRMWARE_VERSION.cbegin(), DFLT_FIRMWARE_VERSION.size() );
     Param::write( ParamId_PARAM_HW_VERSION, &DFLT_HARDWARE_VERSION, sizeof( DFLT_HARDWARE_VERSION ) );
+
+    if( memcmp( SysIdentity.serialNumber.c_str(), "ESC", 3 ) != 0 )
+    {
+      Param::write( ParamId_PARAM_SERIAL_NUMBER, DFLT_SERIAL_NUMBER.cbegin(), DFLT_SERIAL_NUMBER.size() );
+    }
   }
 
   /*---------------------------------------------------------------------------
@@ -55,16 +60,12 @@ namespace Orbit::Data
   bool initialize()
   {
     /*-------------------------------------------------------------------------
-    Initialize persistent data storage
+    Initialize data storage. This requires a specific order of operations.
     -------------------------------------------------------------------------*/
-    FileSystem::init();     // Attach and load the file system
-    Persistent::db_init();  // Initialize the persistent database built on the filesystem
-
-    /*-------------------------------------------------------------------------
-    Initialize volatile data storage
-    -------------------------------------------------------------------------*/
-    Param::init();  // Initialize the parameter system
-    Param::load();  // Load the parameters from persistent storage
+    FileSystem::init();     // Attach and load the file system memory driver
+    Param::init();          // Initialize the RAM parameter cache backing FlashDB
+    Persistent::db_init();  // Initialize the NVM database, which will use the RAM cache for defaults
+    Param::load();          // Update the RAM cache with NVM data, if available
 
     /*-------------------------------------------------------------------------
     Initialize various parameters
@@ -77,8 +78,8 @@ namespace Orbit::Data
 
   void printSystemInfo()
   {
-    LOG_INFO( "OrbitESC -- Boot#: %d, HW: %d, SW:%s, SN:%s\r\n", SysInfo.bootCount,
-              SysIdentity.hwVersion, SysIdentity.swVersion, SysIdentity.serialNumber );
+    LOG_INFO( "OrbitESC -- Boot#: %d, HW: %d, SW: %s, SN: %s\r\n", SysInfo.bootCount,
+              SysIdentity.hwVersion, SysIdentity.swVersion.c_str(), SysIdentity.serialNumber.c_str() );
   }
 
 }    // namespace Orbit::Data
