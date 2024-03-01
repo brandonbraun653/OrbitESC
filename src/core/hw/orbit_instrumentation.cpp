@@ -134,7 +134,8 @@ namespace Orbit::Instrumentation
     /*-------------------------------------------------------------------------
     Get the ADC reading
     -------------------------------------------------------------------------*/
-    return ( counts_to_voltage( s_adc_samples[ CHANNEL_VSUPPLY ] ) * ( R1 + R2 ) ) / R2;
+    const float adc_input_voltage = counts_to_voltage( s_adc_samples[ CHANNEL_VSUPPLY ] );
+    return ( adc_input_voltage * ( R1 + R2 ) ) / R2;
   }
 
 

@@ -26,6 +26,7 @@ Includes
 #include <src/core/hw/orbit_motor.hpp>
 #include <src/core/hw/orbit_motor_drive.hpp>
 #include <src/core/hw/orbit_motor_sense.hpp>
+#include <src/simulator/sim_adc.hpp>
 #include <src/simulator/sim_motor.hpp>
 
 
@@ -148,6 +149,10 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Gate the ISR from running temporarily while state data gets updated
     -------------------------------------------------------------------------*/
+    // TODO BMB: This is a bad idea. I need to rework the control loop to perform the algorithm
+    // TODO BMB: changes/updates inside the ISR. Enabling/disabling globally is fine though.
+    // TODO BMB: I can't allow the motor control signals to be stale for any amount of time. The
+    // TODO BMB: update needs to be atomic as far as the power stage is concerned.
     auto isr_msk = Chimera::System::disableInterrupts();
     s_ctl_mode = Mode::DISABLED;
     Chimera::System::enableInterrupts( isr_msk );
@@ -162,6 +167,9 @@ namespace Orbit::Control::Field
     {
       case Mode::DISABLED:
         inverter->disableOutput();
+        #if defined( SIMULATOR )
+        Orbit::Sim::ADC::enableMotorSenseADC( false );
+        #endif
         break;
 
       case Mode::OPEN_LOOP:
@@ -171,16 +179,26 @@ namespace Orbit::Control::Field
 
         inverter->svmUpdate( 0.0f, 0.0f, 0.0f, 0.0f );
         inverter->enableOutput();
+
+        #if defined( SIMULATOR )
+        Orbit::Sim::ADC::enableMotorSenseADC( true );
+        #endif
         break;
 
       case Mode::CLOSED_LOOP:
+        // TODO BMB: Honestly this transition needs to happen inside the ISR.
         foc_motor_state.thetaEst = 0.0f;
         foc_ireg_state.iqRef     = 0.0f;
         foc_ireg_state.idRef     = 0.0f;
         break;
 
       default:
+        s_ctl_mode = Mode::DISABLED;
         inverter->disableOutput();
+
+        #if defined( SIMULATOR )
+        Orbit::Sim::ADC::enableMotorSenseADC( false );
+        #endif
         return false;
     }
 

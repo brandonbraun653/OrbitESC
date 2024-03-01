@@ -24,6 +24,14 @@ namespace Orbit::Sim::ADC
   void initialize( const float vref, const float vres );
 
   /**
+   * @brief Enable/disable simulation periodic triggering of the ADC
+   *
+   * @param enable  True to enable periodic triggering, false to disable
+   * @return void
+   */
+  void enableMotorSenseADC( const bool enable );
+
+  /**
    * @brief Sets the next phase voltage readings for the ADC
    *
    * These will be internally converted to the correct "counts" values

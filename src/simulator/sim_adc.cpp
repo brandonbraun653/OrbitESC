@@ -16,6 +16,9 @@ Includes
 #include <src/core/hw/orbit_motor_sense.hpp>
 #include <src/simulator/sim_adc.hpp>
 
+#include <thread>
+#include <condition_variable>
+
 namespace Orbit::Sim::ADC
 {
   /*---------------------------------------------------------------------------
@@ -30,6 +33,11 @@ namespace Orbit::Sim::ADC
   static float s_ib;
   static float s_ic;
   static float s_vbus;
+
+  static std::condition_variable cv;
+  static std::mutex cv_m;
+  static bool run = false;
+  static std::unique_ptr<std::thread>           s_motor_sense_thread;
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -70,6 +78,26 @@ namespace Orbit::Sim::ADC
     return voltage_to_counts( adc_voltage );
   }
 
+
+  static void motor_sense_adc_trigger_thread()
+  {
+    auto next = std::chrono::high_resolution_clock::now();
+    while( true )
+    {
+      std::unique_lock<std::mutex> lk( cv_m );
+      if( run )
+      {
+        triggerMotorSenseADC();
+      }
+      lk.unlock();
+      next += std::chrono::microseconds( 500 );    // for 2kHz frequency
+      while( std::chrono::high_resolution_clock::now() < next )
+      {
+        // Busy-wait
+      }
+    }
+  }
+
   /*-----------------------------------------------------------------------------
   Public Functions
   -----------------------------------------------------------------------------*/
@@ -83,7 +111,23 @@ namespace Orbit::Sim::ADC
     s_ia   = 0.0f;
     s_ib   = 0.0f;
     s_ic   = 0.0f;
-    s_vbus = 0.0f;
+    s_vbus = 12.0f;
+
+    /*-------------------------------------------------------------------------
+    Initialize the motor sense ADC interrupt simulation
+    -------------------------------------------------------------------------*/
+    s_motor_sense_thread = std::make_unique<std::thread>( motor_sense_adc_trigger_thread );
+  }
+
+
+  void enableMotorSenseADC( const bool enable )
+  {
+    {
+      std::lock_guard<std::mutex> lk( cv_m );
+      run = enable;
+    }
+
+    cv.notify_all();
   }
 
 

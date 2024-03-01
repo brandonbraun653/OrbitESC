@@ -208,7 +208,7 @@ namespace Orbit::ADC
     adc_cfg.analogVRef      = 3.30f;
 
     #if defined( SIMULATOR )
-    Sim::ADC::initialize( adc_cfg.analogVRef, adc_cfg.analogVRef / 4096.0f );
+    Sim::ADC::initialize( adc_cfg.analogVRef, 4096.0f );
     #endif  /* SIMULATOR */
 
     adc = Chimera::ADC::getDriver( adc_cfg.periph );
