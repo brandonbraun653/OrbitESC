@@ -79,6 +79,32 @@ namespace Orbit::Sim::ADC
   }
 
 
+  static uint16_t phase_current_to_adc_counts( const float current )
+  {
+    /*-------------------------------------------------------------------------
+    Current Shunt and Op-Amp
+    -------------------------------------------------------------------------*/
+    constexpr float shunt_resistance = 0.01f;
+    constexpr float op_amp_gain      = 10.0f;
+    const float adc_voltage          = op_amp_gain * current * shunt_resistance;
+
+    return voltage_to_counts( adc_voltage );
+  }
+
+
+  static uint16_t phase_voltage_to_adc_counts( const float voltage )
+  {
+    /*-------------------------------------------------------------------------
+    Phase Voltage Divider
+    -------------------------------------------------------------------------*/
+    constexpr float R1 = 39'000.0f;
+    constexpr float R2 = 5'100.0f;
+
+    const float adc_voltage = voltage * ( R2 / ( R1 + R2 ) );
+
+    return voltage_to_counts( adc_voltage );
+  }
+
   static void motor_sense_adc_trigger_thread()
   {
     auto next = std::chrono::high_resolution_clock::now();
@@ -133,6 +159,7 @@ namespace Orbit::Sim::ADC
 
   void setPhaseVoltage( const float va, const float vb, const float vc )
   {
+    // TODO: Add mutex protection
     s_va = va;
     s_vb = vb;
     s_vc = vc;
@@ -141,6 +168,7 @@ namespace Orbit::Sim::ADC
 
   void setPhaseCurrent( const float ia, const float ib, const float ic )
   {
+    // TODO: Add mutex protection
     s_ia = ia;
     s_ib = ib;
     s_ic = ic;
@@ -163,12 +191,12 @@ namespace Orbit::Sim::ADC
     isr_data.samples     = raw_samples;
     isr_data.num_samples = Orbit::Motor::Sense::CHANNEL_COUNT;
 
-    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_A_CURRENT ] = 0;
-    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_B_CURRENT ] = 0;
-    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_C_CURRENT ] = 0;
-    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_A_VOLTAGE ] = 0;
-    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_B_VOLTAGE ] = 0;
-    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_C_VOLTAGE ] = 0;
+    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_A_CURRENT ] = phase_current_to_adc_counts( s_ia );
+    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_B_CURRENT ] = phase_current_to_adc_counts( s_ib );
+    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_C_CURRENT ] = phase_current_to_adc_counts( s_ic );
+    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_A_VOLTAGE ] = phase_voltage_to_adc_counts( s_va );
+    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_B_VOLTAGE ] = phase_voltage_to_adc_counts( s_vb );
+    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_C_VOLTAGE ] = phase_voltage_to_adc_counts( s_vc );
 
     Orbit::Motor::Sense::Private::isr_on_motor_sense_adc_conversion_complete( isr_data );
   }

@@ -268,6 +268,7 @@ namespace Orbit::Control::Field
     foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
     foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
 
+    #if defined( EMBEDDED )
     /*-------------------------------------------------------------------------
     Reconstruct 3-phase currents from two phases. One phase could have the
     low side switch active for a very short amount of time, leading to a bad
@@ -315,6 +316,7 @@ namespace Orbit::Control::Field
       RT_DBG_ASSERT( false );
       return;
     }
+    #endif  /* EMBEDDED */
 
     /*-------------------------------------------------------------------------
     Use Clarke Transform to convert phase currents from 3-axis to 2-axis, then
@@ -359,7 +361,7 @@ namespace Orbit::Control::Field
     Apply the voltage commands to the simulated motor
     -------------------------------------------------------------------------*/
     #if defined( SIMULATOR )
-    Orbit::Sim::Motor::stepModel( foc_ireg_state.va, foc_ireg_state.vb, 0.0f );
+    Orbit::Sim::Motor::stepModel( foc_ireg_state.va, foc_ireg_state.vb );
     #endif
 
     /*-------------------------------------------------------------------------
@@ -371,6 +373,7 @@ namespace Orbit::Control::Field
     Send the control state over the serial port for monitoring
     -------------------------------------------------------------------------*/
     // TODO: if some control flag is set (parameter or compile time)
+
     if( isr_monitor_count++ >= 15 )
     {
       isr_monitor_count = 0;
@@ -418,6 +421,5 @@ namespace Orbit::Control::Field
         Serial::getUSBSerialDriver()->writeFromISR( s_ctl_monitor.data(), s_ctl_monitor.size() );
       }
     }
-
   }
 }    // namespace Orbit::Control::Field

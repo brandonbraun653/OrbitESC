@@ -100,7 +100,15 @@ namespace Orbit::Control::State
     Orbit::Sim::Motor::Parameters params;
     CLEAR_STRUCT( params );
 
-    // TODO BMB: Need to fill in the default motor parameters here
+    // Parameters taken from https://ieeexplore.ieee.org/document/6687627 (Table 1)
+    params.r          = 0.982f;       // Stator resistance
+    params.ld         = 2.9e-3f;      // D-axis inductance
+    params.lq         = 3.0e-3f;      // Q-axis inductance
+    params.lpm        = 0.075;        // Permanent magnet flux linkage
+    params.pole_pairs = 4;            // Number of pole pairs
+    params.J          = 0.425e-3f;    // Rotational inertia
+    params.v_max_adc  = 3.3f;         // Max voltage that ADC can measure
+    params.km         = 1.5f * params.pole_pairs;
 
     Orbit::Sim::Motor::connect( params );
     #endif

@@ -23,7 +23,6 @@ namespace Orbit::Sim::Motor
    */
   struct Parameters
   {
-    float Ts;         /**< Sample Time in s */
     float J;          /**< Rotor/Load Inertia in Nm*s^2 */
     float v_max_adc;  /**< Max voltage that ADC can measure */
     int   pole_pairs; /**< Number of pole pairs ( pole numbers / 2) */
@@ -31,6 +30,7 @@ namespace Orbit::Sim::Motor
     float ld;         /**< Motor inductance in D axis in uHy */
     float lq;         /**< Motor inductance in Q axis in uHy */
     float r;          /**< Motor resistance in ohms */
+    float lpm;        /**< Flux linkage (lambda) in permanent magnets */
   };
 
   /**
@@ -39,8 +39,8 @@ namespace Orbit::Sim::Motor
   struct State
   {
     bool  connected; /**< True => connected; False => disconnected */
+    float Ts;        /**< Time delta between samples in seconds */
     float id;        /**< Current in D-Direction in Amps */
-    float id_int;    /**< Integral part of Id in Amps */
     float iq;        /**< Current in Q-Direction in A */
     float me;        /**< Electrical Torque in Nm */
     float we;        /**< Electrical Angular Velocity in Rad/s */
@@ -84,9 +84,8 @@ namespace Orbit::Sim::Motor
    *
    * @param alpha Voltage in the alpha direction
    * @param beta  Voltage in the beta direction
-   * @param flux_linkage  Flux linkage in the motor
    */
-  void stepModel( const float alpha, const float beta, const float flux_linkage );
+  void stepModel( const float alpha, const float beta );
 
   /**
    * @brief Gets a copy of the current motor state
