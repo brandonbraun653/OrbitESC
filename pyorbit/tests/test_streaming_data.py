@@ -199,10 +199,9 @@ class TestStaticStreamingData:
         assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ENGAGED)
 
         LOGGER.info("Acquiring current control loop monitor data")
-        exp_quantity = 5000
         packets = serial_client.com_pipe.filter(
             lambda msg: isinstance(msg, SystemDataPBMsg) and (msg.data_id == SystemDataId.CURRENT_CONTROL_MONITOR),
-            qty=exp_quantity,
+            qty=25000,
             timeout=8)
 
         LOGGER.info("Command an IDLE state")
@@ -215,6 +214,8 @@ class TestStaticStreamingData:
 
         # Write all the data to a CSV file for post-processing
         output_file = Path(__file__).parent / "data_output" / "current_control_monitor.csv"
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+
         with output_file.open("w") as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(["timestamp", "ia", "ib", "ic", "id_ref", "iq_ref", "id", "iq", "vd", "vq", "va",

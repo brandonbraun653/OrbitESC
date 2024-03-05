@@ -374,9 +374,11 @@ namespace Orbit::Control::Field
     -------------------------------------------------------------------------*/
     // TODO: if some control flag is set (parameter or compile time)
 
+    #if defined( EMBEDDED )
     if( isr_monitor_count++ >= 15 )
     {
       isr_monitor_count = 0;
+    #endif
 
       /*-----------------------------------------------------------------------
       Pack the message data
@@ -420,6 +422,8 @@ namespace Orbit::Control::Field
       {
         Serial::getUSBSerialDriver()->writeFromISR( s_ctl_monitor.data(), s_ctl_monitor.size() );
       }
+    #if defined( EMBEDDED )
     }
+    #endif
   }
 }    // namespace Orbit::Control::Field

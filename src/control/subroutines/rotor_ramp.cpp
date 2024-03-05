@@ -215,13 +215,8 @@ namespace Orbit::Control::Subroutine
     -------------------------------------------------------------------------*/
     if( foc_motor_state.omegaEst < mRampState.omega_desired )
     {
-      const float now_us      = static_cast<float>( Chimera::micros() - mRampState.rampStart_us ) * 1e-6f;
-
-      // Sigmoid scaling
-      // const float omega_scale = 1.0f / ( 1.0f + 5.0f * expf( -( now_us - 3.0f ) ) );
-
-      // Linear scaling
-      const float omega_scale = now_us / 3.0f;
+      const float now_sec     = static_cast<float>( Chimera::micros() - mRampState.rampStart_us ) * 1e-6f;
+      const float omega_scale = now_sec / 3.0f;
 
       foc_motor_state.omegaEst = mRampState.omega_desired * omega_scale;
       foc_ireg_state.max_drive = 0.3f * omega_scale;
