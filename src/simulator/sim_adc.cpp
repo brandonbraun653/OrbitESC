@@ -12,6 +12,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/adc>
+#include <src/core/data/orbit_data.hpp>
 #include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_motor_sense.hpp>
 #include <src/simulator/sim_adc.hpp>
@@ -38,6 +39,8 @@ namespace Orbit::Sim::ADC
   static std::mutex cv_m;
   static bool run = false;
   static std::unique_ptr<std::thread>           s_motor_sense_thread;
+
+  static std::mutex s_data_lock;
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -107,7 +110,9 @@ namespace Orbit::Sim::ADC
 
   static void motor_sense_adc_trigger_thread()
   {
-    auto next = std::chrono::high_resolution_clock::now();
+    size_t isr_period_us = static_cast<size_t>( ( 1.0f / Data::SysControl.statorPWMFreq ) * 1e6f );
+
+
     while( true )
     {
       std::unique_lock<std::mutex> lk( cv_m );
@@ -116,11 +121,11 @@ namespace Orbit::Sim::ADC
         triggerMotorSenseADC();
       }
       lk.unlock();
-      next += std::chrono::microseconds( 500 );    // for 2kHz frequency
-      while( std::chrono::high_resolution_clock::now() < next )
-      {
-        // Busy-wait
-      }
+
+      /*-----------------------------------------------------------------------
+      Wait for the next trigger event
+      -----------------------------------------------------------------------*/
+      Chimera::delayMicroseconds( isr_period_us );
     }
   }
 
@@ -157,21 +162,17 @@ namespace Orbit::Sim::ADC
   }
 
 
-  void setPhaseVoltage( const float va, const float vb, const float vc )
+  void setPhaseData( const float va, const float vb, const float vc, const float ia, const float ib, const float ic )
   {
-    // TODO: Add mutex protection
-    s_va = va;
-    s_vb = vb;
-    s_vc = vc;
-  }
-
-
-  void setPhaseCurrent( const float ia, const float ib, const float ic )
-  {
-    // TODO: Add mutex protection
-    s_ia = ia;
-    s_ib = ib;
-    s_ic = ic;
+    {
+      std::lock_guard<std::mutex> lk( s_data_lock );
+      s_va = va;
+      s_vb = vb;
+      s_vc = vc;
+      s_ia = ia;
+      s_ib = ib;
+      s_ic = ic;
+    }
   }
 
 
@@ -191,12 +192,15 @@ namespace Orbit::Sim::ADC
     isr_data.samples     = raw_samples;
     isr_data.num_samples = Orbit::Motor::Sense::CHANNEL_COUNT;
 
-    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_A_CURRENT ] = phase_current_to_adc_counts( s_ia );
-    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_B_CURRENT ] = phase_current_to_adc_counts( s_ib );
-    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_C_CURRENT ] = phase_current_to_adc_counts( s_ic );
-    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_A_VOLTAGE ] = phase_voltage_to_adc_counts( s_va );
-    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_B_VOLTAGE ] = phase_voltage_to_adc_counts( s_vb );
-    isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_C_VOLTAGE ] = phase_voltage_to_adc_counts( s_vc );
+    {
+      std::lock_guard<std::mutex> lk( s_data_lock );
+      isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_A_CURRENT ] = phase_current_to_adc_counts( s_ia );
+      isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_B_CURRENT ] = phase_current_to_adc_counts( s_ib );
+      isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_C_CURRENT ] = phase_current_to_adc_counts( s_ic );
+      isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_A_VOLTAGE ] = phase_voltage_to_adc_counts( s_va );
+      isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_B_VOLTAGE ] = phase_voltage_to_adc_counts( s_vb );
+      isr_data.samples[ Orbit::Motor::Sense::CHANNEL_PHASE_C_VOLTAGE ] = phase_voltage_to_adc_counts( s_vc );
+    }
 
     Orbit::Motor::Sense::Private::isr_on_motor_sense_adc_conversion_complete( isr_data );
   }

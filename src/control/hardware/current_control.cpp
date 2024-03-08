@@ -101,15 +101,14 @@ namespace Orbit::Control::Field
     foc_ireg_state.iqPID.OutMaxLimit = 20.0f;
     // foc_ireg_state.iqPID.setTunings( Data::SysControl.currentCtrl_Q_Kp, Data::SysControl.currentCtrl_Q_Ki,
     //                                  Data::SysControl.currentCtrl_Q_Kd, foc_ireg_state.dt );
-    foc_ireg_state.iqPID.setTunings( 5.0f, 0.1f, 0.0f, foc_ireg_state.dt );
+    foc_ireg_state.iqPID.setTunings( 5.0f, 0.0f, 0.0f, foc_ireg_state.dt );
 
     foc_ireg_state.idPID.init();
     foc_ireg_state.idPID.OutMinLimit = -20.0f;
     foc_ireg_state.idPID.OutMaxLimit = 20.0f;
     // foc_ireg_state.idPID.setTunings( Data::SysControl.currentCtrl_D_Kp, Data::SysControl.currentCtrl_D_Ki,
     //                                  Data::SysControl.currentCtrl_D_Kd, foc_ireg_state.dt );
-    foc_ireg_state.idPID.setTunings( 5.0f, 0.1f, 0.0f, foc_ireg_state.dt );
-
+    foc_ireg_state.idPID.setTunings( 5.0f, 0.0f, 0.0f, foc_ireg_state.dt );
 
     foc_ireg_state.mod_vd = 0.0f;
     foc_ireg_state.mod_vq = 0.0f;
@@ -361,6 +360,16 @@ namespace Orbit::Control::Field
     Apply the voltage commands to the simulated motor
     -------------------------------------------------------------------------*/
     #if defined( SIMULATOR )
+    static float sim_iq = 0.1f;
+    static float sim_id = 0.0f;
+    foc_ireg_state.mod_vq = sim_iq;
+    foc_ireg_state.mod_vd = sim_id;
+
+    auto motor_state = Orbit::Sim::Motor::modelState();
+
+    inverse_park_transform( foc_ireg_state.mod_vq, foc_ireg_state.mod_vd, motor_state.phi, foc_ireg_state.va, foc_ireg_state.vb );
+
+
     Orbit::Sim::Motor::stepModel( foc_ireg_state.va, foc_ireg_state.vb );
     #endif
 

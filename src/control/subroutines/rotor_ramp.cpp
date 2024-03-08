@@ -219,12 +219,8 @@ namespace Orbit::Control::Subroutine
       const float omega_scale = now_sec / 3.0f;
 
       foc_motor_state.omegaEst = mRampState.omega_desired * omega_scale;
-      foc_ireg_state.max_drive = 0.3f * omega_scale;
+      foc_ireg_state.max_drive = 1.0; // * omega_scale;
       foc_ireg_state.iqRef     = 2.0f;
-    }
-    else
-    {
-      foc_ireg_state.iqRef = 0.5f;
     }
 
     /*-------------------------------------------------------------------------

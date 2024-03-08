@@ -19,7 +19,7 @@ def process_current_loop_data(input_file: Path) -> None:
         dq_voltage_commands = np.array([[float(row[i]) for i in range(8, 10)] for row in csv_data[1:]])
         ab_voltage_commands = np.array([[float(row[i]) for i in range(10, 12)]for row in csv_data[1:]])
 
-    # Plot the phase currents
+    # # Plot the phase currents
     # plt.figure()
     # plt.plot(timestamps, phase_currents)
     # plt.xlabel("Time (s)")
@@ -28,7 +28,7 @@ def process_current_loop_data(input_file: Path) -> None:
     # plt.legend(["A", "B", "C"])
     # plt.show()
 
-    # Plot the DQ measured currents
+    # # Plot the DQ measured currents
     # plt.figure()
     # plt.plot(timestamps, dq_measured_currents)
     # plt.xlabel("Time (s)")
@@ -37,22 +37,22 @@ def process_current_loop_data(input_file: Path) -> None:
     # plt.legend(["D", "Q"])
     # plt.show()
 
-    # Plot dq voltage commands vs dq measured currents
-    fig, axs = plt.subplots(2)
-
-    # Subplot for DQ voltage commands
-    axs[0].plot(timestamps, dq_voltage_commands)
-    axs[0].set(xlabel="Time (s)", ylabel="Voltage (V)", title="DQ Voltage Commands")
-    axs[0].legend(["D", "Q"])
-
-    # Subplot for DQ measured currents
-    axs[1].plot(timestamps, dq_measured_currents)
-    axs[1].set(xlabel="Time (s)", ylabel="DQ Current (A)", title="DQ Measured Currents")
-    axs[1].legend(["D", "Q"])
-
-    # Display the figure
-    plt.tight_layout()
-    plt.show()
+    # # Plot dq voltage commands vs dq measured currents
+    # fig, axs = plt.subplots(2)
+    #
+    # # Subplot for DQ voltage commands
+    # axs[0].plot(timestamps, dq_voltage_commands)
+    # axs[0].set(xlabel="Time (s)", ylabel="Voltage (V)", title="DQ Voltage Commands")
+    # axs[0].legend(["D", "Q"])
+    #
+    # # Subplot for DQ measured currents
+    # axs[1].plot(timestamps, dq_measured_currents)
+    # axs[1].set(xlabel="Time (s)", ylabel="DQ Current (A)", title="DQ Measured Currents")
+    # axs[1].legend(["D", "Q"])
+    #
+    # # Display the figure
+    # plt.tight_layout()
+    # plt.show()
 
     # # Plot IqRef vs Iq and IdRef vs Id
     # fig, axs = plt.subplots(2)
@@ -82,14 +82,14 @@ def process_current_loop_data(input_file: Path) -> None:
     # plt.legend(["Iq Error", "Vq Command"])
     # plt.show()
 
-    # # Plot Alpha-Beta voltage commands
-    # plt.figure()
-    # plt.plot(timestamps, ab_voltage_commands)
-    # plt.xlabel("Time (s)")
-    # plt.ylabel("Voltage (V)")
-    # plt.title("Alpha-Beta Voltage Commands")
-    # plt.legend(["Alpha", "Beta"])
-    # plt.show()
+    # Plot Alpha-Beta voltage commands
+    plt.figure()
+    plt.plot(timestamps, ab_voltage_commands)
+    plt.xlabel("Time (s)")
+    plt.ylabel("Voltage (V)")
+    plt.title("Alpha-Beta Voltage Commands")
+    plt.legend(["Alpha", "Beta"])
+    plt.show()
 
 
 if __name__ == "__main__":

@@ -32,29 +32,19 @@ namespace Orbit::Sim::ADC
   void enableMotorSenseADC( const bool enable );
 
   /**
-   * @brief Sets the next phase voltage readings for the ADC
+   * @brief Sets the next phase data readings for the ADC
    *
    * These will be internally converted to the correct "counts" values
    *
    * @param va  Actual voltage on phase A
    * @param vb  Actual voltage on phase B
    * @param vc  Actual voltage on phase C
-   * @return void
-   */
-  void setPhaseVoltage( const float va, const float vb, const float vc );
-
-  /**
-   * @brief Sets the next phase current readings for the ADC
-   *
-   * These will be internally converted to the correct "counts" values
-   *
    * @param ia  Actual current on phase A
    * @param ib  Actual current on phase B
    * @param ic  Actual current on phase C
    * @return void
    */
-  void setPhaseCurrent( const float ia, const float ib, const float ic );
-
+  void setPhaseData( const float va, const float vb, const float vc, const float ia, const float ib, const float ic );
 
   /**
    * @brief Sets the next DC bus voltage reading for the ADC
