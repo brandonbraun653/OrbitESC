@@ -288,12 +288,12 @@ class CurrentControlMonitorPayload(google.protobuf.message.Message):
     IA_FIELD_NUMBER: builtins.int
     IB_FIELD_NUMBER: builtins.int
     IC_FIELD_NUMBER: builtins.int
-    IQ_REF_FIELD_NUMBER: builtins.int
     ID_REF_FIELD_NUMBER: builtins.int
-    IQ_FIELD_NUMBER: builtins.int
+    IQ_REF_FIELD_NUMBER: builtins.int
     ID_FIELD_NUMBER: builtins.int
-    VQ_FIELD_NUMBER: builtins.int
+    IQ_FIELD_NUMBER: builtins.int
     VD_FIELD_NUMBER: builtins.int
+    VQ_FIELD_NUMBER: builtins.int
     VA_FIELD_NUMBER: builtins.int
     VB_FIELD_NUMBER: builtins.int
     ia: builtins.float
@@ -302,18 +302,18 @@ class CurrentControlMonitorPayload(google.protobuf.message.Message):
     """Phase B current in Amps"""
     ic: builtins.float
     """Phase C current in Amps"""
-    iq_ref: builtins.float
-    """Q-axis current reference in Amps"""
     id_ref: builtins.float
     """D-axis current reference in Amps"""
-    iq: builtins.float
-    """Q-axis actual current in Amps"""
+    iq_ref: builtins.float
+    """Q-axis current reference in Amps"""
     id: builtins.float
     """D-axis actual current in Amps"""
-    vq: builtins.float
-    """Q-axis voltage command in Volts"""
+    iq: builtins.float
+    """Q-axis actual current in Amps"""
     vd: builtins.float
     """D-axis voltage command in Volts"""
+    vq: builtins.float
+    """Q-axis voltage command in Volts"""
     va: builtins.float
     """Voltage command for the Alpha axis in Volts"""
     vb: builtins.float
@@ -324,12 +324,12 @@ class CurrentControlMonitorPayload(google.protobuf.message.Message):
         ia: builtins.float | None = ...,
         ib: builtins.float | None = ...,
         ic: builtins.float | None = ...,
-        iq_ref: builtins.float | None = ...,
         id_ref: builtins.float | None = ...,
-        iq: builtins.float | None = ...,
+        iq_ref: builtins.float | None = ...,
         id: builtins.float | None = ...,
-        vq: builtins.float | None = ...,
+        iq: builtins.float | None = ...,
         vd: builtins.float | None = ...,
+        vq: builtins.float | None = ...,
         va: builtins.float | None = ...,
         vb: builtins.float | None = ...,
     ) -> None: ...

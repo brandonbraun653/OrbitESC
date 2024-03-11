@@ -24,7 +24,6 @@ gen_static_lib_variants(
     serial/serial_async_message.cpp
     serial/serial_server.cpp
     serial/serial_sink.cpp
-    serial/serial_usb.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc

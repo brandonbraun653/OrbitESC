@@ -76,12 +76,12 @@ message CurrentControlMonitorPayload {
   required float ia = 1;      // Phase A current in Amps
   required float ib = 2;      // Phase B current in Amps
   required float ic = 3;      // Phase C current in Amps
-  required float iq_ref = 4;  // Q-axis current reference in Amps
-  required float id_ref = 5;  // D-axis current reference in Amps
-  required float iq = 6;      // Q-axis actual current in Amps
-  required float id = 7;      // D-axis actual current in Amps
-  required float vq = 8;      // Q-axis voltage command in Volts
-  required float vd = 9;      // D-axis voltage command in Volts
+  required float id_ref = 4;  // D-axis current reference in Amps
+  required float iq_ref = 5;  // Q-axis current reference in Amps
+  required float id = 6;      // D-axis actual current in Amps
+  required float iq = 7;      // Q-axis actual current in Amps
+  required float vd = 8;      // D-axis voltage command in Volts
+  required float vq = 9;      // Q-axis voltage command in Volts
   required float va = 10;     // Voltage command for the Alpha axis in Volts
   required float vb = 11;     // Voltage command for the Beta axis in Volts
 }

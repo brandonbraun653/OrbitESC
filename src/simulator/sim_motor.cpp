@@ -83,9 +83,8 @@ namespace Orbit::Sim::Motor
                     s_params.r * s_state.iq ) *
                   s_state.Ts / s_params.lq;
 
-    // TODO: Add current limiting
-    // truncate_fabs( s_state.iq, 20.0f );
-    // truncate_fabs( s_state.id, 20.0f );
+    truncate_fabs( s_state.iq, 20.0f );
+    truncate_fabs( s_state.id, 20.0f );
 
     /*-------------------------------------------------------------------------
     Mechanical Simulation

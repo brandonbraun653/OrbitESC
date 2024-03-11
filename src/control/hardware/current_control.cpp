@@ -97,18 +97,18 @@ namespace Orbit::Control::Field
     foc_ireg_state.dt = 1.0f / Data::SysControl.statorPWMFreq;
 
     foc_ireg_state.iqPID.init();
-    foc_ireg_state.iqPID.OutMinLimit = -20.0f;
-    foc_ireg_state.iqPID.OutMaxLimit = 20.0f;
+    foc_ireg_state.iqPID.OutMinLimit = -12.0f;
+    foc_ireg_state.iqPID.OutMaxLimit = 12.0f;
     // foc_ireg_state.iqPID.setTunings( Data::SysControl.currentCtrl_Q_Kp, Data::SysControl.currentCtrl_Q_Ki,
     //                                  Data::SysControl.currentCtrl_Q_Kd, foc_ireg_state.dt );
-    foc_ireg_state.iqPID.setTunings( 5.0f, 0.0f, 0.0f, foc_ireg_state.dt );
+    foc_ireg_state.iqPID.setTunings( 15.0f, 0.1f, 0.0f, foc_ireg_state.dt );
 
     foc_ireg_state.idPID.init();
-    foc_ireg_state.idPID.OutMinLimit = -20.0f;
-    foc_ireg_state.idPID.OutMaxLimit = 20.0f;
+    foc_ireg_state.idPID.OutMinLimit = -12.0f;
+    foc_ireg_state.idPID.OutMaxLimit = 12.0f;
     // foc_ireg_state.idPID.setTunings( Data::SysControl.currentCtrl_D_Kp, Data::SysControl.currentCtrl_D_Ki,
     //                                  Data::SysControl.currentCtrl_D_Kd, foc_ireg_state.dt );
-    foc_ireg_state.idPID.setTunings( 5.0f, 0.0f, 0.0f, foc_ireg_state.dt );
+    foc_ireg_state.idPID.setTunings( 15.0f, 0.1f, 0.0f, foc_ireg_state.dt );
 
     foc_ireg_state.mod_vd = 0.0f;
     foc_ireg_state.mod_vq = 0.0f;
@@ -329,8 +329,8 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Run PI controllers for motor currents to generate voltage commands
     -------------------------------------------------------------------------*/
-    foc_ireg_state.vq = foc_ireg_state.iqPID.run( foc_ireg_state.iqRef - foc_ireg_state.iq );
-    foc_ireg_state.vd = foc_ireg_state.idPID.run( foc_ireg_state.idRef - foc_ireg_state.id );
+    foc_ireg_state.vq = 0.06f * foc_ireg_state.iqPID.run( foc_ireg_state.iqRef - foc_ireg_state.iq );
+    foc_ireg_state.vd = 0.06f * foc_ireg_state.idPID.run( foc_ireg_state.idRef - foc_ireg_state.id );
 
     // TODO: From mcpwm_foc:4299 (Vedder), once I switch into closed loop control I probably
     // TODO: should add decoupling of the d-q currents.

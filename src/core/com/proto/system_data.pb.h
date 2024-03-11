@@ -88,12 +88,12 @@ typedef struct _CurrentControlMonitorPayload {
     float ia; /* Phase A current in Amps */
     float ib; /* Phase B current in Amps */
     float ic; /* Phase C current in Amps */
-    float iq_ref; /* Q-axis current reference in Amps */
     float id_ref; /* D-axis current reference in Amps */
-    float iq; /* Q-axis actual current in Amps */
+    float iq_ref; /* Q-axis current reference in Amps */
     float id; /* D-axis actual current in Amps */
-    float vq; /* Q-axis voltage command in Volts */
+    float iq; /* Q-axis actual current in Amps */
     float vd; /* D-axis voltage command in Volts */
+    float vq; /* Q-axis voltage command in Volts */
     float va; /* Voltage command for the Alpha axis in Volts */
     float vb; /* Voltage command for the Beta axis in Volts */
 } CurrentControlMonitorPayload;
@@ -172,12 +172,12 @@ extern "C" {
 #define CurrentControlMonitorPayload_ia_tag      1
 #define CurrentControlMonitorPayload_ib_tag      2
 #define CurrentControlMonitorPayload_ic_tag      3
-#define CurrentControlMonitorPayload_iq_ref_tag  4
-#define CurrentControlMonitorPayload_id_ref_tag  5
-#define CurrentControlMonitorPayload_iq_tag      6
-#define CurrentControlMonitorPayload_id_tag      7
-#define CurrentControlMonitorPayload_vq_tag      8
-#define CurrentControlMonitorPayload_vd_tag      9
+#define CurrentControlMonitorPayload_id_ref_tag  4
+#define CurrentControlMonitorPayload_iq_ref_tag  5
+#define CurrentControlMonitorPayload_id_tag      6
+#define CurrentControlMonitorPayload_iq_tag      7
+#define CurrentControlMonitorPayload_vd_tag      8
+#define CurrentControlMonitorPayload_vq_tag      9
 #define CurrentControlMonitorPayload_va_tag      10
 #define CurrentControlMonitorPayload_vb_tag      11
 
@@ -251,12 +251,12 @@ X(a, STATIC,   REQUIRED, FLOAT,    v_isense,          4)
 X(a, STATIC,   REQUIRED, FLOAT,    ia,                1) \
 X(a, STATIC,   REQUIRED, FLOAT,    ib,                2) \
 X(a, STATIC,   REQUIRED, FLOAT,    ic,                3) \
-X(a, STATIC,   REQUIRED, FLOAT,    iq_ref,            4) \
-X(a, STATIC,   REQUIRED, FLOAT,    id_ref,            5) \
-X(a, STATIC,   REQUIRED, FLOAT,    iq,                6) \
-X(a, STATIC,   REQUIRED, FLOAT,    id,                7) \
-X(a, STATIC,   REQUIRED, FLOAT,    vq,                8) \
-X(a, STATIC,   REQUIRED, FLOAT,    vd,                9) \
+X(a, STATIC,   REQUIRED, FLOAT,    id_ref,            4) \
+X(a, STATIC,   REQUIRED, FLOAT,    iq_ref,            5) \
+X(a, STATIC,   REQUIRED, FLOAT,    id,                6) \
+X(a, STATIC,   REQUIRED, FLOAT,    iq,                7) \
+X(a, STATIC,   REQUIRED, FLOAT,    vd,                8) \
+X(a, STATIC,   REQUIRED, FLOAT,    vq,                9) \
 X(a, STATIC,   REQUIRED, FLOAT,    va,               10) \
 X(a, STATIC,   REQUIRED, FLOAT,    vb,               11)
 #define CurrentControlMonitorPayload_CALLBACK NULL
