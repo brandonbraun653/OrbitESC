@@ -32,7 +32,6 @@ namespace Orbit::Control::Subroutine
 
   enum class RampStep : uint8_t
   {
-    ALIGN,    /**< Aligning the rotor to a starting vector */
     RAMP,     /**< Controlled ramp from zero to idle speed */
     COMPLETE, /**< Rotor is at idle speed */
     ERROR     /**< Ramp subroutine failed */
@@ -40,10 +39,10 @@ namespace Orbit::Control::Subroutine
 
   struct RampState
   {
-    RampStep rampStep;     /**< Current step in the ramping process */
-    uint32_t startTimeRef; /**< Time reference for the start of a process */
-    float    omega_desired;       /**< Desired final rotor speed */
-    uint32_t rampStart_us; /**< When the ramp started in microseconds */
+    RampStep rampStep;      /**< Current step in the ramping process */
+    uint32_t startTimeRef;  /**< Time reference for the start of a process */
+    float    omega_desired; /**< Desired final rotor speed */
+    uint32_t rampStart_us;  /**< When the ramp started in microseconds */
   };
 
   /*---------------------------------------------------------------------------
@@ -61,7 +60,6 @@ namespace Orbit::Control::Subroutine
   Static Function Declarations
   ---------------------------------------------------------------------------*/
 
-  static void isrParkControl();
   static void isrRampControl();
 
   /*---------------------------------------------------------------------------
@@ -105,15 +103,16 @@ namespace Orbit::Control::Subroutine
     -----------------------------------------------------------------------------*/
     Field::setControlMode( Field::Mode::OPEN_LOOP );
 
-    mRampState.rampStep     = RampStep::ALIGN;
-    mRampState.startTimeRef = Chimera::millis();
+    mRampState.rampStep      = RampStep::RAMP;
+    mRampState.startTimeRef  = Chimera::millis();
+    mRampState.omega_desired = ( s_rpm_desired / 60.0f ) * Math::M_2PI_F;
 
-    foc_motor_state.thetaEst = Data::SysControl.parkTheta;
-    foc_ireg_state.iqRef     = 0.1f;
+    foc_motor_state.thetaEst = 0;
+    foc_ireg_state.iqRef     = 0.0f;
     foc_ireg_state.idRef     = 0.0f;
 
     mState = RunState::RUNNING;
-    Field::setInnerLoopCallback( isrParkControl );
+    Field::setInnerLoopCallback( isrRampControl );
   }
 
 
@@ -134,34 +133,6 @@ namespace Orbit::Control::Subroutine
   {
     switch( mRampState.rampStep )
     {
-      // TODO BMB: Make align time and strength a parameter
-      /*-----------------------------------------------------------------------
-      Perform the alignment control in a low speed open loop fashion. This
-      step is used to get the rotor in a known position before ramping up the
-      magnetic vector. After a certain amount of time, transition to ramping.
-      -----------------------------------------------------------------------*/
-      case RampStep::ALIGN:
-        if( ( Chimera::millis() - mRampState.startTimeRef ) > 1000 )
-        {
-          mRampState.startTimeRef = Chimera::millis();
-          mRampState.rampStep     = RampStep::RAMP;
-
-          /*-------------------------------------------------------------------
-          Engage the high speed current control loop behavior
-          -------------------------------------------------------------------*/
-          foc_motor_state.thetaEst = Data::SysControl.parkTheta;
-          foc_ireg_state.iqRef     = 0.0f;
-          foc_ireg_state.idRef     = 0.0f;
-
-          // TODO: I'm going to need to scale this omega by the rotor "gearing" ratio
-          mRampState.rampStart_us  = Chimera::micros();
-          mRampState.omega_desired = ( s_rpm_desired / 60.0f ) * Math::M_2PI_F;
-          foc_ireg_state.max_drive = 0.0f;
-          foc_ireg_state.iqRef     = 0.0f;
-          Field::setInnerLoopCallback( isrRampControl );
-        }
-        break;
-
       /*-----------------------------------------------------------------------
       Ramp control happens inside the high speed current loop. This allows for
       a cycle-by-cycle control of the current vector. This case looks for the
@@ -197,11 +168,6 @@ namespace Orbit::Control::Subroutine
   Static Function Implementations
   ---------------------------------------------------------------------------*/
 
-  static void isrParkControl()
-  {
-    // Don't need to do anything right now. Could get fancy later with more dynamic control.
-  }
-
   /**
    * @brief Controls the ramping of the rotor magnetic vector.
    *
@@ -219,13 +185,13 @@ namespace Orbit::Control::Subroutine
       const float omega_scale = now_sec / 3.0f;
 
       foc_motor_state.omegaEst = mRampState.omega_desired * omega_scale;
-      foc_ireg_state.max_drive = 1.0f; // * omega_scale;
-      foc_ireg_state.iqRef     = 0.0f;
+      foc_ireg_state.max_drive = 1.0f * omega_scale;
+      foc_ireg_state.iqRef     = 1.0f;
       foc_ireg_state.idRef     = 0.0f;
     }
 
     /*-------------------------------------------------------------------------
-    Compute the next theta vector for the rotor given the current angular rate
+    Compute the next theta angle for the rotor given the current angular rate
     -------------------------------------------------------------------------*/
     const float dTheta = foc_motor_state.omegaEst / Data::SysControl.statorPWMFreq;
 

@@ -175,7 +175,7 @@ namespace Orbit::Control::Math
   {
     v1 = a;
     v2 = -0.5f * a + b * SQRT3_OVER_2;
-    v3 = -0.5f * a - b * SQRT3_OVER_2;
+    v3 = -v1 - v2;
   }
 
 

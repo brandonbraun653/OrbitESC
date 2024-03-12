@@ -18,6 +18,7 @@ gen_static_lib_variants(
     modes/sys_mode_run.cpp
     subroutines/idle.cpp
     subroutines/optimize_sample_point.cpp
+    subroutines/rotor_align.cpp
     subroutines/rotor_detector.cpp
     subroutines/rotor_ramp.cpp
     subroutines/subroutines.cpp

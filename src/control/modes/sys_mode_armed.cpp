@@ -123,14 +123,11 @@ namespace Orbit::Control::State
     Control::Field::powerUp();
     Control::Speed::powerUp();
 
-    // if( !switchRoutine( Routine::ALIGNMENT_DETECTION ) )
-    // {
-    //   LOG_ERROR( "Failed to start alignment detection routine" );
-    //   return ModeId::IDLE;
-    // }
-
-    // Temporarily drive a fixed park vector
-    Data::SysControl.parkTheta = DEG_TO_RAD( 1.0f * 60.0f );
+    if( !switchRoutine( Routine::FORCE_ALIGNMENT ) )
+    {
+      LOG_ERROR( "Failed to start alignment routine" );
+      return ModeId::IDLE;
+    }
 
     /*-------------------------------------------------------------------------
     Signal to the user that the system is armed
