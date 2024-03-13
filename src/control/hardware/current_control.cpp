@@ -394,7 +394,7 @@ Apply the voltage commands to the simulated motor
     // TODO: if some control flag is set (parameter or compile time)
 
 #if defined( EMBEDDED )
-    if( isr_monitor_count++ >= 15 )
+    if( isr_monitor_count++ >= 25 )
     {
       isr_monitor_count = 0;
 #endif

@@ -62,6 +62,14 @@ namespace Orbit::Control::Subroutine
 
     mISRTicks = ALIGNMENT_TICKS;
     mComplete = false;
+
+    /*-------------------------------------------------------------------------
+    Reset the current control loop
+    -------------------------------------------------------------------------*/
+    initFOCData();
+    Field::powerDn();
+    Field::powerUp();
+
     mState = RunState::INITIALIZED;
   }
 
@@ -77,6 +85,7 @@ namespace Orbit::Control::Subroutine
     Field::setControlMode( Field::Mode::OPEN_LOOP );
 
     foc_motor_state.thetaEst = DEG_TO_RAD( 120 );
+    foc_ireg_state.max_drive = 0.25f;
     foc_ireg_state.iqRef     = 0.0f;
     foc_ireg_state.idRef     = 1.0f;
 
@@ -92,7 +101,6 @@ namespace Orbit::Control::Subroutine
     -------------------------------------------------------------------------*/
     foc_ireg_state.iqRef = 0.0f;
     foc_ireg_state.idRef = 0.0f;
-    Field::setInnerLoopCallback( nullptr );
 
     /*-------------------------------------------------------------------------
     Transition to the stopped state

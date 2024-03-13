@@ -196,6 +196,7 @@ class TestStaticStreamingData:
         LOGGER.info("Command transition to ENGAGED state")
         assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_IDLE)
         assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ARMED)
+        time.sleep(0.5)
         assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ENGAGED)
 
         LOGGER.info("Acquiring current control loop monitor data")

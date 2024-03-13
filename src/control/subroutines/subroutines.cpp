@@ -122,6 +122,14 @@ namespace Orbit::Control::Subroutine
         s_curr_routine = nullptr;
         break;
     }
+
+    /*---------------------------------------------------------------------------
+    If we have no routine, switch to the IDLE routine
+    ---------------------------------------------------------------------------*/
+    if( !s_curr_routine )
+    {
+      switchRoutine( Routine::IDLE );
+    }
   }
 
 

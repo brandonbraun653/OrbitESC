@@ -40,7 +40,6 @@ namespace Orbit::Control::Subroutine
   struct RampState
   {
     RampStep rampStep;      /**< Current step in the ramping process */
-    uint32_t startTimeRef;  /**< Time reference for the start of a process */
     float    omega_desired; /**< Desired final rotor speed */
     uint32_t rampStart_us;  /**< When the ramp started in microseconds */
   };
@@ -48,7 +47,7 @@ namespace Orbit::Control::Subroutine
   /*---------------------------------------------------------------------------
   Temporary Values
   ---------------------------------------------------------------------------*/
-  static constexpr float s_rpm_desired = 15000.0f;
+  static constexpr float s_rpm_desired = 6000.0f;
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -104,7 +103,7 @@ namespace Orbit::Control::Subroutine
     Field::setControlMode( Field::Mode::OPEN_LOOP );
 
     mRampState.rampStep      = RampStep::RAMP;
-    mRampState.startTimeRef  = Chimera::millis();
+    mRampState.rampStart_us  = Chimera::micros();
     mRampState.omega_desired = ( s_rpm_desired / 60.0f ) * Math::M_2PI_F;
 
     foc_motor_state.thetaEst = 0;
@@ -182,11 +181,11 @@ namespace Orbit::Control::Subroutine
     if( foc_motor_state.omegaEst < mRampState.omega_desired )
     {
       const float now_sec     = static_cast<float>( Chimera::micros() - mRampState.rampStart_us ) * 1e-6f;
-      const float omega_scale = now_sec / 3.0f;
+      const float omega_scale = now_sec;
 
       foc_motor_state.omegaEst = mRampState.omega_desired * omega_scale;
-      foc_ireg_state.max_drive = 1.0f * omega_scale;
-      foc_ireg_state.iqRef     = 1.0f;
+      foc_ireg_state.max_drive = 1.0f;
+      foc_ireg_state.iqRef     = 0.6f;
       foc_ireg_state.idRef     = 0.0f;
     }
 
