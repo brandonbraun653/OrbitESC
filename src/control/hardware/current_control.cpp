@@ -17,6 +17,7 @@ Includes
 #include <src/config/orbit_esc_cfg.hpp>
 #include <src/control/foc_data.hpp>
 #include <src/control/foc_math.hpp>
+#include <src/control/foc_observer.hpp>
 #include <src/control/hardware/current_control.hpp>
 #include <src/core/com/serial/serial_async_message.hpp>
 #include <src/core/com/serial/serial_usb.hpp>
@@ -90,6 +91,8 @@ namespace Orbit::Control::Field
     Prepare the system for FOC operation
     -------------------------------------------------------------------------*/
     Orbit::Control::initFOCData();
+    Orbit::Control::Observer::initialize();
+    Orbit::Control::Observer::setPolicy( Orbit::Control::Observer::Policy::LUENBERGER );
 
     /*-------------------------------------------------------------------------
     Assign PID current control parameters
@@ -179,6 +182,8 @@ namespace Orbit::Control::Field
         inverter->svmUpdate( 0.0f, 0.0f, 0.0f, 0.0f );
         inverter->enableOutput();
 
+        Observer::reset();
+
 #if defined( SIMULATOR )
         Orbit::Sim::ADC::enableMotorSenseADC( true );
 #endif
@@ -242,6 +247,8 @@ namespace Orbit::Control::Field
     using namespace Orbit::Control::Math;
 
     static uint32_t isr_monitor_count = 0;
+    static Observer::Input observer_input;
+    static Observer::Output observer_output;
 
     Chimera::Timer::Inverter::Driver *const inverter = Motor::Drive::getDriver();
 
@@ -325,7 +332,23 @@ namespace Orbit::Control::Field
     -------------------------------------------------------------------------*/
     clarke_transform( foc_ireg_state.ima, foc_ireg_state.imb, foc_ireg_state.ia, foc_ireg_state.ib );
 
-    // TODO BMB: I think I need to update the rotor observer before doing the park transform.
+    /*-------------------------------------------------------------------------
+    Run the obvserver to update the system estimation
+    -------------------------------------------------------------------------*/
+    observer_input.dt     = foc_ireg_state.dt;
+    observer_input.iAlpha = foc_ireg_state.ia;
+    observer_input.iBeta  = foc_ireg_state.ib;
+    observer_input.vAlpha = 0.0f;
+    observer_input.vBeta  = 0.0f;
+
+    Observer::execute( observer_input, observer_output );
+
+    if( s_ctl_mode == Mode::CLOSED_LOOP )
+    {
+      foc_motor_state.thetaEst = observer_output.theta;
+      foc_motor_state.omegaEst = observer_output.omega;
+    }
+
     park_transform( foc_ireg_state.ia, foc_ireg_state.ib, foc_motor_state.thetaEst, foc_ireg_state.iq, foc_ireg_state.id );
 
     /*-------------------------------------------------------------------------
@@ -333,6 +356,7 @@ namespace Orbit::Control::Field
     -------------------------------------------------------------------------*/
     if( s_ctl_mode == Mode::OPEN_LOOP )
     {
+      // TODO: Might toy around with these values to see how they affect the motor. Maybe make parameters?
       static constexpr float kd = 1.0f;
       static constexpr float kq = 1.0f;
 

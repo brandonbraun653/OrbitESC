@@ -263,68 +263,6 @@ namespace Orbit::Control::Math
    */
   float clamp( const float v, const float min, const float max );
 
-  /**
-   * @brief Performs Space Vector Modulation on the input alpha/beta vector
-   * @see https://github.com/vedderb/bldc
-   *
-   * @param alpha               Alpha component of the vector
-   * @param beta                Beta component of the vector
-   * @param timer_pwm_arr       Timer PWM ARR value, corresponding to full duty cycle
-   * @param timer_pwm_ccr1      Output reference to store the timer PWM CCR1 value
-   * @param timer_pwm_ccr2      Output reference to store the timer PWM CCR2 value
-   * @param timer_pwm_ccr3      Output reference to store the timer PWM CCR3 value
-   * @param commutation_sector  Output reference to store the new commutation sector
-   */
-  void space_vector_modulation( const float alpha, const float beta, const uint32_t timer_pwm_arr, uint32_t &timer_pwm_ccr1,
-                                uint32_t &timer_pwm_ccr2, uint32_t &timer_pwm_ccr3, uint32_t &commutation_sector );
-
-  /*---------------------------------------------------------------------------
-  Classes
-  ---------------------------------------------------------------------------*/
-  /**
-   * @brief Discrete time trapezoidal integrator
-   * @see https://www.mathworks.com/help/simulink/slref/discretetimeintegrator.html
-   */
-  class TrapInt
-  {
-  public:
-    float K;  /**< Proportionality constant to scale integration by*/
-
-    TrapInt();
-    ~TrapInt();
-
-    /**
-     * @brief Reset the integrator
-     *
-     * @param ic    Initial condition
-     * @param min   Minimum value saturation limit
-     * @param max   Maximum value saturation limit
-     */
-    void reset( const float ic = 0.0f, const float min = std::numeric_limits<float>::min(),
-                const float max = std::numeric_limits<float>::max() );
-
-    /**
-     * @brief Steps the integration forward by dt
-     *
-     * @param u   Input value for this time step
-     * @param dt  Time to integrate over
-     * @return float
-     */
-    float step( const float u, const float dt );
-
-    /**
-     * @brief Get the current value of the integration
-     * @return float
-     */
-    float value() const;
-
-  private:
-    float Min;
-    float Max;
-    float Y;
-    float ULast;
-  };
-
 }    // namespace Orbit::Control::Math
 
 #endif /* !ORBIT_ESC_FOC_MATH_HPP */

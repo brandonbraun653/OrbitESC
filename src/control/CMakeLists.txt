@@ -8,6 +8,7 @@ gen_static_lib_variants(
     foc_data.cpp
     foc_driver.cpp
     foc_math.cpp
+    foc_observer.cpp
     hardware/current_control.cpp
     hardware/speed_control.cpp
     math/pid.cpp

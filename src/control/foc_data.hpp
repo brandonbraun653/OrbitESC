@@ -173,10 +173,6 @@ namespace Orbit::Control
     float         last_estimate_update_us;
     float         next_estimate_update_us;
 
-
-    Math::TrapInt IqrInt; /**< Q-axis current reference command integrator */
-    Math::TrapInt SpdInt; /**< Speed estimation integrator (generates position) */
-
     float                Idm;  /**< D-axis measured current */
     float                Idf;  /**< D-axis filtered current measurement */
     float                Idr;  /**< D-axis current reference command */
@@ -208,9 +204,6 @@ namespace Orbit::Control
 
     void clear()
     {
-      IqrInt.reset();
-      SpdInt.reset();
-
       posEst = 0.0f;
       spdEst = 0.0f;
       Vdd    = 0.0f;
