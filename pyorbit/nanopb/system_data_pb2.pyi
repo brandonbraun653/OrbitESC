@@ -34,6 +34,10 @@ class _SystemDataIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._E
     """Measurements of less-critical system voltages"""
     CURRENT_CONTROL_MONITOR: _SystemDataId.ValueType  # 4
     """Current control monitor data"""
+    SYSTEM_OBSERVER_MONITOR: _SystemDataId.ValueType  # 5
+    """System observer monitor data"""
+    INNER_LOOP_VOLTAGES: _SystemDataId.ValueType  # 6
+    """Voltage measurements from the inner loop controller"""
 
 class SystemDataId(_SystemDataId, metaclass=_SystemDataIdEnumTypeWrapper): ...
 
@@ -47,6 +51,10 @@ ADC_SYSTEM_VOLTAGES: SystemDataId.ValueType  # 3
 """Measurements of less-critical system voltages"""
 CURRENT_CONTROL_MONITOR: SystemDataId.ValueType  # 4
 """Current control monitor data"""
+SYSTEM_OBSERVER_MONITOR: SystemDataId.ValueType  # 5
+"""System observer monitor data"""
+INNER_LOOP_VOLTAGES: SystemDataId.ValueType  # 6
+"""Voltage measurements from the inner loop controller"""
 global___SystemDataId = SystemDataId
 
 @typing_extensions.final
@@ -337,3 +345,59 @@ class CurrentControlMonitorPayload(google.protobuf.message.Message):
     def ClearField(self, field_name: typing_extensions.Literal["ia", b"ia", "ib", b"ib", "ic", b"ic", "id", b"id", "id_ref", b"id_ref", "iq", b"iq", "iq_ref", b"iq_ref", "va", b"va", "vb", b"vb", "vd", b"vd", "vq", b"vq"]) -> None: ...
 
 global___CurrentControlMonitorPayload = CurrentControlMonitorPayload
+
+@typing_extensions.final
+class SystemObserverMonitorPayload(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    THETA_EST_FIELD_NUMBER: builtins.int
+    OMEGA_EST_FIELD_NUMBER: builtins.int
+    theta_est: builtins.float
+    """Estimated electrical angle in radians"""
+    omega_est: builtins.float
+    """Estimated electrical speed in radians per second"""
+    def __init__(
+        self,
+        *,
+        theta_est: builtins.float | None = ...,
+        omega_est: builtins.float | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["omega_est", b"omega_est", "theta_est", b"theta_est"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["omega_est", b"omega_est", "theta_est", b"theta_est"]) -> None: ...
+
+global___SystemObserverMonitorPayload = SystemObserverMonitorPayload
+
+@typing_extensions.final
+class InnerLoopVoltageMonitorPayload(google.protobuf.message.Message):
+    """Message payload type for SystemDataId::INNER_LOOP_VOLTAGES"""
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    VA_FIELD_NUMBER: builtins.int
+    VB_FIELD_NUMBER: builtins.int
+    VC_FIELD_NUMBER: builtins.int
+    ALPHA_FIELD_NUMBER: builtins.int
+    BETA_FIELD_NUMBER: builtins.int
+    va: builtins.float
+    """Measured phase A voltage"""
+    vb: builtins.float
+    """Measured phase B voltage"""
+    vc: builtins.float
+    """Measured phase C voltage"""
+    alpha: builtins.float
+    """Measured alpha axis voltage"""
+    beta: builtins.float
+    """Measured beta axis voltage"""
+    def __init__(
+        self,
+        *,
+        va: builtins.float | None = ...,
+        vb: builtins.float | None = ...,
+        vc: builtins.float | None = ...,
+        alpha: builtins.float | None = ...,
+        beta: builtins.float | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["alpha", b"alpha", "beta", b"beta", "va", b"va", "vb", b"vb", "vc", b"vc"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["alpha", b"alpha", "beta", b"beta", "va", b"va", "vb", b"vb", "vc", b"vc"]) -> None: ...
+
+global___InnerLoopVoltageMonitorPayload = InnerLoopVoltageMonitorPayload

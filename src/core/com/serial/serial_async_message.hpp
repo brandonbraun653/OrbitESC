@@ -227,6 +227,12 @@ namespace Orbit::Serial::Message
                                          ADCSystemVoltagesPayload_size, ADCSystemVoltagesPayload_fields>;
     using CurrentControlMonitorPayload = _CustomMsg<SystemDataId_CURRENT_CONTROL_MONITOR, CurrentControlMonitorPayload,
                                                     CurrentControlMonitorPayload_size, CurrentControlMonitorPayload_fields>;
+
+    using SystemObserverMonitorPayload = _CustomMsg<SystemDataId_SYSTEM_OBSERVER_MONITOR, SystemObserverMonitorPayload,
+                                                    SystemObserverMonitorPayload_size, SystemObserverMonitorPayload_fields>;
+
+    using InnerLoopVoltageMonitorPayload = _CustomMsg<SystemDataId_INNER_LOOP_VOLTAGES, InnerLoopVoltageMonitorPayload,
+                                                    InnerLoopVoltageMonitorPayload_size, InnerLoopVoltageMonitorPayload_fields>;
   }    // namespace Payload
 
 }    // namespace Orbit::Serial::Message

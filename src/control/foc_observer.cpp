@@ -29,12 +29,18 @@ namespace Orbit::Control::Observer
   ---------------------------------------------------------------------------*/
   struct ObserverState
   {
+    /* Speed observer state */
+    float z1;
+    float z2;
+
+    /* Phase observer state */
     float x1;
     float x2;
     float lambda_est;
     float i_alpha_last;
     float i_beta_last;
 
+    /* Stator parameters */
     float R;
     float L;
     float lambda;
@@ -58,6 +64,8 @@ namespace Orbit::Control::Observer
   ---------------------------------------------------------------------------*/
 
   static void luenberger_policy( const Input &input, Output &output );
+
+  static void speed_observer( const Input &input, Output &output );
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -99,18 +107,21 @@ namespace Orbit::Control::Observer
 
     sState.R          = Data::SysConfig.statorResistance;
     sState.L          = Data::SysConfig.statorInductance;
-    sState.lambda     = 0.075;    // Permanent magnet flux linkage
+    sState.lambda     = 0.075f;    // Permanent magnet flux linkage
     sState.L_ia       = sState.L * input.iAlpha;
     sState.L_ib       = sState.L * input.iBeta;
     sState.R_ia       = sState.R * input.iAlpha;
-    sState.R_ib       = sState.R * input.iAlpha;
-    sState.gamma_half = 4.0 * 0.5;    // Observer gain scaling. Probably not needed???
+    sState.R_ib       = sState.R * input.iBeta;
+    sState.gamma_half = 4.0f;    // Observer gain scaling. Probably not needed???
 
     /*-------------------------------------------------------------------------
     Execute the observer policy function
     -------------------------------------------------------------------------*/
     sPolicyFunc( input, output );
 
+    /*-------------------------------------------------------------------------
+    Update output state
+    -------------------------------------------------------------------------*/
     sState.i_alpha_last = input.iAlpha;
     sState.i_beta_last  = input.iBeta;
 
@@ -125,13 +136,15 @@ namespace Orbit::Control::Observer
       sState.x2 *= 1.1;
     }
 
+    /*-------------------------------------------------------------------------
+    Compute theta estimate from the observer state. (Equation 9)
+    -------------------------------------------------------------------------*/
     output.theta = fast_atan2_with_norm( sState.x2 - sState.L_ib, sState.x1 - sState.L_ia );
 
-    // TODO BMB: foc_pll_run() from vedder is the speed estimator. Need to implement that.
-    // TODO BMB: Also see the equations from part B of the observer paper, eq 11, 12, 13.
-    // TODO BMB: Apparently this is a tracking controller? Need to look into that.
-
-    // TODO BMB: I also need to publish the estimates over USB. Time to modify the data struct and decrease size.
+    /*-------------------------------------------------------------------------
+    Compute omega estimate from the observer state.
+    -------------------------------------------------------------------------*/
+    speed_observer( input, output );
   }
 
 
@@ -149,6 +162,13 @@ namespace Orbit::Control::Observer
   Static Function Definitions
   ---------------------------------------------------------------------------*/
 
+  /**
+   * @brief
+   * @see https://cas.mines-paristech.fr/~praly/Telechargement/Journaux/2010-IEEE_TPEL-Lee-Hong-Nam-Ortega-Praly-Astolfi.pdf
+   *
+   * @param input   Input parameters to the observer.
+   * @param output  Output parameters from the observer.
+   */
   static void luenberger_policy( const Input &input, Output &output )
   {
     float err = SQ( sState.lambda ) - ( SQ( sState.x1 - sState.L_ia ) + SQ( sState.x2 - sState.L_ib ) );
@@ -164,9 +184,48 @@ namespace Orbit::Control::Observer
     }
 
     float x1_dot = input.vAlpha - sState.R_ia + sState.gamma_half * ( sState.x1 - sState.L_ia ) * err;
-    float x2_dot = input.vBeta - sState.R_ib + sState.gamma_half * ( sState.x2 - sState.L_ib ) * err;
+    float x2_dot = input.vBeta  - sState.R_ib + sState.gamma_half * ( sState.x2 - sState.L_ib ) * err;
 
     sState.x1 += x1_dot * input.dt;
     sState.x2 += x2_dot * input.dt;
+  }
+
+
+  static void speed_observer( const Input &input, Output &output )
+  {
+    static constexpr float kp = 5.0;
+    static constexpr float ki = 0.1;
+
+    static float theta_last = 0.0f;
+    static float filtered_omega = 0.0f;
+
+    /*-------------------------------------------------------------------------
+    Compute the observer state derivatives
+    -------------------------------------------------------------------------*/
+    float err_term = output.theta - sState.z1;
+    Math::normalize_radians( err_term );
+
+    /* Equation 11 */
+    float z1_dot = kp * err_term + ki * sState.z2;
+
+    /* Equation 12 */
+    float z2_dot = ki * err_term;
+
+    /*-------------------------------------------------------------------------
+    Update the observer state
+    -------------------------------------------------------------------------*/
+    sState.z1 += z1_dot * input.dt;
+    Math::normalize_radians( sState.z1 );
+
+    sState.z2 += z2_dot * input.dt;
+
+    // Testing
+    float dtheta = output.theta - theta_last;
+    Math::normalize_radians( dtheta );
+    float omega =  dtheta * input.dt;
+    theta_last = output.theta;
+
+    UTILS_LP_FAST( filtered_omega, omega, 0.01f );
+    output.omega = filtered_omega;
   }
 }    // namespace Orbit::Control::Observer

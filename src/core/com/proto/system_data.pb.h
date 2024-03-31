@@ -17,7 +17,9 @@ typedef enum _SystemDataId {
     SystemDataId_ADC_PHASE_CURRENTS = 1, /* ADC readings of the phase currents */
     SystemDataId_ADC_PHASE_VOLTAGES = 2, /* Voltage commands being sent to the motor */
     SystemDataId_ADC_SYSTEM_VOLTAGES = 3, /* Measurements of less-critical system voltages */
-    SystemDataId_CURRENT_CONTROL_MONITOR = 4 /* Current control monitor data */
+    SystemDataId_CURRENT_CONTROL_MONITOR = 4, /* Current control monitor data */
+    SystemDataId_SYSTEM_OBSERVER_MONITOR = 5, /* System observer monitor data */
+    SystemDataId_INNER_LOOP_VOLTAGES = 6 /* Voltage measurements from the inner loop controller */
 } SystemDataId;
 
 /* Struct definitions */
@@ -98,6 +100,20 @@ typedef struct _CurrentControlMonitorPayload {
     float vb; /* Voltage command for the Beta axis in Volts */
 } CurrentControlMonitorPayload;
 
+typedef struct _SystemObserverMonitorPayload {
+    float theta_est; /* Estimated electrical angle in radians */
+    float omega_est; /* Estimated electrical speed in radians per second */
+} SystemObserverMonitorPayload;
+
+/* Message payload type for SystemDataId::INNER_LOOP_VOLTAGES */
+typedef struct _InnerLoopVoltageMonitorPayload {
+    float va; /* Measured phase A voltage */
+    float vb; /* Measured phase B voltage */
+    float vc; /* Measured phase C voltage */
+    float alpha; /* Measured alpha axis voltage */
+    float beta; /* Measured beta axis voltage */
+} InnerLoopVoltageMonitorPayload;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -105,8 +121,8 @@ extern "C" {
 
 /* Helper constants for enums */
 #define _SystemDataId_MIN SystemDataId_SYS_DATA_INVALID
-#define _SystemDataId_MAX SystemDataId_CURRENT_CONTROL_MONITOR
-#define _SystemDataId_ARRAYSIZE ((SystemDataId)(SystemDataId_CURRENT_CONTROL_MONITOR+1))
+#define _SystemDataId_MAX SystemDataId_INNER_LOOP_VOLTAGES
+#define _SystemDataId_ARRAYSIZE ((SystemDataId)(SystemDataId_INNER_LOOP_VOLTAGES+1))
 
 
 
@@ -114,6 +130,8 @@ extern "C" {
 #define SystemStatusMessage_motorCtrlState_ENUMTYPE MotorCtrlState
 
 #define SystemDataMessage_id_ENUMTYPE SystemDataId
+
+
 
 
 
@@ -130,6 +148,8 @@ extern "C" {
 #define ADCPhaseVoltagesPayload_init_default     {0, 0, 0}
 #define ADCSystemVoltagesPayload_init_default    {0, 0, 0, 0}
 #define CurrentControlMonitorPayload_init_default {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define SystemObserverMonitorPayload_init_default {0, 0}
+#define InnerLoopVoltageMonitorPayload_init_default {0, 0, 0, 0, 0}
 #define SystemTickMessage_init_zero              {Header_init_zero, 0}
 #define ConsoleMessage_init_zero                 {Header_init_zero, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_zero              {Header_init_zero, 0, "", "", ""}
@@ -139,6 +159,8 @@ extern "C" {
 #define ADCPhaseVoltagesPayload_init_zero        {0, 0, 0}
 #define ADCSystemVoltagesPayload_init_zero       {0, 0, 0, 0}
 #define CurrentControlMonitorPayload_init_zero   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define SystemObserverMonitorPayload_init_zero   {0, 0}
+#define InnerLoopVoltageMonitorPayload_init_zero {0, 0, 0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define SystemTickMessage_header_tag             1
@@ -180,6 +202,13 @@ extern "C" {
 #define CurrentControlMonitorPayload_vq_tag      9
 #define CurrentControlMonitorPayload_va_tag      10
 #define CurrentControlMonitorPayload_vb_tag      11
+#define SystemObserverMonitorPayload_theta_est_tag 3
+#define SystemObserverMonitorPayload_omega_est_tag 4
+#define InnerLoopVoltageMonitorPayload_va_tag    1
+#define InnerLoopVoltageMonitorPayload_vb_tag    2
+#define InnerLoopVoltageMonitorPayload_vc_tag    3
+#define InnerLoopVoltageMonitorPayload_alpha_tag 4
+#define InnerLoopVoltageMonitorPayload_beta_tag  5
 
 /* Struct field encoding specification for nanopb */
 #define SystemTickMessage_FIELDLIST(X, a) \
@@ -262,6 +291,21 @@ X(a, STATIC,   REQUIRED, FLOAT,    vb,               11)
 #define CurrentControlMonitorPayload_CALLBACK NULL
 #define CurrentControlMonitorPayload_DEFAULT NULL
 
+#define SystemObserverMonitorPayload_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, FLOAT,    theta_est,         3) \
+X(a, STATIC,   REQUIRED, FLOAT,    omega_est,         4)
+#define SystemObserverMonitorPayload_CALLBACK NULL
+#define SystemObserverMonitorPayload_DEFAULT NULL
+
+#define InnerLoopVoltageMonitorPayload_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, FLOAT,    va,                1) \
+X(a, STATIC,   REQUIRED, FLOAT,    vb,                2) \
+X(a, STATIC,   REQUIRED, FLOAT,    vc,                3) \
+X(a, STATIC,   REQUIRED, FLOAT,    alpha,             4) \
+X(a, STATIC,   REQUIRED, FLOAT,    beta,              5)
+#define InnerLoopVoltageMonitorPayload_CALLBACK NULL
+#define InnerLoopVoltageMonitorPayload_DEFAULT NULL
+
 extern const pb_msgdesc_t SystemTickMessage_msg;
 extern const pb_msgdesc_t ConsoleMessage_msg;
 extern const pb_msgdesc_t SystemInfoMessage_msg;
@@ -271,6 +315,8 @@ extern const pb_msgdesc_t ADCPhaseCurrentsPayload_msg;
 extern const pb_msgdesc_t ADCPhaseVoltagesPayload_msg;
 extern const pb_msgdesc_t ADCSystemVoltagesPayload_msg;
 extern const pb_msgdesc_t CurrentControlMonitorPayload_msg;
+extern const pb_msgdesc_t SystemObserverMonitorPayload_msg;
+extern const pb_msgdesc_t InnerLoopVoltageMonitorPayload_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define SystemTickMessage_fields &SystemTickMessage_msg
@@ -282,6 +328,8 @@ extern const pb_msgdesc_t CurrentControlMonitorPayload_msg;
 #define ADCPhaseVoltagesPayload_fields &ADCPhaseVoltagesPayload_msg
 #define ADCSystemVoltagesPayload_fields &ADCSystemVoltagesPayload_msg
 #define CurrentControlMonitorPayload_fields &CurrentControlMonitorPayload_msg
+#define SystemObserverMonitorPayload_fields &SystemObserverMonitorPayload_msg
+#define InnerLoopVoltageMonitorPayload_fields &InnerLoopVoltageMonitorPayload_msg
 
 /* Maximum encoded size of messages (where known) */
 #define ADCPhaseCurrentsPayload_size             15
@@ -289,9 +337,11 @@ extern const pb_msgdesc_t CurrentControlMonitorPayload_msg;
 #define ADCSystemVoltagesPayload_size            20
 #define ConsoleMessage_size                      149
 #define CurrentControlMonitorPayload_size        55
+#define InnerLoopVoltageMonitorPayload_size      25
 #define SYSTEM_DATA_PB_H_MAX_SIZE                ConsoleMessage_size
 #define SystemDataMessage_size                   102
 #define SystemInfoMessage_size                   69
+#define SystemObserverMonitorPayload_size        10
 #define SystemStatusMessage_size                 20
 #define SystemTickMessage_size                   18
 
@@ -363,6 +413,20 @@ struct MessageDescriptor<CurrentControlMonitorPayload> {
     static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 11;
     static inline const pb_msgdesc_t* fields() {
         return &CurrentControlMonitorPayload_msg;
+    }
+};
+template <>
+struct MessageDescriptor<SystemObserverMonitorPayload> {
+    static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 2;
+    static inline const pb_msgdesc_t* fields() {
+        return &SystemObserverMonitorPayload_msg;
+    }
+};
+template <>
+struct MessageDescriptor<InnerLoopVoltageMonitorPayload> {
+    static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 5;
+    static inline const pb_msgdesc_t* fields() {
+        return &InnerLoopVoltageMonitorPayload_msg;
     }
 };
 }  // namespace nanopb

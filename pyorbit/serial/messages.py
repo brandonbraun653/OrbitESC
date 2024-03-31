@@ -250,6 +250,8 @@ class SystemDataPBMsg(BasePBMsg):
             SystemDataId.ADC_PHASE_VOLTAGES: ADCPhaseVoltagesPayload,
             SystemDataId.ADC_SYSTEM_VOLTAGES: ADCSystemVoltagesPayload,
             SystemDataId.CURRENT_CONTROL_MONITOR: CurrentControlMonitorPayload,
+            SystemDataId.SYSTEM_OBSERVER_MONITOR: SystemObserverMonitorPayload,
+            SystemDataId.INNER_LOOP_VOLTAGES: InnerLoopVoltageMonitorPayload,
         }
 
         try:
@@ -257,5 +259,5 @@ class SystemDataPBMsg(BasePBMsg):
             instance.ParseFromString(self.data)
             return instance
         except KeyError:
-            logger.error(f"Unknown data_id: {self.data_id}")
+            logger.error(f"Unknown data_id: {self.data_id}. Add to the mapping SystemDataPBMsg.extract_payload().")
             return None

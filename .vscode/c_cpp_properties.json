@@ -160,26 +160,6 @@
     },
     "configurations": [
         {
-            "name": "STM32L4 Development",
-            "includePath": [
-                "${defaultIncludePaths}",
-                "${thorIncludePaths_HLD}",
-                "${thorIncludePaths_LLD_Intf}",
-                "${thorIncludePaths_LLD_L4}",
-                "${workspaceFolder}/lib/Aurora/lib/embedded_template_library/etl/include"
-            ],
-            "defines": [
-                "${defaultDefines}",
-                "${defaultEmbeddedDefines}",
-                "STM32L432xx",
-                "TARGET_STM32L4",
-                "THOR_USER_CONFIG"
-            ],
-            "compilerPath": "/home/brandon/toolchain/xpack-arm-none-eabi-gcc-12.2.1-1.2/bin/arm-none-eabi-gcc",
-            "cStandard": "gnu17",
-            "cppStandard": "gnu++20"
-        },
-        {
             "name": "STM32F4 Development",
             "includePath": [
                 "${defaultIncludePaths}",

@@ -113,8 +113,8 @@ namespace Orbit::Control::Field
     //                                  Data::SysControl.currentCtrl_D_Kd, foc_ireg_state.dt );
     foc_ireg_state.idPID.setTunings( 15.0f, 0.1f, 0.0f, foc_ireg_state.dt );
 
-    foc_ireg_state.mod_vd = 0.0f;
-    foc_ireg_state.mod_vq = 0.0f;
+    foc_ireg_state.vd_mod = 0.0f;
+    foc_ireg_state.vq_mod = 0.0f;
 
     setControlMode( Mode::DISABLED );
   }
@@ -246,8 +246,8 @@ namespace Orbit::Control::Field
     using namespace Orbit::Instrumentation;
     using namespace Orbit::Control::Math;
 
-    static uint32_t isr_monitor_count = 0;
-    static Observer::Input observer_input;
+    static uint32_t         isr_monitor_count = 0;
+    static Observer::Input  observer_input;
     static Observer::Output observer_output;
 
     Chimera::Timer::Inverter::Driver *const inverter = Motor::Drive::getDriver();
@@ -327,10 +327,10 @@ namespace Orbit::Control::Field
 #endif /* EMBEDDED */
 
     /*-------------------------------------------------------------------------
-    Use Clarke Transform to convert phase currents from 3-axis to 2-axis, then
-    use Park Transform to convert from 2-axis into the d-q axis.
+    Use Clarke Transform to convert phase measurements from 3-axis to 2-axis
     -------------------------------------------------------------------------*/
     clarke_transform( foc_ireg_state.ima, foc_ireg_state.imb, foc_ireg_state.ia, foc_ireg_state.ib );
+    clarke_transform( foc_ireg_state.vma, foc_ireg_state.vmb, foc_ireg_state.va, foc_ireg_state.vb );
 
     /*-------------------------------------------------------------------------
     Run the obvserver to update the system estimation
@@ -338,8 +338,8 @@ namespace Orbit::Control::Field
     observer_input.dt     = foc_ireg_state.dt;
     observer_input.iAlpha = foc_ireg_state.ia;
     observer_input.iBeta  = foc_ireg_state.ib;
-    observer_input.vAlpha = 0.0f;
-    observer_input.vBeta  = 0.0f;
+    observer_input.vAlpha = foc_ireg_state.va;
+    observer_input.vBeta  = foc_ireg_state.vb;
 
     Observer::execute( observer_input, observer_output );
 
@@ -349,6 +349,9 @@ namespace Orbit::Control::Field
       foc_motor_state.omegaEst = observer_output.omega;
     }
 
+    /*-------------------------------------------------------------------------
+    Using the new estimations, convert to the DQ axis for control
+    -------------------------------------------------------------------------*/
     park_transform( foc_ireg_state.ia, foc_ireg_state.ib, foc_motor_state.thetaEst, foc_ireg_state.iq, foc_ireg_state.id );
 
     /*-------------------------------------------------------------------------
@@ -382,30 +385,32 @@ namespace Orbit::Control::Field
     saturate_vector_2d( foc_ireg_state.vd, foc_ireg_state.vq, max_v_mag );
 
     const float v_norm    = 1.5f / vSupply;
-    foc_ireg_state.mod_vd = foc_ireg_state.vd * v_norm;
-    foc_ireg_state.mod_vq = foc_ireg_state.vq * v_norm;
+    foc_ireg_state.vd_mod = foc_ireg_state.vd * v_norm;
+    foc_ireg_state.vq_mod = foc_ireg_state.vq * v_norm;
 
     /*-------------------------------------------------------------------------
-    Use Inverse Park Transform to convert d-q voltages to alpha-beta axis, then
-    apply the SVM updates.
+    Convert rotating DQ frame back to stationary alpha-beta frame
     -------------------------------------------------------------------------*/
-    inverse_park_transform( foc_ireg_state.mod_vq, foc_ireg_state.mod_vd, foc_motor_state.thetaEst, foc_ireg_state.va,
-                            foc_ireg_state.vb );
+    inverse_park_transform( foc_ireg_state.vq_mod, foc_ireg_state.vd_mod, foc_motor_state.thetaEst, foc_ireg_state.va_cmd,
+                            foc_ireg_state.vb_cmd );
 
-    float modulation_index = hypotf( foc_ireg_state.va, foc_ireg_state.vb );
+    /*-------------------------------------------------------------------------
+    Update the SVM to generate the next PWM cycle
+    -------------------------------------------------------------------------*/
+    float modulation_index = hypotf( foc_ireg_state.va_cmd, foc_ireg_state.vb_cmd );
 
-    inverter->svmUpdate( foc_ireg_state.va, foc_ireg_state.vb, foc_motor_state.thetaEst, modulation_index );
+    inverter->svmUpdate( foc_ireg_state.va_cmd, foc_ireg_state.vb_cmd, foc_motor_state.thetaEst, modulation_index );
 
-/*-------------------------------------------------------------------------
-Apply the voltage commands to the simulated motor
--------------------------------------------------------------------------*/
-#if defined( SIMULATOR )
-    auto motor_state = Orbit::Sim::Motor::modelState();
-    inverse_park_transform( foc_ireg_state.mod_vq, foc_ireg_state.mod_vd, motor_state.phi, foc_ireg_state.va,
-                            foc_ireg_state.vb );
+    /*-------------------------------------------------------------------------
+    Apply the voltage commands to the simulated motor
+    -------------------------------------------------------------------------*/
+    // #if defined( SIMULATOR )
+    // auto motor_state = Orbit::Sim::Motor::modelState();
+    // inverse_park_transform( foc_ireg_state.vq_mod, foc_ireg_state.vd_mod, motor_state.phi, foc_ireg_state.va,
+    //                         foc_ireg_state.vb );
 
-    Orbit::Sim::Motor::stepModel( foc_ireg_state.va, foc_ireg_state.vb );
-#endif
+    // Orbit::Sim::Motor::stepModel( foc_ireg_state.va, foc_ireg_state.vb );
+    // #endif
 
     /*-------------------------------------------------------------------------
     Invoke control system callback to swap in custom inner loop behaviors
@@ -414,11 +419,22 @@ Apply the voltage commands to the simulated motor
 
     /*-------------------------------------------------------------------------
     Send the control state over the serial port for monitoring
+
+    TODO BMB: This is a temporary solution. I need to trigger this off of a
+    programmable parameter, along with data rates. Probably need some kind of
+    auto backoff as well or a precalculation to prevent soft-bricking comms.
+
+    Actually, fold this into a callback? That way I can separate concerns. None
+    of the data is actually required to be visible inside the scope of this
+    function.
     -------------------------------------------------------------------------*/
-    // TODO: if some control flag is set (parameter or compile time)
+    // TEMPORARY
+    static constexpr bool CURRENT_MONITOR  = false;
+    static constexpr bool OBSERVER_MONITOR = false;
+    static constexpr bool VOLTAGE_MONITOR  = true;
 
 #if defined( EMBEDDED )
-    if( isr_monitor_count++ >= 25 )
+    if( isr_monitor_count++ >= 10 )
     {
       isr_monitor_count = 0;
 #endif
@@ -431,31 +447,68 @@ Apply the voltage commands to the simulated motor
       s_ctl_monitor.raw.header.msgId = MsgId_MSG_SYS_DATA;
       s_ctl_monitor.raw.header.subId = 0;
       s_ctl_monitor.raw.header.uuid  = Serial::Message::getNextUUID();
-      s_ctl_monitor.raw.id           = SystemDataId_CURRENT_CONTROL_MONITOR;
       s_ctl_monitor.raw.timestamp    = Chimera::micros();
       s_ctl_monitor.raw.has_payload  = true;
-      s_ctl_monitor.raw.payload.size = sizeof( CurrentControlMonitorPayload );
 
       /*-----------------------------------------------------------------------
       Pack and encode the payload data
       -----------------------------------------------------------------------*/
-      Serial::Message::Payload::CurrentControlMonitorPayload payload;
+      bool payload_encoded = false;
 
-      payload.raw.ia     = foc_ireg_state.ima;
-      payload.raw.ib     = foc_ireg_state.imb;
-      payload.raw.ic     = foc_ireg_state.imc;
-      payload.raw.iq_ref = foc_ireg_state.iqRef;
-      payload.raw.id_ref = foc_ireg_state.idRef;
-      payload.raw.iq     = foc_ireg_state.iq;
-      payload.raw.id     = foc_ireg_state.id;
-      payload.raw.vd     = foc_ireg_state.mod_vd;
-      payload.raw.vq     = foc_ireg_state.mod_vq;
-      payload.raw.va     = foc_ireg_state.va;
-      payload.raw.vb     = foc_ireg_state.vb;
+      if constexpr( CURRENT_MONITOR )
+      {
+        s_ctl_monitor.raw.id           = SystemDataId_CURRENT_CONTROL_MONITOR;
+        s_ctl_monitor.raw.payload.size = sizeof( CurrentControlMonitorPayload );
 
-      const bool payload_encoded = Serial::Message::encode( &payload.state, Serial::Message::ENCODE_NO_COBS );
-      memcpy( s_ctl_monitor.raw.payload.bytes, payload.data(), payload.size() );
-      s_ctl_monitor.raw.payload.size = payload.size();
+        Serial::Message::Payload::CurrentControlMonitorPayload payload;
+
+        payload.raw.ia     = foc_ireg_state.ima;
+        payload.raw.ib     = foc_ireg_state.imb;
+        payload.raw.ic     = foc_ireg_state.imc;
+        payload.raw.iq_ref = foc_ireg_state.iqRef;
+        payload.raw.id_ref = foc_ireg_state.idRef;
+        payload.raw.iq     = foc_ireg_state.iq;
+        payload.raw.id     = foc_ireg_state.id;
+        payload.raw.vd     = foc_ireg_state.vd_mod;
+        payload.raw.vq     = foc_ireg_state.vq_mod;
+        payload.raw.va     = foc_ireg_state.va;
+        payload.raw.vb     = foc_ireg_state.vb;
+
+        payload_encoded = Serial::Message::encode( &payload.state, Serial::Message::ENCODE_NO_COBS );
+        memcpy( s_ctl_monitor.raw.payload.bytes, payload.data(), payload.size() );
+        s_ctl_monitor.raw.payload.size = payload.size();
+      }
+      else if constexpr( OBSERVER_MONITOR )
+      {
+        s_ctl_monitor.raw.id           = SystemDataId_SYSTEM_OBSERVER_MONITOR;
+        s_ctl_monitor.raw.payload.size = sizeof( SystemObserverMonitorPayload );
+
+        Serial::Message::Payload::SystemObserverMonitorPayload payload;
+
+        payload.raw.theta_est = observer_output.theta;
+        payload.raw.omega_est = observer_output.omega;
+
+        payload_encoded = Serial::Message::encode( &payload.state, Serial::Message::ENCODE_NO_COBS );
+        memcpy( s_ctl_monitor.raw.payload.bytes, payload.data(), payload.size() );
+        s_ctl_monitor.raw.payload.size = payload.size();
+      }
+      else if constexpr( VOLTAGE_MONITOR )
+      {
+        s_ctl_monitor.raw.id           = SystemDataId_INNER_LOOP_VOLTAGES;
+        s_ctl_monitor.raw.payload.size = sizeof( InnerLoopVoltageMonitorPayload );
+
+        Serial::Message::Payload::InnerLoopVoltageMonitorPayload payload;
+
+        payload.raw.va    = foc_ireg_state.vma;
+        payload.raw.vb    = foc_ireg_state.vmb;
+        payload.raw.vc    = foc_ireg_state.vmc;
+        payload.raw.alpha = foc_ireg_state.va;
+        payload.raw.beta  = foc_ireg_state.vb;
+
+        payload_encoded = Serial::Message::encode( &payload.state, Serial::Message::ENCODE_NO_COBS );
+        memcpy( s_ctl_monitor.raw.payload.bytes, payload.data(), payload.size() );
+        s_ctl_monitor.raw.payload.size = payload.size();
+      }
 
       /*-----------------------------------------------------------------------
       Encode the full message with COBS and queue it for sending. Use best

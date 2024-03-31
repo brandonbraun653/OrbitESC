@@ -33,5 +33,11 @@ PB_BIND(ADCSystemVoltagesPayload, ADCSystemVoltagesPayload, AUTO)
 PB_BIND(CurrentControlMonitorPayload, CurrentControlMonitorPayload, AUTO)
 
 
+PB_BIND(SystemObserverMonitorPayload, SystemObserverMonitorPayload, AUTO)
+
+
+PB_BIND(InnerLoopVoltageMonitorPayload, InnerLoopVoltageMonitorPayload, AUTO)
+
+
 
 

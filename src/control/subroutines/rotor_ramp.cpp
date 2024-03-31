@@ -47,7 +47,7 @@ namespace Orbit::Control::Subroutine
   /*---------------------------------------------------------------------------
   Temporary Values
   ---------------------------------------------------------------------------*/
-  static constexpr float s_rpm_desired = 6000.0f;
+  static constexpr float s_rpm_desired = 12000.0f;
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -185,7 +185,7 @@ namespace Orbit::Control::Subroutine
 
       foc_motor_state.omegaEst = mRampState.omega_desired * omega_scale;
       foc_ireg_state.max_drive = 1.0f;
-      foc_ireg_state.iqRef     = 0.6f;
+      foc_ireg_state.iqRef     = 1.1f;
       foc_ireg_state.idRef     = 0.0f;
     }
 

@@ -143,16 +143,18 @@ namespace Orbit::Control
     float              vma;       /**< Voltage measured at phase A terminal */
     float              vmb;       /**< Voltage measured at phase B terminal */
     float              vmc;       /**< Voltage measured at phase C terminal */
+    float              va;        /**< Voltage (alpha) of the measured phase voltages */
+    float              vb;        /**< Voltage (beta) of the measured phase voltages */
+    float              ia;        /**< Current (alpha) of the measured phase currents */
+    float              ib;        /**< Current (beta) of the measured phase currents */
     float              iq;        /**< Current output measurement for the q-axis */
     float              id;        /**< Current output measurement for the d-axis */
     float              vq;        /**< Voltage command for the q-axis */
     float              vd;        /**< Voltage command for the d-axis */
-    float              mod_vq;    /**< Modulated voltage for the q-axis */
-    float              mod_vd;    /**< Modulated voltage for the d-axis */
-    float              va;        /**< Voltage (alpha) after inverse-park transform */
-    float              vb;        /**< Voltage (beta) after inverse-park transform */
-    float              ia;        /**< Current (alpha) after clarke transform */
-    float              ib;        /**< Current (beta) after clarke transform */
+    float              vq_mod;    /**< Modulated voltage for the q-axis */
+    float              vd_mod;    /**< Modulated voltage for the d-axis */
+    float              va_cmd;    /**< Voltage (alpha) commanded to the phase inputs */
+    float              vb_cmd;    /**< Voltage (beta) commanded to the phase inputs */
     float              iqRef;     /**< Current reference for the q-axis */
     float              idRef;     /**< Current reference for the d-axis */
     float              max_drive; /**< Maximum drive strength on a range 0.0 - 1.0*/
