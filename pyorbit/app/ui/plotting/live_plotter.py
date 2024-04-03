@@ -1,14 +1,13 @@
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import QThread, pyqtSignal
-from pyqtgraph.Qt import QtGui, QtCore
-import pyqtgraph as pg
-
 import collections
 import random
 import time
 import math
 import numpy as np
+from PyQt5 import QtCore
+from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtCore import QThread, pyqtSignal
+from pyqtgraph import PlotWidget
+from pyqtgraph.Qt import QtCore
 
 
 class LivePlotManager(QtCore.QObject):
@@ -20,9 +19,7 @@ class LivePlotManager(QtCore.QObject):
 
     def request_plot(self) -> None:
         plotter = DynamicPlotter(sample_interval=0.01, time_window=10.)
-        plotter.start()
-        plotter.sigUpdate.connect(QApplication.instance().processEvents)
-        plotter.plt.getPlotItem().destroyed.connect(lambda: self.remove_plotter(plotter))
+        plotter.sigClosed.connect(lambda: self.remove_plotter(plotter))
         self.plotters.append(plotter)
 
     def remove_plotter(self, plotter) -> None:
@@ -30,21 +27,10 @@ class LivePlotManager(QtCore.QObject):
         self.plotters.remove(plotter)
 
 
-class DynamicPlotter(QThread):
-    """
-    https://github.com/ap--/python-live-plotting/blob/master/plot_pyqtgraph.py
-
-    This class is an adaptation of the code in the referenced link. I was messing around
-    a bit with high speed real time plotting for the project and happened across that code.
-    I want to be able to build/observe multiple plots on-demand, so this class is a proof
-    of concept to see if that's even possible.
-    """
-
-    # Signal for the main thread to draw updates
+class DataThread(QThread):
     sigUpdate = pyqtSignal()
-    sigClosed = pyqtSignal()
 
-    def __init__(self, sample_interval=0.1, time_window=10., size=(600, 350)):
+    def __init__(self, sample_interval=0.1, time_window=10.):
         QThread.__init__(self)
 
         # Data stuff
@@ -53,13 +39,7 @@ class DynamicPlotter(QThread):
         self.data_buffer = collections.deque([0.0] * self._buf_size, self._buf_size)
         self.x = np.linspace(-time_window, 0.0, self._buf_size)
         self.y = np.zeros(self._buf_size, dtype=float)
-        # PyQtGraph stuff
-        self.plt = pg.plot(title='Dynamic Plotting with PyQtGraph')
-        self.plt.resize(*size)
-        self.plt.showGrid(x=True, y=True)
-        self.plt.setLabel('left', 'amplitude', 'V')
-        self.plt.setLabel('bottom', 'time', 's')
-        self.curve = self.plt.plot(self.x, self.y, pen=(255, 0, 0))
+
         # QTimer
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.update_plot)
@@ -73,11 +53,35 @@ class DynamicPlotter(QThread):
         return new
 
     def update_plot(self):
-        if self.plt.getPlotItem() is None:
-            self.sigClosed.emit()
-            self.quit()
-        else:
-            self.data_buffer.append(self.getdata())
-            self.y[:] = self.data_buffer
-            self.curve.setData(self.x, self.y)
-            self.sigUpdate.emit()
+        self.data_buffer.append(self.getdata())
+        self.y[:] = self.data_buffer
+        self.sigUpdate.emit()
+
+
+class DynamicPlotter(PlotWidget):
+    sigClosed = pyqtSignal()
+
+    def __init__(self, sample_interval=0.1, time_window=10., size=(800, 350)):
+        PlotWidget.__init__(self)
+
+        # PyQtGraph stuff
+        self.setWindowTitle("dynamic plotting")
+        self.show()
+        self.resize(*size)
+        self.showGrid(x=True, y=True)
+        self.setLabel('left', 'amplitude', 'V')
+        self.setLabel('bottom', 'time', 's')
+        self.curve = self.plot(pen=(255, 0, 0))
+
+        # DataThread
+        self.data_thread = DataThread(sample_interval, time_window)
+        self.data_thread.sigUpdate.connect(self.update_plot)
+        self.data_thread.start()
+
+    def closeEvent(self, a0):
+        super().closeEvent(a0)
+        self.data_thread.quit()
+        self.sigClosed.emit()
+
+    def update_plot(self):
+        self.curve.setData(self.data_thread.x, self.data_thread.y)
