@@ -14,12 +14,16 @@
 /* Enum definitions */
 typedef enum _SystemDataId {
     SystemDataId_SYS_DATA_INVALID = 0, /* Invalid data ID */
+    /* Composite Data Streams */
     SystemDataId_ADC_PHASE_CURRENTS = 1, /* ADC readings of the phase currents */
     SystemDataId_ADC_PHASE_VOLTAGES = 2, /* Voltage commands being sent to the motor */
     SystemDataId_ADC_SYSTEM_VOLTAGES = 3, /* Measurements of less-critical system voltages */
     SystemDataId_CURRENT_CONTROL_MONITOR = 4, /* Current control monitor data */
     SystemDataId_SYSTEM_OBSERVER_MONITOR = 5, /* System observer monitor data */
-    SystemDataId_INNER_LOOP_VOLTAGES = 6 /* Voltage measurements from the inner loop controller */
+    SystemDataId_INNER_LOOP_VOLTAGES = 6, /* Voltage measurements from the inner loop controller */
+    /* Individual Data Streams */
+    SystemDataId_INDIVIDUAL_DATA_STREAMS_START = 100, /* Start of individual data streams. Used for iteration only. */
+    SystemDataId_ADC_BUS_VOLTAGE = 101 /* DC bus voltage input to the motor controller */
 } SystemDataId;
 
 /* Struct definitions */
@@ -121,8 +125,8 @@ extern "C" {
 
 /* Helper constants for enums */
 #define _SystemDataId_MIN SystemDataId_SYS_DATA_INVALID
-#define _SystemDataId_MAX SystemDataId_INNER_LOOP_VOLTAGES
-#define _SystemDataId_ARRAYSIZE ((SystemDataId)(SystemDataId_INNER_LOOP_VOLTAGES+1))
+#define _SystemDataId_MAX SystemDataId_ADC_BUS_VOLTAGE
+#define _SystemDataId_ARRAYSIZE ((SystemDataId)(SystemDataId_ADC_BUS_VOLTAGE+1))
 
 
 

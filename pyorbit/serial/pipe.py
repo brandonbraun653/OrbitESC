@@ -67,7 +67,6 @@ class SerialPipePublisher(Publisher):
         elif isinstance(port, int):
             self._serial = SerialSocket(port=port)
 
-
         # Clear memory
         self._rx_msgs = Queue()
 

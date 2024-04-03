@@ -4,7 +4,8 @@ from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QTextCharFormat, QColor
 from PyQt5.QtWidgets import QApplication
 from loguru import logger
-from pyorbit.app.main import Settings, AppSettings
+from pyorbit.app.main import Settings
+from pyorbit.app.util import AppSettings
 
 
 class SerialTargetSelect(QtWidgets.QComboBox):

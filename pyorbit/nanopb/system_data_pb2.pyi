@@ -27,7 +27,9 @@ class _SystemDataIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._E
     SYS_DATA_INVALID: _SystemDataId.ValueType  # 0
     """Invalid data ID"""
     ADC_PHASE_CURRENTS: _SystemDataId.ValueType  # 1
-    """ADC readings of the phase currents"""
+    """Composite Data Streams
+    ADC readings of the phase currents
+    """
     ADC_PHASE_VOLTAGES: _SystemDataId.ValueType  # 2
     """Voltage commands being sent to the motor"""
     ADC_SYSTEM_VOLTAGES: _SystemDataId.ValueType  # 3
@@ -38,13 +40,21 @@ class _SystemDataIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._E
     """System observer monitor data"""
     INNER_LOOP_VOLTAGES: _SystemDataId.ValueType  # 6
     """Voltage measurements from the inner loop controller"""
+    INDIVIDUAL_DATA_STREAMS_START: _SystemDataId.ValueType  # 100
+    """Individual Data Streams
+    Start of individual data streams. Used for iteration only.
+    """
+    ADC_BUS_VOLTAGE: _SystemDataId.ValueType  # 101
+    """DC bus voltage input to the motor controller"""
 
 class SystemDataId(_SystemDataId, metaclass=_SystemDataIdEnumTypeWrapper): ...
 
 SYS_DATA_INVALID: SystemDataId.ValueType  # 0
 """Invalid data ID"""
 ADC_PHASE_CURRENTS: SystemDataId.ValueType  # 1
-"""ADC readings of the phase currents"""
+"""Composite Data Streams
+ADC readings of the phase currents
+"""
 ADC_PHASE_VOLTAGES: SystemDataId.ValueType  # 2
 """Voltage commands being sent to the motor"""
 ADC_SYSTEM_VOLTAGES: SystemDataId.ValueType  # 3
@@ -55,6 +65,12 @@ SYSTEM_OBSERVER_MONITOR: SystemDataId.ValueType  # 5
 """System observer monitor data"""
 INNER_LOOP_VOLTAGES: SystemDataId.ValueType  # 6
 """Voltage measurements from the inner loop controller"""
+INDIVIDUAL_DATA_STREAMS_START: SystemDataId.ValueType  # 100
+"""Individual Data Streams
+Start of individual data streams. Used for iteration only.
+"""
+ADC_BUS_VOLTAGE: SystemDataId.ValueType  # 101
+"""DC bus voltage input to the motor controller"""
 global___SystemDataId = SystemDataId
 
 @typing_extensions.final
