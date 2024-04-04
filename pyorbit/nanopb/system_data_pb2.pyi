@@ -3,7 +3,9 @@
 isort:skip_file
 """
 import builtins
+import collections.abc
 import google.protobuf.descriptor
+import google.protobuf.internal.containers
 import google.protobuf.internal.enum_type_wrapper
 import google.protobuf.message
 import motor_control_pb2
@@ -188,6 +190,108 @@ class SystemStatusMessage(google.protobuf.message.Message):
     def ClearField(self, field_name: typing_extensions.Literal["header", b"header", "motorCtrlState", b"motorCtrlState", "systemTick", b"systemTick"]) -> None: ...
 
 global___SystemStatusMessage = SystemStatusMessage
+
+@typing_extensions.final
+class StreamRequestMessage(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    HEADER_FIELD_NUMBER: builtins.int
+    ID_FIELD_NUMBER: builtins.int
+    RATE_FIELD_NUMBER: builtins.int
+    ACTIVE_FIELD_NUMBER: builtins.int
+    @property
+    def header(self) -> serial_interface_pb2.Header: ...
+    id: global___SystemDataId.ValueType
+    """Data stream to act on"""
+    rate: builtins.float
+    """Periodic output rate in Hz"""
+    active: builtins.bool
+    """True to enable the stream, False for disable"""
+    def __init__(
+        self,
+        *,
+        header: serial_interface_pb2.Header | None = ...,
+        id: global___SystemDataId.ValueType | None = ...,
+        rate: builtins.float | None = ...,
+        active: builtins.bool | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["active", b"active", "header", b"header", "id", b"id", "rate", b"rate"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["active", b"active", "header", b"header", "id", b"id", "rate", b"rate"]) -> None: ...
+
+global___StreamRequestMessage = StreamRequestMessage
+
+@typing_extensions.final
+class StreamDataMessage(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    class _Flags:
+        ValueType = typing.NewType("ValueType", builtins.int)
+        V: typing_extensions.TypeAlias = ValueType
+
+    class _FlagsEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[StreamDataMessage._Flags.ValueType], builtins.type):
+        DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+        VALID: StreamDataMessage._Flags.ValueType  # 1
+        """Data is valid"""
+        OUT_OF_SYNC: StreamDataMessage._Flags.ValueType  # 2
+        """Data was not logged at the requested rate"""
+        DEGRADED: StreamDataMessage._Flags.ValueType  # 4
+        """Processing is still ok, but data is in a degraded state"""
+
+    class Flags(_Flags, metaclass=_FlagsEnumTypeWrapper):
+        """Bitfield values to determine the health of a chunk"""
+
+    VALID: StreamDataMessage.Flags.ValueType  # 1
+    """Data is valid"""
+    OUT_OF_SYNC: StreamDataMessage.Flags.ValueType  # 2
+    """Data was not logged at the requested rate"""
+    DEGRADED: StreamDataMessage.Flags.ValueType  # 4
+    """Processing is still ok, but data is in a degraded state"""
+
+    @typing_extensions.final
+    class Chunk(google.protobuf.message.Message):
+        """Raw chunk of data representing a single stream"""
+
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        ID_FIELD_NUMBER: builtins.int
+        FLAGS_FIELD_NUMBER: builtins.int
+        TIMESTAMP_FIELD_NUMBER: builtins.int
+        PAYLOAD_FIELD_NUMBER: builtins.int
+        id: global___SystemDataId.ValueType
+        """Data stream ID"""
+        flags: builtins.int
+        """Status flags for the chunk"""
+        timestamp: builtins.int
+        """System time of the data payload in microseconds"""
+        payload: builtins.bytes
+        """Data payload"""
+        def __init__(
+            self,
+            *,
+            id: global___SystemDataId.ValueType | None = ...,
+            flags: builtins.int | None = ...,
+            timestamp: builtins.int | None = ...,
+            payload: builtins.bytes | None = ...,
+        ) -> None: ...
+        def HasField(self, field_name: typing_extensions.Literal["flags", b"flags", "id", b"id", "payload", b"payload", "timestamp", b"timestamp"]) -> builtins.bool: ...
+        def ClearField(self, field_name: typing_extensions.Literal["flags", b"flags", "id", b"id", "payload", b"payload", "timestamp", b"timestamp"]) -> None: ...
+
+    HEADER_FIELD_NUMBER: builtins.int
+    CHUNKS_FIELD_NUMBER: builtins.int
+    @property
+    def header(self) -> serial_interface_pb2.Header: ...
+    @property
+    def chunks(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___StreamDataMessage.Chunk]: ...
+    def __init__(
+        self,
+        *,
+        header: serial_interface_pb2.Header | None = ...,
+        chunks: collections.abc.Iterable[global___StreamDataMessage.Chunk] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["header", b"header"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["chunks", b"chunks", "header", b"header"]) -> None: ...
+
+global___StreamDataMessage = StreamDataMessage
 
 @typing_extensions.final
 class SystemDataMessage(google.protobuf.message.Message):

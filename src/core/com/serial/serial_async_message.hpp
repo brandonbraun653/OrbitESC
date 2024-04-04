@@ -202,37 +202,32 @@ namespace Orbit::Serial::Message
   /*---------------------------------------------------------------------------
   Message Class Declarations
   ---------------------------------------------------------------------------*/
-  using AckNack    = _CustomMsg<MsgId_MSG_ACK_NACK, AckNackMessage, AckNackMessage_size, AckNackMessage_fields>;
-  using Ping       = _CustomMsg<MsgId_MSG_PING_CMD, PingMessage, PingMessage_size, PingMessage_fields>;
-  using Console    = _CustomMsg<MsgId_MSG_TERMINAL, ConsoleMessage, ConsoleMessage_size, ConsoleMessage_fields>;
-  using SystemTick = _CustomMsg<MsgId_MSG_SYS_TICK, SystemTickMessage, SystemTickMessage_size, SystemTickMessage_fields>;
-  using SystemInfo = _CustomMsg<MsgId_MSG_SYS_INFO, SystemInfoMessage, SystemInfoMessage_size, SystemInfoMessage_fields>;
-  using ParamIO    = _CustomMsg<MsgId_MSG_PARAM_IO, ParamIOMessage, ParamIOMessage_size, ParamIOMessage_fields>;
-  using SystemControl =
-      _CustomMsg<MsgId_MSG_SYS_CTRL, SystemControlMessage, SystemControlMessage_size, SystemControlMessage_fields>;
-  using SystemData = _CustomMsg<MsgId_MSG_SYS_DATA, SystemDataMessage, SystemDataMessage_size, SystemDataMessage_fields>;
-  using SystemStatus =
-      _CustomMsg<MsgId_MSG_SYS_STATUS, SystemStatusMessage, SystemStatusMessage_size, SystemStatusMessage_fields>;
+  /* clang-format off*/
+  using AckNack       = _CustomMsg<MsgId_MSG_ACK_NACK,   AckNackMessage,       AckNackMessage_size,       AckNackMessage_fields>;
+  using Ping          = _CustomMsg<MsgId_MSG_PING_CMD,   PingMessage,          PingMessage_size,          PingMessage_fields>;
+  using Console       = _CustomMsg<MsgId_MSG_TERMINAL,   ConsoleMessage,       ConsoleMessage_size,       ConsoleMessage_fields>;
+  using SystemTick    = _CustomMsg<MsgId_MSG_SYS_TICK,   SystemTickMessage,    SystemTickMessage_size,    SystemTickMessage_fields>;
+  using SystemInfo    = _CustomMsg<MsgId_MSG_SYS_INFO,   SystemInfoMessage,    SystemInfoMessage_size,    SystemInfoMessage_fields>;
+  using ParamIO       = _CustomMsg<MsgId_MSG_PARAM_IO,   ParamIOMessage,       ParamIOMessage_size,       ParamIOMessage_fields>;
+  using SystemControl = _CustomMsg<MsgId_MSG_SYS_CTRL,   SystemControlMessage, SystemControlMessage_size, SystemControlMessage_fields>;
+  using SystemData    = _CustomMsg<MsgId_MSG_SYS_DATA,   SystemDataMessage,    SystemDataMessage_size,    SystemDataMessage_fields>;
+  using SystemStatus  = _CustomMsg<MsgId_MSG_SYS_STATUS, SystemStatusMessage,  SystemStatusMessage_size,  SystemStatusMessage_fields>;
+  using StreamRequest = _CustomMsg<MsgId_MSG_STREAM_REQ, StreamRequestMessage, StreamRequestMessage_size, StreamRequestMessage_fields>;
+  /* clang-format on */
 
   /*---------------------------------------------------------------------------
   Message Payload Declarations
   ---------------------------------------------------------------------------*/
   namespace Payload
   {
-    using ADCPhaseCurrents  = _CustomMsg<SystemDataId_ADC_PHASE_CURRENTS, ADCPhaseCurrentsPayload, ADCPhaseCurrentsPayload_size,
-                                        ADCPhaseCurrentsPayload_fields>;
-    using ADCPhaseVoltages  = _CustomMsg<SystemDataId_ADC_PHASE_VOLTAGES, ADCPhaseVoltagesPayload, ADCPhaseVoltagesPayload_size,
-                                        ADCPhaseVoltagesPayload_fields>;
-    using ADCSystemVoltages = _CustomMsg<SystemDataId_ADC_SYSTEM_VOLTAGES, ADCSystemVoltagesPayload,
-                                         ADCSystemVoltagesPayload_size, ADCSystemVoltagesPayload_fields>;
-    using CurrentControlMonitorPayload = _CustomMsg<SystemDataId_CURRENT_CONTROL_MONITOR, CurrentControlMonitorPayload,
-                                                    CurrentControlMonitorPayload_size, CurrentControlMonitorPayload_fields>;
-
-    using SystemObserverMonitorPayload = _CustomMsg<SystemDataId_SYSTEM_OBSERVER_MONITOR, SystemObserverMonitorPayload,
-                                                    SystemObserverMonitorPayload_size, SystemObserverMonitorPayload_fields>;
-
-    using InnerLoopVoltageMonitorPayload = _CustomMsg<SystemDataId_INNER_LOOP_VOLTAGES, InnerLoopVoltageMonitorPayload,
-                                                    InnerLoopVoltageMonitorPayload_size, InnerLoopVoltageMonitorPayload_fields>;
+    /* clang-format off */
+    using ADCPhaseCurrents               = _CustomMsg<SystemDataId_ADC_PHASE_CURRENTS,      ADCPhaseCurrentsPayload,        ADCPhaseCurrentsPayload_size,        ADCPhaseCurrentsPayload_fields>;
+    using ADCPhaseVoltages               = _CustomMsg<SystemDataId_ADC_PHASE_VOLTAGES,      ADCPhaseVoltagesPayload,        ADCPhaseVoltagesPayload_size,        ADCPhaseVoltagesPayload_fields>;
+    using ADCSystemVoltages              = _CustomMsg<SystemDataId_ADC_SYSTEM_VOLTAGES,     ADCSystemVoltagesPayload,       ADCSystemVoltagesPayload_size,       ADCSystemVoltagesPayload_fields>;
+    using CurrentControlMonitorPayload   = _CustomMsg<SystemDataId_CURRENT_CONTROL_MONITOR, CurrentControlMonitorPayload,   CurrentControlMonitorPayload_size,   CurrentControlMonitorPayload_fields>;
+    using SystemObserverMonitorPayload   = _CustomMsg<SystemDataId_SYSTEM_OBSERVER_MONITOR, SystemObserverMonitorPayload,   SystemObserverMonitorPayload_size,   SystemObserverMonitorPayload_fields>;
+    using InnerLoopVoltageMonitorPayload = _CustomMsg<SystemDataId_INNER_LOOP_VOLTAGES,     InnerLoopVoltageMonitorPayload, InnerLoopVoltageMonitorPayload_size, InnerLoopVoltageMonitorPayload_fields>;
+    /* clang-format on */
   }    // namespace Payload
 
 }    // namespace Orbit::Serial::Message

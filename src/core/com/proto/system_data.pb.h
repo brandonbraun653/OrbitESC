@@ -26,6 +26,13 @@ typedef enum _SystemDataId {
     SystemDataId_ADC_BUS_VOLTAGE = 101 /* DC bus voltage input to the motor controller */
 } SystemDataId;
 
+/* Bitfield values to determine the health of a chunk */
+typedef enum _StreamDataMessage_Flags {
+    StreamDataMessage_Flags_VALID = 1, /* Data is valid */
+    StreamDataMessage_Flags_OUT_OF_SYNC = 2, /* Data was not logged at the requested rate */
+    StreamDataMessage_Flags_DEGRADED = 4 /* Processing is still ok, but data is in a degraded state */
+} StreamDataMessage_Flags;
+
 /* Struct definitions */
 /* Message type for announcing the current system tick */
 typedef struct _SystemTickMessage {
@@ -57,6 +64,28 @@ typedef struct _SystemStatusMessage {
     uint32_t systemTick; /* System time in milliseconds */
     MotorCtrlState motorCtrlState; /* High level current motor control state */
 } SystemStatusMessage;
+
+typedef struct _StreamRequestMessage {
+    Header header;
+    SystemDataId id; /* Data stream to act on */
+    float rate; /* Periodic output rate in Hz */
+    bool active; /* True to enable the stream, False for disable */
+} StreamRequestMessage;
+
+typedef PB_BYTES_ARRAY_T(4) StreamDataMessage_Chunk_payload_t;
+/* Raw chunk of data representing a single stream */
+typedef struct _StreamDataMessage_Chunk {
+    SystemDataId id; /* Data stream ID */
+    uint8_t flags; /* Status flags for the chunk */
+    uint32_t timestamp; /* System time of the data payload in microseconds */
+    StreamDataMessage_Chunk_payload_t payload; /* Data payload */
+} StreamDataMessage_Chunk;
+
+typedef struct _StreamDataMessage {
+    Header header;
+    pb_size_t chunks_count;
+    StreamDataMessage_Chunk chunks[10];
+} StreamDataMessage;
 
 typedef PB_BYTES_ARRAY_T(80) SystemDataMessage_payload_t;
 /* Message type for streaming out raw data from the system in real time */
@@ -128,10 +157,19 @@ extern "C" {
 #define _SystemDataId_MAX SystemDataId_ADC_BUS_VOLTAGE
 #define _SystemDataId_ARRAYSIZE ((SystemDataId)(SystemDataId_ADC_BUS_VOLTAGE+1))
 
+#define _StreamDataMessage_Flags_MIN StreamDataMessage_Flags_VALID
+#define _StreamDataMessage_Flags_MAX StreamDataMessage_Flags_DEGRADED
+#define _StreamDataMessage_Flags_ARRAYSIZE ((StreamDataMessage_Flags)(StreamDataMessage_Flags_DEGRADED+1))
+
 
 
 
 #define SystemStatusMessage_motorCtrlState_ENUMTYPE MotorCtrlState
+
+#define StreamRequestMessage_id_ENUMTYPE SystemDataId
+
+
+#define StreamDataMessage_Chunk_id_ENUMTYPE SystemDataId
 
 #define SystemDataMessage_id_ENUMTYPE SystemDataId
 
@@ -147,6 +185,9 @@ extern "C" {
 #define ConsoleMessage_init_default              {Header_init_default, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_default           {Header_init_default, 0, "", "", ""}
 #define SystemStatusMessage_init_default         {Header_init_default, 0, _MotorCtrlState_MIN}
+#define StreamRequestMessage_init_default        {Header_init_default, _SystemDataId_MIN, 0, 0}
+#define StreamDataMessage_init_default           {Header_init_default, 0, {StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default}}
+#define StreamDataMessage_Chunk_init_default     {_SystemDataId_MIN, 0, 0, {0, {0}}}
 #define SystemDataMessage_init_default           {Header_init_default, _SystemDataId_MIN, 0, false, {0, {0}}}
 #define ADCPhaseCurrentsPayload_init_default     {0, 0, 0}
 #define ADCPhaseVoltagesPayload_init_default     {0, 0, 0}
@@ -158,6 +199,9 @@ extern "C" {
 #define ConsoleMessage_init_zero                 {Header_init_zero, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_zero              {Header_init_zero, 0, "", "", ""}
 #define SystemStatusMessage_init_zero            {Header_init_zero, 0, _MotorCtrlState_MIN}
+#define StreamRequestMessage_init_zero           {Header_init_zero, _SystemDataId_MIN, 0, 0}
+#define StreamDataMessage_init_zero              {Header_init_zero, 0, {StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero}}
+#define StreamDataMessage_Chunk_init_zero        {_SystemDataId_MIN, 0, 0, {0, {0}}}
 #define SystemDataMessage_init_zero              {Header_init_zero, _SystemDataId_MIN, 0, false, {0, {0}}}
 #define ADCPhaseCurrentsPayload_init_zero        {0, 0, 0}
 #define ADCPhaseVoltagesPayload_init_zero        {0, 0, 0}
@@ -181,6 +225,16 @@ extern "C" {
 #define SystemStatusMessage_header_tag           1
 #define SystemStatusMessage_systemTick_tag       2
 #define SystemStatusMessage_motorCtrlState_tag   3
+#define StreamRequestMessage_header_tag          1
+#define StreamRequestMessage_id_tag              2
+#define StreamRequestMessage_rate_tag            3
+#define StreamRequestMessage_active_tag          4
+#define StreamDataMessage_Chunk_id_tag           1
+#define StreamDataMessage_Chunk_flags_tag        2
+#define StreamDataMessage_Chunk_timestamp_tag    3
+#define StreamDataMessage_Chunk_payload_tag      4
+#define StreamDataMessage_header_tag             1
+#define StreamDataMessage_chunks_tag             2
 #define SystemDataMessage_header_tag             1
 #define SystemDataMessage_id_tag                 2
 #define SystemDataMessage_timestamp_tag          3
@@ -249,6 +303,31 @@ X(a, STATIC,   REQUIRED, UENUM,    motorCtrlState,    3)
 #define SystemStatusMessage_DEFAULT NULL
 #define SystemStatusMessage_header_MSGTYPE Header
 
+#define StreamRequestMessage_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
+X(a, STATIC,   REQUIRED, UENUM,    id,                2) \
+X(a, STATIC,   REQUIRED, FLOAT,    rate,              3) \
+X(a, STATIC,   REQUIRED, BOOL,     active,            4)
+#define StreamRequestMessage_CALLBACK NULL
+#define StreamRequestMessage_DEFAULT NULL
+#define StreamRequestMessage_header_MSGTYPE Header
+
+#define StreamDataMessage_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
+X(a, STATIC,   REPEATED, MESSAGE,  chunks,            2)
+#define StreamDataMessage_CALLBACK NULL
+#define StreamDataMessage_DEFAULT NULL
+#define StreamDataMessage_header_MSGTYPE Header
+#define StreamDataMessage_chunks_MSGTYPE StreamDataMessage_Chunk
+
+#define StreamDataMessage_Chunk_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, UENUM,    id,                1) \
+X(a, STATIC,   REQUIRED, UINT32,   flags,             2) \
+X(a, STATIC,   REQUIRED, UINT32,   timestamp,         3) \
+X(a, STATIC,   REQUIRED, BYTES,    payload,           4)
+#define StreamDataMessage_Chunk_CALLBACK NULL
+#define StreamDataMessage_Chunk_DEFAULT NULL
+
 #define SystemDataMessage_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
 X(a, STATIC,   REQUIRED, UENUM,    id,                2) \
@@ -314,6 +393,9 @@ extern const pb_msgdesc_t SystemTickMessage_msg;
 extern const pb_msgdesc_t ConsoleMessage_msg;
 extern const pb_msgdesc_t SystemInfoMessage_msg;
 extern const pb_msgdesc_t SystemStatusMessage_msg;
+extern const pb_msgdesc_t StreamRequestMessage_msg;
+extern const pb_msgdesc_t StreamDataMessage_msg;
+extern const pb_msgdesc_t StreamDataMessage_Chunk_msg;
 extern const pb_msgdesc_t SystemDataMessage_msg;
 extern const pb_msgdesc_t ADCPhaseCurrentsPayload_msg;
 extern const pb_msgdesc_t ADCPhaseVoltagesPayload_msg;
@@ -327,6 +409,9 @@ extern const pb_msgdesc_t InnerLoopVoltageMonitorPayload_msg;
 #define ConsoleMessage_fields &ConsoleMessage_msg
 #define SystemInfoMessage_fields &SystemInfoMessage_msg
 #define SystemStatusMessage_fields &SystemStatusMessage_msg
+#define StreamRequestMessage_fields &StreamRequestMessage_msg
+#define StreamDataMessage_fields &StreamDataMessage_msg
+#define StreamDataMessage_Chunk_fields &StreamDataMessage_Chunk_msg
 #define SystemDataMessage_fields &SystemDataMessage_msg
 #define ADCPhaseCurrentsPayload_fields &ADCPhaseCurrentsPayload_msg
 #define ADCPhaseVoltagesPayload_fields &ADCPhaseVoltagesPayload_msg
@@ -342,7 +427,10 @@ extern const pb_msgdesc_t InnerLoopVoltageMonitorPayload_msg;
 #define ConsoleMessage_size                      149
 #define CurrentControlMonitorPayload_size        55
 #define InnerLoopVoltageMonitorPayload_size      25
-#define SYSTEM_DATA_PB_H_MAX_SIZE                ConsoleMessage_size
+#define SYSTEM_DATA_PB_H_MAX_SIZE                StreamDataMessage_size
+#define StreamDataMessage_Chunk_size             17
+#define StreamDataMessage_size                   202
+#define StreamRequestMessage_size                21
 #define SystemDataMessage_size                   102
 #define SystemInfoMessage_size                   69
 #define SystemObserverMonitorPayload_size        10
@@ -382,6 +470,27 @@ struct MessageDescriptor<SystemStatusMessage> {
     static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 3;
     static inline const pb_msgdesc_t* fields() {
         return &SystemStatusMessage_msg;
+    }
+};
+template <>
+struct MessageDescriptor<StreamRequestMessage> {
+    static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 4;
+    static inline const pb_msgdesc_t* fields() {
+        return &StreamRequestMessage_msg;
+    }
+};
+template <>
+struct MessageDescriptor<StreamDataMessage> {
+    static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 2;
+    static inline const pb_msgdesc_t* fields() {
+        return &StreamDataMessage_msg;
+    }
+};
+template <>
+struct MessageDescriptor<StreamDataMessage_Chunk> {
+    static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 4;
+    static inline const pb_msgdesc_t* fields() {
+        return &StreamDataMessage_Chunk_msg;
     }
 };
 template <>

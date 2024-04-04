@@ -18,6 +18,15 @@ PB_BIND(SystemInfoMessage, SystemInfoMessage, AUTO)
 PB_BIND(SystemStatusMessage, SystemStatusMessage, AUTO)
 
 
+PB_BIND(StreamRequestMessage, StreamRequestMessage, AUTO)
+
+
+PB_BIND(StreamDataMessage, StreamDataMessage, AUTO)
+
+
+PB_BIND(StreamDataMessage_Chunk, StreamDataMessage_Chunk, AUTO)
+
+
 PB_BIND(SystemDataMessage, SystemDataMessage, AUTO)
 
 
@@ -37,6 +46,7 @@ PB_BIND(SystemObserverMonitorPayload, SystemObserverMonitorPayload, AUTO)
 
 
 PB_BIND(InnerLoopVoltageMonitorPayload, InnerLoopVoltageMonitorPayload, AUTO)
+
 
 
 

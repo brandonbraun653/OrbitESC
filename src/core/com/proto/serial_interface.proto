@@ -12,6 +12,7 @@ enum MsgId {
   MSG_SYS_CTRL   = 6; // Perform system control operations
   MSG_SYS_DATA   = 7; // System data stream
   MSG_SYS_STATUS = 8; // System status annunciation, essentially a snapshot of observable system state
+  MSG_STREAM_REQ = 9; // Request a data stream behavior from the device
 }
 
 // Specialization sub-IDs to further specify the root message ID.

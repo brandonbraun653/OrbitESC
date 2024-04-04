@@ -40,6 +40,8 @@ class _MsgIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumType
     """System data stream"""
     MSG_SYS_STATUS: _MsgId.ValueType  # 8
     """System status annunciation, essentially a snapshot of observable system state"""
+    MSG_STREAM_REQ: _MsgId.ValueType  # 9
+    """Request a data stream behavior from the device"""
 
 class MsgId(_MsgId, metaclass=_MsgIdEnumTypeWrapper):
     """Message IDs for all the core message types sent between the host and the device."""
@@ -62,6 +64,8 @@ MSG_SYS_DATA: MsgId.ValueType  # 7
 """System data stream"""
 MSG_SYS_STATUS: MsgId.ValueType  # 8
 """System status annunciation, essentially a snapshot of observable system state"""
+MSG_STREAM_REQ: MsgId.ValueType  # 9
+"""Request a data stream behavior from the device"""
 global___MsgId = MsgId
 
 class _SubId:

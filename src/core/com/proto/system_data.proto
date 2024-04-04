@@ -50,6 +50,33 @@ message SystemStatusMessage {
   // maybe something about error codes, etc.
 }
 
+message StreamRequestMessage {
+  required Header header = 1;
+  required SystemDataId id = 2 [(nanopb).int_size = IS_8]; // Data stream to act on
+  required float rate = 3; // Periodic output rate in Hz
+  required bool active = 4; // True to enable the stream, False for disable
+}
+
+message StreamDataMessage {
+  // Bitfield values to determine the health of a chunk
+  enum Flags {
+    VALID       = 0x01; // Data is valid
+    OUT_OF_SYNC = 0x02; // Data was not logged at the requested rate
+    DEGRADED    = 0x04; // Processing is still ok, but data is in a degraded state
+  }
+
+  // Raw chunk of data representing a single stream
+  message Chunk {
+    required SystemDataId id = 1 [(nanopb).int_size = IS_8]; // Data stream ID
+    required uint32 flags = 2 [(nanopb).int_size = IS_8]; // Status flags for the chunk
+    required uint32 timestamp = 3; // System time of the data payload in microseconds
+    required bytes payload = 4 [(nanopb).max_size = 4, (nanopb).fixed_length = true]; // Data payload
+  }
+
+  required Header header = 1;
+  repeated Chunk chunks = 2 [(nanopb).max_size = 120, (nanopb).max_count = 10];
+}
+
 // Message type for streaming out raw data from the system in real time
 message SystemDataMessage {
   required Header header = 1;
