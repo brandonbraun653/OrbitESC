@@ -1,16 +1,21 @@
 /******************************************************************************
  *  File Name:
- *    com_app_tx.hpp
+ *    com_stream_tasks.hpp
  *
  *  Description:
- *    Transport agnostic interface for publishing data to a remote host
+ *    Periodic tasks to publish data for the COM stream.
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
-#ifndef ORBIT_COM_APP_TX_HPP
-#define ORBIT_COM_APP_TX_HPP
+#ifndef ORBIT_COM_STREAM_TASKS_HPP
+#define ORBIT_COM_STREAM_TASKS_HPP
+
+/*-----------------------------------------------------------------------------
+Includes
+-----------------------------------------------------------------------------*/
+#include <cstdint>
 
 namespace Orbit::COM
 {
@@ -30,6 +35,7 @@ namespace Orbit::COM
     STREAM_ID_NUM_OPTIONS
   };
 
+
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
@@ -38,7 +44,7 @@ namespace Orbit::COM
    * @brief Register periodic data to be transmitted
    * @return void
    */
-  void initPeriodicData();
+  void initStreamTasks();
 
   /**
    * @brief Enable/disable a data stream for transmission
@@ -49,6 +55,6 @@ namespace Orbit::COM
    */
   void enableStream( const StreamId id, const bool enable );
 
-}    // namespace Orbit::COM
+}  // namespace Orbit::COM
 
-#endif /* !ORBIT_COM_APP_TX_HPP */
+#endif  /* !ORBIT_COM_STREAM_TASKS_HPP */

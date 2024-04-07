@@ -8,9 +8,7 @@
  *    data out the IO endpoints without having to dedicate a lot of time to
  *    managing the timing of the transmissions.
  *
- *    There are quite a large number of messages that need to be sent and
- *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -21,6 +19,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <cstdint>
+#include <etl/string.h>
 #include <src/core/com/com_types.hpp>
 
 

@@ -13,7 +13,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/utility>
 #include <Chimera/thread>
-#include <src/core/com/com_app_tx.hpp>
+#include <src/core/com/com_stream.hpp>
 #include <src/core/runtime/can_runtime.hpp>
 #include <src/core/runtime/serial_runtime.hpp>
 #include <src/core/tasks.hpp>
@@ -37,7 +37,7 @@ namespace Orbit::Tasks::COM
     -------------------------------------------------------------------------*/
     Orbit::CAN::initRuntime();
     Orbit::Serial::initRuntime();
-    Orbit::COM::initPeriodicData();
+    Orbit::COM::initStreamTasks();
 
     /*-------------------------------------------------------------------------
     Run the thread

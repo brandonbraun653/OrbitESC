@@ -195,10 +195,52 @@ global___SystemStatusMessage = SystemStatusMessage
 class StreamRequestMessage(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
+    class _Encoding:
+        ValueType = typing.NewType("ValueType", builtins.int)
+        V: typing_extensions.TypeAlias = ValueType
+
+    class _EncodingEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[StreamRequestMessage._Encoding.ValueType], builtins.type):
+        DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+        FLOAT: StreamRequestMessage._Encoding.ValueType  # 0
+        """Floating point data"""
+        UINT32: StreamRequestMessage._Encoding.ValueType  # 1
+        """32-bit unsigned integer data"""
+        UINT16: StreamRequestMessage._Encoding.ValueType  # 2
+        """16-bit unsigned integer data"""
+        UINT8: StreamRequestMessage._Encoding.ValueType  # 3
+        """8-bit unsigned integer data"""
+        INT32: StreamRequestMessage._Encoding.ValueType  # 4
+        """32-bit signed integer data"""
+        INT16: StreamRequestMessage._Encoding.ValueType  # 5
+        """16-bit signed integer data"""
+        INT8: StreamRequestMessage._Encoding.ValueType  # 6
+        """8-bit signed integer data"""
+        BOOL: StreamRequestMessage._Encoding.ValueType  # 7
+        """Boolean data"""
+
+    class Encoding(_Encoding, metaclass=_EncodingEnumTypeWrapper): ...
+    FLOAT: StreamRequestMessage.Encoding.ValueType  # 0
+    """Floating point data"""
+    UINT32: StreamRequestMessage.Encoding.ValueType  # 1
+    """32-bit unsigned integer data"""
+    UINT16: StreamRequestMessage.Encoding.ValueType  # 2
+    """16-bit unsigned integer data"""
+    UINT8: StreamRequestMessage.Encoding.ValueType  # 3
+    """8-bit unsigned integer data"""
+    INT32: StreamRequestMessage.Encoding.ValueType  # 4
+    """32-bit signed integer data"""
+    INT16: StreamRequestMessage.Encoding.ValueType  # 5
+    """16-bit signed integer data"""
+    INT8: StreamRequestMessage.Encoding.ValueType  # 6
+    """8-bit signed integer data"""
+    BOOL: StreamRequestMessage.Encoding.ValueType  # 7
+    """Boolean data"""
+
     HEADER_FIELD_NUMBER: builtins.int
     ID_FIELD_NUMBER: builtins.int
     RATE_FIELD_NUMBER: builtins.int
     ACTIVE_FIELD_NUMBER: builtins.int
+    ENCODING_FIELD_NUMBER: builtins.int
     @property
     def header(self) -> serial_interface_pb2.Header: ...
     id: global___SystemDataId.ValueType
@@ -207,6 +249,8 @@ class StreamRequestMessage(google.protobuf.message.Message):
     """Periodic output rate in Hz"""
     active: builtins.bool
     """True to enable the stream, False for disable"""
+    encoding: global___StreamRequestMessage.Encoding.ValueType
+    """Encoding to use for the stream"""
     def __init__(
         self,
         *,
@@ -214,9 +258,10 @@ class StreamRequestMessage(google.protobuf.message.Message):
         id: global___SystemDataId.ValueType | None = ...,
         rate: builtins.float | None = ...,
         active: builtins.bool | None = ...,
+        encoding: global___StreamRequestMessage.Encoding.ValueType | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["active", b"active", "header", b"header", "id", b"id", "rate", b"rate"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["active", b"active", "header", b"header", "id", b"id", "rate", b"rate"]) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["active", b"active", "encoding", b"encoding", "header", b"header", "id", b"id", "rate", b"rate"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["active", b"active", "encoding", b"encoding", "header", b"header", "id", b"id", "rate", b"rate"]) -> None: ...
 
 global___StreamRequestMessage = StreamRequestMessage
 
@@ -255,26 +300,47 @@ class StreamDataMessage(google.protobuf.message.Message):
 
         ID_FIELD_NUMBER: builtins.int
         FLAGS_FIELD_NUMBER: builtins.int
-        TIMESTAMP_FIELD_NUMBER: builtins.int
-        PAYLOAD_FIELD_NUMBER: builtins.int
+        TIMESTAMP_US_FIELD_NUMBER: builtins.int
+        FLOAT_VALUE_FIELD_NUMBER: builtins.int
+        UINT32_VALUE_FIELD_NUMBER: builtins.int
+        UINT16_VALUE_FIELD_NUMBER: builtins.int
+        UINT8_VALUE_FIELD_NUMBER: builtins.int
+        INT32_VALUE_FIELD_NUMBER: builtins.int
+        INT16_VALUE_FIELD_NUMBER: builtins.int
+        INT8_VALUE_FIELD_NUMBER: builtins.int
+        BOOL_VALUE_FIELD_NUMBER: builtins.int
         id: global___SystemDataId.ValueType
         """Data stream ID"""
         flags: builtins.int
         """Status flags for the chunk"""
-        timestamp: builtins.int
+        timestamp_us: builtins.int
         """System time of the data payload in microseconds"""
-        payload: builtins.bytes
-        """Data payload"""
+        float_value: builtins.float
+        uint32_value: builtins.int
+        uint16_value: builtins.int
+        uint8_value: builtins.int
+        int32_value: builtins.int
+        int16_value: builtins.int
+        int8_value: builtins.int
+        bool_value: builtins.bool
         def __init__(
             self,
             *,
             id: global___SystemDataId.ValueType | None = ...,
             flags: builtins.int | None = ...,
-            timestamp: builtins.int | None = ...,
-            payload: builtins.bytes | None = ...,
+            timestamp_us: builtins.int | None = ...,
+            float_value: builtins.float | None = ...,
+            uint32_value: builtins.int | None = ...,
+            uint16_value: builtins.int | None = ...,
+            uint8_value: builtins.int | None = ...,
+            int32_value: builtins.int | None = ...,
+            int16_value: builtins.int | None = ...,
+            int8_value: builtins.int | None = ...,
+            bool_value: builtins.bool | None = ...,
         ) -> None: ...
-        def HasField(self, field_name: typing_extensions.Literal["flags", b"flags", "id", b"id", "payload", b"payload", "timestamp", b"timestamp"]) -> builtins.bool: ...
-        def ClearField(self, field_name: typing_extensions.Literal["flags", b"flags", "id", b"id", "payload", b"payload", "timestamp", b"timestamp"]) -> None: ...
+        def HasField(self, field_name: typing_extensions.Literal["bool_value", b"bool_value", "flags", b"flags", "float_value", b"float_value", "id", b"id", "int16_value", b"int16_value", "int32_value", b"int32_value", "int8_value", b"int8_value", "payload", b"payload", "timestamp_us", b"timestamp_us", "uint16_value", b"uint16_value", "uint32_value", b"uint32_value", "uint8_value", b"uint8_value"]) -> builtins.bool: ...
+        def ClearField(self, field_name: typing_extensions.Literal["bool_value", b"bool_value", "flags", b"flags", "float_value", b"float_value", "id", b"id", "int16_value", b"int16_value", "int32_value", b"int32_value", "int8_value", b"int8_value", "payload", b"payload", "timestamp_us", b"timestamp_us", "uint16_value", b"uint16_value", "uint32_value", b"uint32_value", "uint8_value", b"uint8_value"]) -> None: ...
+        def WhichOneof(self, oneof_group: typing_extensions.Literal["payload", b"payload"]) -> typing_extensions.Literal["float_value", "uint32_value", "uint16_value", "uint8_value", "int32_value", "int16_value", "int8_value", "bool_value"] | None: ...
 
     HEADER_FIELD_NUMBER: builtins.int
     CHUNKS_FIELD_NUMBER: builtins.int

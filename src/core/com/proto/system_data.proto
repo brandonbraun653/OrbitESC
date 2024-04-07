@@ -51,10 +51,22 @@ message SystemStatusMessage {
 }
 
 message StreamRequestMessage {
+  enum Encoding {
+    FLOAT = 0; // Floating point data
+    UINT32 = 1; // 32-bit unsigned integer data
+    UINT16 = 2; // 16-bit unsigned integer data
+    UINT8 = 3; // 8-bit unsigned integer data
+    INT32 = 4; // 32-bit signed integer data
+    INT16 = 5; // 16-bit signed integer data
+    INT8 = 6; // 8-bit signed integer data
+    BOOL = 7; // Boolean data
+  }
+
   required Header header = 1;
   required SystemDataId id = 2 [(nanopb).int_size = IS_8]; // Data stream to act on
   required float rate = 3; // Periodic output rate in Hz
   required bool active = 4; // True to enable the stream, False for disable
+  required Encoding encoding = 5 [(nanopb).int_size = IS_8]; // Encoding to use for the stream
 }
 
 message StreamDataMessage {
@@ -69,12 +81,21 @@ message StreamDataMessage {
   message Chunk {
     required SystemDataId id = 1 [(nanopb).int_size = IS_8]; // Data stream ID
     required uint32 flags = 2 [(nanopb).int_size = IS_8]; // Status flags for the chunk
-    required uint32 timestamp = 3; // System time of the data payload in microseconds
-    required bytes payload = 4 [(nanopb).max_size = 4, (nanopb).fixed_length = true]; // Data payload
+    required uint32 timestamp_us = 3; // System time of the data payload in microseconds
+    oneof payload {
+      float float_value = 4;
+      uint32 uint32_value = 5;
+      uint32 uint16_value = 6 [(nanopb).int_size = IS_16];
+      uint32 uint8_value = 7 [(nanopb).int_size = IS_8];
+      int32 int32_value = 8;
+      int32 int16_value = 9 [(nanopb).int_size = IS_16];
+      int32 int8_value = 10 [(nanopb).int_size = IS_8];
+      bool bool_value = 11;
+    }
   }
 
   required Header header = 1;
-  repeated Chunk chunks = 2 [(nanopb).max_size = 120, (nanopb).max_count = 10];
+  repeated Chunk chunks = 2 [(nanopb).max_count = 10];
 }
 
 // Message type for streaming out raw data from the system in real time

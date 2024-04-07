@@ -11,7 +11,8 @@ gen_static_lib_variants(
     can/routers/can_ping_router.cpp
     can/routers/can_reset_router.cpp
     can/routers/can_speed_router.cpp
-    com_app_tx.cpp
+    com_stream.cpp
+    com_stream_tasks.cpp
     com_scheduler.cpp
     proto/motor_control.pb.c
     proto/serial_interface.pb.c

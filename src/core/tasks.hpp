@@ -32,7 +32,10 @@ namespace Orbit::Tasks
     TASK_CTL,  /**< Control system task */
     TASK_COM,  /**< Networking/communications processing */
     TASK_USB,  /**< USB hardware stack */
-    TASK_CDC,  /**< USB CDC driver */
+
+
+    // TODO BMB: Remove
+    // TASK_CDC,  /**< USB CDC driver */
 
     #if defined( SIMULATOR )
     TASK_SIM,  /**< Simulation task */
@@ -63,7 +66,8 @@ namespace Orbit::Tasks
     /*-------------------------------------------------------------------------
     USB CDC
     -------------------------------------------------------------------------*/
-    TASK_MSG_CDC_WAKEUP, /**< There is work to do on the CDC class */
+    // TODO BMB: Remove
+    // TASK_MSG_CDC_WAKEUP, /**< There is work to do on the CDC class */
 
     TASK_MSG_NUM_OPTIONS
   };

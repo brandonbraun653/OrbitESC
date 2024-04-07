@@ -205,7 +205,7 @@ namespace Orbit::COM::Scheduler
         if( task->endpoint & Endpoint::UART )
         {
           const auto size = sSerial->write( task->data, task->size, Chimera::Thread::TIMEOUT_DONT_WAIT );
-          LOG_WARN_IF( Serial::isConnected() && size != static_cast<int>( task->size ), "Task %s UART write failed", task->name.c_str() );
+          LOG_WARN_IF( size != static_cast<int>( task->size ), "Task %s UART write failed", task->name.c_str() );
           Monitor::putDataTXEvent();
         }
 
@@ -219,7 +219,7 @@ namespace Orbit::COM::Scheduler
         if( task->endpoint & Endpoint::CAN )
         {
           const auto status = sCAN->send( *reinterpret_cast<Chimera::CAN::BasicFrame *>( task->data ) );
-          LOG_WARN_IF( Serial::isConnected() && status != Chimera::Status::OK, "Task %s CAN write failed", task->name.c_str() );
+          LOG_WARN_IF( status != Chimera::Status::OK, "Task %s CAN write failed", task->name.c_str() );
           Monitor::putDataTXEvent();
         }
       }

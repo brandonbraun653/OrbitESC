@@ -35,6 +35,17 @@ namespace Orbit::Serial
 
   class USBSerial;
 
+  /*---------------------------------------------------------------------------
+  Enumerations
+  ---------------------------------------------------------------------------*/
+
+  enum Endpoint : uint8_t
+  {
+    COM_ENDPOINT = 0,  /**< Default communication endpoint */
+
+    NUM_ENDPOINTS
+  };
+
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -80,7 +91,7 @@ namespace Orbit::Serial
      * @param ptx_isr TX buffer to use for ISR generated data
      * @return Chimera::Status_t
      */
-    Chimera::Status_t init( const size_t endpoint, CircularBuffer prx, CircularBuffer ptx, ISRLockedQueue ptx_isr );
+    Chimera::Status_t init( const Endpoint endpoint, CircularBuffer prx, CircularBuffer ptx, ISRLockedQueue ptx_isr );
 
     /**
      * @brief Periodic processing to flush IO buffers as data arrives.
@@ -112,6 +123,12 @@ namespace Orbit::Serial
                              const size_t timeout = Chimera::Thread::TIMEOUT_DONT_WAIT ) final override;
     int               read( void *const buffer, const size_t length,
                             const size_t timeout = Chimera::Thread::TIMEOUT_DONT_WAIT ) final override;
+
+  protected:
+    friend etl::delegate<void( void )>;
+
+    void on_rx_complete();
+    void on_tx_complete();
 
   private:
     size_t         mEndpoint;

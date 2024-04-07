@@ -26,6 +26,17 @@ typedef enum _SystemDataId {
     SystemDataId_ADC_BUS_VOLTAGE = 101 /* DC bus voltage input to the motor controller */
 } SystemDataId;
 
+typedef enum _StreamRequestMessage_Encoding {
+    StreamRequestMessage_Encoding_FLOAT = 0, /* Floating point data */
+    StreamRequestMessage_Encoding_UINT32 = 1, /* 32-bit unsigned integer data */
+    StreamRequestMessage_Encoding_UINT16 = 2, /* 16-bit unsigned integer data */
+    StreamRequestMessage_Encoding_UINT8 = 3, /* 8-bit unsigned integer data */
+    StreamRequestMessage_Encoding_INT32 = 4, /* 32-bit signed integer data */
+    StreamRequestMessage_Encoding_INT16 = 5, /* 16-bit signed integer data */
+    StreamRequestMessage_Encoding_INT8 = 6, /* 8-bit signed integer data */
+    StreamRequestMessage_Encoding_BOOL = 7 /* Boolean data */
+} StreamRequestMessage_Encoding;
+
 /* Bitfield values to determine the health of a chunk */
 typedef enum _StreamDataMessage_Flags {
     StreamDataMessage_Flags_VALID = 1, /* Data is valid */
@@ -70,15 +81,25 @@ typedef struct _StreamRequestMessage {
     SystemDataId id; /* Data stream to act on */
     float rate; /* Periodic output rate in Hz */
     bool active; /* True to enable the stream, False for disable */
+    StreamRequestMessage_Encoding encoding; /* Encoding to use for the stream */
 } StreamRequestMessage;
 
-typedef PB_BYTES_ARRAY_T(4) StreamDataMessage_Chunk_payload_t;
 /* Raw chunk of data representing a single stream */
 typedef struct _StreamDataMessage_Chunk {
     SystemDataId id; /* Data stream ID */
     uint8_t flags; /* Status flags for the chunk */
-    uint32_t timestamp; /* System time of the data payload in microseconds */
-    StreamDataMessage_Chunk_payload_t payload; /* Data payload */
+    uint32_t timestamp_us; /* System time of the data payload in microseconds */
+    pb_size_t which_payload;
+    union {
+        float float_value;
+        uint32_t uint32_value;
+        uint16_t uint16_value;
+        uint8_t uint8_value;
+        int32_t int32_value;
+        int16_t int16_value;
+        int8_t int8_value;
+        bool bool_value;
+    } payload;
 } StreamDataMessage_Chunk;
 
 typedef struct _StreamDataMessage {
@@ -157,6 +178,10 @@ extern "C" {
 #define _SystemDataId_MAX SystemDataId_ADC_BUS_VOLTAGE
 #define _SystemDataId_ARRAYSIZE ((SystemDataId)(SystemDataId_ADC_BUS_VOLTAGE+1))
 
+#define _StreamRequestMessage_Encoding_MIN StreamRequestMessage_Encoding_FLOAT
+#define _StreamRequestMessage_Encoding_MAX StreamRequestMessage_Encoding_BOOL
+#define _StreamRequestMessage_Encoding_ARRAYSIZE ((StreamRequestMessage_Encoding)(StreamRequestMessage_Encoding_BOOL+1))
+
 #define _StreamDataMessage_Flags_MIN StreamDataMessage_Flags_VALID
 #define _StreamDataMessage_Flags_MAX StreamDataMessage_Flags_DEGRADED
 #define _StreamDataMessage_Flags_ARRAYSIZE ((StreamDataMessage_Flags)(StreamDataMessage_Flags_DEGRADED+1))
@@ -167,6 +192,7 @@ extern "C" {
 #define SystemStatusMessage_motorCtrlState_ENUMTYPE MotorCtrlState
 
 #define StreamRequestMessage_id_ENUMTYPE SystemDataId
+#define StreamRequestMessage_encoding_ENUMTYPE StreamRequestMessage_Encoding
 
 
 #define StreamDataMessage_Chunk_id_ENUMTYPE SystemDataId
@@ -185,9 +211,9 @@ extern "C" {
 #define ConsoleMessage_init_default              {Header_init_default, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_default           {Header_init_default, 0, "", "", ""}
 #define SystemStatusMessage_init_default         {Header_init_default, 0, _MotorCtrlState_MIN}
-#define StreamRequestMessage_init_default        {Header_init_default, _SystemDataId_MIN, 0, 0}
+#define StreamRequestMessage_init_default        {Header_init_default, _SystemDataId_MIN, 0, 0, _StreamRequestMessage_Encoding_MIN}
 #define StreamDataMessage_init_default           {Header_init_default, 0, {StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default, StreamDataMessage_Chunk_init_default}}
-#define StreamDataMessage_Chunk_init_default     {_SystemDataId_MIN, 0, 0, {0, {0}}}
+#define StreamDataMessage_Chunk_init_default     {_SystemDataId_MIN, 0, 0, 0, {0}}
 #define SystemDataMessage_init_default           {Header_init_default, _SystemDataId_MIN, 0, false, {0, {0}}}
 #define ADCPhaseCurrentsPayload_init_default     {0, 0, 0}
 #define ADCPhaseVoltagesPayload_init_default     {0, 0, 0}
@@ -199,9 +225,9 @@ extern "C" {
 #define ConsoleMessage_init_zero                 {Header_init_zero, 0, 0, {0, {0}}}
 #define SystemInfoMessage_init_zero              {Header_init_zero, 0, "", "", ""}
 #define SystemStatusMessage_init_zero            {Header_init_zero, 0, _MotorCtrlState_MIN}
-#define StreamRequestMessage_init_zero           {Header_init_zero, _SystemDataId_MIN, 0, 0}
+#define StreamRequestMessage_init_zero           {Header_init_zero, _SystemDataId_MIN, 0, 0, _StreamRequestMessage_Encoding_MIN}
 #define StreamDataMessage_init_zero              {Header_init_zero, 0, {StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero, StreamDataMessage_Chunk_init_zero}}
-#define StreamDataMessage_Chunk_init_zero        {_SystemDataId_MIN, 0, 0, {0, {0}}}
+#define StreamDataMessage_Chunk_init_zero        {_SystemDataId_MIN, 0, 0, 0, {0}}
 #define SystemDataMessage_init_zero              {Header_init_zero, _SystemDataId_MIN, 0, false, {0, {0}}}
 #define ADCPhaseCurrentsPayload_init_zero        {0, 0, 0}
 #define ADCPhaseVoltagesPayload_init_zero        {0, 0, 0}
@@ -229,10 +255,18 @@ extern "C" {
 #define StreamRequestMessage_id_tag              2
 #define StreamRequestMessage_rate_tag            3
 #define StreamRequestMessage_active_tag          4
+#define StreamRequestMessage_encoding_tag        5
 #define StreamDataMessage_Chunk_id_tag           1
 #define StreamDataMessage_Chunk_flags_tag        2
-#define StreamDataMessage_Chunk_timestamp_tag    3
-#define StreamDataMessage_Chunk_payload_tag      4
+#define StreamDataMessage_Chunk_timestamp_us_tag 3
+#define StreamDataMessage_Chunk_float_value_tag  4
+#define StreamDataMessage_Chunk_uint32_value_tag 5
+#define StreamDataMessage_Chunk_uint16_value_tag 6
+#define StreamDataMessage_Chunk_uint8_value_tag  7
+#define StreamDataMessage_Chunk_int32_value_tag  8
+#define StreamDataMessage_Chunk_int16_value_tag  9
+#define StreamDataMessage_Chunk_int8_value_tag   10
+#define StreamDataMessage_Chunk_bool_value_tag   11
 #define StreamDataMessage_header_tag             1
 #define StreamDataMessage_chunks_tag             2
 #define SystemDataMessage_header_tag             1
@@ -307,7 +341,8 @@ X(a, STATIC,   REQUIRED, UENUM,    motorCtrlState,    3)
 X(a, STATIC,   REQUIRED, MESSAGE,  header,            1) \
 X(a, STATIC,   REQUIRED, UENUM,    id,                2) \
 X(a, STATIC,   REQUIRED, FLOAT,    rate,              3) \
-X(a, STATIC,   REQUIRED, BOOL,     active,            4)
+X(a, STATIC,   REQUIRED, BOOL,     active,            4) \
+X(a, STATIC,   REQUIRED, UENUM,    encoding,          5)
 #define StreamRequestMessage_CALLBACK NULL
 #define StreamRequestMessage_DEFAULT NULL
 #define StreamRequestMessage_header_MSGTYPE Header
@@ -323,8 +358,15 @@ X(a, STATIC,   REPEATED, MESSAGE,  chunks,            2)
 #define StreamDataMessage_Chunk_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, UENUM,    id,                1) \
 X(a, STATIC,   REQUIRED, UINT32,   flags,             2) \
-X(a, STATIC,   REQUIRED, UINT32,   timestamp,         3) \
-X(a, STATIC,   REQUIRED, BYTES,    payload,           4)
+X(a, STATIC,   REQUIRED, UINT32,   timestamp_us,      3) \
+X(a, STATIC,   ONEOF,    FLOAT,    (payload,float_value,payload.float_value),   4) \
+X(a, STATIC,   ONEOF,    UINT32,   (payload,uint32_value,payload.uint32_value),   5) \
+X(a, STATIC,   ONEOF,    UINT32,   (payload,uint16_value,payload.uint16_value),   6) \
+X(a, STATIC,   ONEOF,    UINT32,   (payload,uint8_value,payload.uint8_value),   7) \
+X(a, STATIC,   ONEOF,    INT32,    (payload,int32_value,payload.int32_value),   8) \
+X(a, STATIC,   ONEOF,    INT32,    (payload,int16_value,payload.int16_value),   9) \
+X(a, STATIC,   ONEOF,    INT32,    (payload,int8_value,payload.int8_value),  10) \
+X(a, STATIC,   ONEOF,    BOOL,     (payload,bool_value,payload.bool_value),  11)
 #define StreamDataMessage_Chunk_CALLBACK NULL
 #define StreamDataMessage_Chunk_DEFAULT NULL
 
@@ -428,9 +470,9 @@ extern const pb_msgdesc_t InnerLoopVoltageMonitorPayload_msg;
 #define CurrentControlMonitorPayload_size        55
 #define InnerLoopVoltageMonitorPayload_size      25
 #define SYSTEM_DATA_PB_H_MAX_SIZE                StreamDataMessage_size
-#define StreamDataMessage_Chunk_size             17
-#define StreamDataMessage_size                   202
-#define StreamRequestMessage_size                21
+#define StreamDataMessage_Chunk_size             22
+#define StreamDataMessage_size                   252
+#define StreamRequestMessage_size                23
 #define SystemDataMessage_size                   102
 #define SystemInfoMessage_size                   69
 #define SystemObserverMonitorPayload_size        10
@@ -474,7 +516,7 @@ struct MessageDescriptor<SystemStatusMessage> {
 };
 template <>
 struct MessageDescriptor<StreamRequestMessage> {
-    static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 4;
+    static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 5;
     static inline const pb_msgdesc_t* fields() {
         return &StreamRequestMessage_msg;
     }
@@ -488,7 +530,7 @@ struct MessageDescriptor<StreamDataMessage> {
 };
 template <>
 struct MessageDescriptor<StreamDataMessage_Chunk> {
-    static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 4;
+    static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 11;
     static inline const pb_msgdesc_t* fields() {
         return &StreamDataMessage_Chunk_msg;
     }

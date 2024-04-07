@@ -157,7 +157,8 @@
 			"__verbose_abort": "cpp",
 			"ios": "cpp",
 			"locale": "cpp",
-			"format": "cpp"
+			"format": "cpp",
+			"charconv": "cpp"
 		},
 		"peacock.color": "#f9e64f",
 		"workbench.colorCustomizations": {

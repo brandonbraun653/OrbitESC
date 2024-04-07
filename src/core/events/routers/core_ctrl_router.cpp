@@ -14,7 +14,7 @@ Includes
 #include <Chimera/common>
 #include <src/core/events/routers/router_types.hpp>
 #include <src/core/system.hpp>
-#include <src/core/com/com_app_tx.hpp>
+#include <src/core/com/com_stream.hpp>
 
 
 namespace Orbit::Event

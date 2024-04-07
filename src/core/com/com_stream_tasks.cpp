@@ -1,11 +1,11 @@
 /******************************************************************************
  *  File Name:
- *    com_app_tx.cpp
+ *    com_stream_tasks.cpp
  *
  *  Description:
  *    Transport agnostic interface for publishing data to a remote host
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -15,7 +15,7 @@ Includes
 #include <cstdint>
 #include <src/control/foc_data.hpp>
 #include <src/control/foc_driver.hpp>
-#include <src/core/com/com_app_tx.hpp>
+#include <src/core/com/com_stream.hpp>
 #include <src/core/com/com_scheduler.hpp>
 #include <src/core/com/serial/serial_async_message.hpp>
 #include <src/core/data/orbit_data.hpp>
@@ -235,7 +235,7 @@ namespace Orbit::COM
   Public Functions
   ---------------------------------------------------------------------------*/
 
-  void initPeriodicData()
+  void initStreamTasks()
   {
     Scheduler::Task tsk;
 
