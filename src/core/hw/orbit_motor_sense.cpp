@@ -238,22 +238,14 @@ namespace Orbit::Motor::Sense
     /*-------------------------------------------------------------------------
     Local Constants
     -------------------------------------------------------------------------*/
-    const Chimera::ADC::Channel sample_channels[] = {
-      IO::Analog::adcIPhaseA, /**< CHANNEL_PHASE_A_CURRENT */
-      IO::Analog::adcIPhaseB, /**< CHANNEL_PHASE_B_CURRENT */
-      IO::Analog::adcIPhaseC, /**< CHANNEL_PHASE_C_CURRENT */
-      IO::Analog::adcVPhaseA, /**< CHANNEL_PHASE_A_VOLTAGE */
-      IO::Analog::adcVPhaseB, /**< CHANNEL_PHASE_B_VOLTAGE */
-      IO::Analog::adcVPhaseC  /**< CHANNEL_PHASE_C_VOLTAGE */
-    };
+    Chimera::ADC::Channel sample_channels[ CHANNEL_COUNT ];
 
-    static_assert( CHANNEL_PHASE_A_CURRENT == 0 );
-    static_assert( CHANNEL_PHASE_B_CURRENT == 1 );
-    static_assert( CHANNEL_PHASE_C_CURRENT == 2 );
-    static_assert( CHANNEL_PHASE_A_VOLTAGE == 3 );
-    static_assert( CHANNEL_PHASE_B_VOLTAGE == 4 );
-    static_assert( CHANNEL_PHASE_C_VOLTAGE == 5 );
-    static_assert( ARRAY_COUNT( sample_channels ) == CHANNEL_COUNT );
+    sample_channels[ CHANNEL_PHASE_A_CURRENT ] = IO::Analog::adcIPhaseA;
+    sample_channels[ CHANNEL_PHASE_B_CURRENT ] = IO::Analog::adcIPhaseB;
+    sample_channels[ CHANNEL_PHASE_C_CURRENT ] = IO::Analog::adcIPhaseC;
+    sample_channels[ CHANNEL_PHASE_A_VOLTAGE ] = IO::Analog::adcVPhaseA;
+    sample_channels[ CHANNEL_PHASE_B_VOLTAGE ] = IO::Analog::adcVPhaseB;
+    sample_channels[ CHANNEL_PHASE_C_VOLTAGE ] = IO::Analog::adcVPhaseC;
 
     /*-------------------------------------------------------------------------
     Relinquish control from the timer peripheral of the motor power stage.

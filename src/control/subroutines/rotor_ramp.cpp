@@ -47,7 +47,7 @@ namespace Orbit::Control::Subroutine
   /*---------------------------------------------------------------------------
   Temporary Values
   ---------------------------------------------------------------------------*/
-  static constexpr float s_rpm_desired = 12000.0f;
+  static constexpr float s_rpm_desired = 8000.0f;
 
   /*---------------------------------------------------------------------------
   Static Data

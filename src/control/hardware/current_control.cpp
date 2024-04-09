@@ -350,6 +350,10 @@ namespace Orbit::Control::Field
       foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
       foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
       foc_ireg_state.ima = -1.0f * ( foc_ireg_state.imb + foc_ireg_state.imc );
+
+      foc_ireg_state.vmb = sense_data.channel[ CHANNEL_PHASE_B_VOLTAGE ];
+      foc_ireg_state.vmc = sense_data.channel[ CHANNEL_PHASE_C_VOLTAGE ];
+      foc_ireg_state.vma = -1.0f * ( foc_ireg_state.vmb + foc_ireg_state.vmc );
     }
     else if( ( svmState.phase1 == Chimera::Timer::Channel::CHANNEL_1 ) &&
              ( svmState.phase2 == Chimera::Timer::Channel::CHANNEL_3 ) )
@@ -360,6 +364,10 @@ namespace Orbit::Control::Field
       foc_ireg_state.ima = sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
       foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
       foc_ireg_state.imb = -1.0f * ( foc_ireg_state.ima + foc_ireg_state.imc );
+
+      foc_ireg_state.vma = sense_data.channel[ CHANNEL_PHASE_A_VOLTAGE ];
+      foc_ireg_state.vmc = sense_data.channel[ CHANNEL_PHASE_C_VOLTAGE ];
+      foc_ireg_state.vmb = -1.0f * ( foc_ireg_state.vma + foc_ireg_state.vmc );
     }
     else if( ( svmState.phase1 == Chimera::Timer::Channel::CHANNEL_1 ) &&
              ( svmState.phase2 == Chimera::Timer::Channel::CHANNEL_2 ) )
@@ -370,6 +378,10 @@ namespace Orbit::Control::Field
       foc_ireg_state.ima = sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
       foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
       foc_ireg_state.imc = -1.0f * ( foc_ireg_state.ima + foc_ireg_state.imb );
+
+      foc_ireg_state.vma = sense_data.channel[ CHANNEL_PHASE_A_VOLTAGE ];
+      foc_ireg_state.vmb = sense_data.channel[ CHANNEL_PHASE_B_VOLTAGE ];
+      foc_ireg_state.vmc = -1.0f * ( foc_ireg_state.vma + foc_ireg_state.vmb );
     }
     else
     {
