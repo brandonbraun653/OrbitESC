@@ -498,11 +498,11 @@ namespace Orbit::Control::Field
     -------------------------------------------------------------------------*/
     // TEMPORARY
     static constexpr bool CURRENT_MONITOR  = false;
-    static constexpr bool OBSERVER_MONITOR = false;
-    static constexpr bool VOLTAGE_MONITOR  = true;
+    static constexpr bool OBSERVER_MONITOR = true;
+    static constexpr bool VOLTAGE_MONITOR  = false;
 
 #if defined( EMBEDDED )
-    if( isr_monitor_count++ >= 1 )
+    if( isr_monitor_count++ >= 5 )
     {
       isr_monitor_count = 0;
 #endif

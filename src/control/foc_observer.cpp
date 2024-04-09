@@ -220,12 +220,6 @@ namespace Orbit::Control::Observer
     sState.z2 += z2_dot * input.dt;
 
     // Testing
-    float dtheta = output.theta - theta_last;
-    Math::normalize_radians( dtheta );
-    float omega =  dtheta * input.dt;
-    theta_last = output.theta;
-
-    UTILS_LP_FAST( filtered_omega, omega, 0.01f );
-    output.omega = filtered_omega;
+    output.omega = z1_dot;
   }
 }    // namespace Orbit::Control::Observer

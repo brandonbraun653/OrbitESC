@@ -184,8 +184,8 @@ namespace Orbit::Control::Subroutine
       const float omega_scale = now_sec;
 
       foc_motor_state.omegaEst = mRampState.omega_desired * omega_scale;
-      foc_ireg_state.max_drive = 1.0f;
-      foc_ireg_state.iqRef     = 1.1f;
+      foc_ireg_state.max_drive = 0.4f;
+      foc_ireg_state.iqRef     = 0.8f;
       foc_ireg_state.idRef     = 0.0f;
     }
 
