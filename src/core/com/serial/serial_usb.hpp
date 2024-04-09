@@ -79,12 +79,8 @@ namespace Orbit::Serial
     USBSerial();
     ~USBSerial();
 
-    /*-------------------------------------------------------------------------
-    Custom Interface
-    -------------------------------------------------------------------------*/
-
     /**
-     * @brief Map buffers to the USB driver
+     * @brief Initializes the USB serial driver
      *
      * @param endpoint Which CDC endpoint to push/pull from
      * @param prx RX buffer to use for normal multi-threaded operation
@@ -98,12 +94,19 @@ namespace Orbit::Serial
      *
      * Normally most data is transferred via the userspace interrupt handlers
      * for the USB peripheral. However, it's possible to stall data transfer
-     * in some scenarios. This function is used to ensure that data is still
-     * being processed even if the interrupt handlers are not being called.
+     * in some scenarios due to the locking sync of the read/write functions.
+     * This function is used to ensure that data is still being processed even
+     * if the interrupt driven handlers couldn't process immediately.
      *
      * @return void
      */
     void process();
+
+    /**
+     * @brief Returns the number of bytes available for writing
+     * @return size_t
+     */
+    size_t availableForWrite();
 
     /*-------------------------------------------------------------------------
     Chimera::Serial::Driver Implementation

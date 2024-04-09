@@ -94,7 +94,14 @@ namespace Orbit::Serial
 
   void USBSerial::process()
   {
-    // on_tx_complete();
+    on_rx_complete();
+    on_tx_complete();
+  }
+
+
+  size_t USBSerial::availableForWrite()
+  {
+    return mTXBuffer->available();
   }
 
 
@@ -122,38 +129,41 @@ namespace Orbit::Serial
       return 0;
     }
 
-    if( !this->try_lock_for( timeout ) )
-    {
-      return 0;
-    }
-
     /*-------------------------------------------------------------------------
-    First attempt to push as much data directly into the CDC driver as possible
+    Do the write operation
     -------------------------------------------------------------------------*/
-    const size_t cdc_avail_size = tud_cdc_n_write_available( mEndpoint );
-    const size_t cdc_write_size = std::min( length, cdc_avail_size );
-    size_t  read_idx = 0;
+    Chimera::Thread::TimedLockGuard lck( *this );
 
-    if( cdc_write_size )
-    {
-      read_idx += static_cast<ssize_t>( tud_cdc_n_write( mEndpoint, buffer, cdc_write_size ) );
-    }
+    size_t read_idx = 0;
 
-    /*-------------------------------------------------------------------------
-    Enqueue any remaining data into the TX buffer
-    -------------------------------------------------------------------------*/
-    const size_t to_write = length - read_idx;
-    if( to_write > 0 )
+    if( lck.try_lock_for( timeout ) )
     {
-      ssize_t q_write_size = std::min( to_write, mTXBuffer->available() );
-      while( q_write_size > 0 )
+      /*-----------------------------------------------------------------------
+      Write data directly to the USB driver
+      -----------------------------------------------------------------------*/
+      const size_t cdc_avail_size = tud_cdc_n_write_available( mEndpoint );
+      const size_t cdc_write_size = std::min( length, cdc_avail_size );
+
+      if( cdc_write_size )
       {
-        mTXBuffer->push( static_cast<const uint8_t *>( buffer )[ read_idx++ ] );
-        q_write_size--;
+        read_idx += static_cast<ssize_t>( tud_cdc_n_write( mEndpoint, buffer, cdc_write_size ) );
+      }
+
+      /*-----------------------------------------------------------------------
+      Enqueue any remaining data into the TX buffer
+      -----------------------------------------------------------------------*/
+      const size_t to_write = length - read_idx;
+      if( to_write > 0 )
+      {
+        ssize_t q_write_size = std::min( to_write, mTXBuffer->available() );
+        while( q_write_size > 0 )
+        {
+          mTXBuffer->push( static_cast<const uint8_t *>( buffer )[ read_idx++ ] );
+          q_write_size--;
+        }
       }
     }
 
-    this->unlock();
     return static_cast<int>( read_idx );
   }
 
@@ -168,25 +178,25 @@ namespace Orbit::Serial
       return 0;
     }
 
-    if( !this->try_lock_for( timeout ) )
-    {
-      return 0;
-    }
-
     /*-------------------------------------------------------------------------
     Read data into the user buffer
     -------------------------------------------------------------------------*/
-    const size_t read_size = std::min( length, mRXBuffer->size() );
+    Chimera::Thread::TimedLockGuard lck( *this );
 
     size_t bytes_read = 0;
-    while( bytes_read < read_size )
+
+    if( lck.try_lock_for( timeout ) )
     {
-      static_cast<uint8_t *>( buffer )[ bytes_read ] = mRXBuffer->front();
-      mRXBuffer->pop();
-      bytes_read++;
+      const size_t read_size = std::min( length, mRXBuffer->size() );
+
+      while( bytes_read < read_size )
+      {
+        static_cast<uint8_t *>( buffer )[ bytes_read ] = mRXBuffer->front();
+        mRXBuffer->pop();
+        bytes_read++;
+      }
     }
 
-    this->unlock();
     return static_cast<int>( bytes_read );
   }
 
@@ -194,10 +204,18 @@ namespace Orbit::Serial
   void USBSerial::on_rx_complete()
   {
     /*-------------------------------------------------------------------------
-    Pull data out from the USB driver and push it into the RX buffer
+    This function is called as a userspace callback from some TinyUSB event,
+    so we need to guard against some other thread first. It's ok if this fails
+    because the 'process' function will be called again later.
     -------------------------------------------------------------------------*/
-    Chimera::Thread::LockGuard lck( *this );
+    if( !this->try_lock_for( Chimera::Thread::TIMEOUT_DONT_WAIT ) )
+    {
+      return;
+    }
 
+    /*-------------------------------------------------------------------------
+    Pull data from the USB driver into the RX buffer
+    -------------------------------------------------------------------------*/
     while( !mRXBuffer->full() )
     {
       /*-----------------------------------------------------------------------
@@ -231,63 +249,25 @@ namespace Orbit::Serial
         }
       }
     }
+
+    this->unlock();
   }
 
 
   void USBSerial::on_tx_complete()
   {
-    if( !tud_mounted() || !tud_cdc_n_connected( mEndpoint ) )
-    {
-      return;
-    }
-
+    /*-------------------------------------------------------------------------
+    This function is called as a userspace callback from some TinyUSB event,
+    so we need to guard against some other thread first. It's ok if this fails
+    because the 'process' function will be called again later.
+    -------------------------------------------------------------------------*/
     if( !this->try_lock_for( Chimera::Thread::TIMEOUT_DONT_WAIT ) )
     {
       return;
     }
 
     /*-------------------------------------------------------------------------
-    Process the ISR TX buffer first as it has priority. Usually this buffer is
-    used for realtime data monitoring and needs to be serviced as quickly as
-    possible.
-    -------------------------------------------------------------------------*/
-    // while( !mTXBufferISR->empty() )
-    // {
-    //   /*-----------------------------------------------------------------------
-    //   Ensure there is data available to write and a place to put it
-    //   -----------------------------------------------------------------------*/
-    //   const size_t usb_bytes = tud_cdc_n_write_available( mEndpoint );
-    //   const size_t buf_bytes = mTXBufferISR->size();
-
-    //   if( !usb_bytes || !buf_bytes )
-    //   {
-    //     break;
-    //   }
-
-    //   /*-----------------------------------------------------------------------
-    //   Write the data from the TX buffer into the USB driver. The buffer isn't
-    //   guaranteed to be contiguous, so write byte by byte.
-    //   -----------------------------------------------------------------------*/
-    //   int write_size = static_cast<int>( std::min( usb_bytes, buf_bytes ) );
-
-    //   while( write_size > 0 )
-    //   {
-    //     const uint32_t write_count = tud_cdc_n_write_char( mEndpoint, mTXBufferISR->front() );
-    //     if( write_count == 1u )
-    //     {
-    //       mTXBufferISR->pop();
-    //       write_size--;
-    //     }
-    //     else
-    //     {
-    //       break;
-    //     }
-    //   }
-    // }
-
-    /*-------------------------------------------------------------------------
-    Process the normal TX buffer second. It only gets processed if the ISR
-    hasn't filled the CDC write FIFO.
+    Push data from the TX buffer into the USB driver
     -------------------------------------------------------------------------*/
     while( !mTXBuffer->empty() )
     {

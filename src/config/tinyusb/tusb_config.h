@@ -114,7 +114,7 @@ size. So until that's fixed, we get to waste some memory.
 
 https://github.com/hathach/tinyusb/issues/1924
 -------------------------------------------------------------------*/
-#define _RTX_BUFFER_SIZE ( 4096 )
+#define _RTX_BUFFER_SIZE ( 2048 )
 
 #define CFG_TUD_CDC_RX_BUFSIZE ( _RTX_BUFFER_SIZE )
 #define CFG_TUD_CDC_TX_BUFSIZE ( _RTX_BUFFER_SIZE )

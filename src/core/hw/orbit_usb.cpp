@@ -135,22 +135,6 @@ namespace Orbit::USB
   }
 
 
-  void disableInterrupts()
-  {
-    #if defined( EMBEDDED )
-    //Thor::LLD::INT::disableIRQ( USB_IRQn );
-    #endif
-  }
-
-
-  void enableInterrupts()
-  {
-    #if defined( EMBEDDED )
-    //Thor::LLD::INT::enableIRQ( USB_IRQn );
-    #endif
-  }
-
-
   void onCDCRXComplete( const uint8_t itf, Chimera::Function::Opaque &&callback )
   {
     RT_DBG_ASSERT( itf < s_cdc_rx_complete_callbacks.max_size() );

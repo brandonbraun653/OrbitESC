@@ -13,6 +13,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/function>
 #include <Chimera/gpio>
+#include <etl/queue_spsc_atomic.h>
 #include <src/config/bsp/board_map.hpp>
 #include <src/config/orbit_esc_cfg.hpp>
 #include <src/control/foc_data.hpp>
@@ -30,7 +31,6 @@ Includes
 #include <src/simulator/sim_adc.hpp>
 #include <src/simulator/sim_motor.hpp>
 
-
 #if defined( SEGGER_SYS_VIEW )
 #include "SEGGER_SYSVIEW.h"
 #endif /* EMBEDDED */
@@ -38,26 +38,22 @@ Includes
 namespace Orbit::Control::Field
 {
   /*---------------------------------------------------------------------------
-  Static Data
-  ---------------------------------------------------------------------------*/
-
-  static volatile Mode                       s_ctl_mode;      /**< Current control mode */
-  static volatile Chimera::GPIO::Driver_rPtr s_dbg_pin;       /**< Debug pin for timing measurements */
-  static volatile ISRInnerLoopCallback       s_inner_loop_cb; /**< Callback for inner loop custom behaviors */
-
-
-  /*---------------------------------------------------------------------------
   Static Function Declarations
   ---------------------------------------------------------------------------*/
 
+  static void reset_state();
   static void isr_current_control_loop();
 
-  static void reset_state()
-  {
-    s_ctl_mode = Mode::DISABLED;
-    foc_ireg_state.iqPID.resetState();
-    foc_ireg_state.idPID.resetState();
-  }
+
+  /*---------------------------------------------------------------------------
+  Static Data
+  ---------------------------------------------------------------------------*/
+
+  static volatile Mode                         s_ctl_mode;      /**< Current control mode */
+  static volatile Chimera::GPIO::Driver_rPtr   s_dbg_pin;       /**< Debug pin for timing measurements */
+  static volatile ISRInnerLoopCallback         s_inner_loop_cb; /**< Callback for inner loop custom behaviors */
+
+  static etl::queue_spsc_atomic<uint8_t, 4096, etl::memory_model::MEMORY_MODEL_MEDIUM> s_tx_isr_buffer;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -69,6 +65,7 @@ namespace Orbit::Control::Field
     -------------------------------------------------------------------------*/
     s_ctl_mode      = Mode::UNKNOWN;
     s_inner_loop_cb = nullptr;
+    s_tx_isr_buffer.clear();
 
     /*-------------------------------------------------------------------------
     Get a reference to the debug pin. This is used for timing measurements.
@@ -227,9 +224,68 @@ namespace Orbit::Control::Field
     Chimera::System::enableInterrupts( isr_msk );
   }
 
+
+  void pumpISRDataStream()
+  {
+    using namespace Orbit::Serial;
+
+    /*-------------------------------------------------------------------------
+    Send the control state over the serial port for monitoring
+    -------------------------------------------------------------------------*/
+    if( s_tx_isr_buffer.empty() )
+    {
+      return;
+    }
+
+    /*-------------------------------------------------------------------------
+    Pull the next byte from the buffer and send it over the serial port
+    -------------------------------------------------------------------------*/
+    auto     serial    = getUSBSerialDriver();
+    uint32_t idx       = 0;
+    size_t   pump_size = 0;
+    uint8_t arr[ 256 ];
+
+    Chimera::Thread::TimedLockGuard lck( *serial );
+    if( !lck.try_lock_for( Chimera::Thread::TIMEOUT_DONT_WAIT ) )
+    {
+      return;
+    }
+
+    while( s_tx_isr_buffer.size() )
+    {
+      /*-----------------------------------------------------------------------
+      Pull a number of bytes from the buffer
+      -----------------------------------------------------------------------*/
+      idx       = 0;
+      pump_size = std::min( sizeof( arr ), serial->availableForWrite() );
+
+      memset( arr, 0, sizeof( arr ) );
+
+      while( s_tx_isr_buffer.pop( arr[ idx ] ) && ( idx < pump_size ) )
+      {
+        idx++;
+      }
+
+      /*-----------------------------------------------------------------------
+      Send the data over the serial port. We can't do anything if the data
+      can't enqueue, so just drop it.
+      -----------------------------------------------------------------------*/
+      serial->write( arr, idx );
+    }
+  }
+
+
   /*---------------------------------------------------------------------------
   Static Functions
   ---------------------------------------------------------------------------*/
+
+  static void reset_state()
+  {
+    s_ctl_mode = Mode::DISABLED;
+    foc_ireg_state.iqPID.resetState();
+    foc_ireg_state.idPID.resetState();
+  }
+
 
   /**
    * @brief Executes a single cycle of the current control algorithm.
@@ -434,7 +490,7 @@ namespace Orbit::Control::Field
     static constexpr bool VOLTAGE_MONITOR  = true;
 
 #if defined( EMBEDDED )
-    if( isr_monitor_count++ >= 10 )
+    if( isr_monitor_count++ >= 1 )
     {
       isr_monitor_count = 0;
 #endif
@@ -514,9 +570,13 @@ namespace Orbit::Control::Field
       Encode the full message with COBS and queue it for sending. Use best
       effort to send the message, but don't block the control loop.
       -----------------------------------------------------------------------*/
-      if( payload_encoded && Serial::Message::encode( &s_ctl_monitor.state ) )
+      if( payload_encoded && Serial::Message::encode( &s_ctl_monitor.state ) &&
+          ( s_tx_isr_buffer.available() > s_ctl_monitor.size() ) )
       {
-        Serial::getUSBSerialDriver()->writeFromISR( s_ctl_monitor.data(), s_ctl_monitor.size() );
+        for( size_t i = 0; i < s_ctl_monitor.size(); i++ )
+        {
+          s_tx_isr_buffer.push( s_ctl_monitor.data()[i] );
+        }
       }
 #if defined( EMBEDDED )
     }

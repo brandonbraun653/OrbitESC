@@ -33,10 +33,6 @@ namespace Orbit::Tasks
     TASK_COM,  /**< Networking/communications processing */
     TASK_USB,  /**< USB hardware stack */
 
-
-    // TODO BMB: Remove
-    // TASK_CDC,  /**< USB CDC driver */
-
     #if defined( SIMULATOR )
     TASK_SIM,  /**< Simulation task */
     #endif /* SIMULATOR */

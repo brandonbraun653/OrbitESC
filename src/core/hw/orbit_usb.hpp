@@ -53,18 +53,6 @@ namespace Orbit::USB
   bool onDisconnect( Chimera::Function::Opaque &&callback );
 
   /**
-   * @brief Disables the USB interrupts for critical sections of code
-   * @return void
-   */
-  void disableInterrupts();
-
-  /**
-   * @brief Re-enables the USB interrupts after a critical section
-   * @return void
-   */
-  void enableInterrupts();
-
-  /**
    * @brief Registers a callback for when a CDC interface has received data
    *
    * @param itf The CDC interface

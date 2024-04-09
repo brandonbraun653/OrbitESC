@@ -15,7 +15,6 @@ Includes
 #include <Chimera/common>
 #include <Chimera/thread>
 #include <src/core/tasks.hpp>
-#include <src/core/tasks/tsk_cdc.hpp>
 #include <src/core/tasks/tsk_com.hpp>
 #include <src/core/tasks/tsk_ctl.hpp>
 #include <src/core/tasks/tsk_dio.hpp>
@@ -36,10 +35,6 @@ namespace Orbit::Tasks
   static uint32_t                s_ctl_thread_stack[ STACK_BYTES( CTL::STACK ) ] __attribute__( ( section( ".app_stack" ) ) );
   static uint32_t                s_com_thread_stack[ STACK_BYTES( COM::STACK ) ] __attribute__( ( section( ".app_stack" ) ) );
   static uint32_t                s_usb_thread_stack[ STACK_BYTES( USB::STACK ) ] __attribute__( ( section( ".app_stack" ) ) );
-
-
-  // TODO BMB: Remove
-  // static uint32_t                s_cdc_thread_stack[ STACK_BYTES( USB::CDC::STACK ) ] __attribute__( ( section( ".app_stack" ) ) );
 
 #if defined( SIMULATOR )
   static uint32_t s_sim_thread_stack[ STACK_BYTES( SIM::STACK ) ] __attribute__( ( section( ".app_stack" ) ) );
@@ -174,28 +169,6 @@ namespace Orbit::Tasks
   }
 
 
-
-  // TODO BMB: Remove
-  // static void init_cdc_task()
-  // {
-  //   using namespace Chimera::Thread;
-
-  //   TaskConfig cfg;
-  //   Task       tsk;
-
-  //   cfg.name                                  = USB::CDC::NAME.data();
-  //   cfg.arg                                   = nullptr;
-  //   cfg.function                              = USB::CDC::USBCDCThread;
-  //   cfg.priority                              = USB::CDC::PRIORITY;
-  //   cfg.stackWords                            = STACK_BYTES( sizeof( s_cdc_thread_stack ) );
-  //   cfg.type                                  = TaskInitType::STATIC;
-  //   cfg.specialization.staticTask.stackBuffer = s_cdc_thread_stack;
-  //   cfg.specialization.staticTask.stackSize   = sizeof( s_cdc_thread_stack );
-
-  //   tsk.create( cfg );
-  //   s_thread_id[ TASK_CDC ] = tsk.start();
-  // }
-
 #if defined( SIMULATOR )
   static void init_sim_task()
   {
@@ -246,9 +219,6 @@ namespace Orbit::Tasks
     init_ctrl_sys_task();
     init_com_task();
     init_usb_task();
-
-    // TODO BMB: Remove
-    // init_cdc_task();
 
 #if defined( SIMULATOR )
     init_sim_task();

@@ -261,6 +261,7 @@ class TestStaticStreamingData:
         """ Validates that the inner loop voltage monitor data is being reported """
         LOGGER.info("Command transition to ENGAGED state")
         assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_IDLE)
+        time.sleep(0.5)
         assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ARMED)
         time.sleep(0.5)
         assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ENGAGED)
