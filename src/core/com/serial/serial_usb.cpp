@@ -65,24 +65,22 @@ namespace Orbit::Serial
   }
 
 
-  Chimera::Status_t USBSerial::init( const Endpoint endpoint, CircularBuffer prx, CircularBuffer ptx, ISRLockedQueue ptx_isr )
+  Chimera::Status_t USBSerial::init( const Endpoint endpoint, CircularBuffer prx, CircularBuffer ptx )
   {
     using namespace Chimera::Function;
 
     /*-------------------------------------------------------------------------
     Assign the configuration
     -------------------------------------------------------------------------*/
-    mEndpoint    = endpoint;
-    mRXBuffer    = prx;
-    mTXBuffer    = ptx;
-    mTXBufferISR = ptx_isr;
+    mEndpoint = endpoint;
+    mRXBuffer = prx;
+    mTXBuffer = ptx;
 
     /*-------------------------------------------------------------------------
     Reset the buffers
     -------------------------------------------------------------------------*/
     mRXBuffer->clear();
     mTXBuffer->clear();
-    mTXBufferISR->clear();
 
     /*-------------------------------------------------------------------------
     Register the RTX handlers for this instance
@@ -124,15 +122,7 @@ namespace Orbit::Serial
       return 0;
     }
 
-    /*-------------------------------------------------------------------------
-    Make sure the device is connected before doing anything
-    -------------------------------------------------------------------------*/
-    if( !tud_cdc_n_connected( mEndpoint ) )
-    {
-      return 0;
-    }
-
-    if( !this->try_lock_for( Chimera::Thread::TIMEOUT_DONT_WAIT ) )
+    if( !this->try_lock_for( timeout ) )
     {
       return 0;
     }
@@ -168,35 +158,6 @@ namespace Orbit::Serial
   }
 
 
-  int USBSerial::writeFromISR( const void *const buffer, const size_t length )
-  {
-    using namespace Orbit::Tasks;
-
-    /*-------------------------------------------------------------------------
-    Validate input arguments
-    -------------------------------------------------------------------------*/
-    RT_DBG_ASSERT( buffer );
-    RT_DBG_ASSERT( length );
-    RT_DBG_ASSERT( mTXBufferISR );
-
-    /*-------------------------------------------------------------------------
-    Enqueue the data into the TX buffer
-    -------------------------------------------------------------------------*/
-    if( length <= mTXBufferISR->available_from_unlocked() )
-    {
-      size_t bytes_written = 0;
-      while( bytes_written < length )
-      {
-        mTXBufferISR->push_from_unlocked( static_cast<const uint8_t *const>( buffer )[ bytes_written++ ] );
-      }
-
-      return static_cast<int>( length );
-    }
-
-    return 0;
-  }
-
-
   int USBSerial::read( void *const buffer, const size_t length, const size_t timeout )
   {
     /*-------------------------------------------------------------------------
@@ -207,7 +168,7 @@ namespace Orbit::Serial
       return 0;
     }
 
-    if( !this->try_lock_for( Chimera::Thread::TIMEOUT_DONT_WAIT ) )
+    if( !this->try_lock_for( timeout ) )
     {
       return 0;
     }
@@ -215,8 +176,7 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Read data into the user buffer
     -------------------------------------------------------------------------*/
-    const size_t buf_bytes = mRXBuffer->size();
-    const size_t read_size = std::min( length, buf_bytes );
+    const size_t read_size = std::min( length, mRXBuffer->size() );
 
     size_t bytes_read = 0;
     while( bytes_read < read_size )
@@ -233,11 +193,6 @@ namespace Orbit::Serial
 
   void USBSerial::on_rx_complete()
   {
-    if( !tud_mounted() || !tud_cdc_n_connected( mEndpoint ) )
-    {
-      return;
-    }
-
     /*-------------------------------------------------------------------------
     Pull data out from the USB driver and push it into the RX buffer
     -------------------------------------------------------------------------*/
@@ -296,39 +251,39 @@ namespace Orbit::Serial
     used for realtime data monitoring and needs to be serviced as quickly as
     possible.
     -------------------------------------------------------------------------*/
-    while( !mTXBufferISR->empty() )
-    {
-      /*-----------------------------------------------------------------------
-      Ensure there is data available to write and a place to put it
-      -----------------------------------------------------------------------*/
-      const size_t usb_bytes = tud_cdc_n_write_available( mEndpoint );
-      const size_t buf_bytes = mTXBufferISR->size();
+    // while( !mTXBufferISR->empty() )
+    // {
+    //   /*-----------------------------------------------------------------------
+    //   Ensure there is data available to write and a place to put it
+    //   -----------------------------------------------------------------------*/
+    //   const size_t usb_bytes = tud_cdc_n_write_available( mEndpoint );
+    //   const size_t buf_bytes = mTXBufferISR->size();
 
-      if( !usb_bytes || !buf_bytes )
-      {
-        break;
-      }
+    //   if( !usb_bytes || !buf_bytes )
+    //   {
+    //     break;
+    //   }
 
-      /*-----------------------------------------------------------------------
-      Write the data from the TX buffer into the USB driver. The buffer isn't
-      guaranteed to be contiguous, so write byte by byte.
-      -----------------------------------------------------------------------*/
-      int write_size = static_cast<int>( std::min( usb_bytes, buf_bytes ) );
+    //   /*-----------------------------------------------------------------------
+    //   Write the data from the TX buffer into the USB driver. The buffer isn't
+    //   guaranteed to be contiguous, so write byte by byte.
+    //   -----------------------------------------------------------------------*/
+    //   int write_size = static_cast<int>( std::min( usb_bytes, buf_bytes ) );
 
-      while( write_size > 0 )
-      {
-        const uint32_t write_count = tud_cdc_n_write_char( mEndpoint, mTXBufferISR->front() );
-        if( write_count == 1u )
-        {
-          mTXBufferISR->pop();
-          write_size--;
-        }
-        else
-        {
-          break;
-        }
-      }
-    }
+    //   while( write_size > 0 )
+    //   {
+    //     const uint32_t write_count = tud_cdc_n_write_char( mEndpoint, mTXBufferISR->front() );
+    //     if( write_count == 1u )
+    //     {
+    //       mTXBufferISR->pop();
+    //       write_size--;
+    //     }
+    //     else
+    //     {
+    //       break;
+    //     }
+    //   }
+    // }
 
     /*-------------------------------------------------------------------------
     Process the normal TX buffer second. It only gets processed if the ISR

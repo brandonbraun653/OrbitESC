@@ -95,7 +95,7 @@ namespace Orbit::Tasks::USB
       /*-----------------------------------------------------------------------
       Process high priority USB interrupts
       -----------------------------------------------------------------------*/
-      tud_task();
+      tud_task_ext( Chimera::Thread::TIMEOUT_5MS, false );
 
 
       usb_serial->process();

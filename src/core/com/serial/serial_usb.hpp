@@ -26,8 +26,6 @@ namespace Orbit::Serial
   ---------------------------------------------------------------------------*/
 
   using CircularBuffer = etl::icircular_buffer<uint8_t> *;
-  using ISRLockedQueue = etl::iqueue_spsc_locked<uint8_t> *;
-
 
   /*---------------------------------------------------------------------------
   Forward Declarations
@@ -59,7 +57,6 @@ namespace Orbit::Serial
 
   /**
    * @brief Checks if the USB serial driver is connected to a host
-   *
    * @return bool  True if connected, false otherwise
    */
   bool isConnected();
@@ -70,7 +67,11 @@ namespace Orbit::Serial
   ---------------------------------------------------------------------------*/
 
   /**
-   * @brief Serial over USB driver
+   * @brief Serial over USB driver.
+   *
+   * This class is a thin wrapper around the TinyUSB CDC driver. It provides
+   * a serial interface to the host PC over USB. All read/write operations are
+   * done in user space and are thread safe.
    */
   class USBSerial : public Chimera::Serial::Driver
   {
@@ -88,31 +89,21 @@ namespace Orbit::Serial
      * @param endpoint Which CDC endpoint to push/pull from
      * @param prx RX buffer to use for normal multi-threaded operation
      * @param ptx TX buffer to use for normal multi-threaded operation
-     * @param ptx_isr TX buffer to use for ISR generated data
      * @return Chimera::Status_t
      */
-    Chimera::Status_t init( const Endpoint endpoint, CircularBuffer prx, CircularBuffer ptx, ISRLockedQueue ptx_isr );
+    Chimera::Status_t init( const Endpoint endpoint, CircularBuffer prx, CircularBuffer ptx );
 
     /**
      * @brief Periodic processing to flush IO buffers as data arrives.
      *
-     * Needs to be called rapidly to ensure data is not lost.
+     * Normally most data is transferred via the userspace interrupt handlers
+     * for the USB peripheral. However, it's possible to stall data transfer
+     * in some scenarios. This function is used to ensure that data is still
+     * being processed even if the interrupt handlers are not being called.
      *
      * @return void
      */
     void process();
-
-    /**
-     * @brief Write to the serial endpoint from an ISR context.
-     *
-     * This operation assumes a single producer, single consumer model. Calling from
-     * multiple ISRs that can preempt each other will result in data corruption.
-     *
-     * @param buffer Data to write
-     * @param length Number of bytes to write
-     * @return int Number of bytes written
-     */
-    int writeFromISR( const void *const buffer, const size_t length );
 
     /*-------------------------------------------------------------------------
     Chimera::Serial::Driver Implementation
@@ -134,7 +125,6 @@ namespace Orbit::Serial
     size_t         mEndpoint;
     CircularBuffer mRXBuffer;
     CircularBuffer mTXBuffer;
-    ISRLockedQueue mTXBufferISR;
   };
 }    // namespace Orbit::Serial
 

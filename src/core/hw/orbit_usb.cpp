@@ -93,7 +93,7 @@ namespace Orbit::USB
     /*-------------------------------------------------------------------------
     Configure Interrupts
     -------------------------------------------------------------------------*/
-    Thor::LLD::INT::setPriority( USB_IRQn, 2u, 0u );
+    Thor::LLD::INT::setPriority( USB_IRQn, 1u, 0u );
     Thor::LLD::INT::enableIRQ( USB_IRQn );
     #endif  /* EMBEDDED */
   }
@@ -138,7 +138,7 @@ namespace Orbit::USB
   void disableInterrupts()
   {
     #if defined( EMBEDDED )
-    Thor::LLD::INT::disableIRQ( USB_IRQn );
+    //Thor::LLD::INT::disableIRQ( USB_IRQn );
     #endif
   }
 
@@ -146,7 +146,7 @@ namespace Orbit::USB
   void enableInterrupts()
   {
     #if defined( EMBEDDED )
-    Thor::LLD::INT::enableIRQ( USB_IRQn );
+    //Thor::LLD::INT::enableIRQ( USB_IRQn );
     #endif
   }
 
