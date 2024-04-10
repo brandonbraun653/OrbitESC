@@ -154,6 +154,7 @@ if(${DEVICE_TARGET} MATCHES "^stm32f4")
   target_link_libraries(OrbitESC PRIVATE
     # Hardware Drivers
     embedded_core_libs
+    lib_cmsis
     lib_tiny_usb
     lib_flash_db_fal
     lib_orbit_com_hw

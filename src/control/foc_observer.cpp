@@ -15,6 +15,7 @@ Includes
 #include "src/control/foc_math.hpp"
 #include "src/control/foc_observer.hpp"
 #include "src/core/data/orbit_data.hpp"
+#include "dsp/filtering_functions.h"
 
 namespace Orbit::Control::Observer
 {
@@ -24,6 +25,10 @@ namespace Orbit::Control::Observer
 
   using PolicyFuncType = void ( * )( const Input &, Output & );
 
+  static constexpr size_t STAGES = 2;
+  static constexpr size_t TAPS = 2;
+  static constexpr size_t BLOCK_SIZE = 1;
+
   /*---------------------------------------------------------------------------
   Structures
   ---------------------------------------------------------------------------*/
@@ -32,6 +37,13 @@ namespace Orbit::Control::Observer
     /* Speed observer state */
     float z1;
     float z2;
+    arm_fir_instance_f32 speed_filter;
+    float32_t speed_filter_state[ TAPS + BLOCK_SIZE - 1 ];
+
+    arm_iir_lattice_instance_f32 iir_filter[ 3 ];
+    float32_t iir_filter_state[ 3 ][ STAGES + BLOCK_SIZE ];
+
+
 
     /* Phase observer state */
     float x1;
@@ -59,6 +71,11 @@ namespace Orbit::Control::Observer
   static PolicyFuncType sPolicyFunc;
   static ObserverState  sState;
 
+  static const float32_t sSpeedFilterCoeffs[ TAPS ] = { 0.5f, 0.5f };
+  static const float32_t sIIRFilterCoeffs_K[ STAGES ] = { 0.5f, 0.5f };
+  static const float32_t sIIRFilterCoeffs_V[ STAGES + 1] = { 0.5f, 0.5f, 0.5f };
+
+
   /*---------------------------------------------------------------------------
   Static Function Declaration
   ---------------------------------------------------------------------------*/
@@ -76,6 +93,14 @@ namespace Orbit::Control::Observer
     CLEAR_STRUCT( sEstimates );
     CLEAR_STRUCT( sState );
     sPolicyFunc = nullptr;
+
+    arm_fir_init_f32( &sState.speed_filter, TAPS, ( float32_t * )sSpeedFilterCoeffs, sState.speed_filter_state, BLOCK_SIZE );
+
+    for( size_t i = 0; i < 3; i++ )
+    {
+      arm_iir_lattice_init_f32( &sState.iir_filter[ i ], STAGES, ( float32_t * )sIIRFilterCoeffs_K,
+                                ( float32_t * )sIIRFilterCoeffs_V, sState.iir_filter_state[ i ], BLOCK_SIZE );
+    }
   }
 
 
@@ -112,7 +137,7 @@ namespace Orbit::Control::Observer
     sState.L_ib       = sState.L * input.iBeta;
     sState.R_ia       = sState.R * input.iAlpha;
     sState.R_ib       = sState.R * input.iBeta;
-    sState.gamma_half = 4.0f;    // Observer gain scaling. Probably not needed???
+    sState.gamma_half = 20.0f;    // Observer gain scaling. Probably not needed???
 
     /*-------------------------------------------------------------------------
     Execute the observer policy function
@@ -199,27 +224,41 @@ namespace Orbit::Control::Observer
     static float theta_last = 0.0f;
     static float filtered_omega = 0.0f;
 
-    /*-------------------------------------------------------------------------
-    Compute the observer state derivatives
-    -------------------------------------------------------------------------*/
-    float err_term = output.theta - sState.z1;
-    Math::normalize_radians( err_term );
+    // /*-------------------------------------------------------------------------
+    // Compute the observer state derivatives
+    // -------------------------------------------------------------------------*/
+    // float err_term = output.theta - sState.z1;
+    // Math::normalize_radians( err_term );
 
-    /* Equation 11 */
-    float z1_dot = kp * err_term + ki * sState.z2;
+    // /* Equation 11 */
+    // float z1_dot = kp * err_term + ki * sState.z2;
 
-    /* Equation 12 */
-    float z2_dot = ki * err_term;
+    // /* Equation 12 */
+    // float z2_dot = ki * err_term;
 
-    /*-------------------------------------------------------------------------
-    Update the observer state
-    -------------------------------------------------------------------------*/
-    sState.z1 += z1_dot * input.dt;
-    Math::normalize_radians( sState.z1 );
+    // /*-------------------------------------------------------------------------
+    // Update the observer state
+    // -------------------------------------------------------------------------*/
+    // sState.z1 += z1_dot * input.dt;
+    // Math::normalize_radians( sState.z1 );
 
-    sState.z2 += z2_dot * input.dt;
+    // sState.z2 += z2_dot * input.dt;
 
-    // Testing
-    output.omega = z1_dot;
+    // // Testing
+    // output.omega = z1_dot;
+
+    // Take the derivative of the angle to get the angular rate
+    output.omega = ( output.theta - theta_last ) / input.dt;
+    theta_last = output.theta;
+
+    // Filter the angular rate to remove noise
+    arm_fir_f32( &sState.speed_filter, &output.omega, &filtered_omega, BLOCK_SIZE );
+
+    arm_iir_lattice_f32( &sState.iir_filter[ 0 ], &filtered_omega, &filtered_omega, BLOCK_SIZE );
+    arm_iir_lattice_f32( &sState.iir_filter[ 1 ], &filtered_omega, &filtered_omega, BLOCK_SIZE );
+    arm_iir_lattice_f32( &sState.iir_filter[ 2 ], &filtered_omega, &filtered_omega, BLOCK_SIZE );
+
+    // Update the output
+    output.omega = filtered_omega;
   }
 }    // namespace Orbit::Control::Observer

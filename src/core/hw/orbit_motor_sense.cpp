@@ -340,9 +340,9 @@ namespace Orbit::Motor::Sense
     s_ctl_blk.siData.channel[ CHANNEL_PHASE_A_CURRENT ] = compute_phase_current( s_ctl_blk.calData[ CHANNEL_PHASE_A_CURRENT ] );
     s_ctl_blk.siData.channel[ CHANNEL_PHASE_B_CURRENT ] = compute_phase_current( s_ctl_blk.calData[ CHANNEL_PHASE_B_CURRENT ] );
     s_ctl_blk.siData.channel[ CHANNEL_PHASE_C_CURRENT ] = compute_phase_current( s_ctl_blk.calData[ CHANNEL_PHASE_C_CURRENT ] );
-    s_ctl_blk.siData.channel[ CHANNEL_PHASE_A_VOLTAGE ] = compute_phase_voltage( s_ctl_blk.calData[ CHANNEL_PHASE_A_VOLTAGE ] );
-    s_ctl_blk.siData.channel[ CHANNEL_PHASE_B_VOLTAGE ] = compute_phase_voltage( s_ctl_blk.calData[ CHANNEL_PHASE_B_VOLTAGE ] );
-    s_ctl_blk.siData.channel[ CHANNEL_PHASE_C_VOLTAGE ] = compute_phase_voltage( s_ctl_blk.calData[ CHANNEL_PHASE_C_VOLTAGE ] );
+    // s_ctl_blk.siData.channel[ CHANNEL_PHASE_A_VOLTAGE ] = compute_phase_voltage( s_ctl_blk.calData[ CHANNEL_PHASE_A_VOLTAGE ] );
+    // s_ctl_blk.siData.channel[ CHANNEL_PHASE_B_VOLTAGE ] = compute_phase_voltage( s_ctl_blk.calData[ CHANNEL_PHASE_B_VOLTAGE ] );
+    // s_ctl_blk.siData.channel[ CHANNEL_PHASE_C_VOLTAGE ] = compute_phase_voltage( s_ctl_blk.calData[ CHANNEL_PHASE_C_VOLTAGE ] );
 
     /*-------------------------------------------------------------------------
     Invoke the user callback

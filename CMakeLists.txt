@@ -35,6 +35,7 @@ add_subdirectory("lib/Chimera")
 add_subdirectory("lib/ChimeraSim")
 add_subdirectory("lib/CommonTools/googletest")
 add_subdirectory("lib/db")
+add_subdirectory("lib/cmsis")
 add_subdirectory("lib/FreeRTOS")
 add_subdirectory("lib/Thor")
 add_subdirectory("lib/usb")
@@ -57,6 +58,7 @@ gen_intf_lib(
     "${PROJECT_ROOT}/src/config/thor"
     "${PROJECT_ROOT}/src/config/tinyusb"
   INTF_LIBRARIES
+    cmsis_intf_inc
     freertos_intf_inc_all
   EXPORT_DIR
     "${PROJECT_BINARY_DIR}/Project"

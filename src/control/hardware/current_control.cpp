@@ -322,9 +322,9 @@ namespace Orbit::Control::Field
     volatile const SenseData &sense_data = getSenseData();
     const float               vSupply    = getSupplyVoltage();
 
-    foc_ireg_state.vma = sense_data.channel[ CHANNEL_PHASE_A_VOLTAGE ];
-    foc_ireg_state.vmb = sense_data.channel[ CHANNEL_PHASE_B_VOLTAGE ];
-    foc_ireg_state.vmc = sense_data.channel[ CHANNEL_PHASE_C_VOLTAGE ];
+    foc_ireg_state.vma = 0.0f; //sense_data.channel[ CHANNEL_PHASE_A_VOLTAGE ];
+    foc_ireg_state.vmb = 0.0f; //sense_data.channel[ CHANNEL_PHASE_B_VOLTAGE ];
+    foc_ireg_state.vmc = 0.0f; //sense_data.channel[ CHANNEL_PHASE_C_VOLTAGE ];
 
     foc_ireg_state.ima = sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
     foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
@@ -350,10 +350,6 @@ namespace Orbit::Control::Field
       foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
       foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
       foc_ireg_state.ima = -1.0f * ( foc_ireg_state.imb + foc_ireg_state.imc );
-
-      foc_ireg_state.vmb = sense_data.channel[ CHANNEL_PHASE_B_VOLTAGE ];
-      foc_ireg_state.vmc = sense_data.channel[ CHANNEL_PHASE_C_VOLTAGE ];
-      foc_ireg_state.vma = -1.0f * ( foc_ireg_state.vmb + foc_ireg_state.vmc );
     }
     else if( ( svmState.phase1 == Chimera::Timer::Channel::CHANNEL_1 ) &&
              ( svmState.phase2 == Chimera::Timer::Channel::CHANNEL_3 ) )
@@ -364,10 +360,6 @@ namespace Orbit::Control::Field
       foc_ireg_state.ima = sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
       foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
       foc_ireg_state.imb = -1.0f * ( foc_ireg_state.ima + foc_ireg_state.imc );
-
-      foc_ireg_state.vma = sense_data.channel[ CHANNEL_PHASE_A_VOLTAGE ];
-      foc_ireg_state.vmc = sense_data.channel[ CHANNEL_PHASE_C_VOLTAGE ];
-      foc_ireg_state.vmb = -1.0f * ( foc_ireg_state.vma + foc_ireg_state.vmc );
     }
     else if( ( svmState.phase1 == Chimera::Timer::Channel::CHANNEL_1 ) &&
              ( svmState.phase2 == Chimera::Timer::Channel::CHANNEL_2 ) )
@@ -378,10 +370,6 @@ namespace Orbit::Control::Field
       foc_ireg_state.ima = sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
       foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
       foc_ireg_state.imc = -1.0f * ( foc_ireg_state.ima + foc_ireg_state.imb );
-
-      foc_ireg_state.vma = sense_data.channel[ CHANNEL_PHASE_A_VOLTAGE ];
-      foc_ireg_state.vmb = sense_data.channel[ CHANNEL_PHASE_B_VOLTAGE ];
-      foc_ireg_state.vmc = -1.0f * ( foc_ireg_state.vma + foc_ireg_state.vmb );
     }
     else
     {
@@ -406,8 +394,8 @@ namespace Orbit::Control::Field
     observer_input.dt     = foc_ireg_state.dt;
     observer_input.iAlpha = foc_ireg_state.ia;
     observer_input.iBeta  = foc_ireg_state.ib;
-    observer_input.vAlpha = foc_ireg_state.va;
-    observer_input.vBeta  = foc_ireg_state.vb;
+    observer_input.vAlpha = foc_ireg_state.va_cmd;
+    observer_input.vBeta  = foc_ireg_state.vb_cmd;
 
     Observer::execute( observer_input, observer_output );
 
@@ -502,7 +490,7 @@ namespace Orbit::Control::Field
     static constexpr bool VOLTAGE_MONITOR  = false;
 
 #if defined( EMBEDDED )
-    if( isr_monitor_count++ >= 5 )
+    if( isr_monitor_count++ >= 1 )
     {
       isr_monitor_count = 0;
 #endif
@@ -567,11 +555,11 @@ namespace Orbit::Control::Field
 
         Serial::Message::Payload::InnerLoopVoltageMonitorPayload payload;
 
-        payload.raw.va    = foc_ireg_state.vma;
-        payload.raw.vb    = foc_ireg_state.vmb;
-        payload.raw.vc    = foc_ireg_state.vmc;
-        payload.raw.alpha = foc_ireg_state.va;
-        payload.raw.beta  = foc_ireg_state.vb;
+        payload.raw.va    = foc_ireg_state.ima;
+        payload.raw.vb    = foc_ireg_state.imb;
+        payload.raw.vc    = foc_ireg_state.imc;
+        payload.raw.alpha = foc_ireg_state.va_cmd;
+        payload.raw.beta  = foc_ireg_state.vb_cmd;
 
         payload_encoded = Serial::Message::encode( &payload.state, Serial::Message::ENCODE_NO_COBS );
         memcpy( s_ctl_monitor.raw.payload.bytes, payload.data(), payload.size() );

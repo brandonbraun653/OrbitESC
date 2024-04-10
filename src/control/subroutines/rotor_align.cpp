@@ -87,7 +87,7 @@ namespace Orbit::Control::Subroutine
     foc_motor_state.thetaEst = DEG_TO_RAD( 120 );
     foc_ireg_state.max_drive = 0.25f;
     foc_ireg_state.iqRef     = 0.0f;
-    foc_ireg_state.idRef     = 1.0f;
+    foc_ireg_state.idRef     = 0.25f;
 
     mState = RunState::RUNNING;
     Field::setInnerLoopCallback( isrParkControl );
