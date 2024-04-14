@@ -137,7 +137,7 @@ namespace Orbit::Control::Observer
     sState.L_ib       = sState.L * input.iBeta;
     sState.R_ia       = sState.R * input.iAlpha;
     sState.R_ib       = sState.R * input.iBeta;
-    sState.gamma_half = 20.0f;    // Observer gain scaling. Probably not needed???
+    sState.gamma_half = 1.0f;    // Observer gain scaling. Probably not needed???
 
     /*-------------------------------------------------------------------------
     Execute the observer policy function
@@ -218,6 +218,8 @@ namespace Orbit::Control::Observer
 
   static void speed_observer( const Input &input, Output &output )
   {
+    using namespace Orbit::Control::Math;
+
     static constexpr float kp = 5.0;
     static constexpr float ki = 0.1;
 
@@ -248,11 +250,13 @@ namespace Orbit::Control::Observer
     // output.omega = z1_dot;
 
     // Take the derivative of the angle to get the angular rate
-    output.omega = ( output.theta - theta_last ) / input.dt;
+    float dTheta = ( output.theta - theta_last ) / input.dt;
+
+    // Update the last angle
     theta_last = output.theta;
 
     // Filter the angular rate to remove noise
-    arm_fir_f32( &sState.speed_filter, &output.omega, &filtered_omega, BLOCK_SIZE );
+    arm_fir_f32( &sState.speed_filter, &dTheta, &filtered_omega, BLOCK_SIZE );
 
     arm_iir_lattice_f32( &sState.iir_filter[ 0 ], &filtered_omega, &filtered_omega, BLOCK_SIZE );
     arm_iir_lattice_f32( &sState.iir_filter[ 1 ], &filtered_omega, &filtered_omega, BLOCK_SIZE );
