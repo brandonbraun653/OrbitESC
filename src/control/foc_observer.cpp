@@ -165,7 +165,8 @@ namespace Orbit::Control::Observer
     /*-------------------------------------------------------------------------
     Compute theta estimate from the observer state. (Equation 9)
     -------------------------------------------------------------------------*/
-    output.theta = fast_atan2_with_norm( sState.x2 - sState.L_ib, sState.x1 - sState.L_ia );
+    output.theta = M_PI_F + fast_atan2_with_norm( sState.x2 - sState.L_ib, sState.x1 - sState.L_ia );
+    output.theta = clamp( output.theta, 0.0f, M_2PI_F );
 
     /*-------------------------------------------------------------------------
     Compute omega estimate from the observer state.
