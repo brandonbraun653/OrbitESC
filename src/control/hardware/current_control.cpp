@@ -399,11 +399,11 @@ namespace Orbit::Control::Field
 
     Observer::execute( observer_input, observer_output );
 
-    if( s_ctl_mode == Mode::CLOSED_LOOP )
-    {
-      foc_motor_state.thetaEst = observer_output.theta;
-      foc_motor_state.omegaEst = observer_output.omega;
-    }
+    // if( s_ctl_mode == Mode::CLOSED_LOOP )
+    // {
+    //   foc_motor_state.thetaEst = observer_output.theta;
+    //   foc_motor_state.omegaEst = observer_output.omega;
+    // }
 
     /*-------------------------------------------------------------------------
     Using the new estimations, convert to the DQ axis for control
@@ -490,7 +490,7 @@ namespace Orbit::Control::Field
     static constexpr bool VOLTAGE_MONITOR  = false;
 
 #if defined( EMBEDDED )
-    if( isr_monitor_count++ >= 1 )
+    if( isr_monitor_count++ >= 3 )
     {
       isr_monitor_count = 0;
 #endif

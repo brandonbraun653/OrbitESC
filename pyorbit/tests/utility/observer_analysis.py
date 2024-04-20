@@ -20,25 +20,19 @@ def process_data(input_file: Path, output_file: Path) -> None:
         theta_estimates = np.array([float(row[1]) for row in csv_data[1:]])
         omega_estimates = np.array([float(row[2]) for row in csv_data[1:]])
 
-    # with PdfPages(output_file) as pdf:
+        # Create a figure
+        fig, axs = plt.subplots(2)
+
         # Plot the theta estimates
-        plt.figure()
-        plt.plot(timestamps, theta_estimates)
-        plt.xlabel("Time (s)")
-        plt.ylabel("Theta Estimate (rad)")
-        plt.title("Theta Estimates")
-        # pdf.savefig()
-        # plt.close()
-        plt.show()
+        axs[0].plot(timestamps, theta_estimates)
+        axs[0].set(xlabel="Time (s)", ylabel="Theta Estimate (rad)", title="Theta Estimates")
 
         # Plot the omega estimates
-        plt.figure()
-        plt.plot(timestamps, omega_estimates)
-        plt.xlabel("Time (s)")
-        plt.ylabel("Omega Estimate (rad/s)")
-        plt.title("Omega Estimates")
-        # pdf.savefig()
-        # plt.close()
+        axs[1].plot(timestamps, omega_estimates)
+        axs[1].set(xlabel="Time (s)", ylabel="Omega Estimate (rad/s)", title="Omega Estimates")
+
+        # Display the plots
+        plt.tight_layout()
         plt.show()
 
 

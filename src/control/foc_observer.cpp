@@ -16,6 +16,8 @@ Includes
 #include "src/control/foc_observer.hpp"
 #include "src/core/data/orbit_data.hpp"
 #include "dsp/filtering_functions.h"
+#include "src/control/gen/iir_coeffs.h"
+#include "src/control/gen/fir_coeffs.h"
 
 namespace Orbit::Control::Observer
 {
@@ -25,8 +27,10 @@ namespace Orbit::Control::Observer
 
   using PolicyFuncType = void ( * )( const Input &, Output & );
 
-  static constexpr size_t STAGES = 2;
-  static constexpr size_t TAPS = 2;
+  // static constexpr size_t IIR_STAGES = 2;
+  static constexpr size_t IIR_FILTER = 3; /**< Number of IIR filters used */
+  static constexpr size_t IIR_STAGES = STAGES;
+  static constexpr size_t FIR_TAPS = M_FIR;
   static constexpr size_t BLOCK_SIZE = 1;
 
   /*---------------------------------------------------------------------------
@@ -38,10 +42,10 @@ namespace Orbit::Control::Observer
     float z1;
     float z2;
     arm_fir_instance_f32 speed_filter;
-    float32_t speed_filter_state[ TAPS + BLOCK_SIZE - 1 ];
+    float32_t speed_filter_state[ FIR_TAPS + BLOCK_SIZE - 1 ];
 
-    arm_iir_lattice_instance_f32 iir_filter[ 3 ];
-    float32_t iir_filter_state[ 3 ][ STAGES + BLOCK_SIZE ];
+    arm_biquad_cascade_df2T_instance_f32 iir_filter[ IIR_FILTER ];
+    float32_t iir_filter_state[ IIR_FILTER ][ 2 * IIR_STAGES ];
 
 
 
@@ -71,11 +75,6 @@ namespace Orbit::Control::Observer
   static PolicyFuncType sPolicyFunc;
   static ObserverState  sState;
 
-  static const float32_t sSpeedFilterCoeffs[ TAPS ] = { 0.5f, 0.5f };
-  static const float32_t sIIRFilterCoeffs_K[ STAGES ] = { 0.5f, 0.5f };
-  static const float32_t sIIRFilterCoeffs_V[ STAGES + 1] = { 0.5f, 0.5f, 0.5f };
-
-
   /*---------------------------------------------------------------------------
   Static Function Declaration
   ---------------------------------------------------------------------------*/
@@ -94,12 +93,14 @@ namespace Orbit::Control::Observer
     CLEAR_STRUCT( sState );
     sPolicyFunc = nullptr;
 
-    arm_fir_init_f32( &sState.speed_filter, TAPS, ( float32_t * )sSpeedFilterCoeffs, sState.speed_filter_state, BLOCK_SIZE );
+    arm_fir_init_f32( &sState.speed_filter, FIR_TAPS, ( float32_t * )h_FIR, sState.speed_filter_state, BLOCK_SIZE );
 
     for( size_t i = 0; i < 3; i++ )
     {
-      arm_iir_lattice_init_f32( &sState.iir_filter[ i ], STAGES, ( float32_t * )sIIRFilterCoeffs_K,
-                                ( float32_t * )sIIRFilterCoeffs_V, sState.iir_filter_state[ i ], BLOCK_SIZE );
+      arm_biquad_cascade_df2T_init_f32( &sState.iir_filter[ i ],
+                                        IIR_STAGES,
+                                        ba_coeff,
+                                        &sState.iir_filter_state[ i ][ 0 ] );
     }
   }
 
@@ -219,10 +220,6 @@ namespace Orbit::Control::Observer
   static void speed_observer( const Input &input, Output &output )
   {
     using namespace Orbit::Control::Math;
-
-    static constexpr float kp = 5.0;
-    static constexpr float ki = 0.1;
-
     static float theta_last = 0.0f;
     static float filtered_omega = 0.0f;
 
@@ -258,11 +255,16 @@ namespace Orbit::Control::Observer
     // Filter the angular rate to remove noise
     arm_fir_f32( &sState.speed_filter, &dTheta, &filtered_omega, BLOCK_SIZE );
 
-    arm_iir_lattice_f32( &sState.iir_filter[ 0 ], &filtered_omega, &filtered_omega, BLOCK_SIZE );
-    arm_iir_lattice_f32( &sState.iir_filter[ 1 ], &filtered_omega, &filtered_omega, BLOCK_SIZE );
-    arm_iir_lattice_f32( &sState.iir_filter[ 2 ], &filtered_omega, &filtered_omega, BLOCK_SIZE );
+    float stage1_output = 0.0f;
+    arm_biquad_cascade_df2T_f32( &sState.iir_filter[ 0 ], &filtered_omega, &stage1_output, BLOCK_SIZE );
+
+    float stage2_output = 0.0f;
+    arm_biquad_cascade_df2T_f32( &sState.iir_filter[ 1 ], &stage1_output, &stage2_output, BLOCK_SIZE );
+
+    float stage3_output = 0.0f;
+    arm_biquad_cascade_df2T_f32( &sState.iir_filter[ 2 ], &stage2_output, &stage3_output, BLOCK_SIZE );
 
     // Update the output
-    output.omega = filtered_omega;
+    output.omega = stage3_output;
   }
 }    // namespace Orbit::Control::Observer

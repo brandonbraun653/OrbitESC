@@ -18,6 +18,8 @@ gen_static_lib_variants(
     core/DSP/Source/FilteringFunctions/arm_fir_init_f32.c
     core/DSP/Source/FilteringFunctions/arm_iir_lattice_f32.c
     core/DSP/Source/FilteringFunctions/arm_iir_lattice_init_f32.c
+    core/DSP/Source/FilteringFunctions/arm_biquad_cascade_df2T_f32.c
+    core/DSP/Source/FilteringFunctions/arm_biquad_cascade_df2T_init_f32.c
   PRV_LIBRARIES
     cmsis_intf_inc
     project_intf_inc
