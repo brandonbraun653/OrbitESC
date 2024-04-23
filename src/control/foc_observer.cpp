@@ -224,31 +224,20 @@ namespace Orbit::Control::Observer
     static float theta_last = 0.0f;
     static float filtered_omega = 0.0f;
 
-    // /*-------------------------------------------------------------------------
-    // Compute the observer state derivatives
-    // -------------------------------------------------------------------------*/
-    // float err_term = output.theta - sState.z1;
-    // Math::normalize_radians( err_term );
-
-    // /* Equation 11 */
-    // float z1_dot = kp * err_term + ki * sState.z2;
-
-    // /* Equation 12 */
-    // float z2_dot = ki * err_term;
-
-    // /*-------------------------------------------------------------------------
-    // Update the observer state
-    // -------------------------------------------------------------------------*/
-    // sState.z1 += z1_dot * input.dt;
-    // Math::normalize_radians( sState.z1 );
-
-    // sState.z2 += z2_dot * input.dt;
-
-    // // Testing
-    // output.omega = z1_dot;
-
     // Take the derivative of the angle to get the angular rate
-    float dTheta = ( output.theta - theta_last ) / input.dt;
+    float dTheta = output.theta - theta_last;
+
+    while( dTheta > M_PI_F )
+    {
+      dTheta -= M_2PI_F;
+    }
+
+    while( dTheta < -M_PI_F )
+    {
+      dTheta += M_2PI_F;
+    }
+
+    dTheta /= input.dt;
 
     // Update the last angle
     theta_last = output.theta;
