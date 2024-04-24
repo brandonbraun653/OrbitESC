@@ -47,7 +47,8 @@ namespace Orbit::Control::Subroutine
   /*---------------------------------------------------------------------------
   Temporary Values
   ---------------------------------------------------------------------------*/
-  static constexpr float s_rpm_desired = 8000.0f;
+  static constexpr float s_rpm_desired = 1000.0f;
+  static uint32_t s_idle_ticks;
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -90,6 +91,9 @@ namespace Orbit::Control::Subroutine
     -------------------------------------------------------------------------*/
     Field::powerDn();
     Field::powerUp();
+
+    // TEMPORARY!
+    s_idle_ticks = 0;
   }
 
 
@@ -104,7 +108,10 @@ namespace Orbit::Control::Subroutine
 
     mRampState.rampStep      = RampStep::RAMP;
     mRampState.rampStart_us  = Chimera::micros();
-    mRampState.omega_desired = ( s_rpm_desired / 60.0f ) * Math::M_2PI_F;
+
+    // TODO BMB: Need to use the actual motor poles here to calculate the desired electrical speed
+    // TODO BMB: Need to use a parameter setpoint for the RPM
+    mRampState.omega_desired = 7.0f * ( s_rpm_desired / 60.0f ) * Math::M_2PI_F;
 
     foc_motor_state.thetaEst = 0;
     foc_ireg_state.iqRef     = 0.0f;
@@ -188,14 +195,31 @@ namespace Orbit::Control::Subroutine
       foc_ireg_state.iqRef     = 0.8f;
       foc_ireg_state.idRef     = 0.0f;
     }
+    else if( s_idle_ticks < 10000 )
+    {
+      s_idle_ticks++;
 
-    /*-------------------------------------------------------------------------
-    Compute the next theta angle for the rotor given the current angular rate
-    -------------------------------------------------------------------------*/
-    const float dTheta = foc_motor_state.omegaEst / Data::SysControl.statorPWMFreq;
+      /*-----------------------------------------------------------------------
+      Compute the next theta angle for the rotor given the current angular rate
+      -----------------------------------------------------------------------*/
+      const float dTheta = foc_motor_state.omegaEst / Data::SysControl.statorPWMFreq;
 
-    foc_motor_state.thetaEst += dTheta;
-    Math::normalize_radians( foc_motor_state.thetaEst );
+      foc_motor_state.thetaEst += dTheta;
+      Math::normalize_radians( foc_motor_state.thetaEst );
+    }
+    else if( s_idle_ticks == 10000 )
+    {
+      /*-----------------------------------------------------------------------
+      TESTING: Very naively transition to closed loop control once we've idled
+      for a bit. Let's just see what happens.
+      -----------------------------------------------------------------------*/
+      s_idle_ticks++;
+      Field::setControlMode( Field::Mode::CLOSED_LOOP );
+    }
+    else
+    {
+      // Do nothing
+    }
   }
 
 }    // namespace Orbit::Control::Subroutine

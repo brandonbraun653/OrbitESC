@@ -25,7 +25,7 @@ namespace Orbit::Control::Observer
   enum class Policy : uint8_t
   {
     NONE,
-    LUENBERGER,
+    ORTEGA_NON_LINEAR,
   };
 
   /*---------------------------------------------------------------------------
@@ -35,16 +35,16 @@ namespace Orbit::Control::Observer
   struct Input
   {
     float dt;     /**< Observer sampling delta step in seconds */
-    float iAlpha; /**< Measured stator current in the alpha frame */
-    float iBeta;  /**< Measured stator current in the beta frame */
-    float vAlpha; /**< Measured stator voltage in the alpha frame */
-    float vBeta;  /**< Measured stator voltage in the beta frame */
+    float iAlpha; /**< Stator current in the alpha frame */
+    float iBeta;  /**< Stator current in the beta frame */
+    float vAlpha; /**< Stator voltage in the alpha frame */
+    float vBeta;  /**< Stator voltage in the beta frame */
   };
 
   struct Output
   {
-    float theta;  /**< Estimated electrical position in radians */
-    float omega;  /**< Estimated electrical rotational speed in rad/s */
+    float theta_elec;  /**< Estimated electrical position in radians */
+    float omega_elec;  /**< Estimated electrical rotational speed in rad/s */
   };
 
   /*---------------------------------------------------------------------------
@@ -71,11 +71,6 @@ namespace Orbit::Control::Observer
    * @param output  The output data from the observer
    */
   void execute( const Input &input, Output &output );
-
-  /**
-   * @brief Resets the current observer to its initial state
-   */
-  void reset();
 
   /**
    * @brief Retrieves the latest estimates from the observer.

@@ -27,10 +27,9 @@ namespace Orbit::Control::Observer
 
   using PolicyFuncType = void ( * )( const Input &, Output & );
 
-  // static constexpr size_t IIR_STAGES = 2;
   static constexpr size_t IIR_FILTER = 3; /**< Number of IIR filters used */
   static constexpr size_t IIR_STAGES = STAGES;
-  static constexpr size_t FIR_TAPS = M_FIR;
+  static constexpr size_t FIR_TAPS   = M_FIR;
   static constexpr size_t BLOCK_SIZE = 1;
 
   /*---------------------------------------------------------------------------
@@ -39,15 +38,13 @@ namespace Orbit::Control::Observer
   struct ObserverState
   {
     /* Speed observer state */
-    float z1;
-    float z2;
+    float                z1;
+    float                z2;
     arm_fir_instance_f32 speed_filter;
-    float32_t speed_filter_state[ FIR_TAPS + BLOCK_SIZE - 1 ];
+    float32_t            speed_filter_state[ FIR_TAPS + BLOCK_SIZE - 1 ];
 
     arm_biquad_cascade_df2T_instance_f32 iir_filter[ IIR_FILTER ];
-    float32_t iir_filter_state[ IIR_FILTER ][ 2 * IIR_STAGES ];
-
-
+    float32_t                            iir_filter_state[ IIR_FILTER ][ 2 * IIR_STAGES ];
 
     /* Phase observer state */
     float x1;
@@ -79,8 +76,7 @@ namespace Orbit::Control::Observer
   Static Function Declaration
   ---------------------------------------------------------------------------*/
 
-  static void luenberger_policy( const Input &input, Output &output );
-
+  static void ortega_nonlinear_policy( const Input &input, Output &output );
   static void speed_observer( const Input &input, Output &output );
 
   /*---------------------------------------------------------------------------
@@ -97,10 +93,7 @@ namespace Orbit::Control::Observer
 
     for( size_t i = 0; i < 3; i++ )
     {
-      arm_biquad_cascade_df2T_init_f32( &sState.iir_filter[ i ],
-                                        IIR_STAGES,
-                                        ba_coeff,
-                                        &sState.iir_filter_state[ i ][ 0 ] );
+      arm_biquad_cascade_df2T_init_f32( &sState.iir_filter[ i ], IIR_STAGES, ba_coeff, &sState.iir_filter_state[ i ][ 0 ] );
     }
   }
 
@@ -109,8 +102,8 @@ namespace Orbit::Control::Observer
   {
     switch( policy )
     {
-      case Policy::LUENBERGER:
-        sPolicyFunc = luenberger_policy;
+      case Policy::ORTEGA_NON_LINEAR:
+        sPolicyFunc = ortega_nonlinear_policy;
         break;
 
       case Policy::NONE:
@@ -130,7 +123,9 @@ namespace Orbit::Control::Observer
       return;
     }
 
-
+    /*-------------------------------------------------------------------------
+    Update the observer state with the latest stator parameters
+    -------------------------------------------------------------------------*/
     sState.R          = Data::SysConfig.statorResistance;
     sState.L          = Data::SysConfig.statorInductance;
     sState.lambda     = 0.075f;    // Permanent magnet flux linkage
@@ -165,18 +160,13 @@ namespace Orbit::Control::Observer
     /*-------------------------------------------------------------------------
     Compute theta estimate from the observer state. (Equation 9)
     -------------------------------------------------------------------------*/
-    output.theta = M_PI_F + fast_atan2_with_norm( sState.x2 - sState.L_ib, sState.x1 - sState.L_ia );
-    output.theta = clamp( output.theta, 0.0f, M_2PI_F );
+    output.theta_elec = M_PI_F + fast_atan2_with_norm( sState.x2 - sState.L_ib, sState.x1 - sState.L_ia );
+    output.theta_elec = clamp( output.theta_elec, 0.0f, M_2PI_F );
 
     /*-------------------------------------------------------------------------
     Compute omega estimate from the observer state.
     -------------------------------------------------------------------------*/
     speed_observer( input, output );
-  }
-
-
-  void reset()
-  {
   }
 
 
@@ -196,7 +186,7 @@ namespace Orbit::Control::Observer
    * @param input   Input parameters to the observer.
    * @param output  Output parameters from the observer.
    */
-  static void luenberger_policy( const Input &input, Output &output )
+  static void ortega_nonlinear_policy( const Input &input, Output &output )
   {
     float err = SQ( sState.lambda ) - ( SQ( sState.x1 - sState.L_ia ) + SQ( sState.x2 - sState.L_ib ) );
 
@@ -211,21 +201,30 @@ namespace Orbit::Control::Observer
     }
 
     float x1_dot = input.vAlpha - sState.R_ia + sState.gamma_half * ( sState.x1 - sState.L_ia ) * err;
-    float x2_dot = input.vBeta  - sState.R_ib + sState.gamma_half * ( sState.x2 - sState.L_ib ) * err;
+    float x2_dot = input.vBeta - sState.R_ib + sState.gamma_half * ( sState.x2 - sState.L_ib ) * err;
 
     sState.x1 += x1_dot * input.dt;
     sState.x2 += x2_dot * input.dt;
   }
 
 
+  /**
+   * @brief Uses the derivative of the position estimate to compute the speed estimate.
+   *
+   * @param input  The input data to the observer
+   * @param output The output data from the observer
+   */
   static void speed_observer( const Input &input, Output &output )
   {
     using namespace Orbit::Control::Math;
-    static float theta_last = 0.0f;
+    static float theta_last     = 0.0f;
     static float filtered_omega = 0.0f;
 
-    // Take the derivative of the angle to get the angular rate
-    float dTheta = output.theta - theta_last;
+    /*-------------------------------------------------------------------------
+    Take the derivative of the angle to get the angular rate. This needs a bit
+    of wrapping to handle the 0 to 2pi transition.
+    -------------------------------------------------------------------------*/
+    float dTheta = output.theta_elec - theta_last;
 
     while( dTheta > M_PI_F )
     {
@@ -239,10 +238,11 @@ namespace Orbit::Control::Observer
 
     dTheta /= input.dt;
 
-    // Update the last angle
-    theta_last = output.theta;
-
-    // Filter the angular rate to remove noise
+    /*-------------------------------------------------------------------------
+    Filter the raw speed estimate to remove noise. This four stage filter was
+    suggested by Microchip in AN2590 Section 1.5.1.
+    -------------------------------------------------------------------------*/
+    theta_last = output.theta_elec;
     arm_fir_f32( &sState.speed_filter, &dTheta, &filtered_omega, BLOCK_SIZE );
 
     float stage1_output = 0.0f;
@@ -254,7 +254,6 @@ namespace Orbit::Control::Observer
     float stage3_output = 0.0f;
     arm_biquad_cascade_df2T_f32( &sState.iir_filter[ 2 ], &stage2_output, &stage3_output, BLOCK_SIZE );
 
-    // Update the output
-    output.omega = stage3_output;
+    output.omega_elec = stage3_output;
   }
 }    // namespace Orbit::Control::Observer

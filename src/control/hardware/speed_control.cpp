@@ -16,6 +16,7 @@ Includes
 #include <src/config/orbit_esc_cfg.hpp>
 #include <src/control/foc_data.hpp>
 #include <src/control/foc_math.hpp>
+#include <src/control/foc_observer.hpp>
 #include <src/control/hardware/current_control.hpp>
 #include <src/control/hardware/speed_control.hpp>
 #include <src/core/data/orbit_data.hpp>
@@ -39,6 +40,7 @@ namespace Orbit::Control::Speed
   static Chimera::Timer::Trigger::Master     s_speed_ctrl_timer; /**< Trigger for the speed control loop */
   static volatile Chimera::GPIO::Driver_rPtr s_dbg_pin;          /**< Debug pin for timing measurements */
   static volatile Mode                       s_ctl_mode;         /**< Current control mode */
+  static Control::Math::PID                  s_speed_pid;        /**< Speed controller PID */
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -56,12 +58,21 @@ namespace Orbit::Control::Speed
     s_speed_ctrl_timer.ackISR();
 
     /*-------------------------------------------------------------------------
-    Push the latest streaming parameters into the transmission buffer
+    Run the PID controller to generate a new Iq reference
     -------------------------------------------------------------------------*/
-    // const uint32_t timestamp = Chimera::micros();
-    // publishPhaseCurrents( timestamp );
-    // publishPhaseCommands( timestamp );
-    // publishStateEstimates( timestamp );
+    Observer::Output observer = Observer::estimates();
+
+    // TODO BMB: Replace this with a parameter
+    const float motor_poles = 7.0f;
+
+    // TODO BMB: Replace this with a runtime variable
+    s_speed_pid.SetPoint = 1000.0f; // RPM
+
+    foc_ireg_state.iqRef = s_speed_pid.run( observer.omega_elec / motor_poles );
+    foc_ireg_state.idRef = 0.0f;
+
+    // TODO BMB: I'm worried about there being an output discontinuity here with
+    // TODO BMB: the commanded iqRef. Need to think about how to handle this.
   }
 
 
@@ -82,6 +93,15 @@ namespace Orbit::Control::Speed
     s_dbg_pin->setState( Chimera::GPIO::State::LOW );
 
     /*-------------------------------------------------------------------------
+    Initialize the speed controller PID
+    -------------------------------------------------------------------------*/
+    s_speed_pid.init();
+    s_speed_pid.OutMaxLimit = 10.0f;
+    s_speed_pid.OutMinLimit = -10.0f;
+    s_speed_pid.setTunings( 15.0f, 0.1f, 0.0f, 1.0f / Data::SysControl.statorPWMFreq );
+    s_speed_pid.resetState();
+
+    /*-------------------------------------------------------------------------
     Configure the Speed control outer loop update timer
     -------------------------------------------------------------------------*/
     Chimera::Timer::Trigger::MasterConfig trig_cfg;
@@ -100,6 +120,12 @@ namespace Orbit::Control::Speed
   {
   }
 
+
+  void synchronize( const float omega )
+  {
+    s_speed_pid.resetState();
+    s_speed_pid.SetPoint = omega;
+  }
 
   bool setControlMode( const Mode mode )
   {

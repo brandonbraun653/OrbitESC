@@ -20,6 +20,7 @@ Includes
 #include <src/control/foc_math.hpp>
 #include <src/control/foc_observer.hpp>
 #include <src/control/hardware/current_control.hpp>
+#include <src/control/hardware/speed_control.hpp>
 #include <src/core/com/serial/serial_async_message.hpp>
 #include <src/core/com/serial/serial_usb.hpp>
 #include <src/core/data/orbit_data.hpp>
@@ -89,7 +90,7 @@ namespace Orbit::Control::Field
     -------------------------------------------------------------------------*/
     Orbit::Control::initFOCData();
     Orbit::Control::Observer::initialize();
-    Orbit::Control::Observer::setPolicy( Orbit::Control::Observer::Policy::LUENBERGER );
+    Orbit::Control::Observer::setPolicy( Orbit::Control::Observer::Policy::ORTEGA_NON_LINEAR );
 
     /*-------------------------------------------------------------------------
     Assign PID current control parameters
@@ -179,7 +180,6 @@ namespace Orbit::Control::Field
         inverter->svmUpdate( 0.0f, 0.0f, 0.0f, 0.0f );
         inverter->enableOutput();
 
-        Observer::reset();
 
 #if defined( SIMULATOR )
         Orbit::Sim::ADC::enableMotorSenseADC( true );
@@ -187,10 +187,6 @@ namespace Orbit::Control::Field
         break;
 
       case Mode::CLOSED_LOOP:
-        // TODO BMB: Honestly this transition needs to happen inside the ISR.
-        foc_motor_state.thetaEst = 0.0f;
-        foc_ireg_state.iqRef     = 0.0f;
-        foc_ireg_state.idRef     = 0.0f;
         break;
 
       default:
@@ -399,11 +395,11 @@ namespace Orbit::Control::Field
 
     Observer::execute( observer_input, observer_output );
 
-    // if( s_ctl_mode == Mode::CLOSED_LOOP )
-    // {
-    //   foc_motor_state.thetaEst = observer_output.theta;
-    //   foc_motor_state.omegaEst = observer_output.omega;
-    // }
+    if( s_ctl_mode == Mode::CLOSED_LOOP )
+    {
+      foc_motor_state.thetaEst = observer_output.theta_elec;
+      foc_motor_state.omegaEst = observer_output.omega_elec;
+    }
 
     /*-------------------------------------------------------------------------
     Using the new estimations, convert to the DQ axis for control
@@ -421,6 +417,12 @@ namespace Orbit::Control::Field
 
       foc_ireg_state.vd = kd * foc_ireg_state.idRef;
       foc_ireg_state.vq = kq * foc_ireg_state.iqRef;
+
+      /*-----------------------------------------------------------------------
+      Keep the speed controller synchronized with our estimates. This should
+      help with crossover from open to closed loop control.
+      -----------------------------------------------------------------------*/
+      Speed::synchronize( observer_output.omega_elec );
     }
     else if( s_ctl_mode == Mode::CLOSED_LOOP )
     {
@@ -458,17 +460,6 @@ namespace Orbit::Control::Field
     inverter->svmUpdate( foc_ireg_state.va_cmd, foc_ireg_state.vb_cmd, foc_motor_state.thetaEst, modulation_index );
 
     /*-------------------------------------------------------------------------
-    Apply the voltage commands to the simulated motor
-    -------------------------------------------------------------------------*/
-    // #if defined( SIMULATOR )
-    // auto motor_state = Orbit::Sim::Motor::modelState();
-    // inverse_park_transform( foc_ireg_state.vq_mod, foc_ireg_state.vd_mod, motor_state.phi, foc_ireg_state.va,
-    //                         foc_ireg_state.vb );
-
-    // Orbit::Sim::Motor::stepModel( foc_ireg_state.va, foc_ireg_state.vb );
-    // #endif
-
-    /*-------------------------------------------------------------------------
     Invoke control system callback to swap in custom inner loop behaviors
     -------------------------------------------------------------------------*/
     s_inner_loop_cb();
@@ -486,7 +477,7 @@ namespace Orbit::Control::Field
     -------------------------------------------------------------------------*/
     // TEMPORARY
     static constexpr bool CURRENT_MONITOR  = false;
-    static constexpr bool OBSERVER_MONITOR = true;
+    static constexpr bool OBSERVER_MONITOR = false;
     static constexpr bool VOLTAGE_MONITOR  = false;
 
 #if defined( EMBEDDED )
@@ -541,8 +532,8 @@ namespace Orbit::Control::Field
 
         Serial::Message::Payload::SystemObserverMonitorPayload payload;
 
-        payload.raw.theta_est = observer_output.theta;
-        payload.raw.omega_est = observer_output.omega;
+        payload.raw.theta_est = observer_output.theta_elec;
+        payload.raw.omega_est = observer_output.omega_elec;
 
         payload_encoded = Serial::Message::encode( &payload.state, Serial::Message::ENCODE_NO_COBS );
         memcpy( s_ctl_monitor.raw.payload.bytes, payload.data(), payload.size() );

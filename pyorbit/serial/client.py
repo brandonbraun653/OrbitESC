@@ -142,12 +142,14 @@ class OrbitClient:
         """
         self.com_pipe.write(SystemResetPBMsg().serialize())
 
-    def set_motor_ctrl_state(self, new_state: MotorCtrlState, timeout: Union[int, float] = 5.0) -> bool:
+    def set_motor_ctrl_state(self, new_state: MotorCtrlState, timeout: Union[int, float] = 5.0,
+                             post_delay: float = 0.5) -> bool:
         """
         Requests a motor state transition
         Args:
             new_state: Desired state to transition to
             timeout: How long to wait for the transition to complete
+            post_delay: How long to wait after the transition before returning
 
         Returns:
             None
@@ -173,6 +175,9 @@ class OrbitClient:
             lambda x: isinstance(x, SystemStatusPBMsg) and (x.motor_ctrl_state == new_state),
             qty=1,
             timeout=timeout)
+
+        # Wait for the post delay to ensure the ESC has time to stabilize
+        time.sleep(post_delay)
 
         return len(packets) == 1
 

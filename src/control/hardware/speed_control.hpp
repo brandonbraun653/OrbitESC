@@ -49,6 +49,12 @@ namespace Orbit::Control::Speed
   void powerDn();
 
   /**
+   * @brief Synchronizes the PID controller with the given speed
+   * @return void
+   */
+  void synchronize( const float omega );
+
+  /**
    * @brief Set a control mode for the speed controller
    * @return True if the mode entered successfully
    */
