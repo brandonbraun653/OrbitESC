@@ -1,4 +1,6 @@
 import logging
+import time
+
 from pyorbit.nanopb.motor_control_pb2 import MotorCtrlState
 from pyorbit.tests.fixtures import *
 from pyorbit.serial.client import OrbitClient

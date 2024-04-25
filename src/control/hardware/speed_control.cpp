@@ -57,6 +57,11 @@ namespace Orbit::Control::Speed
     -------------------------------------------------------------------------*/
     s_speed_ctrl_timer.ackISR();
 
+    if( s_ctl_mode != Mode::CLOSED_LOOP )
+    {
+      return;
+    }
+
     /*-------------------------------------------------------------------------
     Run the PID controller to generate a new Iq reference
     -------------------------------------------------------------------------*/
@@ -116,6 +121,7 @@ namespace Orbit::Control::Speed
     s_speed_ctrl_timer.enable();
   }
 
+
   void powerDn()
   {
   }
@@ -129,8 +135,8 @@ namespace Orbit::Control::Speed
 
   bool setControlMode( const Mode mode )
   {
-    // TODO
-    return false;
+    s_ctl_mode = mode;
+    return true;
   }
 
 

@@ -16,6 +16,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/logging>
 #include <src/control/hardware/current_control.hpp>
+#include <src/control/hardware/speed_control.hpp>
 #include <src/control/subroutines/rotor_ramp.hpp>
 #include <src/core/hw/orbit_motor_drive.hpp>
 #include <src/core/hw/orbit_motor_sense.hpp>
@@ -48,7 +49,7 @@ namespace Orbit::Control::Subroutine
   Temporary Values
   ---------------------------------------------------------------------------*/
   static constexpr float s_rpm_desired = 1000.0f;
-  static uint32_t s_idle_ticks;
+  static bool s_transitioned;
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -93,7 +94,7 @@ namespace Orbit::Control::Subroutine
     Field::powerUp();
 
     // TEMPORARY!
-    s_idle_ticks = 0;
+    s_transitioned = false;
   }
 
 
@@ -113,7 +114,8 @@ namespace Orbit::Control::Subroutine
     // TODO BMB: Need to use a parameter setpoint for the RPM
     mRampState.omega_desired = 7.0f * ( s_rpm_desired / 60.0f ) * Math::M_2PI_F;
 
-    foc_motor_state.thetaEst = 0;
+    foc_motor_state.thetaEst = 0.0f;
+    foc_motor_state.omegaEst = 0.0f;
     foc_ireg_state.iqRef     = 0.0f;
     foc_ireg_state.idRef     = 0.0f;
 
@@ -182,43 +184,45 @@ namespace Orbit::Control::Subroutine
    */
   static void isrRampControl()
   {
+    using namespace Orbit::Control;
+
+    const size_t curr_time = Chimera::micros();
+    const size_t delta_us  = curr_time - mRampState.rampStart_us;
+    const float now_sec = static_cast<float>( delta_us ) * 1e-6f;
+
+    if( s_transitioned )
+    {
+      return;
+    }
+
     /*-------------------------------------------------------------------------
     Update the angular rate according to the ramp function
     -------------------------------------------------------------------------*/
     if( foc_motor_state.omegaEst < mRampState.omega_desired )
     {
-      const float now_sec     = static_cast<float>( Chimera::micros() - mRampState.rampStart_us ) * 1e-6f;
-      const float omega_scale = now_sec;
-
-      foc_motor_state.omegaEst = mRampState.omega_desired * omega_scale;
+      foc_motor_state.omegaEst = mRampState.omega_desired * now_sec;
       foc_ireg_state.max_drive = 0.4f;
       foc_ireg_state.iqRef     = 0.8f;
       foc_ireg_state.idRef     = 0.0f;
     }
-    else if( s_idle_ticks < 10000 )
-    {
-      s_idle_ticks++;
 
-      /*-----------------------------------------------------------------------
-      Compute the next theta angle for the rotor given the current angular rate
-      -----------------------------------------------------------------------*/
-      const float dTheta = foc_motor_state.omegaEst / Data::SysControl.statorPWMFreq;
+    /*-----------------------------------------------------------------------
+    Compute the next theta angle for the rotor given the current angular rate
+    -----------------------------------------------------------------------*/
+    const float dTheta = foc_motor_state.omegaEst / Data::SysControl.statorPWMFreq;
 
-      foc_motor_state.thetaEst += dTheta;
-      Math::normalize_radians( foc_motor_state.thetaEst );
-    }
-    else if( s_idle_ticks == 10000 )
+    foc_motor_state.thetaEst += dTheta;
+    Math::normalize_radians( foc_motor_state.thetaEst );
+
+    if( now_sec > 3.0f )
     {
       /*-----------------------------------------------------------------------
       TESTING: Very naively transition to closed loop control once we've idled
       for a bit. Let's just see what happens.
       -----------------------------------------------------------------------*/
-      s_idle_ticks++;
+      s_transitioned = true;
       Field::setControlMode( Field::Mode::CLOSED_LOOP );
-    }
-    else
-    {
-      // Do nothing
+      Speed::setControlMode( Speed::Mode::CLOSED_LOOP );
     }
   }
 

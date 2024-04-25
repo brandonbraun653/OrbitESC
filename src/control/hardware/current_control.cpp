@@ -422,7 +422,7 @@ namespace Orbit::Control::Field
       Keep the speed controller synchronized with our estimates. This should
       help with crossover from open to closed loop control.
       -----------------------------------------------------------------------*/
-      Speed::synchronize( observer_output.omega_elec );
+      //Speed::synchronize( observer_output.omega_elec );
     }
     else if( s_ctl_mode == Mode::CLOSED_LOOP )
     {
