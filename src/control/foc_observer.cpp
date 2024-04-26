@@ -167,6 +167,11 @@ namespace Orbit::Control::Observer
     Compute omega estimate from the observer state.
     -------------------------------------------------------------------------*/
     speed_observer( input, output );
+
+    /*-------------------------------------------------------------------------
+    Update our own copy of the estimates
+    -------------------------------------------------------------------------*/
+    sEstimates = output;
   }
 
 

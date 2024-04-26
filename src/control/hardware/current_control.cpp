@@ -417,12 +417,6 @@ namespace Orbit::Control::Field
 
       foc_ireg_state.vd = kd * foc_ireg_state.idRef;
       foc_ireg_state.vq = kq * foc_ireg_state.iqRef;
-
-      /*-----------------------------------------------------------------------
-      Keep the speed controller synchronized with our estimates. This should
-      help with crossover from open to closed loop control.
-      -----------------------------------------------------------------------*/
-      //Speed::synchronize( observer_output.omega_elec );
     }
     else if( s_ctl_mode == Mode::CLOSED_LOOP )
     {

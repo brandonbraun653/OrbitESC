@@ -51,14 +51,20 @@ namespace Orbit::Control::Speed
   static void timer_isr_speed_controller()
   {
     using namespace Orbit::Motor;
+    using namespace Orbit::Control::Math;
 
     /*-------------------------------------------------------------------------
     Gate the behavior of this ISR without stopping the Timer/ADC/DMA hardware
     -------------------------------------------------------------------------*/
     s_speed_ctrl_timer.ackISR();
 
+
+
     if( s_ctl_mode != Mode::CLOSED_LOOP )
     {
+      s_speed_pid.resetState();
+      s_speed_pid.SetPoint = 1.0f;
+      s_speed_pid.Output = foc_ireg_state.iqRef;
       return;
     }
 
@@ -67,13 +73,15 @@ namespace Orbit::Control::Speed
     -------------------------------------------------------------------------*/
     Observer::Output observer = Observer::estimates();
 
-    // TODO BMB: Replace this with a parameter
+    // TODO BMB: Replace these with parameters
     const float motor_poles = 7.0f;
+    const float desired_rpm = 1000.0f;
+    const float curr_rpm = ( observer.omega_elec / motor_poles ) * 60.0f / M_2PI_F;
 
-    // TODO BMB: Replace this with a runtime variable
-    s_speed_pid.SetPoint = 1000.0f; // RPM
+    const float normalized_rpm = curr_rpm / desired_rpm;
 
-    foc_ireg_state.iqRef = s_speed_pid.run( observer.omega_elec / motor_poles );
+    s_speed_pid.SetPoint = 1.0f;
+    foc_ireg_state.iqRef = std::max( 0.8f, s_speed_pid.run( normalized_rpm ) );
     foc_ireg_state.idRef = 0.0f;
 
     // TODO BMB: I'm worried about there being an output discontinuity here with
@@ -126,12 +134,6 @@ namespace Orbit::Control::Speed
   {
   }
 
-
-  void synchronize( const float omega )
-  {
-    s_speed_pid.resetState();
-    s_speed_pid.SetPoint = omega;
-  }
 
   bool setControlMode( const Mode mode )
   {
