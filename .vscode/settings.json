@@ -177,8 +177,17 @@
     }
   },
   "git.detectSubmodulesLimit": 45,
-  "python.pythonPath": "./.venv/bin/python",
+  "python.defaultInterpreterPath": "./.venv/bin/python",
+  "editor.defaultFormatter": "ms-python.black-formatter",
   "editor.formatOnSave": true,
+  "black-formatter.args": [
+    "--config",
+    "${workspaceFolder}/pyproject.toml"
+  ],
+  "flake8.args": [
+    "--config",
+    "${workspaceFolder}/pyproject.toml"
+  ],
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit"
   }
