@@ -12,6 +12,11 @@ source "$_cwd"/.venv/bin/activate
 SRC_DIR=$_cwd/src/core/com/proto
 NPB_DIR=$_cwd/lib/Aurora/lib/nanopb/nanopb/generator/proto
 DST_DIR=$_cwd/pyorbit/nanopb
+GENERATOR_DIR=$_cwd/lib/Aurora/lib/nanopb/nanopb/generator
+
+# Ensure nanopb generator modules are discoverable
+export PYTHONPATH="$GENERATOR_DIR${PYTHONPATH:+:$PYTHONPATH}"
+export PATH="$GENERATOR_DIR${PATH:+:$PATH}"
 
 # Build the C bindings
 echo "Building Nanopb C-Bindings"

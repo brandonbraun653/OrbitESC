@@ -1,0 +1,15 @@
+syntax = "proto2";
+import "nanopb.proto";
+import "serial_interface.proto";
+
+// Sub-IDs for simulator-specific messages sent over the serial link.
+enum SimulatorSubId {
+  SIM_FLOAT_ECHO = 1; // Echo a floating point value for Matlab integration
+}
+
+// Echo message used to verify the Matlab serial interface with the simulator.
+message SimulatorFloatEcho {
+  required Header header = 1;
+  required float value = 2;
+}
+

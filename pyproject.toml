@@ -31,6 +31,10 @@ dependencies = [
     "pandas>=2.2.2,<3.0.0",
     "black>=23.0.0,<24.0.0",
     "flake8>=6.0.0,<7.0.0",
+    "grpcio-tools",
+    "mypy",
+    "mypy-protobuf",
+    "protobuf==5.29.5", # nanopb 0.4.9.1 requires this
 ]
 
 [tool.setuptools.packages.find]

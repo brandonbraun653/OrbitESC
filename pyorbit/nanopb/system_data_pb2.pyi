@@ -24,7 +24,7 @@ class _SystemDataId:
     ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
 
-class _SystemDataIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_SystemDataId.ValueType], builtins.type):
+class _SystemDataIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_SystemDataId.ValueType], builtins.type):  # noqa: F821
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
     SYS_DATA_INVALID: _SystemDataId.ValueType  # 0
     """Invalid data ID"""
@@ -75,7 +75,6 @@ ADC_BUS_VOLTAGE: SystemDataId.ValueType  # 101
 """DC bus voltage input to the motor controller"""
 global___SystemDataId = SystemDataId
 
-@typing_extensions.final
 class SystemTickMessage(google.protobuf.message.Message):
     """Message type for announcing the current system tick"""
 
@@ -98,7 +97,6 @@ class SystemTickMessage(google.protobuf.message.Message):
 
 global___SystemTickMessage = SystemTickMessage
 
-@typing_extensions.final
 class ConsoleMessage(google.protobuf.message.Message):
     """Message type for streaming out console messages in real time"""
 
@@ -129,7 +127,6 @@ class ConsoleMessage(google.protobuf.message.Message):
 
 global___ConsoleMessage = ConsoleMessage
 
-@typing_extensions.final
 class SystemInfoMessage(google.protobuf.message.Message):
     """Message type for announcing some device descriptions"""
 
@@ -164,7 +161,6 @@ class SystemInfoMessage(google.protobuf.message.Message):
 
 global___SystemInfoMessage = SystemInfoMessage
 
-@typing_extensions.final
 class SystemStatusMessage(google.protobuf.message.Message):
     """Message type for announcing the current system status"""
 
@@ -191,7 +187,6 @@ class SystemStatusMessage(google.protobuf.message.Message):
 
 global___SystemStatusMessage = SystemStatusMessage
 
-@typing_extensions.final
 class StreamRequestMessage(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -199,7 +194,7 @@ class StreamRequestMessage(google.protobuf.message.Message):
         ValueType = typing.NewType("ValueType", builtins.int)
         V: typing_extensions.TypeAlias = ValueType
 
-    class _EncodingEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[StreamRequestMessage._Encoding.ValueType], builtins.type):
+    class _EncodingEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[StreamRequestMessage._Encoding.ValueType], builtins.type):  # noqa: F821
         DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
         FLOAT: StreamRequestMessage._Encoding.ValueType  # 0
         """Floating point data"""
@@ -265,7 +260,6 @@ class StreamRequestMessage(google.protobuf.message.Message):
 
 global___StreamRequestMessage = StreamRequestMessage
 
-@typing_extensions.final
 class StreamDataMessage(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -273,7 +267,7 @@ class StreamDataMessage(google.protobuf.message.Message):
         ValueType = typing.NewType("ValueType", builtins.int)
         V: typing_extensions.TypeAlias = ValueType
 
-    class _FlagsEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[StreamDataMessage._Flags.ValueType], builtins.type):
+    class _FlagsEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[StreamDataMessage._Flags.ValueType], builtins.type):  # noqa: F821
         DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
         VALID: StreamDataMessage._Flags.ValueType  # 1
         """Data is valid"""
@@ -292,7 +286,6 @@ class StreamDataMessage(google.protobuf.message.Message):
     DEGRADED: StreamDataMessage.Flags.ValueType  # 4
     """Processing is still ok, but data is in a degraded state"""
 
-    @typing_extensions.final
     class Chunk(google.protobuf.message.Message):
         """Raw chunk of data representing a single stream"""
 
@@ -359,7 +352,6 @@ class StreamDataMessage(google.protobuf.message.Message):
 
 global___StreamDataMessage = StreamDataMessage
 
-@typing_extensions.final
 class SystemDataMessage(google.protobuf.message.Message):
     """Message type for streaming out raw data from the system in real time"""
 
@@ -390,7 +382,6 @@ class SystemDataMessage(google.protobuf.message.Message):
 
 global___SystemDataMessage = SystemDataMessage
 
-@typing_extensions.final
 class ADCPhaseCurrentsPayload(google.protobuf.message.Message):
     """Data payload type for SystemDataId::ADC_PHASE_CURRENTS"""
 
@@ -417,7 +408,6 @@ class ADCPhaseCurrentsPayload(google.protobuf.message.Message):
 
 global___ADCPhaseCurrentsPayload = ADCPhaseCurrentsPayload
 
-@typing_extensions.final
 class ADCPhaseVoltagesPayload(google.protobuf.message.Message):
     """Data payload type for SystemDataId::PWM_COMMANDS"""
 
@@ -444,7 +434,6 @@ class ADCPhaseVoltagesPayload(google.protobuf.message.Message):
 
 global___ADCPhaseVoltagesPayload = ADCPhaseVoltagesPayload
 
-@typing_extensions.final
 class ADCSystemVoltagesPayload(google.protobuf.message.Message):
     """Data payload type for SystemDataId::ADC_SYSTEM_VOLTAGES"""
 
@@ -475,7 +464,6 @@ class ADCSystemVoltagesPayload(google.protobuf.message.Message):
 
 global___ADCSystemVoltagesPayload = ADCSystemVoltagesPayload
 
-@typing_extensions.final
 class CurrentControlMonitorPayload(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -532,7 +520,6 @@ class CurrentControlMonitorPayload(google.protobuf.message.Message):
 
 global___CurrentControlMonitorPayload = CurrentControlMonitorPayload
 
-@typing_extensions.final
 class SystemObserverMonitorPayload(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -553,7 +540,6 @@ class SystemObserverMonitorPayload(google.protobuf.message.Message):
 
 global___SystemObserverMonitorPayload = SystemObserverMonitorPayload
 
-@typing_extensions.final
 class InnerLoopVoltageMonitorPayload(google.protobuf.message.Message):
     """Message payload type for SystemDataId::INNER_LOOP_VOLTAGES"""
 

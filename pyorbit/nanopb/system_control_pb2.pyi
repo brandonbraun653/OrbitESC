@@ -21,7 +21,7 @@ class _SystemControlSubId:
     ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
 
-class _SystemControlSubIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_SystemControlSubId.ValueType], builtins.type):
+class _SystemControlSubIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_SystemControlSubId.ValueType], builtins.type):  # noqa: F821
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
     RESET: _SystemControlSubId.ValueType  # 1
     """Reset the system"""
@@ -99,7 +99,6 @@ FAULT: SystemControlSubId.ValueType  # 17
 """High priority disengagement of the motor control system (for safety), bypassing normal disengagement flow"""
 global___SystemControlSubId = SystemControlSubId
 
-@typing_extensions.final
 class SystemControlMessage(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 

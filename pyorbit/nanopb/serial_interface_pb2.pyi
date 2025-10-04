@@ -20,7 +20,7 @@ class _MsgId:
     ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
 
-class _MsgIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_MsgId.ValueType], builtins.type):
+class _MsgIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_MsgId.ValueType], builtins.type):  # noqa: F821
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
     MSG_ACK_NACK: _MsgId.ValueType  # 0
     """Generic ack/nack type message"""
@@ -72,7 +72,7 @@ class _SubId:
     ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
 
-class _SubIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_SubId.ValueType], builtins.type):
+class _SubIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_SubId.ValueType], builtins.type):  # noqa: F821
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
     SUB_MSG_NONE: _SubId.ValueType  # 0
     """Invalid/empty sub-message ID"""
@@ -88,7 +88,7 @@ class _StatusCode:
     ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
 
-class _StatusCodeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_StatusCode.ValueType], builtins.type):
+class _StatusCodeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_StatusCode.ValueType], builtins.type):  # noqa: F821
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
     NO_ERROR: _StatusCode.ValueType  # 0
     UNKNOWN_ERROR: _StatusCode.ValueType  # 1
@@ -108,7 +108,6 @@ INVALID_VALUE: StatusCode.ValueType  # 4
 REQUEST_FAILED: StatusCode.ValueType  # 5
 global___StatusCode = StatusCode
 
-@typing_extensions.final
 class Header(google.protobuf.message.Message):
     """Core message header common to all types. Each functional message type **must**
     have this first in their list of declarations.
@@ -137,7 +136,6 @@ class Header(google.protobuf.message.Message):
 
 global___Header = Header
 
-@typing_extensions.final
 class BaseMessage(google.protobuf.message.Message):
     """Root type that parsers can use to peek at messages and figure out what type the full message is."""
 
@@ -156,7 +154,6 @@ class BaseMessage(google.protobuf.message.Message):
 
 global___BaseMessage = BaseMessage
 
-@typing_extensions.final
 class AckNackMessage(google.protobuf.message.Message):
     """Generic ACK or NACK to a previous message, with optional data payload"""
 
@@ -187,7 +184,6 @@ class AckNackMessage(google.protobuf.message.Message):
 
 global___AckNackMessage = AckNackMessage
 
-@typing_extensions.final
 class PingMessage(google.protobuf.message.Message):
     """Simple PING message to see if the node is alive, client or server can send this."""
 
