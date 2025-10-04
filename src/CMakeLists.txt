@@ -174,6 +174,7 @@ if(${DEVICE_TARGET} MATCHES "^stm32f4")
     )
 elseif(${DEVICE_TARGET} MATCHES "^sim")
   target_link_libraries(OrbitESC PRIVATE
+    lib_cmsis
     lib_orbit_simulator
     chimera_sim_core
     gtest_src

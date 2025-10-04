@@ -59,12 +59,6 @@ namespace Orbit::Tasks
     TASK_MSG_CTRL_DISABLE,   /**< Normal disengagement from ARM or ENGAGED back to IDLE */
     TASK_MSG_CTRL_FAULT,     /**< Panic emergency stop */
 
-    /*-------------------------------------------------------------------------
-    USB CDC
-    -------------------------------------------------------------------------*/
-    // TODO BMB: Remove
-    // TASK_MSG_CDC_WAKEUP, /**< There is work to do on the CDC class */
-
     TASK_MSG_NUM_OPTIONS
   };
 

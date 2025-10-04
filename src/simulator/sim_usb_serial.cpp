@@ -22,12 +22,15 @@ Includes
 #include <src/core/com/serial/serial_usb.hpp>
 #include <src/core/tasks.hpp>
 
+#include <algorithm>
+#include <cerrno>
 #include <cstdlib>
 #include <fcntl.h>
 #include <iostream>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <vector>
 
 namespace Orbit::Serial
 {
@@ -120,22 +123,27 @@ namespace Orbit::Serial
   }
 
 
-  Chimera::Status_t USBSerial::init( const size_t endpoint, CircularBuffer prx, CircularBuffer ptx, ISRLockedQueue ptx_isr )
+  Chimera::Status_t USBSerial::init( const Endpoint endpoint, CircularBuffer prx, CircularBuffer ptx )
   {
     /*-------------------------------------------------------------------------
     Assign the configuration
     -------------------------------------------------------------------------*/
-    mEndpoint    = endpoint;
-    mRXBuffer    = prx;
-    mTXBuffer    = ptx;
-    mTXBufferISR = ptx_isr;
+    mEndpoint = endpoint;
+    mRXBuffer = prx;
+    mTXBuffer = ptx;
 
     /*-------------------------------------------------------------------------
     Reset the buffers
     -------------------------------------------------------------------------*/
-    mRXBuffer->clear();
-    mTXBuffer->clear();
-    mTXBufferISR->clear();
+    if( mRXBuffer )
+    {
+      mRXBuffer->clear();
+    }
+
+    if( mTXBuffer )
+    {
+      mTXBuffer->clear();
+    }
 
     /*-------------------------------------------------------------------------
     Initialize the server
@@ -160,159 +168,138 @@ namespace Orbit::Serial
   {
     Chimera::Thread::LockGuard _lock( *this );
 
+    if( !mRXBuffer || !mTXBuffer )
+    {
+      return;
+    }
+
+    if( s_server_config.server_fd < 0 )
+    {
+      return;
+    }
+
     /*-------------------------------------------------------------------------
     Establish the connection if it hasn't been done yet
     -------------------------------------------------------------------------*/
     if( !s_server_config.connected )
     {
-      s_server_config.client_fd = accept( s_server_config.server_fd, ( struct sockaddr * )&s_server_config.address,
-                                          ( socklen_t * )&s_server_config.addrlen );
-      if( s_server_config.client_fd > 0 )
+      const int client_fd = accept( s_server_config.server_fd, reinterpret_cast<struct sockaddr *>( &s_server_config.address ),
+                                    reinterpret_cast<socklen_t *>( &s_server_config.addrlen ) );
+
+      if( client_fd >= 0 )
       {
+        s_server_config.client_fd = client_fd;
+
+        int flags = fcntl( s_server_config.client_fd, F_GETFL, 0 );
+        if( flags >= 0 )
+        {
+          if( fcntl( s_server_config.client_fd, F_SETFL, flags | O_NONBLOCK ) < 0 )
+          {
+            LOG_ERROR( "Failed to set client socket non-blocking: %d", errno );
+          }
+        }
+        else
+        {
+          LOG_ERROR( "Failed to get client socket flags: %d", errno );
+        }
+
         s_server_config.connected = true;
         LOG_DEBUG_IF( DEBUG_INFO, "Client connected" );
       }
       else
       {
-        mRXBuffer->clear();
-        mTXBuffer->clear();
-        mTXBufferISR->clear();
+        if( ( errno != EAGAIN ) && ( errno != EWOULDBLOCK ) )
+        {
+          LOG_ERROR( "Failed to accept client connection: %d", errno );
+        }
+
         return;
       }
     }
 
-    /*-------------------------------------------------------------------------
-    Pump data through the buffers
-    -------------------------------------------------------------------------*/
-    try
+    if( !s_server_config.connected )
     {
-      /*-----------------------------------------------------------------------
-      Process the RX buffer
-      -----------------------------------------------------------------------*/
-      ssize_t read_size = 1;
-      while( !mRXBuffer->full() && ( read_size > 0 ) )
+      return;
+    }
+
+    /*-------------------------------------------------------------------------
+    Process the RX buffer
+    -------------------------------------------------------------------------*/
+    if( !mRXBuffer->full() )
+    {
+      const size_t buf_bytes = mRXBuffer->available();
+
+      if( buf_bytes > 0 )
       {
-        /*---------------------------------------------------------------------
-        Ensure there is data available to read and a place to put it
-        ---------------------------------------------------------------------*/
-        const size_t buf_bytes = mRXBuffer->available();
-        if( !buf_bytes )
-        {
-          break;
-        }
+        std::vector<uint8_t> input_buffer( buf_bytes );
+        const ssize_t        read_size = recv( s_server_config.client_fd, input_buffer.data(), buf_bytes, MSG_DONTWAIT );
 
-        uint8_t *input_buffer = new uint8_t[ buf_bytes ];
-        RT_HARD_ASSERT( input_buffer );
-
-        /*---------------------------------------------------------------------
-        Read the data from the socket and push it into the RX buffer
-        ---------------------------------------------------------------------*/
-        read_size = recv( s_server_config.client_fd, input_buffer, buf_bytes, MSG_DONTWAIT );
-        if( read_size < 0 && errno != EAGAIN )
+        if( read_size > 0 )
         {
-          LOG_ERROR( "Failed to read from socket: %d", errno );
-          delete[] input_buffer;
-          break;
+          for( ssize_t i = 0; i < read_size; ++i )
+          {
+            mRXBuffer->push( input_buffer[ static_cast<size_t>( i ) ] );
+          }
         }
         else if( read_size == 0 )
         {
           LOG_DEBUG_IF( DEBUG_INFO, "Client disconnected" );
-          ::close( s_server_config.client_fd );
-          s_server_config.client_fd = -1;
-          s_server_config.connected = false;
+          close_socket();
 
-          delete[] input_buffer;
+          if( mRXBuffer )
+          {
+            mRXBuffer->clear();
+          }
 
-          /* Return here b/c the following "send" calls require a connection */
+          if( mTXBuffer )
+          {
+            mTXBuffer->clear();
+          }
+
           return;
         }
-
-        for( ssize_t i = 0; i < read_size; i++ )
+        else if( ( errno != EAGAIN ) && ( errno != EWOULDBLOCK ) )
         {
-          mRXBuffer->push( input_buffer[ i ] );
+          LOG_ERROR( "Failed to read from socket: %d", errno );
         }
-
-        delete[] input_buffer;
       }
+    }
 
-      /*-----------------------------------------------------------------------
-      Process the TX buffer
-      -----------------------------------------------------------------------*/
-      while( !mTXBuffer->empty() )
+    /*-------------------------------------------------------------------------
+    Process the TX buffer
+    -------------------------------------------------------------------------*/
+    if( !mTXBuffer->empty() )
+    {
+      const size_t buf_bytes = mTXBuffer->size();
+
+      if( buf_bytes > 0 )
       {
-        const size_t buf_bytes = mTXBuffer->size();
-        if( !buf_bytes )
-        {
-          break;
-        }
+        std::vector<uint8_t> output_buffer( buf_bytes );
 
-        uint8_t *output_buffer = new uint8_t[ buf_bytes ];
-        RT_HARD_ASSERT( output_buffer );
-
-        for( size_t i = 0; i < buf_bytes; i++ )
+        for( size_t i = 0; i < buf_bytes; ++i )
         {
           output_buffer[ i ] = mTXBuffer->front();
           mTXBuffer->pop();
         }
 
-        const ssize_t act_sent = send( s_server_config.client_fd, output_buffer, buf_bytes, 0 );
-        if( act_sent < 0 && errno != EAGAIN )
-        {
-          LOG_ERROR( "Failed to send to socket: %d", errno );
-        }
-        else if( act_sent != buf_bytes )
-        {
-          LOG_ERROR( "Failed to send all data to socket. Attempted: %d, Actual: %d", buf_bytes, act_sent );
-        }
+        const ssize_t act_sent = send( s_server_config.client_fd, output_buffer.data(), buf_bytes, MSG_NOSIGNAL );
 
-        delete[] output_buffer;
-      }
-
-      /*-----------------------------------------------------------------------
-      Process the ISR TX buffer
-      -----------------------------------------------------------------------*/
-      while( !mTXBufferISR->empty() )
-      {
-        const size_t buf_bytes = mTXBufferISR->size();
-        if( !buf_bytes )
+        if( act_sent < 0 )
         {
-          break;
+          if( ( errno == EPIPE ) || ( errno == ECONNRESET ) )
+          {
+            LOG_DEBUG_IF( DEBUG_INFO, "Client disconnected during send" );
+            close_socket();
+          }
+          else if( ( errno != EAGAIN ) && ( errno != EWOULDBLOCK ) )
+          {
+            LOG_ERROR( "Failed to send to socket: %d", errno );
+          }
         }
-
-        uint8_t *output_buffer = new uint8_t[ buf_bytes ];
-        RT_HARD_ASSERT( output_buffer );
-
-        for( size_t i = 0; i < buf_bytes; i++ )
-        {
-          output_buffer[ i ] = mTXBufferISR->front();
-          mTXBufferISR->pop();
-        }
-
-        const ssize_t act_sent = send( s_server_config.client_fd, output_buffer, buf_bytes, 0 );
-        if( act_sent < 0 && errno != EAGAIN )
-        {
-          LOG_ERROR( "Failed to send to socket: %d", errno );
-        }
-        else if( act_sent != buf_bytes )
+        else if( static_cast<size_t>( act_sent ) != buf_bytes )
         {
           LOG_ERROR( "Failed to send all data to socket. Attempted: %d, Actual: %d", buf_bytes, act_sent );
         }
-
-        delete[] output_buffer;
-      }
-    }
-    catch( const std::system_error &e )
-    {
-      if( e.code() == std::errc::broken_pipe )
-      {
-        LOG_ERROR( "Pipe error occurred: %s", e.what() );
-        LOG_DEBUG_IF( DEBUG_INFO, "Re-initializing the server" );
-        this->close();
-        this->open( {} );
-      }
-      else
-      {
-        throw;    // rethrow the exception if it's not a broken pipe error
       }
     }
   }
@@ -320,6 +307,8 @@ namespace Orbit::Serial
 
   Chimera::Status_t USBSerial::open( const Chimera::Serial::Config &config )
   {
+    static_cast<void>( config );
+
     RT_DBG_ASSERT( s_server_config.server_fd == -1 );
     RT_DBG_ASSERT( s_server_config.client_fd == -1 );
 
@@ -391,14 +380,24 @@ namespace Orbit::Serial
   }
 
 
+  size_t USBSerial::availableForWrite()
+  {
+    Chimera::Thread::LockGuard _lock( *this );
+
+    return mTXBuffer ? mTXBuffer->available() : 0;
+  }
+
+
   int USBSerial::write( const void *const buffer, const size_t length, const size_t timeout )
   {
     using namespace Orbit::Tasks;
 
+    static_cast<void>( timeout );
+
     /*-------------------------------------------------------------------------
     Validate input arguments
     -------------------------------------------------------------------------*/
-    if( !buffer || !length || !mTXBuffer || !s_server_config.connected )
+    if( !buffer || !length || !mTXBuffer )
     {
       return 0;
     }
@@ -418,53 +417,14 @@ namespace Orbit::Serial
       bytes_written++;
     }
 
-    /*-------------------------------------------------------------------------
-    Notify the CDC thread there is data to process
-    -------------------------------------------------------------------------*/
-    if( bytes_written > 0 )
-    {
-      Chimera::Thread::sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CDC ), TASK_MSG_CDC_WAKEUP,
-                                    Chimera::Thread::TIMEOUT_DONT_WAIT );
-    }
-
     return static_cast<int>( bytes_written );
-  }
-
-
-  int USBSerial::writeFromISR( const void *const buffer, const size_t length )
-  {
-    using namespace Orbit::Tasks;
-
-    /*-------------------------------------------------------------------------
-    Validate input arguments
-    -------------------------------------------------------------------------*/
-    RT_DBG_ASSERT( buffer );
-    RT_DBG_ASSERT( length );
-    RT_DBG_ASSERT( mTXBufferISR );
-
-    /*-------------------------------------------------------------------------
-    Enqueue the data into the TX buffer
-    -------------------------------------------------------------------------*/
-    if( length <= mTXBufferISR->available_from_unlocked() )
-    {
-      size_t bytes_written = 0;
-      while( bytes_written < length )
-      {
-        mTXBufferISR->push_from_unlocked( static_cast<const uint8_t *const>( buffer )[ bytes_written++ ] );
-      }
-
-      Chimera::Thread::sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CDC ), TASK_MSG_CDC_WAKEUP,
-                                    Chimera::Thread::TIMEOUT_DONT_WAIT );
-
-      return static_cast<int>( length );
-    }
-
-    return 0;
   }
 
 
   int USBSerial::read( void *const buffer, const size_t length, const size_t timeout )
   {
+    static_cast<void>( timeout );
+
     /*-------------------------------------------------------------------------
     Validate input arguments
     -------------------------------------------------------------------------*/
@@ -490,6 +450,18 @@ namespace Orbit::Serial
     }
 
     return static_cast<int>( bytes_read );
+  }
+
+
+  void USBSerial::on_rx_complete()
+  {
+    /* No-op in the simulator build. */
+  }
+
+
+  void USBSerial::on_tx_complete()
+  {
+    /* No-op in the simulator build. */
   }
 
 }    // namespace Orbit::Serial
