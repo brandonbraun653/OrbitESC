@@ -80,7 +80,7 @@
             "${workspaceFolder}/src/core/hw",
             "${workspaceFolder}/src/core/tasks",
             "${workspaceFolder}/test",
-            "${workspaceFolder}/test/harness",
+            "${workspaceFolder}/test/harness"
         ],
         "thorIncludePaths_HLD": [
             "${workspaceFolder}/lib/Thor/hld",

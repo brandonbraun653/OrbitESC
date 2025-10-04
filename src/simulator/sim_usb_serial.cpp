@@ -26,7 +26,6 @@ Includes
 #include <cerrno>
 #include <cstdlib>
 #include <fcntl.h>
-#include <iostream>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>

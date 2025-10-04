@@ -190,5 +190,6 @@
   ],
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit"
-  }
+  },
+  "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json"
 }

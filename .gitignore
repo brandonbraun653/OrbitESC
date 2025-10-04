@@ -2,6 +2,9 @@
 build/**
 artifacts/**
 
+# CMake Compile Commands for current configuration
+compile_commands.json
+
 # Binaries for the simulator that are generated in the root directory
 *.bin
 
@@ -20,3 +23,6 @@ pyorbit/tests/prof
 
 # Doxygen Outputs
 docs/**
+
+# clangd cache
+.cache/
