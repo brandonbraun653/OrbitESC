@@ -193,5 +193,8 @@
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit"
   },
-  "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json"
+  "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
+  "[cpp]": {
+    "editor.defaultFormatter": "xaver.clang-format"
+  }
 }

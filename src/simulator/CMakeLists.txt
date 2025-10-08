@@ -8,6 +8,7 @@ gen_static_lib_variants(
     sim_motor.cpp
     sim_tsk.cpp
     sim_usb_serial.cpp
+    sim_tcp_server.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc

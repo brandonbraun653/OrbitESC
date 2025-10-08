@@ -24,6 +24,10 @@ Includes
 #include "SEGGER_SYSVIEW.h"
 #endif /* SEGGER_SYS_VIEW */
 
+#if defined( SIMULATOR )
+#include <src/simulator/sim_tcp_server.hpp>
+#endif /* SIMULATOR */
+
 /*-----------------------------------------------------------------------------
 Public Functions
 -----------------------------------------------------------------------------*/
@@ -55,6 +59,10 @@ int main()
   Project Level Task Initialization
   ---------------------------------------------------------------------------*/
   Orbit::Tasks::initialize();
+
+#if defined( SIMULATOR )
+  Orbit::Sim::Matlab::startServer();
+#endif
 
   /*---------------------------------------------------------------------------
   Initialize the SystemView driver

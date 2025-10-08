@@ -16,6 +16,7 @@ Includes
 #include <src/core/tasks.hpp>
 #include <src/simulator/sim_tsk.hpp>
 #include <src/simulator/sim_adc.hpp>
+#include <src/simulator/sim_tcp_server.hpp>
 
 namespace Orbit::Tasks::SIM
 {
@@ -39,8 +40,15 @@ namespace Orbit::Tasks::SIM
       -----------------------------------------------------------------------*/
       Orbit::Sim::ADC::triggerInstrumentationADC();
 
+      Orbit::Sim::Matlab::RxMessage rx_message;
+      if( Orbit::Sim::Matlab::getLastMessage( rx_message ) )
+      {
+        Orbit::Sim::Matlab::TxMessage tx_message{};
+        tx_message.value = rx_message.value;
+        Orbit::Sim::Matlab::pushMessage( tx_message );
+      }
 
       Chimera::delayMilliseconds( PERIOD_MS );
     }
   }
-}    // namespace Orbit::Tasks::USB::CDC
+}    // namespace Orbit::Tasks::SIM
