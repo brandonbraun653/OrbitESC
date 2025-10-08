@@ -16,7 +16,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/thread>
-#include <string>
+#include <string_view>
 
 
 namespace Orbit::Tasks::CTL

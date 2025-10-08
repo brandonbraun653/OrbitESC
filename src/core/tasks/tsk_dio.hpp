@@ -16,7 +16,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/thread>
-#include <string>
+#include <string_view>
 
 namespace Orbit::Tasks::DIO
 {
@@ -39,6 +39,6 @@ namespace Orbit::Tasks::DIO
    */
   void DIOThread( void *arg );
 
-}  // namespace Orbit::Task
+}    // namespace Orbit::Tasks::DIO
 
-#endif  /* !ORBIT_TSK_HWM_DELAYED_IO_HPP */
+#endif /* !ORBIT_TSK_HWM_DELAYED_IO_HPP */

@@ -16,7 +16,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/thread>
-#include <string>
+#include <string_view>
 
 namespace Orbit::Tasks::COM
 {
@@ -38,6 +38,6 @@ namespace Orbit::Tasks::COM
    */
   void COMThread( void *arg );
 
-}  // namespace Orbit::Tasks::COM
+}    // namespace Orbit::Tasks::COM
 
-#endif  /* !ORBIT_TSK_COM_HPP */
+#endif /* !ORBIT_TSK_COM_HPP */
