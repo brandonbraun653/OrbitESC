@@ -157,7 +157,6 @@
   },
   "cortex-debug.variableUseNaturalFormat": true,
   "files.exclude": {
-    "**/.git": true,
     "**/.svn": true,
     "**/.hg": true,
     "**/CVS": true,
@@ -176,7 +175,10 @@
       "args": ["--login"]
     }
   },
+  "git.detectSubmodules": true,
   "git.detectSubmodulesLimit": 45,
+  "explorer.autoReveal": false,
+  "search.collapseResults": "alwaysCollapse",
   "python.defaultInterpreterPath": "./.venv/bin/python",
   "editor.defaultFormatter": "ms-python.black-formatter",
   "editor.formatOnSave": true,
