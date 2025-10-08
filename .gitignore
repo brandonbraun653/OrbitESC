@@ -1,6 +1,7 @@
 .VSCodeCounter
 build/**
 artifacts/**
+profile_data
 
 # CMake Compile Commands for current configuration
 compile_commands.json
