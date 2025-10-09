@@ -3,6 +3,7 @@ add_subdirectory(core)
 add_subdirectory(control)
 add_subdirectory(monitor)
 add_subdirectory(simulator)
+add_subdirectory(trace)
 
 # -----------------------------------------------------------------------------
 # Hardware Driver Libraries
@@ -101,7 +102,7 @@ gen_intf_lib_variants(
     lib_orbit_monitor
     lib_orbit_runtime
     lib_orbit_tasks
-    lib_orbit_testing
+    lib_orbit_trace
   EXPORT_DIR
     ${PROJECT_BINARY_DIR}/OrbitESC
 )
@@ -141,6 +142,7 @@ target_link_libraries(OrbitESC PRIVATE
   lib_orbit_monitor
   lib_orbit_runtime
   lib_orbit_tasks
+  lib_orbit_trace
 
   # Target Properties
   prj_device_target
