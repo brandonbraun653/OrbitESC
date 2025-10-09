@@ -18,15 +18,12 @@ Includes
 
 #if defined( EMBEDDED )
 #include <Thor/lld/common/cortex-m4/debug.hpp>
-#endif  /* EMBEDDED */
+#endif /* EMBEDDED */
 
 #if defined( SEGGER_SYS_VIEW )
 #include "SEGGER_SYSVIEW.h"
 #endif /* SEGGER_SYS_VIEW */
 
-#if defined( SIMULATOR )
-#include <src/simulator/sim_tcp_server.hpp>
-#endif /* SIMULATOR */
 
 /*-----------------------------------------------------------------------------
 Public Functions
@@ -60,9 +57,6 @@ int main()
   ---------------------------------------------------------------------------*/
   Orbit::Tasks::initialize();
 
-#if defined( SIMULATOR )
-  Orbit::Sim::Matlab::startServer();
-#endif
 
   /*---------------------------------------------------------------------------
   Initialize the SystemView driver

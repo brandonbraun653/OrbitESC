@@ -3,7 +3,8 @@
  *    sim_tcp_server.cpp
  *
  *  Description:
- *    Matlab TCP/IP bridge for simulator builds.
+ *    Object-oriented TCP/IP server for simulator builds. Supports multiple
+ *    ports and arbitrary binary data transmission.
  *
  *  2025 | Brandon Braun | brandonbraun653@gmail.com
  *****************************************************************************/
@@ -17,7 +18,7 @@ Includes
 #include <Chimera/thread>
 #include <src/simulator/sim_tcp_server.hpp>
 
-#include <array>
+#include <algorithm>
 #include <atomic>
 #include <cerrno>
 #include <cstring>
@@ -25,25 +26,28 @@ Includes
 #include <fcntl.h>
 #include <mutex>
 #include <netinet/in.h>
+#include <queue>
+#include <string>
 #include <sys/socket.h>
 #include <thread>
 #include <unistd.h>
+#include <vector>
 
-namespace Orbit::Sim::Matlab
+namespace Orbit::Sim::TCP
 {
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
 
-  static constexpr size_t SOCKET_BACKLOG = 1;
-  static constexpr size_t RX_BUFFER_SIZE = sizeof( RxMessage );
-  static constexpr size_t TX_BUFFER_SIZE = sizeof( TxMessage );
+  static constexpr size_t MAX_TX_QUEUE_SIZE      = 10;
+  static constexpr size_t DEFAULT_RX_BUFFER_SIZE = 1024;
+  static constexpr size_t DEFAULT_TX_BUFFER_SIZE = 1024;
 
   /*---------------------------------------------------------------------------
-  Local Types
+  Server Implementation
   ---------------------------------------------------------------------------*/
 
-  struct SocketContext
+  struct Server::SocketContext
   {
     int                listen_fd;
     int                client_fd;
@@ -82,364 +86,509 @@ namespace Orbit::Sim::Matlab
     }
   };
 
-  /*---------------------------------------------------------------------------
-  Static Data
-  ---------------------------------------------------------------------------*/
-
-  static std::thread                         s_worker_thread;
-  static std::mutex                          s_rx_mutex;
-  static std::mutex                          s_tx_mutex;
-  static std::mutex                          s_start_stop_mutex;
-  static std::atomic<bool>                   s_thread_started{ false };
-  static std::atomic<bool>                   s_running{ false };
-  static std::atomic<bool>                   s_client_connected{ false };
-  static std::atomic<bool>                   s_exit_request{ false };
-  static SocketContext                       s_socket_context;
-  static RxMessage                           s_rx_message{};
-  static TxMessage                           s_tx_message{};
-  static std::atomic<bool>                   s_rx_message_ready{ false };
-  static std::atomic<bool>                   s_tx_message_dirty{ false };
-  static std::array<uint8_t, RX_BUFFER_SIZE> s_rx_staging{};
-  static size_t                              s_rx_bytes_pending = 0;
-  static std::array<uint8_t, TX_BUFFER_SIZE> s_tx_staging{};
-  static size_t                              s_tx_bytes_pending = 0;
-
-  /*---------------------------------------------------------------------------
-  Local Functions
-  ---------------------------------------------------------------------------*/
-
-  static void tcpServerThread( uint16_t port );
-  static bool configureSocket( SocketContext &ctx, const uint16_t port );
-  static bool acceptClient( SocketContext &ctx );
-  static bool handleRx( SocketContext &ctx );
-  static void handleTx( SocketContext &ctx );
-  static void cleanup();
-
-  /*---------------------------------------------------------------------------
-  Public Functions
-  ---------------------------------------------------------------------------*/
-
-  bool startServer( uint16_t port )
+  struct Server::Impl
   {
-    std::scoped_lock lock( s_start_stop_mutex );
+    ServerConfig                     config;
+    std::thread                      worker_thread;
+    std::mutex                       rx_mutex;
+    std::mutex                       tx_mutex;
+    std::mutex                       start_stop_mutex;
+    std::atomic<bool>                thread_started{ false };
+    std::atomic<bool>                running{ false };
+    std::atomic<bool>                client_connected{ false };
+    std::atomic<bool>                exit_request{ false };
+    SocketContext                    socket_context;
+    std::vector<uint8_t>             rx_buffer;
+    std::vector<uint8_t>             tx_buffer;
+    std::queue<std::vector<uint8_t>> tx_queue;
+    size_t                           rx_bytes_pending{ 0 };
+    size_t                           tx_bytes_pending{ 0 };
+    DataReceivedCallback             rx_callback;
+    Server                          *server_ref;
 
-    if( s_thread_started.load() )
+    Impl( const ServerConfig &cfg, Server *server ) :
+        config( cfg ), rx_buffer( cfg.rx_buffer_size ), tx_buffer( cfg.tx_buffer_size ), rx_callback( cfg.rx_callback ),
+        server_ref( server )
     {
+    }
+
+    ~Impl()
+    {
+      stop();
+    }
+
+    bool start()
+    {
+      std::scoped_lock lock( start_stop_mutex );
+
+      if( thread_started.load() )
+      {
+        return true;
+      }
+
+      exit_request.store( false );
+      thread_started.store( true );
+
+      try
+      {
+        worker_thread = std::thread( &Impl::tcpServerThread, this );
+      }
+      catch( const std::exception &e )
+      {
+        LOG_ERROR( "TCP server failed to start on port %u: %s", config.port, e.what() );
+        thread_started.store( false );
+        return false;
+      }
+
       return true;
     }
 
-    s_exit_request.store( false );
-    s_thread_started.store( true );
-
-    try
+    void stop()
     {
-      s_worker_thread = std::thread( tcpServerThread, port );
-    }
-    catch( const std::exception &e )
-    {
-      LOG_ERROR( "Matlab TCP server failed to start: %s", e.what() );
-      s_thread_started.store( false );
-      return false;
-    }
+      std::scoped_lock lock( start_stop_mutex );
 
-    return true;
-  }
-
-
-  void stopServer()
-  {
-    std::scoped_lock lock( s_start_stop_mutex );
-
-    if( !s_thread_started.load() )
-    {
-      return;
-    }
-
-    s_exit_request.store( true );
-    s_socket_context.closeAll();
-
-    if( s_worker_thread.joinable() )
-    {
-      s_worker_thread.join();
-    }
-
-    s_exit_request.store( false );
-    s_thread_started.store( false );
-  }
-
-
-  void pushMessage( const TxMessage &message )
-  {
-    std::scoped_lock lock( s_tx_mutex );
-    s_tx_message = message;
-    s_tx_message_dirty.store( true );
-  }
-
-
-  bool getLastMessage( RxMessage &message )
-  {
-    if( !s_rx_message_ready.load() )
-    {
-      return false;
-    }
-
-    std::scoped_lock lock( s_rx_mutex );
-    message = s_rx_message;
-    s_rx_message_ready.store( false );
-    return true;
-  }
-
-
-  bool isRunning()
-  {
-    return s_running.load();
-  }
-
-
-  bool isClientConnected()
-  {
-    return s_client_connected.load();
-  }
-
-  /*---------------------------------------------------------------------------
-  Local Functions
-  ---------------------------------------------------------------------------*/
-
-  static void tcpServerThread( const uint16_t port )
-  {
-    Chimera::Thread::this_thread::set_name( "matlab_tcp" );
-
-    s_running.store( true );
-    LOG_INFO( "Matlab TCP server thread starting on port %u", port );
-
-    while( !s_exit_request.load() )
-    {
-      if( !configureSocket( s_socket_context, port ) )
-      {
-        LOG_ERROR( "Failed to configure socket" );
-        Chimera::delayMilliseconds( 500 );
-        continue;
-      }
-
-      while( !s_exit_request.load() )
-      {
-        if( !s_client_connected.load() )
-        {
-          if( !acceptClient( s_socket_context ) )
-          {
-            Chimera::delayMilliseconds( 50 );
-            continue;
-          }
-
-          LOG_INFO( "Matlab client connected" );
-          s_client_connected.store( true );
-          s_rx_bytes_pending = 0;
-          s_tx_bytes_pending = 0;
-        }
-
-        if( !handleRx( s_socket_context ) )
-        {
-          cleanup();
-          break;
-        }
-
-        handleTx( s_socket_context );
-        Chimera::delayMilliseconds( 1 );
-      }
-
-      cleanup();
-    }
-
-    cleanup();
-    s_running.store( false );
-    LOG_INFO( "Matlab TCP server thread exiting" );
-  }
-
-  static bool configureSocket( SocketContext &ctx, const uint16_t port )
-  {
-    if( ctx.listen_fd >= 0 )
-    {
-      return true;
-    }
-
-    ctx.listen_fd = ::socket( AF_INET, SOCK_STREAM, 0 );
-    if( ctx.listen_fd < 0 )
-    {
-      LOG_ERROR( "Failed to create socket: %d", errno );
-      return false;
-    }
-
-    int enable = 1;
-    if( ::setsockopt( ctx.listen_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &enable, sizeof( enable ) ) < 0 )
-    {
-      LOG_ERROR( "Failed to set SO_REUSEADDR: %d", errno );
-      return false;
-    }
-
-    ctx.listen_addr.sin_port = ::htons( port );
-    if( ::bind( ctx.listen_fd, reinterpret_cast<sockaddr *>( &ctx.listen_addr ), sizeof( ctx.listen_addr ) ) < 0 )
-    {
-      LOG_ERROR( "Failed to bind socket: %d", errno );
-      return false;
-    }
-
-    if( ::listen( ctx.listen_fd, SOCKET_BACKLOG ) < 0 )
-    {
-      LOG_ERROR( "Failed to listen on socket: %d", errno );
-      return false;
-    }
-
-    int flags = ::fcntl( ctx.listen_fd, F_GETFL, 0 );
-    if( flags < 0 )
-    {
-      LOG_ERROR( "Failed to get socket flags: %d", errno );
-      return false;
-    }
-
-    if( ::fcntl( ctx.listen_fd, F_SETFL, flags | O_NONBLOCK ) < 0 )
-    {
-      LOG_ERROR( "Failed to set listen socket non-blocking: %d", errno );
-      return false;
-    }
-
-    return true;
-  }
-
-  static bool acceptClient( SocketContext &ctx )
-  {
-    ctx.client_fd = ::accept( ctx.listen_fd, reinterpret_cast<sockaddr *>( &ctx.listen_addr ), &ctx.addr_len );
-
-    if( ctx.client_fd < 0 )
-    {
-      if( ( errno != EAGAIN ) && ( errno != EWOULDBLOCK ) )
-      {
-        LOG_ERROR( "Failed to accept client: %d", errno );
-      }
-
-      return false;
-    }
-
-    int flags = ::fcntl( ctx.client_fd, F_GETFL, 0 );
-    if( flags < 0 )
-    {
-      LOG_ERROR( "Failed to get client socket flags: %d", errno );
-      return false;
-    }
-
-    if( ::fcntl( ctx.client_fd, F_SETFL, flags | O_NONBLOCK ) < 0 )
-    {
-      LOG_ERROR( "Failed to set client socket non-blocking: %d", errno );
-      return false;
-    }
-
-    return true;
-  }
-
-  static bool handleRx( SocketContext &ctx )
-  {
-    if( ctx.client_fd < 0 )
-    {
-      return false;
-    }
-
-    bool connection_ok = true;
-
-    while( true )
-    {
-      const size_t bytes_needed = RX_BUFFER_SIZE - s_rx_bytes_pending;
-
-      if( !bytes_needed )
-      {
-        break;
-      }
-
-      ssize_t bytes_read = ::recv( ctx.client_fd, s_rx_staging.data() + s_rx_bytes_pending, bytes_needed, MSG_DONTWAIT );
-
-      if( bytes_read == 0 )
-      {
-        LOG_WARN( "Matlab client disconnected" );
-        connection_ok = false;
-        break;
-      }
-      else if( bytes_read < 0 )
-      {
-        if( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ) )
-        {
-          break;
-        }
-
-        LOG_ERROR( "Socket recv failed: %d", errno );
-        connection_ok = false;
-        break;
-      }
-
-      s_rx_bytes_pending += static_cast<size_t>( bytes_read );
-
-      if( s_rx_bytes_pending == RX_BUFFER_SIZE )
-      {
-        std::scoped_lock lock( s_rx_mutex );
-        std::memcpy( &s_rx_message, s_rx_staging.data(), RX_BUFFER_SIZE );
-        s_rx_message_ready.store( true );
-        s_rx_bytes_pending = 0;
-      }
-    }
-
-    return connection_ok;
-  }
-
-  static void handleTx( SocketContext &ctx )
-  {
-    if( ctx.client_fd < 0 )
-    {
-      return;
-    }
-
-    if( s_tx_message_dirty.load() && ( s_tx_bytes_pending == 0 ) )
-    {
-      std::scoped_lock lock( s_tx_mutex );
-      std::memcpy( s_tx_staging.data(), &s_tx_message, TX_BUFFER_SIZE );
-      s_tx_message_dirty.store( false );
-      s_tx_bytes_pending = TX_BUFFER_SIZE;
-    }
-
-    if( s_tx_bytes_pending == 0 )
-    {
-      return;
-    }
-
-    const size_t  offset = TX_BUFFER_SIZE - s_tx_bytes_pending;
-    const ssize_t bytes_sent =
-        ::send( ctx.client_fd, s_tx_staging.data() + offset, s_tx_bytes_pending, MSG_NOSIGNAL | MSG_DONTWAIT );
-
-    if( bytes_sent < 0 )
-    {
-      if( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ) )
+      if( !thread_started.load() )
       {
         return;
       }
 
-      if( ( errno == EPIPE ) || ( errno == ECONNRESET ) )
+      exit_request.store( true );
+      socket_context.closeAll();
+
+      if( worker_thread.joinable() )
       {
-        LOG_WARN( "Matlab client disconnected during send" );
+        worker_thread.join();
       }
-      else
+
+      exit_request.store( false );
+      thread_started.store( false );
+    }
+
+    bool sendData( const void *data, size_t size )
+    {
+      if( !running.load() || !data || !size )
       {
-        LOG_ERROR( "Socket send failed: %d", errno );
+        return false;
+      }
+
+      std::scoped_lock lock( tx_mutex );
+
+      if( tx_queue.size() >= MAX_TX_QUEUE_SIZE )
+      {
+        return false;    // Queue full
+      }
+
+      std::vector<uint8_t> packet( static_cast<const uint8_t *>( data ), static_cast<const uint8_t *>( data ) + size );
+      tx_queue.push( std::move( packet ) );
+
+      return true;
+    }
+
+    bool isRunning() const
+    {
+      return running.load();
+    }
+
+    bool isClientConnected() const
+    {
+      return client_connected.load();
+    }
+
+    uint16_t getPort() const
+    {
+      return config.port;
+    }
+
+    void setRxCallback( DataReceivedCallback callback )
+    {
+      std::scoped_lock lock( rx_mutex );
+      rx_callback = callback;
+    }
+
+  private:
+    void tcpServerThread()
+    {
+      Chimera::Thread::this_thread::set_name( ( "tcp_server_" + std::to_string( config.port ) ).c_str() );
+
+      running.store( true );
+      LOG_INFO( "TCP server thread starting on port %u", config.port );
+
+      while( !exit_request.load() )
+      {
+        if( !configureSocket() )
+        {
+          LOG_ERROR( "Failed to configure socket on port %u", config.port );
+          Chimera::delayMilliseconds( 500 );
+          continue;
+        }
+
+        while( !exit_request.load() )
+        {
+          if( !client_connected.load() )
+          {
+            if( !acceptClient() )
+            {
+              Chimera::delayMilliseconds( 50 );
+              continue;
+            }
+
+            LOG_INFO( "TCP client connected on port %u", config.port );
+            client_connected.store( true );
+            rx_bytes_pending = 0;
+            tx_bytes_pending = 0;
+          }
+
+          if( !handleRx() )
+          {
+            cleanup();
+            break;
+          }
+
+          handleTx();
+          Chimera::delayMilliseconds( 1 );
+        }
+
+        cleanup();
       }
 
       cleanup();
-      return;
+      running.store( false );
+      LOG_INFO( "TCP server thread exiting on port %u", config.port );
     }
 
-    s_tx_bytes_pending -= static_cast<size_t>( bytes_sent );
-  }
+    bool configureSocket()
+    {
+      if( socket_context.listen_fd >= 0 )
+      {
+        return true;
+      }
 
-  static void cleanup()
+      socket_context.listen_fd = ::socket( AF_INET, SOCK_STREAM, 0 );
+      if( socket_context.listen_fd < 0 )
+      {
+        LOG_ERROR( "Failed to create socket on port %u: %d", config.port, errno );
+        return false;
+      }
+
+      int enable = 1;
+      if( ::setsockopt( socket_context.listen_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &enable, sizeof( enable ) ) < 0 )
+      {
+        LOG_ERROR( "Failed to set SO_REUSEADDR on port %u: %d", config.port, errno );
+        return false;
+      }
+
+      socket_context.listen_addr.sin_port = ::htons( config.port );
+      if( ::bind( socket_context.listen_fd, reinterpret_cast<sockaddr *>( &socket_context.listen_addr ),
+                  sizeof( socket_context.listen_addr ) ) < 0 )
+      {
+        LOG_ERROR( "Failed to bind socket on port %u: %d", config.port, errno );
+        return false;
+      }
+
+      if( ::listen( socket_context.listen_fd, static_cast<int>( config.socket_backlog ) ) < 0 )
+      {
+        LOG_ERROR( "Failed to listen on socket port %u: %d", config.port, errno );
+        return false;
+      }
+
+      int flags = ::fcntl( socket_context.listen_fd, F_GETFL, 0 );
+      if( flags < 0 )
+      {
+        LOG_ERROR( "Failed to get socket flags on port %u: %d", config.port, errno );
+        return false;
+      }
+
+      if( ::fcntl( socket_context.listen_fd, F_SETFL, flags | O_NONBLOCK ) < 0 )
+      {
+        LOG_ERROR( "Failed to set listen socket non-blocking on port %u: %d", config.port, errno );
+        return false;
+      }
+
+      return true;
+    }
+
+    bool acceptClient()
+    {
+      socket_context.client_fd = ::accept(
+          socket_context.listen_fd, reinterpret_cast<sockaddr *>( &socket_context.listen_addr ), &socket_context.addr_len );
+
+      if( socket_context.client_fd < 0 )
+      {
+        if( ( errno != EAGAIN ) && ( errno != EWOULDBLOCK ) )
+        {
+          LOG_ERROR( "Failed to accept client on port %u: %d", config.port, errno );
+        }
+
+        return false;
+      }
+
+      int flags = ::fcntl( socket_context.client_fd, F_GETFL, 0 );
+      if( flags < 0 )
+      {
+        LOG_ERROR( "Failed to get client socket flags on port %u: %d", config.port, errno );
+        return false;
+      }
+
+      if( ::fcntl( socket_context.client_fd, F_SETFL, flags | O_NONBLOCK ) < 0 )
+      {
+        LOG_ERROR( "Failed to set client socket non-blocking on port %u: %d", config.port, errno );
+        return false;
+      }
+
+      return true;
+    }
+
+    bool handleRx()
+    {
+      if( socket_context.client_fd < 0 )
+      {
+        return false;
+      }
+
+      bool connection_ok = true;
+
+      while( true )
+      {
+        const size_t bytes_needed = rx_buffer.size() - rx_bytes_pending;
+
+        if( !bytes_needed )
+        {
+          break;
+        }
+
+        ssize_t bytes_read =
+            ::recv( socket_context.client_fd, rx_buffer.data() + rx_bytes_pending, bytes_needed, MSG_DONTWAIT );
+
+        if( bytes_read == 0 )
+        {
+          LOG_WARN( "TCP client disconnected on port %u", config.port );
+          connection_ok = false;
+          break;
+        }
+        else if( bytes_read < 0 )
+        {
+          if( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ) )
+          {
+            break;
+          }
+
+          LOG_ERROR( "Socket recv failed on port %u: %d", config.port, errno );
+          connection_ok = false;
+          break;
+        }
+
+        rx_bytes_pending += static_cast<size_t>( bytes_read );
+
+        // Process received data
+        if( rx_callback && rx_bytes_pending > 0 )
+        {
+          std::scoped_lock lock( rx_mutex );
+          rx_callback( *server_ref, rx_buffer.data(), rx_bytes_pending );
+          rx_bytes_pending = 0;
+        }
+      }
+
+      return connection_ok;
+    }
+
+    void handleTx()
+    {
+      if( socket_context.client_fd < 0 )
+      {
+        return;
+      }
+
+      // Get next packet from queue if none pending
+      if( tx_bytes_pending == 0 )
+      {
+        std::scoped_lock lock( tx_mutex );
+        if( !tx_queue.empty() )
+        {
+          tx_buffer = std::move( tx_queue.front() );
+          tx_queue.pop();
+          tx_bytes_pending = tx_buffer.size();
+        }
+      }
+
+      if( tx_bytes_pending == 0 )
+      {
+        return;
+      }
+
+      const size_t  offset = tx_buffer.size() - tx_bytes_pending;
+      const ssize_t bytes_sent =
+          ::send( socket_context.client_fd, tx_buffer.data() + offset, tx_bytes_pending, MSG_NOSIGNAL | MSG_DONTWAIT );
+
+      if( bytes_sent < 0 )
+      {
+        if( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ) )
+        {
+          return;
+        }
+
+        if( ( errno == EPIPE ) || ( errno == ECONNRESET ) )
+        {
+          LOG_WARN( "TCP client disconnected during send on port %u", config.port );
+        }
+        else
+        {
+          LOG_ERROR( "Socket send failed on port %u: %d", config.port, errno );
+        }
+
+        cleanup();
+        return;
+      }
+
+      tx_bytes_pending -= static_cast<size_t>( bytes_sent );
+    }
+
+    void cleanup()
+    {
+      socket_context.closeAll();
+      client_connected.store( false );
+
+      std::scoped_lock lock( tx_mutex );
+      while( !tx_queue.empty() )
+      {
+        tx_queue.pop();
+      }
+      tx_bytes_pending = 0;
+    }
+  };
+
+  /*---------------------------------------------------------------------------
+  Server Class Implementation
+  ---------------------------------------------------------------------------*/
+
+  Server::Server( const ServerConfig &config ) : m_impl( std::make_unique<Impl>( config, this ) )
   {
-    s_socket_context.closeAll();
-    s_client_connected.store( false );
   }
 
-}    // namespace Orbit::Sim::Matlab
+  Server::~Server()
+  {
+    stop();
+  }
+
+  bool Server::start()
+  {
+    return m_impl->start();
+  }
+
+  void Server::stop()
+  {
+    m_impl->stop();
+  }
+
+  bool Server::sendData( const void *data, size_t size )
+  {
+    return m_impl->sendData( data, size );
+  }
+
+  bool Server::isRunning() const
+  {
+    return m_impl->isRunning();
+  }
+
+  bool Server::isClientConnected() const
+  {
+    return m_impl->isClientConnected();
+  }
+
+  uint16_t Server::getPort() const
+  {
+    return m_impl->getPort();
+  }
+
+  void Server::setRxCallback( DataReceivedCallback callback )
+  {
+    m_impl->setRxCallback( callback );
+  }
+
+  /*---------------------------------------------------------------------------
+  Server Manager Implementation
+  ---------------------------------------------------------------------------*/
+
+  ServerManager &ServerManager::getInstance()
+  {
+    static ServerManager instance;
+    return instance;
+  }
+
+  std::shared_ptr<Server> ServerManager::createServer( const ServerConfig &config )
+  {
+    std::scoped_lock lock( m_mutex );
+
+    // Check if server already exists on this port
+    for( const auto &server : m_servers )
+    {
+      if( server->getPort() == config.port )
+      {
+        LOG_WARN( "TCP server already exists on port %u", config.port );
+        return server;
+      }
+    }
+
+    auto server = std::make_shared<Server>( config );
+    if( server->start() )
+    {
+      m_servers.push_back( server );
+      LOG_INFO( "Created TCP server on port %u", config.port );
+      return server;
+    }
+
+    LOG_ERROR( "Failed to create TCP server on port %u", config.port );
+    return nullptr;
+  }
+
+  std::shared_ptr<Server> ServerManager::getServer( uint16_t port )
+  {
+    std::scoped_lock lock( m_mutex );
+
+    for( const auto &server : m_servers )
+    {
+      if( server->getPort() == port )
+      {
+        return server;
+      }
+    }
+
+    return nullptr;
+  }
+
+  bool ServerManager::removeServer( uint16_t port )
+  {
+    std::scoped_lock lock( m_mutex );
+
+    auto it = std::find_if( m_servers.begin(), m_servers.end(),
+                            [ port ]( const std::shared_ptr<Server> &server ) { return server->getPort() == port; } );
+
+    if( it != m_servers.end() )
+    {
+      ( *it )->stop();
+      m_servers.erase( it );
+      LOG_INFO( "Removed TCP server on port %u", port );
+      return true;
+    }
+
+    return false;
+  }
+
+  std::vector<uint16_t> ServerManager::getActivePorts() const
+  {
+    std::scoped_lock lock( m_mutex );
+
+    std::vector<uint16_t> ports;
+    ports.reserve( m_servers.size() );
+
+    for( const auto &server : m_servers )
+    {
+      ports.push_back( server->getPort() );
+    }
+
+    return ports;
+  }
+
+
+}    // namespace Orbit::Sim::TCP
 
 #endif /* SIMULATOR */
