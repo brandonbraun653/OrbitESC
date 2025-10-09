@@ -50,9 +50,9 @@ namespace Orbit::Control::Field
   Static Data
   ---------------------------------------------------------------------------*/
 
-  static volatile Mode                         s_ctl_mode;      /**< Current control mode */
-  static volatile Chimera::GPIO::Driver_rPtr   s_dbg_pin;       /**< Debug pin for timing measurements */
-  static volatile ISRInnerLoopCallback         s_inner_loop_cb; /**< Callback for inner loop custom behaviors */
+  static volatile Mode                       s_ctl_mode;      /**< Current control mode */
+  static volatile Chimera::GPIO::Driver_rPtr s_dbg_pin;       /**< Debug pin for timing measurements */
+  static volatile ISRInnerLoopCallback       s_inner_loop_cb; /**< Callback for inner loop custom behaviors */
 
   static etl::queue_spsc_atomic<uint8_t, 4096, etl::memory_model::MEMORY_MODEL_MEDIUM> s_tx_isr_buffer;
 
@@ -239,7 +239,7 @@ namespace Orbit::Control::Field
     auto     serial    = getUSBSerialDriver();
     uint32_t idx       = 0;
     size_t   pump_size = 0;
-    uint8_t arr[ 256 ];
+    uint8_t  arr[ 256 ];
 
     Chimera::Thread::TimedLockGuard lck( *serial );
     if( !lck.try_lock_for( Chimera::Thread::TIMEOUT_DONT_WAIT ) )
@@ -318,9 +318,9 @@ namespace Orbit::Control::Field
     volatile const SenseData &sense_data = getSenseData();
     const float               vSupply    = getSupplyVoltage();
 
-    foc_ireg_state.vma = 0.0f; //sense_data.channel[ CHANNEL_PHASE_A_VOLTAGE ];
-    foc_ireg_state.vmb = 0.0f; //sense_data.channel[ CHANNEL_PHASE_B_VOLTAGE ];
-    foc_ireg_state.vmc = 0.0f; //sense_data.channel[ CHANNEL_PHASE_C_VOLTAGE ];
+    foc_ireg_state.vma = 0.0f;    // sense_data.channel[ CHANNEL_PHASE_A_VOLTAGE ];
+    foc_ireg_state.vmb = 0.0f;    // sense_data.channel[ CHANNEL_PHASE_B_VOLTAGE ];
+    foc_ireg_state.vmc = 0.0f;    // sense_data.channel[ CHANNEL_PHASE_C_VOLTAGE ];
 
     foc_ireg_state.ima = sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
     foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
@@ -451,6 +451,8 @@ namespace Orbit::Control::Field
     -------------------------------------------------------------------------*/
     float modulation_index = hypotf( foc_ireg_state.va_cmd, foc_ireg_state.vb_cmd );
 
+    // TODO: Grok says I don't need theta here as it can be computed internally from
+    // TODO: alpha/beta via atan2(beta, alpha). Might be worth it?
     inverter->svmUpdate( foc_ireg_state.va_cmd, foc_ireg_state.vb_cmd, foc_motor_state.thetaEst, modulation_index );
 
     /*-------------------------------------------------------------------------
@@ -560,7 +562,7 @@ namespace Orbit::Control::Field
       {
         for( size_t i = 0; i < s_ctl_monitor.size(); i++ )
         {
-          s_tx_isr_buffer.push( s_ctl_monitor.data()[i] );
+          s_tx_isr_buffer.push( s_ctl_monitor.data()[ i ] );
         }
       }
 #if defined( EMBEDDED )
