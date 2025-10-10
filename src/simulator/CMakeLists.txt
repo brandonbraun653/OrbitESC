@@ -5,6 +5,7 @@ gen_static_lib_variants(
     lib_orbit_simulator
   SOURCES
     sim_adc.cpp
+    sim_matlab.cpp
     sim_motor.cpp
     sim_tsk.cpp
     sim_usb_serial.cpp

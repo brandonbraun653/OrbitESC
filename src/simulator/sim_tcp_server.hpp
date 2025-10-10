@@ -31,6 +31,17 @@ namespace Orbit::Sim::TCP
   class Server;
 
   /*---------------------------------------------------------------------------
+  Constants
+  ---------------------------------------------------------------------------*/
+
+  /**
+   * @brief MATLAB TCP Server Ports
+   */
+  static constexpr uint16_t MOTOR_SIMULATION_PORT = 55001;    ///< Port for motor simulation data
+  static constexpr uint16_t DEBUG_DATA_PORT       = 55002;    ///< Port for debug data
+  static constexpr uint16_t ESC_CONTROL_PORT      = 55003;    ///< Port for ESC state control data
+
+  /*---------------------------------------------------------------------------
   Types
   ---------------------------------------------------------------------------*/
 
@@ -55,7 +66,7 @@ namespace Orbit::Sim::TCP
     size_t               socket_backlog;    ///< Socket listen backlog
 
     ServerConfig() :
-        port( 55001 ), rx_buffer_size( 1024 ), tx_buffer_size( 1024 ), rx_callback( nullptr ), auto_reconnect( true ),
+        port( 65535 ), rx_buffer_size( 1024 ), tx_buffer_size( 1024 ), rx_callback( nullptr ), auto_reconnect( true ),
         socket_backlog( 1 )
     {
     }

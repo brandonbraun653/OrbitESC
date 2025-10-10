@@ -189,7 +189,7 @@ namespace Orbit::COM::Scheduler
         if( ( task->nextRun < currentTick ) && ( task->period > 0 ) )
         {
           task->nextRun = currentTick + task->period;
-          LOG_WARN( "%s task period skipped", task->name.c_str() );
+          LOG_TRACE( "%s task period skipped", task->name.c_str() );
         }
 
         /*---------------------------------------------------------------------

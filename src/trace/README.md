@@ -45,56 +45,23 @@ Application Code
 
 ## Usage
 
-### Basic Setup
+### Basic Usage
 
 ```cpp
-#include <src/trace/trace_interface.hpp>
+#include <src/trace/orbit_trace.hpp>
 
-// Initialize the trace system
-Orbit::Trace::initializeTraceSystem();
+// Initialize the trace system once during boot
+Orbit::Trace::initializeOrbitTraceSystem();
 
-// Send trace data
-MyDataStruct data = {1.0f, 2.0f, 3.0f};
-Orbit::Trace::sendTrace(TraceType::MOTOR_CURRENT_MEASUREMENTS, &data, sizeof(data));
+// Send alpha/beta command data (handled by registered callbacks)
+Orbit::Trace::traceAlphaBetaCommands(alpha_cmd, beta_cmd, Chimera::micros());
 ```
 
-### Callback Registration
+### Callbacks
 
-```cpp
-// Register a callback for a specific trace type
-bool myCallback(TraceType type, const void* data, size_t size, uint32_t timestamp_us)
-{
-    // Process the trace data
-    return true;
-}
-
-// Register with rate limiting (1ms sample rate)
-Orbit::Trace::registerTraceCallback(TraceType::MOTOR_CURRENT_MEASUREMENTS, 
-                                     myCallback, 1000);
-```
-
-### Environment-Specific Callbacks
-
-#### Embedded Systems
-```cpp
-// Use existing serial communication
-bool embeddedCallback(TraceType type, const void* data, size_t size, uint32_t timestamp_us)
-{
-    auto* serial_server = Orbit::Serial::Config::getSerialServer();
-    return serial_server->write(data, size, 1000) == static_cast<int>(size);
-}
-```
-
-#### Simulator
-```cpp
-// Use TCP server for Matlab communication
-bool simulatorCallback(TraceType type, const void* data, size_t size, uint32_t timestamp_us)
-{
-    auto& tcp_manager = Orbit::Sim::TCP::ServerManager::getInstance();
-    auto tcp_server = tcp_manager.getServer(37219);
-    return tcp_server->sendData(data, size);
-}
-```
+Simulator builds install a TCP callback for Matlab integration. Embedded builds
+currently leave the callback slot unused; extend `orbit_trace.cpp` if you need
+serial forwarding.
 
 ## Trace Types
 

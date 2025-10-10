@@ -1,0 +1,184 @@
+{
+	"CommentBlock0":{
+	  "description": "Comment block for zero indent(s)",
+	  "scope": "c,cpp",
+	  "prefix": "avn_comment_block_0",
+	  "body": [
+		"/*-----------------------------------------------------------------------------",
+		"${1}",
+		"-----------------------------------------------------------------------------*/$0"
+	  ]
+	},
+	"CommentBlock1":{
+	  "description": "Comment block for one indent(s)",
+	  "scope": "c,cpp",
+	  "prefix": "avn_comment_block_1",
+	  "body": [
+		"/*---------------------------------------------------------------------------",
+		"${1}",
+		"---------------------------------------------------------------------------*/$0"
+	  ]
+	},
+	"CommentBlock2":{
+	  "description": "Comment block for two indent(s)",
+	  "scope": "c,cpp",
+	  "prefix": "avn_comment_block_2",
+	  "body": [
+		"/*-------------------------------------------------------------------------",
+		"${1}",
+		"-------------------------------------------------------------------------*/$0"
+	  ]
+	},
+	"CommentBlock3":{
+	  "description": "Comment block for three indent(s)",
+	  "scope": "c,cpp",
+	  "prefix": "avn_comment_block_3",
+	  "body": [
+		"/*-----------------------------------------------------------------------",
+		"${1}",
+		"-----------------------------------------------------------------------*/$0"
+	  ]
+	},
+	"CommentBlock4":{
+	  "description": "Comment block for four indent(s)",
+	  "scope": "c,cpp",
+	  "prefix": "avn_comment_block_4",
+	  "body": [
+		"/*---------------------------------------------------------------------",
+		"${1}",
+		"---------------------------------------------------------------------*/$0"
+	  ]
+	},
+	"CommentBlock5":{
+	  "description": "Comment block for five indent(s)",
+	  "scope": "c,cpp",
+	  "prefix": "avn_comment_block_5",
+	  "body": [
+		"/*-------------------------------------------------------------------",
+		"${1}",
+		"-------------------------------------------------------------------*/$0"
+	  ]
+	},
+
+	"NewCHeader":{
+		"description": "Boilerplate for a new C header file",
+		"scope": "c",
+		"prefix": "avn_new_c_header",
+		"body": [
+		  "/******************************************************************************",
+		  " *  File Name:",
+		  " *    $TM_FILENAME",
+		  " *",
+		  " *  Description:",
+		  " *    ${1:Insert Description}",
+		  " *",
+		  " *  $CURRENT_YEAR | Brandon Braun | brandonbraun653@protonmail.com",
+		  " *****************************************************************************/",
+		  "",
+		  "#pragma once",
+		  "#ifndef ${2}_HPP",
+		  "#define ${2}_HPP",
+		  "",
+		  "#ifdef __cplusplus",
+		  "extern \"C\"",
+		  "{",
+		  "#endif",
+		  "",
+		  "/*-----------------------------------------------------------------------------",
+		  "Includes",
+		  "-----------------------------------------------------------------------------*/",
+		  "$0",
+		  "",
+		  "#ifdef __cplusplus",
+		  "}",
+		  "#endif",
+		  "#endif  /* !${2}_HPP */",
+		  ""
+		]
+	  },
+
+	"NewCSource":{
+	  "description": "Boilerplate for a new C source file",
+	  "scope": "c",
+	  "prefix": "avn_new_c_source",
+	  "body": [
+		"/******************************************************************************",
+		" *  File Name:",
+		" *    $TM_FILENAME",
+		" *",
+		" *  Description:",
+		" *    ${1:Insert Description}",
+		" *",
+		" *  $CURRENT_YEAR | Brandon Braun | brandonbraun653@protonmail.com",
+		" *****************************************************************************/",
+		"",
+		"/*-----------------------------------------------------------------------------",
+		"Includes",
+		"-----------------------------------------------------------------------------*/",
+		"$0"
+	  ]
+	},
+
+
+	"NewCPPHeader":{
+	  "description": "Boilerplate for a new CPP header file",
+	  "scope": "cpp",
+	  "prefix": "avn_new_cpp_header",
+	  "body": [
+		"/******************************************************************************",
+		" *  File Name:",
+		" *    $TM_FILENAME",
+		" *",
+		" *  Description:",
+		" *    ${1:Insert Description}",
+		" *",
+		" *  $CURRENT_YEAR | Brandon Braun | brandonbraun653@protonmail.com",
+		" *****************************************************************************/",
+		"",
+		"#pragma once",
+		"#ifndef ${2}_HPP",
+		"#define ${2}_HPP",
+		"",
+		"/*-----------------------------------------------------------------------------",
+		"Includes",
+		"-----------------------------------------------------------------------------*/",
+		"",
+		"",
+		"namespace ${3}",
+		"{",
+		"  $0",
+		"}  // namespace ${3}",
+		"",
+		"#endif  /* !${2}_HPP */",
+		""
+	  ]
+	},
+
+	"NewCPPSource":{
+	  "description": "Boilerplate for a new CPP source file",
+	  "scope": "cpp",
+	  "prefix": "avn_new_cpp_source",
+	  "body": [
+		"/******************************************************************************",
+		" *  File Name:",
+		" *    $TM_FILENAME",
+		" *",
+		" *  Description:",
+		" *    ${1:Insert Description}",
+		" *",
+		" *  $CURRENT_YEAR | Brandon Braun | brandonbraun653@protonmail.com",
+		" *****************************************************************************/",
+		"",
+		"/*-----------------------------------------------------------------------------",
+		"Includes",
+		"-----------------------------------------------------------------------------*/",
+		"",
+		"",
+		"namespace ${2}",
+		"{",
+		"  $0",
+		"}  // namespace ${2}",
+		""
+	  ]
+	}
+}

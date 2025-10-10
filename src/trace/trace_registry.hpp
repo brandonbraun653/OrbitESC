@@ -126,7 +126,7 @@ namespace Orbit::Trace
      * @param current_time_us Current time in microseconds
      * @return true if enough time has passed, false otherwise
      */
-    bool shouldSample( const TraceRegistration &registration, uint32_t current_time_us ) const;
+    bool canSample( const TraceRegistration &registration, uint32_t current_time_us ) const;
 
     /**
      * @brief Acquire the registry lock

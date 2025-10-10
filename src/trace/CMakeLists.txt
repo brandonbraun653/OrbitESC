@@ -4,7 +4,7 @@ include("${COMMON_TOOL_ROOT}/cmake/utility/embedded.cmake")
 set(TRACE_SOURCES
   trace_registry.cpp
   trace_interface.cpp
-  trace_examples.cpp
+  orbit_trace.cpp
 )
 
 # Add environment-specific sources

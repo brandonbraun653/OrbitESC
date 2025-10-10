@@ -75,9 +75,9 @@ namespace Orbit::Control::Math
    * @param x     Number to check
    * @return bool True if infinity, false otherwise
    */
-  static constexpr bool is_inf( const float x )
+  static inline bool is_inf( const float x )
   {
-    return ( x == 1.0f / 0.0f ) || ( x == -1.0f / 0.0f );
+    return std::isinf( x );
   }
 
   /**
@@ -87,7 +87,7 @@ namespace Orbit::Control::Math
    */
   static inline void clear_if_nan( float &x )
   {
-    if ( is_nan( x ) )
+    if( is_nan( x ) )
     {
       x = 0.0f;
     }
@@ -126,12 +126,12 @@ namespace Orbit::Control::Math
     float mag    = NORM2_f( x, y );
     max          = fabsf( max );
 
-    if ( mag < 1e-10 )
+    if( mag < 1e-10 )
     {
       mag = 1e-10;
     }
 
-    if ( mag > max )
+    if( mag > max )
     {
       const float f = max / mag;
       x *= f;
@@ -170,7 +170,7 @@ namespace Orbit::Control::Math
    * @param sample Next sample
    * @param filter_constant  Filter constant (0.0 to 1.0) where 1.0 is no filtering.
    */
-   #define UTILS_LP_FAST(value, sample, filter_constant)	(value -= (filter_constant) * ((value) - (sample)))
+#define UTILS_LP_FAST( value, sample, filter_constant ) ( value -= ( filter_constant ) * ( ( value ) - ( sample ) ) )
 
 
   /**

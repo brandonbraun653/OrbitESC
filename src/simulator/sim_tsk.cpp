@@ -11,12 +11,14 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Aurora/logging>
 #include <Chimera/common>
 #include <Chimera/thread>
 #include <src/core/tasks.hpp>
 #include <src/simulator/sim_tsk.hpp>
 #include <src/simulator/sim_adc.hpp>
 #include <src/simulator/sim_tcp_server.hpp>
+#include <src/simulator/sim_matlab.hpp>
 
 namespace Orbit::Tasks::SIM
 {
@@ -36,40 +38,25 @@ namespace Orbit::Tasks::SIM
     /*-------------------------------------------------------------------------
     Initialize TCP servers for Matlab communication
     -------------------------------------------------------------------------*/
-    // Create main TCP server for critical system data (port 55001)
+    // Create main TCP server for critical system data
     Orbit::Sim::TCP::ServerConfig main_config;
-    main_config.port           = 55001;
+    main_config.port           = Sim::TCP::MOTOR_SIMULATION_PORT;
     main_config.rx_buffer_size = 1024;
     main_config.tx_buffer_size = 1024;
-    main_config.rx_callback    = []( Orbit::Sim::TCP::Server &server, const void *data, size_t size ) {
-      // Echo received data back to Matlab
-      if( server.isClientConnected() )
-      {
-        server.sendData( data, size );
-      }
-    };
+    main_config.rx_callback    = Orbit::Sim::Matlab::motorSimulationCallback;
 
     auto main_server = Orbit::Sim::TCP::ServerManager::getInstance().createServer( main_config );
-    if( !main_server )
-    {
-      // Log error but continue startup
-    }
+    LOG_WARN_IF( !main_server, "Failed to create main server" );
 
-    // Create trace/logging server for plotting data (port 55002)
-    Orbit::Sim::TCP::ServerConfig trace_config;
-    trace_config.port           = 55002;
-    trace_config.rx_buffer_size = 4096;    // Larger buffer for trace data
-    trace_config.tx_buffer_size = 4096;
-    trace_config.rx_callback    = []( Orbit::Sim::TCP::Server &server, const void *data, size_t size ) {
-      // Process trace data from Matlab
-      // TODO: Implement trace data processing logic
-    };
+    // Create ESC control TCP server for state control commands
+    Orbit::Sim::TCP::ServerConfig esc_config;
+    esc_config.port           = Sim::TCP::ESC_CONTROL_PORT;
+    esc_config.rx_buffer_size = 1024;
+    esc_config.tx_buffer_size = 1024;
+    esc_config.rx_callback    = Orbit::Sim::Matlab::escControlCallback;
 
-    auto trace_server = Orbit::Sim::TCP::ServerManager::getInstance().createServer( trace_config );
-    if( !trace_server )
-    {
-      // Log error but continue startup
-    }
+    auto esc_server = Orbit::Sim::TCP::ServerManager::getInstance().createServer( esc_config );
+    LOG_WARN_IF( !esc_server, "Failed to create ESC control server" );
 
     while( 1 )
     {

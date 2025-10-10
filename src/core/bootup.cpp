@@ -36,7 +36,7 @@ Includes
 #include <src/core/tasks.hpp>
 #include <src/monitor/orbit_metrics.hpp>
 #include <src/monitor/orbit_monitors.hpp>
-#include <src/trace/trace_examples.hpp>
+#include <src/trace/orbit_trace.hpp>
 
 #if defined( EMBEDDED )
 #include <Thor/lld/common/cortex-m4/system_time.hpp>
@@ -116,7 +116,7 @@ namespace Orbit::Boot
     /*-------------------------------------------------------------------------
     Initialize the trace system for data logging and debugging
     -------------------------------------------------------------------------*/
-    Orbit::Trace::initializeTraceSystem();
+    Orbit::Trace::initialize();
 
     /*-------------------------------------------------------------------------
     Power up the peripherals with re-configurable settings

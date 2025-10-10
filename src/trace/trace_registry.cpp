@@ -130,7 +130,7 @@ namespace Orbit::Trace
     }
 
     // Check rate limiting
-    if( !shouldSample( *reg, timestamp_us ) )
+    if( !canSample( *reg, timestamp_us ) )
     {
       releaseLock();
       return true;    // Rate limited, but not an error
@@ -177,7 +177,7 @@ namespace Orbit::Trace
     return ( it != m_registry.end() ) ? &( *it ) : nullptr;
   }
 
-  bool Registry::shouldSample( const TraceRegistration &registration, uint32_t current_time_us ) const
+  bool Registry::canSample( const TraceRegistration &registration, uint32_t current_time_us ) const
   {
     // No rate limiting if sample_rate_us is 0
     if( registration.sample_rate_us == 0 )

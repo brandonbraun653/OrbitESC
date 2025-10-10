@@ -15,8 +15,6 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <array>
-#include <cstdint>
 #include <Chimera/common>
 #include <Chimera/adc>
 #include <Chimera/timer>

@@ -28,6 +28,7 @@ Includes
 #include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 #include <src/core/hw/orbit_motor_drive.hpp>
+#include <src/trace/orbit_trace.hpp>
 #include <src/core/hw/orbit_motor_sense.hpp>
 #include <src/simulator/sim_adc.hpp>
 #include <src/simulator/sim_motor.hpp>
@@ -447,6 +448,11 @@ namespace Orbit::Control::Field
                             foc_ireg_state.vb_cmd );
 
     /*-------------------------------------------------------------------------
+    Trace alpha/beta voltage commands for Matlab simulation
+    -------------------------------------------------------------------------*/
+    Orbit::Trace::traceAlphaBetaCommands( foc_ireg_state.va_cmd, foc_ireg_state.vb_cmd, Chimera::micros() );
+
+    /*-------------------------------------------------------------------------
     Update the SVM to generate the next PWM cycle
     -------------------------------------------------------------------------*/
     float modulation_index = hypotf( foc_ireg_state.va_cmd, foc_ireg_state.vb_cmd );
@@ -472,101 +478,101 @@ namespace Orbit::Control::Field
     function.
     -------------------------------------------------------------------------*/
     // TEMPORARY
-    static constexpr bool CURRENT_MONITOR  = false;
-    static constexpr bool OBSERVER_MONITOR = false;
-    static constexpr bool VOLTAGE_MONITOR  = false;
+    //     static constexpr bool CURRENT_MONITOR  = false;
+    //     static constexpr bool OBSERVER_MONITOR = false;
+    //     static constexpr bool VOLTAGE_MONITOR  = false;
 
-#if defined( EMBEDDED )
-    if( isr_monitor_count++ >= 3 )
-    {
-      isr_monitor_count = 0;
-#endif
+    // #if defined( EMBEDDED )
+    //     if( isr_monitor_count++ >= 3 )
+    //     {
+    //       isr_monitor_count = 0;
+    // #endif
 
-      /*-----------------------------------------------------------------------
-      Pack the message data
-      -----------------------------------------------------------------------*/
-      Serial::Message::SystemData s_ctl_monitor;
+    //       /*-----------------------------------------------------------------------
+    //       Pack the message data
+    //       -----------------------------------------------------------------------*/
+    //       Serial::Message::SystemData s_ctl_monitor;
 
-      s_ctl_monitor.raw.header.msgId = MsgId_MSG_SYS_DATA;
-      s_ctl_monitor.raw.header.subId = 0;
-      s_ctl_monitor.raw.header.uuid  = Serial::Message::getNextUUID();
-      s_ctl_monitor.raw.timestamp    = Chimera::micros();
-      s_ctl_monitor.raw.has_payload  = true;
+    //       s_ctl_monitor.raw.header.msgId = MsgId_MSG_SYS_DATA;
+    //       s_ctl_monitor.raw.header.subId = 0;
+    //       s_ctl_monitor.raw.header.uuid  = Serial::Message::getNextUUID();
+    //       s_ctl_monitor.raw.timestamp    = Chimera::micros();
+    //       s_ctl_monitor.raw.has_payload  = true;
 
-      /*-----------------------------------------------------------------------
-      Pack and encode the payload data
-      -----------------------------------------------------------------------*/
-      bool payload_encoded = false;
+    //       /*-----------------------------------------------------------------------
+    //       Pack and encode the payload data
+    //       -----------------------------------------------------------------------*/
+    //       bool payload_encoded = false;
 
-      if constexpr( CURRENT_MONITOR )
-      {
-        s_ctl_monitor.raw.id           = SystemDataId_CURRENT_CONTROL_MONITOR;
-        s_ctl_monitor.raw.payload.size = sizeof( CurrentControlMonitorPayload );
+    //       if constexpr( CURRENT_MONITOR )
+    //       {
+    //         s_ctl_monitor.raw.id           = SystemDataId_CURRENT_CONTROL_MONITOR;
+    //         s_ctl_monitor.raw.payload.size = sizeof( CurrentControlMonitorPayload );
 
-        Serial::Message::Payload::CurrentControlMonitorPayload payload;
+    //         Serial::Message::Payload::CurrentControlMonitorPayload payload;
 
-        payload.raw.ia     = foc_ireg_state.ima;
-        payload.raw.ib     = foc_ireg_state.imb;
-        payload.raw.ic     = foc_ireg_state.imc;
-        payload.raw.iq_ref = foc_ireg_state.iqRef;
-        payload.raw.id_ref = foc_ireg_state.idRef;
-        payload.raw.iq     = foc_ireg_state.iq;
-        payload.raw.id     = foc_ireg_state.id;
-        payload.raw.vd     = foc_ireg_state.vd_mod;
-        payload.raw.vq     = foc_ireg_state.vq_mod;
-        payload.raw.va     = foc_ireg_state.va;
-        payload.raw.vb     = foc_ireg_state.vb;
+    //         payload.raw.ia     = foc_ireg_state.ima;
+    //         payload.raw.ib     = foc_ireg_state.imb;
+    //         payload.raw.ic     = foc_ireg_state.imc;
+    //         payload.raw.iq_ref = foc_ireg_state.iqRef;
+    //         payload.raw.id_ref = foc_ireg_state.idRef;
+    //         payload.raw.iq     = foc_ireg_state.iq;
+    //         payload.raw.id     = foc_ireg_state.id;
+    //         payload.raw.vd     = foc_ireg_state.vd_mod;
+    //         payload.raw.vq     = foc_ireg_state.vq_mod;
+    //         payload.raw.va     = foc_ireg_state.va;
+    //         payload.raw.vb     = foc_ireg_state.vb;
 
-        payload_encoded = Serial::Message::encode( &payload.state, Serial::Message::ENCODE_NO_COBS );
-        memcpy( s_ctl_monitor.raw.payload.bytes, payload.data(), payload.size() );
-        s_ctl_monitor.raw.payload.size = payload.size();
-      }
-      else if constexpr( OBSERVER_MONITOR )
-      {
-        s_ctl_monitor.raw.id           = SystemDataId_SYSTEM_OBSERVER_MONITOR;
-        s_ctl_monitor.raw.payload.size = sizeof( SystemObserverMonitorPayload );
+    //         payload_encoded = Serial::Message::encode( &payload.state, Serial::Message::ENCODE_NO_COBS );
+    //         memcpy( s_ctl_monitor.raw.payload.bytes, payload.data(), payload.size() );
+    //         s_ctl_monitor.raw.payload.size = payload.size();
+    //       }
+    //       else if constexpr( OBSERVER_MONITOR )
+    //       {
+    //         s_ctl_monitor.raw.id           = SystemDataId_SYSTEM_OBSERVER_MONITOR;
+    //         s_ctl_monitor.raw.payload.size = sizeof( SystemObserverMonitorPayload );
 
-        Serial::Message::Payload::SystemObserverMonitorPayload payload;
+    //         Serial::Message::Payload::SystemObserverMonitorPayload payload;
 
-        payload.raw.theta_est = observer_output.theta_elec;
-        payload.raw.omega_est = observer_output.omega_elec;
+    //         payload.raw.theta_est = observer_output.theta_elec;
+    //         payload.raw.omega_est = observer_output.omega_elec;
 
-        payload_encoded = Serial::Message::encode( &payload.state, Serial::Message::ENCODE_NO_COBS );
-        memcpy( s_ctl_monitor.raw.payload.bytes, payload.data(), payload.size() );
-        s_ctl_monitor.raw.payload.size = payload.size();
-      }
-      else if constexpr( VOLTAGE_MONITOR )
-      {
-        s_ctl_monitor.raw.id           = SystemDataId_INNER_LOOP_VOLTAGES;
-        s_ctl_monitor.raw.payload.size = sizeof( InnerLoopVoltageMonitorPayload );
+    //         payload_encoded = Serial::Message::encode( &payload.state, Serial::Message::ENCODE_NO_COBS );
+    //         memcpy( s_ctl_monitor.raw.payload.bytes, payload.data(), payload.size() );
+    //         s_ctl_monitor.raw.payload.size = payload.size();
+    //       }
+    //       else if constexpr( VOLTAGE_MONITOR )
+    //       {
+    //         s_ctl_monitor.raw.id           = SystemDataId_INNER_LOOP_VOLTAGES;
+    //         s_ctl_monitor.raw.payload.size = sizeof( InnerLoopVoltageMonitorPayload );
 
-        Serial::Message::Payload::InnerLoopVoltageMonitorPayload payload;
+    //         Serial::Message::Payload::InnerLoopVoltageMonitorPayload payload;
 
-        payload.raw.va    = foc_ireg_state.ima;
-        payload.raw.vb    = foc_ireg_state.imb;
-        payload.raw.vc    = foc_ireg_state.imc;
-        payload.raw.alpha = foc_ireg_state.va_cmd;
-        payload.raw.beta  = foc_ireg_state.vb_cmd;
+    //         payload.raw.va    = foc_ireg_state.ima;
+    //         payload.raw.vb    = foc_ireg_state.imb;
+    //         payload.raw.vc    = foc_ireg_state.imc;
+    //         payload.raw.alpha = foc_ireg_state.va_cmd;
+    //         payload.raw.beta  = foc_ireg_state.vb_cmd;
 
-        payload_encoded = Serial::Message::encode( &payload.state, Serial::Message::ENCODE_NO_COBS );
-        memcpy( s_ctl_monitor.raw.payload.bytes, payload.data(), payload.size() );
-        s_ctl_monitor.raw.payload.size = payload.size();
-      }
+    //         payload_encoded = Serial::Message::encode( &payload.state, Serial::Message::ENCODE_NO_COBS );
+    //         memcpy( s_ctl_monitor.raw.payload.bytes, payload.data(), payload.size() );
+    //         s_ctl_monitor.raw.payload.size = payload.size();
+    //       }
 
-      /*-----------------------------------------------------------------------
-      Encode the full message with COBS and queue it for sending. Use best
-      effort to send the message, but don't block the control loop.
-      -----------------------------------------------------------------------*/
-      if( payload_encoded && Serial::Message::encode( &s_ctl_monitor.state ) &&
-          ( s_tx_isr_buffer.available() > s_ctl_monitor.size() ) )
-      {
-        for( size_t i = 0; i < s_ctl_monitor.size(); i++ )
-        {
-          s_tx_isr_buffer.push( s_ctl_monitor.data()[ i ] );
-        }
-      }
-#if defined( EMBEDDED )
-    }
-#endif
+    //       /*-----------------------------------------------------------------------
+    //       Encode the full message with COBS and queue it for sending. Use best
+    //       effort to send the message, but don't block the control loop.
+    //       -----------------------------------------------------------------------*/
+    //       if( payload_encoded && Serial::Message::encode( &s_ctl_monitor.state ) &&
+    //           ( s_tx_isr_buffer.available() > s_ctl_monitor.size() ) )
+    //       {
+    //         for( size_t i = 0; i < s_ctl_monitor.size(); i++ )
+    //         {
+    //           s_tx_isr_buffer.push( s_ctl_monitor.data()[ i ] );
+    //         }
+    //       }
+    // #if defined( EMBEDDED )
+    //     }
+    // #endif
   }
 }    // namespace Orbit::Control::Field
