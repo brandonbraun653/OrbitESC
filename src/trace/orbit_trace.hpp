@@ -26,12 +26,13 @@ namespace Orbit::Trace
   ---------------------------------------------------------------------------*/
   /**
    * @brief Alpha/beta voltage commands for FOC control
+   * @note Matlab requires a single data type
    */
   struct AlphaBetaCommands
   {
-    float    alpha_cmd;       // Alpha-axis voltage command (V)
-    float    beta_cmd;        // Beta-axis voltage command (V)
-    uint32_t timestamp_us;    // Timestamp in microseconds
+    float alpha_cmd;       // Alpha-axis voltage command (V)
+    float beta_cmd;        // Beta-axis voltage command (V)
+    float timestamp_us;    // Timestamp in microseconds
   };
 
   /*---------------------------------------------------------------------------

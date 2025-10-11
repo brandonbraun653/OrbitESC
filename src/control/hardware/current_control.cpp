@@ -448,11 +448,6 @@ namespace Orbit::Control::Field
                             foc_ireg_state.vb_cmd );
 
     /*-------------------------------------------------------------------------
-    Trace alpha/beta voltage commands for Matlab simulation
-    -------------------------------------------------------------------------*/
-    Orbit::Trace::traceAlphaBetaCommands( foc_ireg_state.va_cmd, foc_ireg_state.vb_cmd, Chimera::micros() );
-
-    /*-------------------------------------------------------------------------
     Update the SVM to generate the next PWM cycle
     -------------------------------------------------------------------------*/
     float modulation_index = hypotf( foc_ireg_state.va_cmd, foc_ireg_state.vb_cmd );

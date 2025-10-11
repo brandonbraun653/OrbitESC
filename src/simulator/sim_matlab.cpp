@@ -13,6 +13,8 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <src/simulator/sim_matlab.hpp>
 #include <src/control/foc_driver.hpp>
+#include <src/control/foc_data.hpp>
+#include <src/trace/orbit_trace.hpp>
 
 namespace Orbit::Sim::Matlab
 {
@@ -21,6 +23,7 @@ namespace Orbit::Sim::Matlab
   ---------------------------------------------------------------------------*/
   /**
    * @brief Motor simulation data from Matlab simulation
+   * @note Matlab requires a single data type
    */
   struct MotorData
   {
@@ -34,6 +37,7 @@ namespace Orbit::Sim::Matlab
 
   /**
    * @brief System state control from Matlab simulation
+   * @note Matlab requires a single data type
    *
    * These are transitions/events/references that normally come from the
    * flight computer, representing input from a human via some interface
@@ -41,15 +45,17 @@ namespace Orbit::Sim::Matlab
    */
   struct ControlData
   {
-    bool  armed;         /**< System should be armed */
-    bool  engaged;       /**< System should be engaged */
-    float speed_ref_rpm; /**< Speed reference in rpm */
+    float armed;          /**< System should be armed */
+    float engaged;        /**< System should be engaged */
+    float speed_ref_rpm;  /**< Speed reference in rpm */
+    float supply_voltage; /**< Power supply voltage in Volts */
 
     ControlData()
     {
-      armed         = false;
-      engaged       = false;
-      speed_ref_rpm = 0.0f;
+      armed          = 0.0f;
+      engaged        = 0.0f;
+      speed_ref_rpm  = 0.0f;
+      supply_voltage = 0.0f;
     }
   };
 
@@ -64,7 +70,18 @@ namespace Orbit::Sim::Matlab
       return;
     }
 
-    // accept simulation data, inject into motor model
+    /*-------------------------------------------------------------------------
+    Parse the received data
+    -------------------------------------------------------------------------*/
+
+    /*-------------------------------------------------------------------------
+    Step the motor control loops
+    -------------------------------------------------------------------------*/
+
+    /*-------------------------------------------------------------------------
+    Send results back to Matlab simulation
+    -------------------------------------------------------------------------*/
+    Orbit::Trace::traceAlphaBetaCommands( Control::foc_ireg_state.va_cmd, Control::foc_ireg_state.vb_cmd, Chimera::micros() );
   }
 
   void escControlCallback( Orbit::Sim::TCP::Server &server, const void *data, size_t size )
@@ -88,16 +105,27 @@ namespace Orbit::Sim::Matlab
     memcpy( &new_cmd, data, sizeof( ControlData ) );
 
     /*-------------------------------------------------------------------------
-    Activate motor controller
+    Change motor controller state
     -------------------------------------------------------------------------*/
-    if( new_cmd.armed && !prev_cmd.armed )
+    if( static_cast<bool>( new_cmd.armed ) && !static_cast<bool>( prev_cmd.armed ) )
     {
       Control::FOC::sendSystemEvent( Control::EventId::ARM );
     }
-    if( new_cmd.engaged && !prev_cmd.engaged )
+
+    if( static_cast<bool>( new_cmd.engaged ) && !static_cast<bool>( prev_cmd.engaged ) )
     {
       Control::FOC::sendSystemEvent( Control::EventId::ENGAGE );
     }
+
+    /*-------------------------------------------------------------------------
+    Inject ADC measurements for system parameters
+    -------------------------------------------------------------------------*/
+    // Supply voltage
+
+    /*-------------------------------------------------------------------------
+    Set target references
+    -------------------------------------------------------------------------*/
+    // Speed reference
 
     prev_cmd = new_cmd;
   }
