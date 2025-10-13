@@ -77,6 +77,10 @@ namespace Orbit::Sim::Matlab
     /*-------------------------------------------------------------------------
     Step the motor control loops
     -------------------------------------------------------------------------*/
+    // TODO Next steps: Need to re-figure out the control loop sequence and
+    // how to run it in a way that decouples general thread execution from
+    // the matlab simulation. Likely need to refresh on FOC control and cleaning
+    // up the code.
 
     /*-------------------------------------------------------------------------
     Send results back to Matlab simulation

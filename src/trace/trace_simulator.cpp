@@ -30,107 +30,42 @@ namespace Orbit::Trace
   {
     if( !data || !size || !output || !output_size )
     {
+      LOG_ERROR( "Invalid data or output buffer for simulator serialization" );
       return 0;
     }
 
-    size_t total_size = HEADER_SIZE + size;
-    if( total_size > output_size )
+    if( size > output_size )
     {
-      LOG_ERROR( "Output buffer too small: need %zu bytes, have %zu", total_size, output_size );
+      LOG_ERROR( "Output buffer too small: need %zu bytes, have %zu", size, output_size );
       return 0;
     }
 
-    // Create header
-    TraceHeader header;
-    memcpy( header.magic, MAGIC_BYTES, sizeof( MAGIC_BYTES ) );
-    header.type         = static_cast<uint8_t>( type );
-    header.format       = static_cast<uint8_t>( SerializationFormat::BINARY_PACKED );
-    header.sequence     = 0;    // Could be incremented for sequence tracking
-    header.timestamp_us = timestamp_us;
-    header.data_size    = static_cast<uint32_t>( size );
-
-    // Copy header to output
-    memcpy( output, &header, HEADER_SIZE );
-
-    // Copy data to output
-    memcpy( output + HEADER_SIZE, data, size );
-
-    // Calculate and store checksum
-    uint32_t checksum = calculateChecksum( output, total_size );
-    memcpy( output + offsetof( TraceHeader, checksum ), &checksum, sizeof( checksum ) );
-
-    return total_size;
+    memcpy( output, data, size );
+    return size;
   }
 
   bool SimulatorSerializer::deserialize( const uint8_t *input, size_t input_size, TraceData &trace_data )
   {
-    if( !input || input_size < HEADER_SIZE )
+    // Matlab sends raw packed structures with no metadata. Consumers must
+    // already know the trace type they expect, so deserialization simply
+    // exposes the provided buffer as-is.
+    if( !input || input_size == 0 )
     {
       return false;
     }
 
-    // Extract header
-    TraceHeader header;
-    memcpy( &header, input, HEADER_SIZE );
-
-    // Verify magic bytes
-    if( memcmp( header.magic, MAGIC_BYTES, sizeof( MAGIC_BYTES ) ) != 0 )
-    {
-      LOG_ERROR( "Invalid magic bytes in trace data" );
-      return false;
-    }
-
-    // Verify data size
-    if( input_size != HEADER_SIZE + header.data_size )
-    {
-      LOG_ERROR( "Invalid data size: expected %zu, got %zu", HEADER_SIZE + header.data_size, input_size );
-      return false;
-    }
-
-    // Verify checksum
-    if( !verifyChecksum( input, input_size, header.checksum ) )
-    {
-      LOG_ERROR( "Checksum verification failed" );
-      return false;
-    }
-
-    // Populate trace data structure
-    trace_data.type            = static_cast<TraceType>( header.type );
-    trace_data.timestamp_us    = header.timestamp_us;
-    trace_data.format          = static_cast<SerializationFormat>( header.format );
-    trace_data.data            = etl::span<const uint8_t>( input + HEADER_SIZE, header.data_size );
-    trace_data.sequence_number = header.sequence;
+    trace_data.type            = TraceType::INVALID;
+    trace_data.timestamp_us    = 0;
+    trace_data.format          = SerializationFormat::BINARY_PACKED;
+    trace_data.data            = etl::span<const uint8_t>( input, input_size );
+    trace_data.sequence_number = 0;
 
     return true;
   }
 
   size_t SimulatorSerializer::getSerializedSize( size_t data_size ) const
   {
-    return HEADER_SIZE + data_size;
-  }
-
-  uint32_t SimulatorSerializer::calculateChecksum( const uint8_t *data, size_t size ) const
-  {
-    uint32_t checksum = 0;
-
-    // Simple checksum calculation (exclude the checksum field itself)
-    size_t checksum_offset = offsetof( TraceHeader, checksum );
-
-    for( size_t i = 0; i < size; ++i )
-    {
-      if( i < checksum_offset || i >= checksum_offset + sizeof( uint32_t ) )
-      {
-        checksum += data[ i ];
-      }
-    }
-
-    return checksum;
-  }
-
-  bool SimulatorSerializer::verifyChecksum( const uint8_t *data, size_t size, uint32_t expected_checksum ) const
-  {
-    uint32_t calculated_checksum = calculateChecksum( data, size );
-    return calculated_checksum == expected_checksum;
+    return data_size;
   }
 
 }    // namespace Orbit::Trace

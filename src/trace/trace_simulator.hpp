@@ -3,7 +3,7 @@
  *    trace_simulator.hpp
  *
  *  Description:
- *    Simulator trace implementation using binary packed structures
+ *    Simulator trace implementation that forwards raw packed structures
  *
  *  2025 | Brandon Braun | brandonbraun653@gmail.com
  *****************************************************************************/
@@ -16,7 +16,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <src/trace/trace_types.hpp>
-#include <cstring>
+#include <cstddef>
 #include <cstdint>
 
 namespace Orbit::Trace
@@ -25,10 +25,11 @@ namespace Orbit::Trace
   Simulator Trace Serializer
   ---------------------------------------------------------------------------*/
   /**
-   * @brief Serializes trace data using binary packed structures for simulator
+   * @brief Pass-through serialization for simulator traces
    *
-   * This class provides serialization of trace data using simple binary
-   * packed structures suitable for Matlab communication.
+   * Matlab expects raw packed trace structures with no additional metadata.
+   * The simulator serializer therefore forwards buffers unchanged while
+   * retaining a consistent interface with other serializer implementations.
    */
   class SimulatorSerializer
   {
@@ -37,12 +38,12 @@ namespace Orbit::Trace
     ~SimulatorSerializer() = default;
 
     /**
-     * @brief Serialize trace data using binary packed format
+     * @brief Serialize trace data using raw binary pass-through
      *
-     * @param type Trace type identifier
+     * @param type Trace type identifier (ignored)
      * @param data Pointer to data to serialize
      * @param size Size of data in bytes
-     * @param timestamp_us Timestamp in microseconds
+     * @param timestamp_us Timestamp in microseconds (ignored)
      * @param output Buffer to write serialized data to
      * @param output_size Size of output buffer
      * @return Number of bytes written to output buffer, 0 on error
@@ -51,7 +52,7 @@ namespace Orbit::Trace
                       size_t output_size );
 
     /**
-     * @brief Deserialize trace data from binary packed format
+     * @brief Deserialize raw trace data
      *
      * @param input Pointer to serialized data
      * @param input_size Size of input data in bytes
@@ -64,52 +65,9 @@ namespace Orbit::Trace
      * @brief Get the serialized size for a given data size
      *
      * @param data_size Size of input data
-     * @return Serialized size including header
+     * @return Serialized size (equal to data_size)
      */
     size_t getSerializedSize( size_t data_size ) const;
-
-  private:
-    /*---------------------------------------------------------------------------
-    Binary Packed Structure Format
-    ---------------------------------------------------------------------------*/
-    /**
-     * @brief Binary trace header structure
-     *
-     * This structure is packed to ensure consistent binary layout
-     * for Matlab communication.
-     */
-    struct TraceHeader
-    {
-      uint8_t  magic[ 4 ];      // Magic bytes: "TRCE"
-      uint8_t  type;            // Trace type identifier
-      uint8_t  format;          // Serialization format
-      uint16_t sequence;        // Sequence number
-      uint32_t timestamp_us;    // Timestamp in microseconds
-      uint32_t data_size;       // Size of payload data
-      uint32_t checksum;        // Simple checksum of header + data
-    } __attribute__( ( packed ) );
-
-    static constexpr uint8_t MAGIC_BYTES[ 4 ] = { 'T', 'R', 'C', 'E' };
-    static constexpr size_t  HEADER_SIZE      = sizeof( TraceHeader );
-
-    /**
-     * @brief Calculate simple checksum
-     *
-     * @param data Pointer to data
-     * @param size Size of data
-     * @return Calculated checksum
-     */
-    uint32_t calculateChecksum( const uint8_t *data, size_t size ) const;
-
-    /**
-     * @brief Verify checksum
-     *
-     * @param data Pointer to data
-     * @param size Size of data
-     * @param expected_checksum Expected checksum value
-     * @return true if checksum matches, false otherwise
-     */
-    bool verifyChecksum( const uint8_t *data, size_t size, uint32_t expected_checksum ) const;
   };
 
 }    // namespace Orbit::Trace
