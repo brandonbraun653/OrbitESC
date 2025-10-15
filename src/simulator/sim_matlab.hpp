@@ -35,6 +35,13 @@ namespace Orbit::Sim::Matlab
    */
   void escControlCallback( Orbit::Sim::TCP::Server &server, const void *data, size_t size );
 
+  /**
+   * @brief Connection callback for ESC control TCP server
+   * @param server Reference to the TCP server instance
+   * @param state  Connection state change
+   */
+  void escControlConnectionCallback( Orbit::Sim::TCP::Server &server, Orbit::Sim::TCP::ConnectionState state );
+
 }    // namespace Orbit::Sim::Matlab
 
 #endif /* !SIM_MATLAB_HPP */

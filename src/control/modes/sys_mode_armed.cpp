@@ -20,7 +20,6 @@ Includes
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_led.hpp>
-#include <src/simulator/sim_motor.hpp>
 
 namespace Orbit::Control::State
 {
@@ -62,7 +61,7 @@ namespace Orbit::Control::State
   {
     using namespace Orbit::Control::Subroutine;
 
-    if( const auto sub = getActiveSubroutine(); sub != Routine::IDLE)
+    if( const auto sub = getActiveSubroutine(); sub != Routine::IDLE )
     {
       LOG_WARN( "Cannot engage ARMED state. Subroutine [%s] is active.", getSubroutineName( sub ) );
       return false;
@@ -92,26 +91,6 @@ namespace Orbit::Control::State
     {
       return ModeId::IDLE;
     }
-
-    /*-------------------------------------------------------------------------
-    Connect the virtualized motor to the system
-    -------------------------------------------------------------------------*/
-    #if defined( SIMULATOR )
-    Orbit::Sim::Motor::Parameters params;
-    CLEAR_STRUCT( params );
-
-    // Parameters taken from https://ieeexplore.ieee.org/document/6687627 (Table 1)
-    params.r          = 0.982f;       // Stator resistance
-    params.ld         = 2.9e-3f;      // D-axis inductance
-    params.lq         = 3.0e-3f;      // Q-axis inductance
-    params.lpm        = 0.075;        // Permanent magnet flux linkage
-    params.pole_pairs = 4;            // Number of pole pairs
-    params.J          = 0.425e-3f;    // Rotational inertia
-    params.v_max_adc  = 3.3f;         // Max voltage that ADC can measure
-    params.km         = 1.5f * params.pole_pairs;
-
-    Orbit::Sim::Motor::connect( params );
-    #endif
 
     /*-------------------------------------------------------------------------
     Instruct the motor control subsystem to begin the rotor alignment detection

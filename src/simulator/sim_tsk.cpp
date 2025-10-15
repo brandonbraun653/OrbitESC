@@ -50,10 +50,11 @@ namespace Orbit::Tasks::SIM
 
     // Create ESC control TCP server for state control commands
     Orbit::Sim::TCP::ServerConfig esc_config;
-    esc_config.port           = Sim::TCP::ESC_CONTROL_PORT;
-    esc_config.rx_buffer_size = 1024;
-    esc_config.tx_buffer_size = 1024;
-    esc_config.rx_callback    = Orbit::Sim::Matlab::escControlCallback;
+    esc_config.port                = Sim::TCP::ESC_CONTROL_PORT;
+    esc_config.rx_buffer_size      = 1024;
+    esc_config.tx_buffer_size      = 1024;
+    esc_config.rx_callback         = Orbit::Sim::Matlab::escControlCallback;
+    esc_config.connection_callback = Orbit::Sim::Matlab::escControlConnectionCallback;
 
     auto esc_server = Orbit::Sim::TCP::ServerManager::getInstance().createServer( esc_config );
     LOG_WARN_IF( !esc_server, "Failed to create ESC control server" );

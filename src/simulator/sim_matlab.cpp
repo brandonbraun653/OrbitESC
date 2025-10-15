@@ -11,10 +11,16 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <src/simulator/sim_matlab.hpp>
-#include <src/control/foc_driver.hpp>
+#include <Aurora/logging>
+#include <Chimera/timer>
+#include <cstring>
 #include <src/control/foc_data.hpp>
+#include <src/control/foc_driver.hpp>
+#include <src/core/hw/orbit_motor_drive.hpp>
+#include <src/core/hw/orbit_motor_sense.hpp>
+#include <src/simulator/sim_matlab.hpp>
 #include <src/trace/orbit_trace.hpp>
+#include <lib/ChimeraSim/source/peripherals/timer/sim_chimera_timer.hpp>
 
 namespace Orbit::Sim::Matlab
 {
@@ -49,6 +55,7 @@ namespace Orbit::Sim::Matlab
     float engaged;        /**< System should be engaged */
     float speed_ref_rpm;  /**< Speed reference in rpm */
     float supply_voltage; /**< Power supply voltage in Volts */
+    float sim_time_us;    /**< Simulation time in microseconds */
 
     ControlData()
     {
@@ -56,12 +63,18 @@ namespace Orbit::Sim::Matlab
       engaged        = 0.0f;
       speed_ref_rpm  = 0.0f;
       supply_voltage = 0.0f;
+      sim_time_us    = 0.0f;
     }
   };
 
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
+
+  namespace
+  {
+    ControlData s_prev_cmd = {};
+  }
 
   void motorSimulationCallback( Orbit::Sim::TCP::Server &server, const void *data, size_t size )
   {
@@ -90,8 +103,6 @@ namespace Orbit::Sim::Matlab
 
   void escControlCallback( Orbit::Sim::TCP::Server &server, const void *data, size_t size )
   {
-    static ControlData prev_cmd = {};
-
     if( !server.isClientConnected() )
     {
       return;
@@ -108,15 +119,20 @@ namespace Orbit::Sim::Matlab
 
     memcpy( &new_cmd, data, sizeof( ControlData ) );
 
+    if( ( new_cmd.sim_time_us > 0.0f ) && ChimeraSim::Timer::isExternalTimeSourceActive() )
+    {
+      ChimeraSim::Timer::updateExternalTime( static_cast<size_t>( new_cmd.sim_time_us ) );
+    }
+
     /*-------------------------------------------------------------------------
     Change motor controller state
     -------------------------------------------------------------------------*/
-    if( static_cast<bool>( new_cmd.armed ) && !static_cast<bool>( prev_cmd.armed ) )
+    if( static_cast<bool>( new_cmd.armed ) && !static_cast<bool>( s_prev_cmd.armed ) )
     {
       Control::FOC::sendSystemEvent( Control::EventId::ARM );
     }
 
-    if( static_cast<bool>( new_cmd.engaged ) && !static_cast<bool>( prev_cmd.engaged ) )
+    if( static_cast<bool>( new_cmd.engaged ) && !static_cast<bool>( s_prev_cmd.engaged ) )
     {
       Control::FOC::sendSystemEvent( Control::EventId::ENGAGE );
     }
@@ -131,6 +147,44 @@ namespace Orbit::Sim::Matlab
     -------------------------------------------------------------------------*/
     // Speed reference
 
-    prev_cmd = new_cmd;
+    s_prev_cmd = new_cmd;
+  }
+
+  void escControlConnectionCallback( Orbit::Sim::TCP::Server &server, Orbit::Sim::TCP::ConnectionState state )
+  {
+    ( void )server;
+
+    switch( state )
+    {
+      case Orbit::Sim::TCP::ConnectionState::Connected:
+        LOG_INFO( "ESC control client connected" );
+
+        Orbit::Motor::Sense::reset();
+        Orbit::Motor::Drive::reset();
+        s_prev_cmd = {};
+
+        Orbit::Control::foc_motor_state = {};
+        Orbit::Control::foc_ireg_state.iqPID.resetState();
+        Orbit::Control::foc_ireg_state.idPID.resetState();
+        Orbit::Control::foc_ireg_state.iqRef     = 0.0f;
+        Orbit::Control::foc_ireg_state.idRef     = 0.0f;
+        Orbit::Control::foc_ireg_state.va_cmd    = 0.0f;
+        Orbit::Control::foc_ireg_state.vb_cmd    = 0.0f;
+        Orbit::Control::foc_ireg_state.vq        = 0.0f;
+        Orbit::Control::foc_ireg_state.vd        = 0.0f;
+        Orbit::Control::foc_ireg_state.vq_mod    = 0.0f;
+        Orbit::Control::foc_ireg_state.vd_mod    = 0.0f;
+        Orbit::Control::foc_ireg_state.max_drive = 0.0f;
+
+        Orbit::Control::FOC::sendSystemEvent( Orbit::Control::EventId::DISABLE );
+        ChimeraSim::Timer::enableExternalTimeSource( 0U );
+        break;
+
+      case Orbit::Sim::TCP::ConnectionState::Disconnected:
+        LOG_INFO( "ESC control client disconnected" );
+        Orbit::Control::FOC::sendSystemEvent( Orbit::Control::EventId::DISABLE );
+        ChimeraSim::Timer::disableExternalTimeSource();
+        break;
+    }
   }
 }    // namespace Orbit::Sim::Matlab

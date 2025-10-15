@@ -90,7 +90,7 @@ namespace Orbit::Sim::TCP
   {
     ServerConfig                     config;
     std::thread                      worker_thread;
-    std::mutex                       rx_mutex;
+    std::mutex                       callback_mutex;
     std::mutex                       tx_mutex;
     std::mutex                       start_stop_mutex;
     std::atomic<bool>                thread_started{ false };
@@ -104,11 +104,12 @@ namespace Orbit::Sim::TCP
     size_t                           rx_bytes_pending{ 0 };
     size_t                           tx_bytes_pending{ 0 };
     DataReceivedCallback             rx_callback;
+    ConnectionCallback               connection_callback;
     Server                          *server_ref;
 
     Impl( const ServerConfig &cfg, Server *server ) :
         config( cfg ), rx_buffer( cfg.rx_buffer_size ), tx_buffer( cfg.tx_buffer_size ), rx_callback( cfg.rx_callback ),
-        server_ref( server )
+        connection_callback( cfg.connection_callback ), server_ref( server )
     {
     }
 
@@ -201,8 +202,14 @@ namespace Orbit::Sim::TCP
 
     void setRxCallback( DataReceivedCallback callback )
     {
-      std::scoped_lock lock( rx_mutex );
+      std::scoped_lock lock( callback_mutex );
       rx_callback = callback;
+    }
+
+    void setConnectionCallback( ConnectionCallback callback )
+    {
+      std::scoped_lock lock( callback_mutex );
+      connection_callback = callback;
     }
 
   private:
@@ -236,6 +243,12 @@ namespace Orbit::Sim::TCP
             client_connected.store( true );
             rx_bytes_pending = 0;
             tx_bytes_pending = 0;
+
+            if( connection_callback )
+            {
+              std::scoped_lock lock( callback_mutex );
+              connection_callback( *server_ref, ConnectionState::Connected );
+            }
           }
 
           if( !handleRx() )
@@ -382,7 +395,7 @@ namespace Orbit::Sim::TCP
         // Process received data
         if( rx_callback && rx_bytes_pending > 0 )
         {
-          std::scoped_lock lock( rx_mutex );
+          std::scoped_lock lock( callback_mutex );
           rx_callback( *server_ref, rx_buffer.data(), rx_bytes_pending );
           rx_bytes_pending = 0;
         }
@@ -444,8 +457,8 @@ namespace Orbit::Sim::TCP
 
     void cleanup()
     {
+      const bool was_connected = client_connected.exchange( false );
       socket_context.closeAll();
-      client_connected.store( false );
 
       std::scoped_lock lock( tx_mutex );
       while( !tx_queue.empty() )
@@ -453,6 +466,12 @@ namespace Orbit::Sim::TCP
         tx_queue.pop();
       }
       tx_bytes_pending = 0;
+
+      if( was_connected && connection_callback )
+      {
+        std::scoped_lock cb_lock( callback_mutex );
+        connection_callback( *server_ref, ConnectionState::Disconnected );
+      }
     }
   };
 
@@ -502,6 +521,11 @@ namespace Orbit::Sim::TCP
   void Server::setRxCallback( DataReceivedCallback callback )
   {
     m_impl->setRxCallback( callback );
+  }
+
+  void Server::setConnectionCallback( ConnectionCallback callback )
+  {
+    m_impl->setConnectionCallback( callback );
   }
 
   /*---------------------------------------------------------------------------

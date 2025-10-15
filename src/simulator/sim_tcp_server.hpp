@@ -54,6 +54,22 @@ namespace Orbit::Sim::TCP
   using DataReceivedCallback = std::function<void( Server &server, const void *data, size_t size )>;
 
   /**
+   * @brief Connection state for server/client interactions
+   */
+  enum class ConnectionState : uint8_t
+  {
+    Connected,
+    Disconnected
+  };
+
+  /**
+   * @brief Callback invoked when the connection state changes
+   * @param server Reference to the server instance
+   * @param state  New connection state
+   */
+  using ConnectionCallback = std::function<void( Server &server, ConnectionState state )>;
+
+  /**
    * @brief Configuration structure for TCP server instances
    */
   struct ServerConfig
@@ -62,11 +78,13 @@ namespace Orbit::Sim::TCP
     size_t               rx_buffer_size;    ///< Receive buffer size in bytes
     size_t               tx_buffer_size;    ///< Transmit buffer size in bytes
     DataReceivedCallback rx_callback;       ///< Callback for received data
+    ConnectionCallback   connection_callback;    ///< Callback for connection state changes
     bool                 auto_reconnect;    ///< Automatically reconnect on disconnect
     size_t               socket_backlog;    ///< Socket listen backlog
 
     ServerConfig() :
-        port( 65535 ), rx_buffer_size( 1024 ), tx_buffer_size( 1024 ), rx_callback( nullptr ), auto_reconnect( true ),
+        port( 65535 ), rx_buffer_size( 1024 ), tx_buffer_size( 1024 ), rx_callback( nullptr ),
+        connection_callback( nullptr ), auto_reconnect( true ),
         socket_backlog( 1 )
     {
     }
@@ -145,6 +163,12 @@ namespace Orbit::Sim::TCP
      * @param callback New callback function
      */
     void setRxCallback( DataReceivedCallback callback );
+
+    /**
+     * @brief Updates the connection state callback
+     * @param callback New callback function
+     */
+    void setConnectionCallback( ConnectionCallback callback );
 
   private:
     struct SocketContext;

@@ -6,7 +6,6 @@ gen_static_lib_variants(
   SOURCES
     sim_adc.cpp
     sim_matlab.cpp
-    sim_motor.cpp
     sim_tsk.cpp
     sim_usb_serial.cpp
     sim_tcp_server.cpp

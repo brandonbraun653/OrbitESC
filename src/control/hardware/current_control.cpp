@@ -31,7 +31,6 @@ Includes
 #include <src/trace/orbit_trace.hpp>
 #include <src/core/hw/orbit_motor_sense.hpp>
 #include <src/simulator/sim_adc.hpp>
-#include <src/simulator/sim_motor.hpp>
 
 #if defined( SEGGER_SYS_VIEW )
 #include "SEGGER_SYSVIEW.h"
