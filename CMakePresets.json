@@ -12,6 +12,7 @@
       "description": "Configure debug variant of OrbitESC software",
       "generator": "Unix Makefiles",
       "binaryDir": "${sourceDir}/build/debug",
+      "toolchainFile": "${sourceDir}/lib/CommonTools/cmake/toolchains/gcc_arm_none_eabi.cmake",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
@@ -27,6 +28,7 @@
       "description": "Configure release variant of OrbitESC software",
       "generator": "Unix Makefiles",
       "binaryDir": "${sourceDir}/build/release",
+      "toolchainFile": "${sourceDir}/lib/CommonTools/cmake/toolchains/gcc_arm_none_eabi.cmake",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
@@ -42,6 +44,7 @@
       "description": "Simulate OrbitESC",
       "generator": "Unix Makefiles",
       "binaryDir": "${sourceDir}/build/sim",
+      "toolchainFile": "${sourceDir}/lib/CommonTools/cmake/toolchains/gcc.cmake",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_STANDARD": "20",

@@ -1,33 +1,31 @@
-cmake_minimum_required(VERSION 3.16.0)
-project(DroneController NONE)
+cmake_minimum_required(VERSION 3.25.0)
+project(OrbitESC)
 enable_language(C CXX ASM)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
-set(CPP_PLATFORM "freertos")
 
 # ====================================================
 # Perform very high level configuration
 # ====================================================
 # Set some vars common to both development environments
-include("lib/CommonTools/cmake/options/common.cmake")
-
-# Override the linker command
-if(Toolchain::HAS_GCC_ARM_NONE_EABI OR Toolchain::HAS_GCC)
-  include("lib/CommonTools/cmake/toolchains/linker_whole_archive.cmake")
-endif()
+include("lib/CommonTools/cmake/bootstrap.cmake")
 
 # Select a global target flag
 if(Toolchain::HAS_GCC_ARM_NONE_EABI)
   set(EMBEDDED ON)
   add_compile_definitions(EMBEDDED)
+  include("lib/CommonTools/cmake/device/stm32f4x.cmake")
+  include("lib/CommonTools/cmake/toolchains/linker_whole_archive.cmake")
 elseif(Toolchain::HAS_GCC)
   set(SIMULATOR ON)
   add_compile_definitions(SIMULATOR)
-  add_subdirectory("${COMMON_TOOL_ROOT}/cmake/device/generic" ${PROJECT_BINARY_DIR}/DeviceTarget)
+  include("lib/CommonTools/cmake/device/host.cmake")
 endif()
+
+set(CPP_PLATFORM "freertos")
 
 # ====================================================
 # Import common packages and projects

@@ -1,4 +1,4 @@
-include("${COMMON_TOOL_ROOT}/cmake/utility/embedded.cmake")
+include(CTEmbedded)
 add_subdirectory(core)
 add_subdirectory(control)
 add_subdirectory(monitor)
