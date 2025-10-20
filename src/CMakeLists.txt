@@ -179,8 +179,6 @@ elseif(${DEVICE_TARGET} MATCHES "^sim")
     lib_cmsis
     lib_orbit_simulator
     chimera_sim_core
-    gtest_src
-    gmock_src
     zmq
     )
 else()

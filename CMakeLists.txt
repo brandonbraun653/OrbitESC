@@ -21,7 +21,9 @@ if(Toolchain::HAS_GCC_ARM_NONE_EABI)
   include("lib/CommonTools/cmake/toolchains/linker_whole_archive.cmake")
 elseif(Toolchain::HAS_GCC)
   set(SIMULATOR ON)
-  add_compile_definitions(SIMULATOR)
+  add_compile_definitions(
+    SIMULATOR 
+    CHIMERA_SIMULATOR)
   include("lib/CommonTools/cmake/device/host.cmake")
 endif()
 

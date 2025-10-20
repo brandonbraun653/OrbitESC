@@ -13,6 +13,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/logging>
 #include <Chimera/timer>
+#include <ChimeraSim/timer>
 #include <cstring>
 #include <src/control/foc_data.hpp>
 #include <src/control/foc_driver.hpp>
@@ -119,9 +120,9 @@ namespace Orbit::Sim::Matlab
 
     memcpy( &new_cmd, data, sizeof( ControlData ) );
 
-    if( ( new_cmd.sim_time_us > 0.0f ) && ChimeraSim::Timer::isExternalTimeSourceActive() )
+    if( ( new_cmd.sim_time_us > 0.0f ) && Chimera::Timer::Sim::isExternalTimeSourceActive() )
     {
-      ChimeraSim::Timer::updateExternalTime( static_cast<size_t>( new_cmd.sim_time_us ) );
+      Chimera::Timer::Sim::updateExternalTime( static_cast<size_t>( new_cmd.sim_time_us ) );
     }
 
     /*-------------------------------------------------------------------------
@@ -177,13 +178,13 @@ namespace Orbit::Sim::Matlab
         Orbit::Control::foc_ireg_state.max_drive = 0.0f;
 
         Orbit::Control::FOC::sendSystemEvent( Orbit::Control::EventId::DISABLE );
-        ChimeraSim::Timer::enableExternalTimeSource( 0U );
+        Chimera::Timer::Sim::enableExternalTimeSource( 0U );
         break;
 
       case Orbit::Sim::TCP::ConnectionState::Disconnected:
         LOG_INFO( "ESC control client disconnected" );
         Orbit::Control::FOC::sendSystemEvent( Orbit::Control::EventId::DISABLE );
-        ChimeraSim::Timer::disableExternalTimeSource();
+        Chimera::Timer::Sim::disableExternalTimeSource();
         break;
     }
   }
