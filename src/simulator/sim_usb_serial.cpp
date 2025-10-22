@@ -367,7 +367,7 @@ namespace Orbit::Serial
       return Chimera::Status::FAILED_INIT;
     }
 
-    LOG_INFO( "Server initialized and listening on port %d", PORT );
+    LOG_DEBUG( "Created server on port %d", PORT );
     return Chimera::Status::OK;
   }
 

@@ -14,11 +14,15 @@ Includes
 #include <Aurora/logging>
 #include <Chimera/common>
 #include <Chimera/thread>
+#include <src/control/foc_data.hpp>
+#include <src/control/foc_driver.hpp>
+#include <src/core/hw/orbit_motor_drive.hpp>
+#include <src/core/hw/orbit_motor_sense.hpp>
 #include <src/core/tasks.hpp>
-#include <src/simulator/sim_tsk.hpp>
 #include <src/simulator/sim_adc.hpp>
-#include <src/simulator/sim_tcp_server.hpp>
 #include <src/simulator/sim_matlab.hpp>
+#include <src/simulator/sim_tcp_server.hpp>
+#include <src/simulator/sim_tsk.hpp>
 
 namespace Orbit::Tasks::SIM
 {
@@ -61,12 +65,49 @@ namespace Orbit::Tasks::SIM
 
     while( 1 )
     {
-      /*-----------------------------------------------------------------------
-      Run simulation events
-      -----------------------------------------------------------------------*/
-      Orbit::Sim::ADC::triggerInstrumentationADC();
+      TaskMsg tsk_msg = TASK_MSG_NUM_OPTIONS;
 
-      Chimera::delayMilliseconds( PERIOD_MS );
+      /*-----------------------------------------------------------------------
+      Process messages from the Matlab control server
+      -----------------------------------------------------------------------*/
+      if( this_thread::receiveTaskMsg( tsk_msg, PERIOD_MS ) )
+      {
+        switch( tsk_msg )
+        {
+          case TASK_MSG_CTRL_ARM:
+            Control::FOC::sendSystemEvent( Control::EventId::ARM );
+            break;
+
+          case TASK_MSG_CTRL_ENGAGE:
+            Control::FOC::sendSystemEvent( Control::EventId::ENGAGE );
+            break;
+
+          case TASK_MSG_CTRL_DISABLE:
+            Control::FOC::sendSystemEvent( Control::EventId::DISABLE );
+
+            Orbit::Motor::Sense::reset();
+            Orbit::Motor::Drive::reset();
+
+            Orbit::Control::foc_motor_state = {};
+            Orbit::Control::foc_ireg_state.iqPID.resetState();
+            Orbit::Control::foc_ireg_state.idPID.resetState();
+            Orbit::Control::foc_ireg_state.iqRef     = 0.0f;
+            Orbit::Control::foc_ireg_state.idRef     = 0.0f;
+            Orbit::Control::foc_ireg_state.va_cmd    = 0.0f;
+            Orbit::Control::foc_ireg_state.vb_cmd    = 0.0f;
+            Orbit::Control::foc_ireg_state.vq        = 0.0f;
+            Orbit::Control::foc_ireg_state.vd        = 0.0f;
+            Orbit::Control::foc_ireg_state.vq_mod    = 0.0f;
+            Orbit::Control::foc_ireg_state.vd_mod    = 0.0f;
+            Orbit::Control::foc_ireg_state.max_drive = 0.0f;
+            break;
+        }
+      }
     }
+
+    /*-----------------------------------------------------------------------
+    Run simulation events
+    -----------------------------------------------------------------------*/
+    Orbit::Sim::ADC::triggerInstrumentationADC();
   }
 }    // namespace Orbit::Tasks::SIM

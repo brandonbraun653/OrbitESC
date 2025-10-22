@@ -21,6 +21,7 @@ Includes
 #include <algorithm>
 #include <atomic>
 #include <cerrno>
+#include <chrono>
 #include <cstring>
 #include <exception>
 #include <fcntl.h>
@@ -218,14 +219,14 @@ namespace Orbit::Sim::TCP
       Chimera::Thread::this_thread::set_name( ( "tcp_server_" + std::to_string( config.port ) ).c_str() );
 
       running.store( true );
-      LOG_INFO( "TCP server thread starting on port %u", config.port );
+      LOG_TRACE( "TCP server thread starting on port %u", config.port );
 
       while( !exit_request.load() )
       {
         if( !configureSocket() )
         {
           LOG_ERROR( "Failed to configure socket on port %u", config.port );
-          Chimera::delayMilliseconds( 500 );
+          std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
           continue;
         }
 
@@ -235,11 +236,11 @@ namespace Orbit::Sim::TCP
           {
             if( !acceptClient() )
             {
-              Chimera::delayMilliseconds( 50 );
+              std::this_thread::sleep_for( std::chrono::milliseconds( 50 ) );
               continue;
             }
 
-            LOG_INFO( "TCP client connected on port %u", config.port );
+            LOG_TRACE( "TCP client connected on port %u", config.port );
             client_connected.store( true );
             rx_bytes_pending = 0;
             tx_bytes_pending = 0;
@@ -258,7 +259,7 @@ namespace Orbit::Sim::TCP
           }
 
           handleTx();
-          Chimera::delayMilliseconds( 1 );
+          std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
         }
 
         cleanup();
@@ -266,7 +267,7 @@ namespace Orbit::Sim::TCP
 
       cleanup();
       running.store( false );
-      LOG_INFO( "TCP server thread exiting on port %u", config.port );
+      LOG_TRACE( "TCP server thread exiting on port %u", config.port );
     }
 
     bool configureSocket()
@@ -374,7 +375,7 @@ namespace Orbit::Sim::TCP
 
         if( bytes_read == 0 )
         {
-          LOG_WARN( "TCP client disconnected on port %u", config.port );
+          LOG_TRACE( "TCP client disconnected on port %u", config.port );
           connection_ok = false;
           break;
         }
@@ -441,7 +442,7 @@ namespace Orbit::Sim::TCP
 
         if( ( errno == EPIPE ) || ( errno == ECONNRESET ) )
         {
-          LOG_WARN( "TCP client disconnected during send on port %u", config.port );
+          LOG_TRACE( "TCP client disconnected during send on port %u", config.port );
         }
         else
         {
@@ -556,11 +557,11 @@ namespace Orbit::Sim::TCP
     if( server->start() )
     {
       m_servers.push_back( server );
-      LOG_INFO( "Created TCP server on port %u", config.port );
+      LOG_DEBUG( "Created server on port %u", config.port );
       return server;
     }
 
-    LOG_ERROR( "Failed to create TCP server on port %u", config.port );
+    LOG_ERROR( "Failed to create server on port %u", config.port );
     return nullptr;
   }
 
@@ -590,7 +591,7 @@ namespace Orbit::Sim::TCP
     {
       ( *it )->stop();
       m_servers.erase( it );
-      LOG_INFO( "Removed TCP server on port %u", port );
+      LOG_DEBUG( "Removed TCP server on port %u", port );
       return true;
     }
 

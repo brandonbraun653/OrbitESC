@@ -77,7 +77,7 @@ namespace Orbit::USART
     Start the logging framework
     -------------------------------------------------------------------------*/
     Aurora::Logging::initialize();
-    Aurora::Logging::setGlobalLogLevel( Aurora::Logging::Level::LVL_TRACE );
+    Aurora::Logging::setGlobalLogLevel( Aurora::Logging::Level::LVL_DEBUG );
 
     s_serial_sink.assignChannel( IO::USART::serialChannel );
     s_serial_sink.logLevel = Aurora::Logging::Level::LVL_TRACE;
@@ -95,7 +95,9 @@ namespace Orbit::USART
     /*-------------------------------------------------------------------------
     Clear some space on the terminal
     -------------------------------------------------------------------------*/
+#if defined( EMBEDDED )
     s_serial_driver->write( "\r\n\n", 3 );
+#endif /* EMBEDDED */
   }
 
 }    // namespace Orbit::USART
