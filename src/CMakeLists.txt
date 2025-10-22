@@ -113,7 +113,7 @@ gen_intf_lib_variants(
 add_executable(OrbitESC startup.cpp)
 target_link_options(OrbitESC PRIVATE "-Wl,-Map=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/OrbitESC.map")
 target_include_directories(OrbitESC PRIVATE ".")
-target_include_directories(OrbitESC PRIVATE ${PROJECT_ROOT})
+target_include_directories(OrbitESC PRIVATE ${CMAKE_SOURCE_DIR})
 
 # -----------------------------------------------------------------------------
 # Target independent libraries
