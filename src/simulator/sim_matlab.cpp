@@ -32,12 +32,13 @@ namespace Orbit::Sim::Matlab
    */
   struct MotorData
   {
-    float va; /**< Phase A voltage in Volts */
-    float vb; /**< Phase B voltage in Volts */
-    float vc; /**< Phase C voltage in Volts */
-    float ia; /**< Phase A current in Amps */
-    float ib; /**< Phase B current in Amps */
-    float ic; /**< Phase C current in Amps */
+    double elec_angle_rad; /**< Rotor electrical angle in radians */
+    double ia;             /**< Phase A current in Amps */
+    double ib;             /**< Phase B current in Amps */
+    double ic;             /**< Phase C current in Amps */
+    double va;             /**< Phase A voltage in Volts */
+    double vb;             /**< Phase B voltage in Volts */
+    double vc;             /**< Phase C voltage in Volts */
   };
 
   /**
@@ -85,6 +86,9 @@ namespace Orbit::Sim::Matlab
     /*-------------------------------------------------------------------------
     Parse the received data
     -------------------------------------------------------------------------*/
+    RT_HARD_ASSERT( size == sizeof( MotorData ) );
+    MotorData new_data;
+    memcpy( &new_data, data, sizeof( MotorData ) );
 
     /*-------------------------------------------------------------------------
     Step the motor control loops
