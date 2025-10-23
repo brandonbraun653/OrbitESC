@@ -19,7 +19,11 @@ Includes
 #include <src/control/foc_data.hpp>
 #include <src/core/tasks.hpp>
 #include <src/simulator/sim_matlab.hpp>
+#include <src/simulator/sim_adc.hpp>
+#include <src/simulator/sim_observer.hpp>
 #include <src/trace/orbit_trace.hpp>
+#include <src/control/hardware/current_control.hpp>
+#include <src/control/hardware/speed_control.hpp>
 
 namespace Orbit::Sim::Matlab
 {
@@ -32,6 +36,7 @@ namespace Orbit::Sim::Matlab
    */
   struct MotorData
   {
+    double omega_rad_s;    /**< Rotor speed in radians per second */
     double elec_angle_rad; /**< Rotor electrical angle in radians */
     double ia;             /**< Phase A current in Amps */
     double ib;             /**< Phase B current in Amps */
@@ -84,24 +89,37 @@ namespace Orbit::Sim::Matlab
     }
 
     /*-------------------------------------------------------------------------
-    Parse the received data
+    Parse the received data - handle multiple buffered frames
     -------------------------------------------------------------------------*/
-    RT_HARD_ASSERT( size == sizeof( MotorData ) );
-    MotorData new_data;
-    memcpy( &new_data, data, sizeof( MotorData ) );
+    RT_HARD_ASSERT( size % sizeof( MotorData ) == 0 );
 
-    /*-------------------------------------------------------------------------
-    Step the motor control loops
-    -------------------------------------------------------------------------*/
-    // TODO Next steps: Need to re-figure out the control loop sequence and
-    // how to run it in a way that decouples general thread execution from
-    // the matlab simulation. Likely need to refresh on FOC control and cleaning
-    // up the code.
+    const size_t     num_frames = size / sizeof( MotorData );
+    const MotorData *frame_data = static_cast<const MotorData *>( data );
 
-    /*-------------------------------------------------------------------------
-    Send results back to Matlab simulation
-    -------------------------------------------------------------------------*/
-    Orbit::Trace::traceAlphaBetaCommands( Control::foc_ireg_state.va_cmd, Control::foc_ireg_state.vb_cmd, Chimera::micros() );
+    for( size_t i = 0; i < num_frames; ++i )
+    {
+      const MotorData &new_data = frame_data[ i ];
+
+      /*-------------------------------------------------------------------------
+      Inject simulated measurements for system parameters
+      -------------------------------------------------------------------------*/
+      Orbit::Sim::ADC::setPhaseData( new_data.va, new_data.vb, new_data.vc, new_data.ia, new_data.ib, new_data.ic );
+      Orbit::Sim::ADC::triggerMotorSenseADC();
+
+      Orbit::Sim::Control::Observer::inject( new_data.elec_angle_rad, new_data.omega_rad_s );
+
+      /*-------------------------------------------------------------------------
+      Step the motor control loops
+      -------------------------------------------------------------------------*/
+      Orbit::Control::Field::isr_current_control_loop();
+      Orbit::Control::Speed::timer_isr_speed_controller();    // Need to call at some sub interval of the motor control loop
+
+      /*-------------------------------------------------------------------------
+      Send results back to Matlab simulation
+      -------------------------------------------------------------------------*/
+      Orbit::Trace::traceAlphaBetaCommands( Orbit::Control::foc_ireg_state.va_cmd, Orbit::Control::foc_ireg_state.vb_cmd,
+                                            Chimera::micros() );
+    }
   }
 
   void escControlCallback( Orbit::Sim::TCP::Server &server, const void *data, size_t size )
@@ -122,6 +140,14 @@ namespace Orbit::Sim::Matlab
 
     memcpy( &new_cmd, data, sizeof( ControlData ) );
 
+    // TODO: I may want to move the time update to the motor simulation callback.
+    // I think it's possible that Matlab doesn't get a 1-1 data/time correlation and
+    // it would be easier to sync the HW signals to the simulation time directly.
+    // This control callback is really only used for high level reference changes.
+
+    /*-------------------------------------------------------------------------
+    Update the system time
+    -------------------------------------------------------------------------*/
     if( ( new_cmd.sim_time_sec > 0.0f ) && Chimera::Timer::Sim::isExternalTimeSourceActive() )
     {
       // LOG_INFO( "Matlab time: %f sec", new_cmd.sim_time_sec );
@@ -145,7 +171,8 @@ namespace Orbit::Sim::Matlab
     /*-------------------------------------------------------------------------
     Inject ADC measurements for system parameters
     -------------------------------------------------------------------------*/
-    // Supply voltage
+    Orbit::Sim::ADC::setDCBusVoltage( new_cmd.supply_voltage );
+    Orbit::Sim::ADC::triggerInstrumentationADC();
 
     /*-------------------------------------------------------------------------
     Set target references

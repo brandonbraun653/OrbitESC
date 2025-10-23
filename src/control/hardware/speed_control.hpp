@@ -60,6 +60,16 @@ namespace Orbit::Control::Speed
    */
   Mode getControlMode();
 
+  /**
+   * @brief Callback to process the speed controller within a timer ISR
+   *
+   * Exposed here to allow simulations to call it, however in embedded it should
+   * only be called by the Timer ISR event.
+   *
+   * @return void
+   */
+  void timer_isr_speed_controller();
+
 }    // namespace Orbit::Control::Speed
 
 #endif /* !ORBIT_SPEED_CONTROL_HPP */

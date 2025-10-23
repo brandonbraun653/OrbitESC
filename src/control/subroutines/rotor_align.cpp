@@ -23,12 +23,12 @@ namespace Orbit::Control::Subroutine
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr size_t ALIGNMENT_TICKS = 1000;
+  static constexpr size_t ALIGNMENT_TICKS = 100;    // TODO: Parameterize this
 
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static volatile RotorAlign * sRotorAlign;
+  static volatile RotorAlign *sRotorAlign;
 
   /*---------------------------------------------------------------------------
   Static Function Declarations
@@ -138,7 +138,13 @@ namespace Orbit::Control::Subroutine
 
   static void isrParkControl()
   {
-    if( !sRotorAlign->mComplete && sRotorAlign->mISRTicks-- == 0 )
+    if( sRotorAlign->mComplete )
+    {
+      return;
+    }
+
+    sRotorAlign->mISRTicks = sRotorAlign->mISRTicks - 1u;
+    if( sRotorAlign->mISRTicks == 0 )
     {
       /*-----------------------------------------------------------------------
       We start out driving at 120 degrees, so the second half of the alignment
@@ -147,7 +153,7 @@ namespace Orbit::Control::Subroutine
       if( foc_motor_state.thetaEst != 0 )
       {
         foc_motor_state.thetaEst = 0;
-        sRotorAlign->mISRTicks = ALIGNMENT_TICKS;
+        sRotorAlign->mISRTicks   = ALIGNMENT_TICKS;
       }
       else
       {
@@ -156,4 +162,4 @@ namespace Orbit::Control::Subroutine
     }
   }
 
-}  // namespace Orbit::Control::Subroutine
+}    // namespace Orbit::Control::Subroutine

@@ -48,7 +48,7 @@ namespace Orbit::Control::Speed
   /**
    * @brief Callback to process the speed controller within a timer ISR
    */
-  static void timer_isr_speed_controller()
+  void timer_isr_speed_controller()
   {
     using namespace Orbit::Motor;
     using namespace Orbit::Control::Math;
@@ -58,13 +58,11 @@ namespace Orbit::Control::Speed
     -------------------------------------------------------------------------*/
     s_speed_ctrl_timer.ackISR();
 
-
-
     if( s_ctl_mode != Mode::CLOSED_LOOP )
     {
       s_speed_pid.resetState();
       s_speed_pid.SetPoint = 1.0f;
-      s_speed_pid.Output = foc_ireg_state.iqRef;
+      s_speed_pid.Output   = foc_ireg_state.iqRef;
       return;
     }
 
@@ -76,7 +74,7 @@ namespace Orbit::Control::Speed
     // TODO BMB: Replace these with parameters
     const float motor_poles = 7.0f;
     const float desired_rpm = 1000.0f;
-    const float curr_rpm = ( observer.omega_elec / motor_poles ) * 60.0f / M_2PI_F;
+    const float curr_rpm    = ( observer.omega_elec / motor_poles ) * 60.0f / M_2PI_F;
 
     const float normalized_rpm = curr_rpm / desired_rpm;
 

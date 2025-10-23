@@ -83,6 +83,14 @@ namespace Orbit::Control::Field
    */
   void pumpISRDataStream();
 
+  /**
+   * @brief Core FOC current controller algorithm.
+   *
+   * Exposed here to allow simulations to call it, however in embedded it should
+   * only be called by the ADC DMA ISR event.
+   */
+  void isr_current_control_loop();
+
 }    // namespace Orbit::Control::Field
 
 #endif /* !ORBIT_CURRENT_CONTROL_HPP */
