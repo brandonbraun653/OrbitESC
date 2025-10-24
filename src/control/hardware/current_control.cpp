@@ -317,10 +317,9 @@ namespace Orbit::Control::Field
     volatile const SenseData &sense_data = getSenseData();
     const float               vSupply    = getSupplyVoltage();
 
-    foc_ireg_state.vma = 0.0f;    // sense_data.channel[ CHANNEL_PHASE_A_VOLTAGE ];
-    foc_ireg_state.vmb = 0.0f;    // sense_data.channel[ CHANNEL_PHASE_B_VOLTAGE ];
-    foc_ireg_state.vmc = 0.0f;    // sense_data.channel[ CHANNEL_PHASE_C_VOLTAGE ];
-
+    foc_ireg_state.vma = sense_data.channel[ CHANNEL_PHASE_A_VOLTAGE ];
+    foc_ireg_state.vmb = sense_data.channel[ CHANNEL_PHASE_B_VOLTAGE ];
+    foc_ireg_state.vmc = sense_data.channel[ CHANNEL_PHASE_C_VOLTAGE ];
     foc_ireg_state.ima = sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
     foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
     foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
@@ -378,17 +377,19 @@ namespace Orbit::Control::Field
 #endif /* EMBEDDED */
 
     /*-------------------------------------------------------------------------
-    Use Clarke Transform to convert phase measurements from 3-axis to 2-axis
+    Use Clarke Transform to convert from rotational frame => alpha/beta frame.
     -------------------------------------------------------------------------*/
-    clarke_transform( foc_ireg_state.ima, foc_ireg_state.imb, foc_ireg_state.ia, foc_ireg_state.ib );
-    clarke_transform( foc_ireg_state.vma, foc_ireg_state.vmb, foc_ireg_state.va, foc_ireg_state.vb );
+    clarke_transform( foc_ireg_state.ima, foc_ireg_state.imb, foc_ireg_state.ialpha, foc_ireg_state.ibeta );
+    clarke_transform( foc_ireg_state.vma, foc_ireg_state.vmb, foc_ireg_state.valpha, foc_ireg_state.vbeta );
 
     /*-------------------------------------------------------------------------
-    Run the obvserver to update the system estimation
+    Run the obvserver to update the system estimation. This will always track
+    in open loop, but the values will actually get used once we switch over to
+    closed loop speed control.
     -------------------------------------------------------------------------*/
     observer_input.dt     = foc_ireg_state.dt;
-    observer_input.iAlpha = foc_ireg_state.ia;
-    observer_input.iBeta  = foc_ireg_state.ib;
+    observer_input.iAlpha = foc_ireg_state.ialpha;
+    observer_input.iBeta  = foc_ireg_state.ibeta;
     observer_input.vAlpha = foc_ireg_state.va_cmd;
     observer_input.vBeta  = foc_ireg_state.vb_cmd;
 
@@ -403,32 +404,29 @@ namespace Orbit::Control::Field
       foc_motor_state.thetaEst = observer_output.theta_elec;
       foc_motor_state.omegaEst = observer_output.omega_elec;
     }
+    else
+    {
+      /*-----------------------------------------------------------------------
+      Open loop integration of the commanded speed
+      -----------------------------------------------------------------------*/
+      // Math::normalize_radians( foc_motor_state.thetaEst ); or modulo 2pi? Is that a thing?
+      // theta_e(k) = theta_e(k-1) + omega_e(k)*T_s (unwrap to avoid jumps)
+    }
 
     /*-------------------------------------------------------------------------
     Using the new estimations, convert to the DQ axis for control
     -------------------------------------------------------------------------*/
-    park_transform( foc_ireg_state.ia, foc_ireg_state.ib, foc_motor_state.thetaEst, foc_ireg_state.iq, foc_ireg_state.id );
+    park_transform( foc_ireg_state.ialpha, foc_ireg_state.ibeta, foc_motor_state.thetaEst, foc_ireg_state.iq,
+                    foc_ireg_state.id );
 
     /*-------------------------------------------------------------------------
-    Generate voltage commands in the D-Q axis for the next control cycle
+    Generate voltage commands in the D-Q axis for the next control cycle. This
+    regulates the inner loop currents.
     -------------------------------------------------------------------------*/
-    if( s_ctl_mode == Mode::OPEN_LOOP )
-    {
-      // TODO: Might toy around with these values to see how they affect the motor. Maybe make parameters?
-      static constexpr float kd = 1.0f;
-      static constexpr float kq = 1.0f;
-
-      foc_ireg_state.vd = kd * foc_ireg_state.idRef;
-      foc_ireg_state.vq = kq * foc_ireg_state.iqRef;
-    }
-    else if( s_ctl_mode == Mode::CLOSED_LOOP )
-    {
-      foc_ireg_state.vd = foc_ireg_state.idPID.run( foc_ireg_state.idRef - foc_ireg_state.id );
-      foc_ireg_state.vq = foc_ireg_state.iqPID.run( foc_ireg_state.iqRef - foc_ireg_state.iq );
-
-      // TODO: From mcpwm_foc:4299 (Vedder), once I switch into closed loop control I probably
-      // TODO: should add decoupling of the d-q currents.
-    }
+    // TODO: From mcpwm_foc:4299 (Vedder), once I switch into closed loop control I probably
+    // TODO: should add decoupling of the d-q currents.
+    foc_ireg_state.vd = foc_ireg_state.idPID.run( foc_ireg_state.idRef - foc_ireg_state.id );
+    foc_ireg_state.vq = foc_ireg_state.iqPID.run( foc_ireg_state.iqRef - foc_ireg_state.iq );
 
     /*-------------------------------------------------------------------------
     Modulate the voltage commands to fit within the allowable space vector

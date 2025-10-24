@@ -141,10 +141,10 @@ namespace Orbit::Control
     float              vma;       /**< Voltage measured at phase A terminal */
     float              vmb;       /**< Voltage measured at phase B terminal */
     float              vmc;       /**< Voltage measured at phase C terminal */
-    float              va;        /**< Voltage (alpha) of the measured phase voltages */
-    float              vb;        /**< Voltage (beta) of the measured phase voltages */
-    float              ia;        /**< Current (alpha) of the measured phase currents */
-    float              ib;        /**< Current (beta) of the measured phase currents */
+    float              valpha;    /**< Voltage (alpha) of the measured phase voltages */
+    float              vbeta;     /**< Voltage (beta) of the measured phase voltages */
+    float              ialpha;    /**< Current (alpha) of the measured phase currents */
+    float              ibeta;     /**< Current (beta) of the measured phase currents */
     float              iq;        /**< Current output measurement for the q-axis */
     float              id;        /**< Current output measurement for the d-axis */
     float              vq;        /**< Voltage command for the q-axis */

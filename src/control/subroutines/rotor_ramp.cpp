@@ -200,19 +200,13 @@ namespace Orbit::Control::Subroutine
     -------------------------------------------------------------------------*/
     if( foc_motor_state.omegaEst < mRampState.omega_desired )
     {
-      foc_motor_state.omegaEst = mRampState.omega_desired * now_sec;
       foc_ireg_state.max_drive = 1.0f;
       foc_ireg_state.iqRef     = 1.0f;
       foc_ireg_state.idRef     = 0.0f;
+
+      // TODO: Needs to be omega_e(k) = min(omega_{exit}, omega_e(k-1) + a*T_s), where T_s is sample time.
+      foc_motor_state.omegaEst = mRampState.omega_desired * now_sec;
     }
-
-    /*-----------------------------------------------------------------------
-    Compute the next theta angle for the rotor given the current angular rate
-    -----------------------------------------------------------------------*/
-    const float dTheta = 5e-5f * foc_motor_state.omegaEst;    // foc_motor_state.omegaEst / Data::SysControl.statorPWMFreq;
-
-    foc_motor_state.thetaEst += dTheta;
-    Math::normalize_radians( foc_motor_state.thetaEst );
 
     if( now_sec > 3.0f )
     {

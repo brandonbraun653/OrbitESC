@@ -49,10 +49,10 @@ namespace Orbit::Control
     foc_ireg_state.id        = 0.0f;
     foc_ireg_state.vq        = 0.0f;
     foc_ireg_state.vd        = 0.0f;
-    foc_ireg_state.va        = 0.0f;
-    foc_ireg_state.vb        = 0.0f;
-    foc_ireg_state.ia        = 0.0f;
-    foc_ireg_state.ib        = 0.0f;
+    foc_ireg_state.valpha    = 0.0f;
+    foc_ireg_state.vbeta     = 0.0f;
+    foc_ireg_state.ialpha    = 0.0f;
+    foc_ireg_state.ibeta     = 0.0f;
     foc_ireg_state.iqRef     = 0.0f;
     foc_ireg_state.idRef     = 0.0f;
     foc_ireg_state.max_drive = 0.0f;
