@@ -49,7 +49,7 @@ namespace Orbit::Control::Subroutine
   Temporary Values
   ---------------------------------------------------------------------------*/
   static constexpr float s_rpm_desired = 1000.0f;
-  static bool s_transitioned;
+  static bool            s_transitioned;
 
   /*---------------------------------------------------------------------------
   Static Data
@@ -107,8 +107,8 @@ namespace Orbit::Control::Subroutine
     -----------------------------------------------------------------------------*/
     Field::setControlMode( Field::Mode::OPEN_LOOP );
 
-    mRampState.rampStep      = RampStep::RAMP;
-    mRampState.rampStart_us  = Chimera::micros();
+    mRampState.rampStep     = RampStep::RAMP;
+    mRampState.rampStart_us = Chimera::micros();
 
     // TODO BMB: Need to use the actual motor poles here to calculate the desired electrical speed
     // TODO BMB: Need to use a parameter setpoint for the RPM
@@ -188,7 +188,7 @@ namespace Orbit::Control::Subroutine
 
     const size_t curr_time = Chimera::micros();
     const size_t delta_us  = curr_time - mRampState.rampStart_us;
-    const float now_sec = static_cast<float>( delta_us ) * 1e-6f;
+    const float  now_sec   = static_cast<float>( delta_us ) * 1e-6f;
 
     if( s_transitioned )
     {
@@ -201,15 +201,15 @@ namespace Orbit::Control::Subroutine
     if( foc_motor_state.omegaEst < mRampState.omega_desired )
     {
       foc_motor_state.omegaEst = mRampState.omega_desired * now_sec;
-      foc_ireg_state.max_drive = 0.4f;
-      foc_ireg_state.iqRef     = 0.8f;
+      foc_ireg_state.max_drive = 1.0f;
+      foc_ireg_state.iqRef     = 1.0f;
       foc_ireg_state.idRef     = 0.0f;
     }
 
     /*-----------------------------------------------------------------------
     Compute the next theta angle for the rotor given the current angular rate
     -----------------------------------------------------------------------*/
-    const float dTheta = foc_motor_state.omegaEst / Data::SysControl.statorPWMFreq;
+    const float dTheta = 5e-5f * foc_motor_state.omegaEst;    // foc_motor_state.omegaEst / Data::SysControl.statorPWMFreq;
 
     foc_motor_state.thetaEst += dTheta;
     Math::normalize_radians( foc_motor_state.thetaEst );
