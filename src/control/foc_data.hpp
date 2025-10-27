@@ -29,7 +29,8 @@ namespace Orbit::Control
   Aliases
   ---------------------------------------------------------------------------*/
   /**
-   * @brief Function signature for a transfer function to convert ADC values to useful
+   * @brief Function signature for a transfer function to convert ADC values to
+   * useful
    *
    * @param[in] vin   Input voltage measured by the ADC
    * @return float    Output value of an arbitrary unit
@@ -109,7 +110,8 @@ namespace Orbit::Control
   };
 
   /**
-   * @brief Attributes describing the state of the physical system under control.
+   * @brief Attributes describing the state of the physical system under
+   * control.
    */
   struct SystemState
   {
@@ -134,30 +136,28 @@ namespace Orbit::Control
    */
   struct CurrentControlState
   {
-    float              dt;        /**< Time delta between current control loop invocation */
-    float              ima;       /**< Current measured at phase A terminal */
-    float              imb;       /**< Current measured at phase B terminal */
-    float              imc;       /**< Current measured at phase C terminal */
-    float              vma;       /**< Voltage measured at phase A terminal */
-    float              vmb;       /**< Voltage measured at phase B terminal */
-    float              vmc;       /**< Voltage measured at phase C terminal */
-    float              valpha;    /**< Voltage (alpha) of the measured phase voltages */
-    float              vbeta;     /**< Voltage (beta) of the measured phase voltages */
-    float              ialpha;    /**< Current (alpha) of the measured phase currents */
-    float              ibeta;     /**< Current (beta) of the measured phase currents */
-    float              iq;        /**< Current output measurement for the q-axis */
-    float              id;        /**< Current output measurement for the d-axis */
-    float              vq;        /**< Voltage command for the q-axis */
-    float              vd;        /**< Voltage command for the d-axis */
-    float              vq_mod;    /**< Modulated voltage for the q-axis */
-    float              vd_mod;    /**< Modulated voltage for the d-axis */
-    float              va_cmd;    /**< Voltage (alpha) commanded to the phase inputs */
-    float              vb_cmd;    /**< Voltage (beta) commanded to the phase inputs */
-    float              iqRef;     /**< Current reference for the q-axis */
-    float              idRef;     /**< Current reference for the d-axis */
-    float              max_drive; /**< Maximum drive strength on a range 0.0 - 1.0*/
-    Control::Math::PID iqPID;     /**< Current controller for the q-axis */
-    Control::Math::PID idPID;     /**< Current controller for the d-axis */
+    float dt;        /**< Time delta between current control loop invocation */
+    float ima;       /**< Current measured at phase A terminal */
+    float imb;       /**< Current measured at phase B terminal */
+    float imc;       /**< Current measured at phase C terminal */
+    float vma;       /**< Voltage measured at phase A terminal */
+    float vmb;       /**< Voltage measured at phase B terminal */
+    float vmc;       /**< Voltage measured at phase C terminal */
+    float valpha;    /**< Voltage (alpha) of the measured phase voltages */
+    float vbeta;     /**< Voltage (beta) of the measured phase voltages */
+    float ialpha;    /**< Current (alpha) of the measured phase currents */
+    float ibeta;     /**< Current (beta) of the measured phase currents */
+    float iq;        /**< Current output measurement for the q-axis */
+    float id;        /**< Current output measurement for the d-axis */
+    float vq;        /**< Voltage command for the q-axis */
+    float vd;        /**< Voltage command for the d-axis */
+    float va_cmd;    /**< Voltage (alpha) commanded to the phase inputs */
+    float vb_cmd;    /**< Voltage (beta) commanded to the phase inputs */
+    float iqRef;     /**< Current reference for the q-axis */
+    float idRef;     /**< Current reference for the d-axis */
+    float max_drive; /**< Maximum drive strength on a range 0.0 - 1.0*/
+    Control::Math::PID iqPID; /**< Current controller for the q-axis */
+    Control::Math::PID idPID; /**< Current controller for the d-axis */
   };
 
   extern CurrentControlState foc_ireg_state;
@@ -168,10 +168,11 @@ namespace Orbit::Control
     /*-------------------------------------------------------------------------
     General Controller Data
     -------------------------------------------------------------------------*/
-    volatile bool isrCtlActive;           /**< Enable/disable the controller update routines inside ADC ISR */
-    float         last_current_update_us; /**< Last update in */
-    float         last_estimate_update_us;
-    float         next_estimate_update_us;
+    volatile bool isrCtlActive;   /**< Enable/disable the controller update
+                                     routines inside ADC ISR */
+    float last_current_update_us; /**< Last update in */
+    float last_estimate_update_us;
+    float next_estimate_update_us;
 
     float                Idm;  /**< D-axis measured current */
     float                Idf;  /**< D-axis filtered current measurement */
@@ -180,11 +181,11 @@ namespace Orbit::Control
     Math::PID            Dpid; /**< D-axis pid controller */
     Math::FIR<float, 15> DFIR; /**< D-axis FIR filter for current measurement */
 
-    float                Iqm;  /**< Q-axis measured current */
-    float                Iqf;  /**< Q-axis filtered current measurement */
-    float                Iqr;  /**< Q-axis current reference command */
-    float                Vqr;  /**< Q-axis commanded output voltage (magnitude) */
-    Math::PID            Qpid; /**< Q-axis pid controller */
+    float     Iqm;  /**< Q-axis measured current */
+    float     Iqf;  /**< Q-axis filtered current measurement */
+    float     Iqr;  /**< Q-axis current reference command */
+    float     Vqr;  /**< Q-axis commanded output voltage (magnitude) */
+    Math::PID Qpid; /**< Q-axis pid controller */
     Math::FIR<float, 15> QFIR; /**< Q-axis FIR filter for current measurement */
 
     /*-------------------------------------------------------------------------
@@ -225,7 +226,8 @@ namespace Orbit::Control
 
 
   /**
-   * @brief Collection of objects that represent the entire state of the FOC system
+   * @brief Collection of objects that represent the entire state of the FOC
+   * system
    * @note Yes, this is a god class. I know. I'm sorry.
    */
   struct SuperState

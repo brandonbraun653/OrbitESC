@@ -129,3 +129,9 @@ add_subdirectory("lib/usb")
 # Project Imports
 # ====================================================
 add_subdirectory("src")
+
+# ====================================================
+# Test Projects
+# ====================================================
+enable_testing()
+add_subdirectory("test")

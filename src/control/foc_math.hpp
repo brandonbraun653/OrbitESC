@@ -23,10 +23,14 @@ Includes
 Macros
 -----------------------------------------------------------------------------*/
 #define US_TO_SEC( x ) ( static_cast<float>( x ) / 1e6f )
-#define RAD_TO_RPM( rad ) ( static_cast<float>( rad ) * static_cast<float>( 60.0 / ( 2.0 * M_PI ) ) )
-#define RPM_TO_RAD( rpm ) ( ( static_cast<float>( rpm ) / 60.0f ) * static_cast<float>( 2.0 * M_PI ) )
-#define RAD_TO_DEG( rad ) ( static_cast<float>( rad ) * static_cast<float>( 180.0 / M_PI ) )
-#define DEG_TO_RAD( deg ) ( static_cast<float>( deg ) * static_cast<float>( M_PI / 180.0 ) )
+#define RAD_TO_RPM( rad ) \
+  ( static_cast<float>( rad ) * static_cast<float>( 60.0 / ( 2.0 * M_PI ) ) )
+#define RPM_TO_RAD( rpm ) \
+  ( ( static_cast<float>( rpm ) / 60.0f ) * static_cast<float>( 2.0 * M_PI ) )
+#define RAD_TO_DEG( rad ) \
+  ( static_cast<float>( rad ) * static_cast<float>( 180.0 / M_PI ) )
+#define DEG_TO_RAD( deg ) \
+  ( static_cast<float>( deg ) * static_cast<float>( M_PI / 180.0 ) )
 
 #define SQ( x ) ( ( x ) * ( x ) )
 #define NORM2_f( x, y ) ( sqrtf( SQ( x ) + SQ( y ) ) )
@@ -36,11 +40,15 @@ namespace Orbit::Control::Math
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr float ONE_OVER_SQRT3 = 0.57735026918962576451f;
-  static constexpr float TWO_OVER_SQRT3 = 1.15470053837925152902f;
-  static constexpr float SQRT3_OVER_2   = 0.86602540378443864676f;
-  static constexpr float M_PI_F         = static_cast<float>( M_PI );
-  static constexpr float M_2PI_F        = 2.0f * M_PI_F;
+  static constexpr float ONE_OVER_SQRT3 =
+      0.57735026918962576451f;    // 1 / sqrt(3)
+  static constexpr float TWO_OVER_SQRT3 =
+      1.15470053837925152902f;    // 2 / sqrt(3)
+  static constexpr float SQRT3_OVER_2 =
+      0.86602540378443864676f;                                 // sqrt(3) / 2
+  static constexpr float SQRT3   = 1.73205080756887729353f;    // sqrt(3)
+  static constexpr float M_PI_F  = static_cast<float>( M_PI );
+  static constexpr float M_2PI_F = 2.0f * M_PI_F;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -53,7 +61,8 @@ namespace Orbit::Control::Math
    * @param epsilon   Precision in the comparison
    * @return bool     True if nearly equal, false otherwise
    */
-  static constexpr bool is_nearly_equal( const float x, const float y, const float epsilon = 1e-5f )
+  static constexpr bool is_nearly_equal( const float x, const float y,
+                                         const float epsilon = 1e-5f )
   {
     return fabsf( x - y ) <= ( epsilon * fabsf( x ) );
   }
@@ -142,35 +151,17 @@ namespace Orbit::Control::Math
     return retval;
   }
 
-
-  /**
-   * @brief Normalizes a radian angle to lie within 0-2*pi.
-   *
-   * @param x Value to normalize
-   * @return void
-   */
-  static inline void normalize_radians( float &x )
-  {
-    while( x < 0.0f )
-    {
-      x += M_2PI_F;
-    }
-
-    while( x > M_2PI_F )
-    {
-      x -= M_2PI_F;
-    }
-  }
-
   /**
    * @brief A simple low pass filter
    * @see https://github.com/vedderb/bldc/blob/master/util/utils_math.h
    *
    * @param value  Filtered value
    * @param sample Next sample
-   * @param filter_constant  Filter constant (0.0 to 1.0) where 1.0 is no filtering.
+   * @param filter_constant  Filter constant (0.0 to 1.0) where 1.0 is no
+   * filtering.
    */
-#define UTILS_LP_FAST( value, sample, filter_constant ) ( value -= ( filter_constant ) * ( ( value ) - ( sample ) ) )
+#define UTILS_LP_FAST( value, sample, filter_constant ) \
+  ( value -= ( filter_constant ) * ( ( value ) - ( sample ) ) )
 
 
   /**
@@ -194,7 +185,8 @@ namespace Orbit::Control::Math
 
   /**
    * @brief Computes atan2 quickly, accurately, and with output normalization
-   * @see http://dspguru.com/dsp/tricks/fixed-point-atan2-with-self-normalization/
+   * @see
+   * http://dspguru.com/dsp/tricks/fixed-point-atan2-with-self-normalization/
    *
    * @param y   Numerator input
    * @param x   Denominator input
@@ -208,11 +200,13 @@ namespace Orbit::Control::Math
    *
    * @param a       Phase A motor current
    * @param b       Phase B motor current
+   * @param c       Phase C motor current
    * @param alpha   Output reference to store the alpha component
    * @param beta    Output reference to store the beta component
    * @return void
    */
-  void clarke_transform( const float a, const float b, float &alpha, float &beta );
+  void clarke_transform( const float a, const float b, const float c,
+                         float &alpha, float &beta );
 
   /**
    * @brief Computes the Park transform of the Clarke space input
@@ -225,7 +219,8 @@ namespace Orbit::Control::Math
    * @param d       Output reference to store the d component
    * @return void
    */
-  void park_transform( const float alpha, const float beta, const float theta, float &q, float &d );
+  void park_transform( const float alpha, const float beta, const float theta,
+                       float &q, float &d );
 
   /**
    * @brief Computes the inverse Park transform of the Park space input
@@ -238,7 +233,8 @@ namespace Orbit::Control::Math
    * @param b       Output reference to store the beta component
    * @return void
    */
-  void inverse_park_transform( const float q, const float d, const float theta, float &a, float &b );
+  void inverse_park_transform( const float q, const float d, const float theta,
+                               float &a, float &b );
 
   /**
    * @brief Computes the inverse Clarke transform of the Clarke space input
@@ -251,7 +247,8 @@ namespace Orbit::Control::Math
    * @param v3      Output reference to store the phase C voltage component
    * @return void
    */
-  void inverse_clarke_transform( const float a, const float b, float &v1, float &v2, float &v3 );
+  void inverse_clarke_transform( const float a, const float b, float &v1,
+                                 float &v2, float &v3 );
 
   /**
    * @brief Clips an input value to be bounded between min/max

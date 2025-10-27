@@ -44,6 +44,18 @@ namespace Orbit::Sim::Matlab
     double va;             /**< Phase A voltage in Volts */
     double vb;             /**< Phase B voltage in Volts */
     double vc;             /**< Phase C voltage in Volts */
+
+    MotorData()
+    {
+      omega_rad_s    = 0.0;
+      elec_angle_rad = 0.0;
+      ia             = 0.0;
+      ib             = 0.0;
+      ic             = 0.0;
+      va             = 0.0;
+      vb             = 0.0;
+      vc             = 0.0;
+    }
   };
 
   /**
@@ -81,7 +93,8 @@ namespace Orbit::Sim::Matlab
     ControlData s_prev_cmd = {};
   }
 
-  void motorSimulationCallback( Orbit::Sim::TCP::Server &server, const void *data, size_t size )
+  void motorSimulationCallback( Orbit::Sim::TCP::Server &server,
+                                const void *data, size_t size )
   {
     if( !server.isClientConnected() )
     {
@@ -103,26 +116,30 @@ namespace Orbit::Sim::Matlab
       /*-------------------------------------------------------------------------
       Inject simulated measurements for system parameters
       -------------------------------------------------------------------------*/
-      Orbit::Sim::ADC::setPhaseData( new_data.va, new_data.vb, new_data.vc, new_data.ia, new_data.ib, new_data.ic );
+      Orbit::Sim::ADC::setPhaseData( new_data.va, new_data.vb, new_data.vc,
+                                     new_data.ia, new_data.ib, new_data.ic );
       Orbit::Sim::ADC::triggerMotorSenseADC();
 
-      Orbit::Sim::Control::Observer::inject( new_data.elec_angle_rad, new_data.omega_rad_s );
+      Orbit::Sim::Control::Observer::inject( new_data.elec_angle_rad,
+                                             new_data.omega_rad_s );
 
       /*-------------------------------------------------------------------------
       Step the motor control loops
       -------------------------------------------------------------------------*/
       Orbit::Control::Field::isr_current_control_loop();
-      Orbit::Control::Speed::timer_isr_speed_controller();    // Need to call at some sub interval of the motor control loop
+      Orbit::Control::Speed::timer_isr_speed_controller();
 
       /*-------------------------------------------------------------------------
       Send results back to Matlab simulation
       -------------------------------------------------------------------------*/
-      Orbit::Trace::traceAlphaBetaCommands( Orbit::Control::foc_ireg_state.va_cmd, Orbit::Control::foc_ireg_state.vb_cmd,
-                                            Chimera::micros() );
+      Orbit::Trace::traceAlphaBetaCommands(
+          Orbit::Control::foc_ireg_state.va_cmd,
+          Orbit::Control::foc_ireg_state.vb_cmd, Chimera::micros() );
     }
   }
 
-  void escControlCallback( Orbit::Sim::TCP::Server &server, const void *data, size_t size )
+  void escControlCallback( Orbit::Sim::TCP::Server &server, const void *data,
+                           size_t size )
   {
     if( !server.isClientConnected() )
     {
@@ -139,31 +156,40 @@ namespace Orbit::Sim::Matlab
     }
 
     memcpy( &new_cmd, data, sizeof( ControlData ) );
-
-    // TODO: I may want to move the time update to the motor simulation callback.
-    // I think it's possible that Matlab doesn't get a 1-1 data/time correlation and
-    // it would be easier to sync the HW signals to the simulation time directly.
-    // This control callback is really only used for high level reference changes.
+    const size_t prev_sim_time_us = Chimera::micros();
 
     /*-------------------------------------------------------------------------
     Update the system time
     -------------------------------------------------------------------------*/
-    if( ( new_cmd.sim_time_sec > 0.0f ) && Chimera::Timer::Sim::isExternalTimeSourceActive() )
+    // TODO also update the foc_ireg_state.dt here.
+    if( Chimera::Timer::Sim::isExternalTimeSourceActive() &&
+        !Chimera::Timer::Sim::updateExternalTime(
+            static_cast<size_t>( new_cmd.sim_time_sec * 1e6 ) ) )
     {
-      // LOG_INFO( "Matlab time: %f sec", new_cmd.sim_time_sec );
-      Chimera::Timer::Sim::updateExternalTime( static_cast<size_t>( new_cmd.sim_time_sec * 1e6 ) );
+      /*---------------------------------------------------------------------
+      If the simulation time is not active, or the update fails, we need to
+      return. It will screw up the control loop. We must have monotonic time.
+      ---------------------------------------------------------------------*/
+      return;
     }
+
+    Orbit::Control::foc_ireg_state.dt =
+        static_cast<float>( Chimera::micros() - prev_sim_time_us ) / 1e6f;
+    // LOG_INFO( "Matlab time: %f sec, dt: %f sec", new_cmd.sim_time_sec,
+    //           Orbit::Control::foc_ireg_state.dt );
 
     /*-------------------------------------------------------------------------
     Change motor controller state
     -------------------------------------------------------------------------*/
     auto task_id = Orbit::Tasks::getTaskId( Orbit::Tasks::TASK_SIM );
-    if( static_cast<bool>( new_cmd.armed ) && !static_cast<bool>( s_prev_cmd.armed ) )
+    if( static_cast<bool>( new_cmd.armed ) &&
+        !static_cast<bool>( s_prev_cmd.armed ) )
     {
       Chimera::Thread::sendTaskMsg( task_id, Tasks::TASK_MSG_CTRL_ARM, 0 );
     }
 
-    if( static_cast<bool>( new_cmd.engaged ) && !static_cast<bool>( s_prev_cmd.engaged ) )
+    if( static_cast<bool>( new_cmd.engaged ) &&
+        !static_cast<bool>( s_prev_cmd.engaged ) )
     {
       Chimera::Thread::sendTaskMsg( task_id, Tasks::TASK_MSG_CTRL_ENGAGE, 0 );
     }
@@ -182,7 +208,8 @@ namespace Orbit::Sim::Matlab
     s_prev_cmd = new_cmd;
   }
 
-  void escControlConnectionCallback( Orbit::Sim::TCP::Server &server, Orbit::Sim::TCP::ConnectionState state )
+  void escControlConnectionCallback( Orbit::Sim::TCP::Server         &server,
+                                     Orbit::Sim::TCP::ConnectionState state )
   {
     ( void )server;
     auto task_id = Orbit::Tasks::getTaskId( Orbit::Tasks::TASK_SIM );
@@ -191,14 +218,16 @@ namespace Orbit::Sim::Matlab
     {
       case Orbit::Sim::TCP::ConnectionState::Connected:
         LOG_INFO( "ESC control client connected" );
-        Chimera::Thread::sendTaskMsg( task_id, Tasks::TASK_MSG_CTRL_DISABLE, 0 );
+        Chimera::Thread::sendTaskMsg( task_id, Tasks::TASK_MSG_CTRL_DISABLE,
+                                      0 );
         Chimera::Timer::Sim::enableExternalTimeSource( 0U );
         break;
 
       case Orbit::Sim::TCP::ConnectionState::Disconnected:
         LOG_INFO( "ESC control client disconnected" );
         Chimera::Timer::Sim::disableExternalTimeSource();
-        Chimera::Thread::sendTaskMsg( task_id, Tasks::TASK_MSG_CTRL_DISABLE, 0 );
+        Chimera::Thread::sendTaskMsg( task_id, Tasks::TASK_MSG_CTRL_DISABLE,
+                                      0 );
         s_prev_cmd = {};
         break;
     }

@@ -2,7 +2,7 @@
   "version": 3,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 16,
+    "minor": 25,
     "patch": 0
   },
   "configurePresets": [
@@ -10,7 +10,7 @@
       "name": "OrbitESC_V3 Debug",
       "displayName": "OrbitESC_V3 Debug",
       "description": "Configure debug variant of OrbitESC software",
-      "generator": "Unix Makefiles",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/debug",
       "toolchainFile": "${sourceDir}/lib/CommonTools/cmake/toolchains/gcc_arm_none_eabi.cmake",
       "cacheVariables": {
@@ -25,7 +25,7 @@
       "name": "OrbitESC_V3 Release",
       "displayName": "OrbitESC_V3 Release",
       "description": "Configure release variant of OrbitESC software",
-      "generator": "Unix Makefiles",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/release",
       "toolchainFile": "${sourceDir}/lib/CommonTools/cmake/toolchains/gcc_arm_none_eabi.cmake",
       "cacheVariables": {
@@ -40,7 +40,7 @@
       "name": "OrbitESC Simulator",
       "displayName": "OrbitESC Simulator",
       "description": "Simulate OrbitESC",
-      "generator": "Unix Makefiles",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/sim",
       "toolchainFile": "${sourceDir}/lib/CommonTools/cmake/toolchains/gcc.cmake",
       "cacheVariables": {
@@ -49,6 +49,23 @@
         "CMAKE_VERBOSE_MAKEFILE": "OFF",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "NATIVE_THREADS": "ON",
+        "DEVICE_TARGET": "sim"
+      }
+    },
+    {
+      "name": "OrbitESC Testing",
+      "displayName": "OrbitESC Testing",
+      "description": "Build unit tests for OrbitESC components",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/test",
+      "toolchainFile": "${sourceDir}/lib/CommonTools/cmake/toolchains/gcc.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_VERBOSE_MAKEFILE": "OFF",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "NATIVE_THREADS": "ON",
+        "GTEST": "ON",
         "DEVICE_TARGET": "sim"
       }
     }
@@ -62,7 +79,7 @@
       "targets": [
         "OrbitESC"
       ],
-      "jobs": 8
+      "jobs": 16
     },
     {
       "name": "OrbitESC_V3 Release",
@@ -72,7 +89,7 @@
       "targets": [
         "OrbitESC"
       ],
-      "jobs": 8
+      "jobs": 16
     },
     {
       "name": "OrbitESC Simulator",
@@ -82,7 +99,17 @@
       "targets": [
         "OrbitESC"
       ],
-      "jobs": 8
+      "jobs": 16
+    },
+    {
+      "name": "OrbitESC Testing",
+      "description":"Build unit tests for OrbitESC components",
+      "displayName": "OrbitESC Testing",
+      "configurePreset": "OrbitESC Testing",
+      "targets": [
+        "foc_math_tests"
+      ],
+      "jobs": 16
     }
   ]
 }

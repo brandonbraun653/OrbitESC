@@ -49,18 +49,23 @@ namespace Orbit::Tasks::SIM
     main_config.tx_buffer_size = 1024;
     main_config.rx_callback    = Orbit::Sim::Matlab::motorSimulationCallback;
 
-    auto main_server = Orbit::Sim::TCP::ServerManager::getInstance().createServer( main_config );
+    auto main_server =
+        Orbit::Sim::TCP::ServerManager::getInstance().createServer(
+            main_config );
     LOG_WARN_IF( !main_server, "Failed to create main server" );
 
     // Create ESC control TCP server for state control commands
     Orbit::Sim::TCP::ServerConfig esc_config;
-    esc_config.port                = Sim::TCP::ESC_CONTROL_PORT;
-    esc_config.rx_buffer_size      = 1024;
-    esc_config.tx_buffer_size      = 1024;
-    esc_config.rx_callback         = Orbit::Sim::Matlab::escControlCallback;
-    esc_config.connection_callback = Orbit::Sim::Matlab::escControlConnectionCallback;
+    esc_config.port           = Sim::TCP::ESC_CONTROL_PORT;
+    esc_config.rx_buffer_size = 1024;
+    esc_config.tx_buffer_size = 1024;
+    esc_config.rx_callback    = Orbit::Sim::Matlab::escControlCallback;
+    esc_config.connection_callback =
+        Orbit::Sim::Matlab::escControlConnectionCallback;
 
-    auto esc_server = Orbit::Sim::TCP::ServerManager::getInstance().createServer( esc_config );
+    auto esc_server =
+        Orbit::Sim::TCP::ServerManager::getInstance().createServer(
+            esc_config );
     LOG_WARN_IF( !esc_server, "Failed to create ESC control server" );
 
     while( 1 )
@@ -97,8 +102,6 @@ namespace Orbit::Tasks::SIM
             Orbit::Control::foc_ireg_state.vb_cmd    = 0.0f;
             Orbit::Control::foc_ireg_state.vq        = 0.0f;
             Orbit::Control::foc_ireg_state.vd        = 0.0f;
-            Orbit::Control::foc_ireg_state.vq_mod    = 0.0f;
-            Orbit::Control::foc_ireg_state.vd_mod    = 0.0f;
             Orbit::Control::foc_ireg_state.max_drive = 0.0f;
             break;
         }

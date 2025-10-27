@@ -110,13 +110,15 @@ namespace Orbit::Control::Subroutine
     mRampState.rampStep     = RampStep::RAMP;
     mRampState.rampStart_us = Chimera::micros();
 
-    // TODO BMB: Need to use the actual motor poles here to calculate the desired electrical speed
+    // TODO BMB: Need to use the actual motor poles here to calculate the
+    // desired electrical speed
     // TODO BMB: Need to use a parameter setpoint for the RPM
     mRampState.omega_desired = 7.0f * ( s_rpm_desired / 60.0f ) * Math::M_2PI_F;
 
     foc_motor_state.thetaEst = 0.0f;
     foc_motor_state.omegaEst = 0.0f;
-    foc_ireg_state.iqRef     = 0.0f;
+    foc_ireg_state.max_drive = 1.0f;
+    foc_ireg_state.iqRef     = 0.1f;
     foc_ireg_state.idRef     = 0.0f;
 
     mState = RunState::RUNNING;
@@ -151,6 +153,7 @@ namespace Orbit::Control::Subroutine
         if( foc_motor_state.omegaEst >= mRampState.omega_desired )
         {
           mRampState.rampStep = RampStep::COMPLETE;
+          s_transitioned      = true;
         }
         break;
 
@@ -186,10 +189,6 @@ namespace Orbit::Control::Subroutine
   {
     using namespace Orbit::Control;
 
-    const size_t curr_time = Chimera::micros();
-    const size_t delta_us  = curr_time - mRampState.rampStart_us;
-    const float  now_sec   = static_cast<float>( delta_us ) * 1e-6f;
-
     if( s_transitioned )
     {
       return;
@@ -200,24 +199,23 @@ namespace Orbit::Control::Subroutine
     -------------------------------------------------------------------------*/
     if( foc_motor_state.omegaEst < mRampState.omega_desired )
     {
-      foc_ireg_state.max_drive = 1.0f;
-      foc_ireg_state.iqRef     = 1.0f;
-      foc_ireg_state.idRef     = 0.0f;
+      foc_motor_state.omegaEst =
+          std::min( mRampState.omega_desired,
+                    foc_motor_state.omegaEst + ( 10.0f * foc_ireg_state.dt ) );
 
-      // TODO: Needs to be omega_e(k) = min(omega_{exit}, omega_e(k-1) + a*T_s), where T_s is sample time.
-      foc_motor_state.omegaEst = mRampState.omega_desired * now_sec;
+      foc_motor_state.thetaEst += foc_motor_state.omegaEst * foc_ireg_state.dt;
     }
 
-    if( now_sec > 3.0f )
-    {
-      /*-----------------------------------------------------------------------
-      TESTING: Very naively transition to closed loop control once we've idled
-      for a bit. Let's just see what happens.
-      -----------------------------------------------------------------------*/
-      s_transitioned = true;
-      Field::setControlMode( Field::Mode::CLOSED_LOOP );
-      Speed::setControlMode( Speed::Mode::CLOSED_LOOP );
-    }
+    // if( now_sec > 3.0f )
+    // {
+    //   /*-----------------------------------------------------------------------
+    //   TESTING: Very naively transition to closed loop control once we've
+    //   idled for a bit. Let's just see what happens.
+    //   -----------------------------------------------------------------------*/
+    //   s_transitioned = true;
+    //   Field::setControlMode( Field::Mode::CLOSED_LOOP );
+    //   Speed::setControlMode( Speed::Mode::CLOSED_LOOP );
+    // }
   }
 
 }    // namespace Orbit::Control::Subroutine
