@@ -15,13 +15,13 @@ motorParams.damping = 4e-6;
 motorParams.staticFriction = 1e-6;
 
 % Control cycle sample time
-ccTs = 50e-6;  % Control cycle sample time (seconds)
+ccTs = e-6;  % Control cycle sample time (seconds)
 
 % DQ-axis PID saturation limits
 dq_pid.satUpper = 1.0;  % Upper saturation limit
 dq_pid.satLower = -1.0; % Lower saturation limit
-dq_pid.Kp = 0;
-dq_pid.Ki = 1.5;
+dq_pid.Kp = 1;
+dq_pid.Ki = 0.5;
 dq_pid.Kd = 0;
 
 % Ramp parameters
