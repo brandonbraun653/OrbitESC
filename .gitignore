@@ -27,3 +27,7 @@ docs/**
 
 # clangd cache
 .cache/
+
+# Matlab Simulink Outputs
+slprj/**
+*.slxc

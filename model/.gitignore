@@ -1,3 +1,4 @@
 *.ipynb_checkpoints
 *.slx.autosave
 __pycache__
+slprj/**
