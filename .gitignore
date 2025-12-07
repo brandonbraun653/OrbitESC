@@ -31,3 +31,4 @@ docs/**
 # Matlab Simulink Outputs
 slprj/**
 *.slxc
+*slprj/

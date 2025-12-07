@@ -1,5 +1,10 @@
 idleRotationRate = convangvel(1000, 'rpm', 'rad/s');
 
+% Si Unit Base Values for PU conversions
+baseValue.adc_current_max = 16.0;    % Amps
+baseValue.motor_omega     = 523.6;   % Rad/s
+baseValue.supply_voltage  = 12.0;    % Volts
+
 adcParams.iSenseLimit = 16.0;
 adcParams.num_bits = 12;
 
@@ -7,12 +12,17 @@ adcParams.num_bits = 12;
 motorParams.ts = 5e-6;        % Sample time (seconds) - 10kHz control loop
 motorParams.p = 8;            % Number of pole pairs
 motorParams.rs = 10e-3;       % Stator resistance (Ohms)
-motorParams.ldq = 7.32e-6;     % d-axis inductance (Henrys)
 motorParams.kv = 1000;         % Motor RPM/V rating
 motorParams.ke = (60*sqrt(2))/motorParams.kv;       % Back EMF constant (Vpk_LL/krpm)
 motorParams.inertia = 2.5e-6;  % Rotor inertia (kg·m²)
 motorParams.damping = 4e-6;
 motorParams.staticFriction = 1e-6;
+
+motorParams.ldq = 7.32e-6;     % d-axis inductance (Henrys)
+motorParams.ldq_pu = motorParams.ldq / (baseValue.supply_voltage / (baseValue.motor_omega * baseValue.adc_current_max));
+
+motorParams.flux_linkage = 60 / (motorParams.kv * motorParams.p * pi * sqrt(2));
+motorParams.flux_linkage_pu = motorParams.flux_linkage / (baseValue.supply_voltage / baseValue.motor_omega);
 
 % Control cycle sample time
 ccTs = 50e-6;  % Control cycle sample time (seconds)
