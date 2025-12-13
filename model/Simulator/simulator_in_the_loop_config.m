@@ -2,7 +2,7 @@ idleRotationRate = convangvel(1000, 'rpm', 'rad/s');
 
 % Si Unit Base Values for PU conversions
 baseValue.adc_current_max = 16.0;    % Amps
-baseValue.motor_omega     = 523.6;   % Rad/s
+baseValue.motor_omega     = 523.6;   % Rad/s (5000 rpm)
 baseValue.supply_voltage  = 12.0;    % Volts
 
 adcParams.iSenseLimit = 16.0;
@@ -28,11 +28,16 @@ motorParams.flux_linkage_pu = motorParams.flux_linkage / (baseValue.supply_volta
 ccTs = 50e-6;  % Control cycle sample time (seconds)
 
 % DQ-axis PID saturation limits
+omega_bw = 2*pi*500; % Bandwidth in rad/s
+
 dq_pid.satUpper = 1.0;  % Upper saturation limit
 dq_pid.satLower = -1.0; % Lower saturation limit
-dq_pid.Kp = 0;
-dq_pid.Ki = 1.5;
-dq_pid.Kd = 0;
+
+dq_pid.Kp = omega_bw*motorParams.ldq;
+dq_pid.Kp_pu = dq_pid.Kp * (baseValue.adc_current_max / baseValue.supply_voltage);
+
+dq_pid.Ki = omega_bw*motorParams.rs;
+dq_pid.Ki_pu = dq_pid.Ki * (baseValue.adc_current_max / baseValue.supply_voltage);
 
 % Ramp parameters
 rampParams.rate = 200;   % Ramp rate, per-unit
