@@ -28,7 +28,7 @@ motorParams.flux_linkage_pu = motorParams.flux_linkage / (baseValue.supply_volta
 ccTs = 50e-6;  % Control cycle sample time (seconds)
 
 % DQ-axis PID saturation limits
-omega_bw = 2*pi*500; % Bandwidth in rad/s
+omega_bw = 2*pi*10000; % Bandwidth in rad/s
 
 dq_pid.satUpper = 1.0;  % Upper saturation limit
 dq_pid.satLower = -1.0; % Lower saturation limit
