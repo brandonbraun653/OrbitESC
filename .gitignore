@@ -34,4 +34,4 @@ slprj/**
 *slprj/
 
 # Obsidian
-*.obsidian/workspace.json
+**/.obsidian/workspace.json
