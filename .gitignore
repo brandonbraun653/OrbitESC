@@ -32,3 +32,6 @@ docs/**
 slprj/**
 *.slxc
 *slprj/
+
+# Obsidian
+*.obsidian/workspace.json
