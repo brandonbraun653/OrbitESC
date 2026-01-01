@@ -10,7 +10,7 @@ adcParams.num_bits = 12;
 
 % Motor parameters structure
 motorParams.ts = 5e-6;        % Sample time (seconds) - 10kHz control loop
-motorParams.p = 8;            % Number of pole pairs
+motorParams.p  = 8;            % Number of pole pairs
 motorParams.rs = 10e-3;       % Stator resistance (Ohms)
 motorParams.kv = 1000;         % Motor RPM/V rating
 motorParams.ke = (60*sqrt(2))/motorParams.kv;       % Back EMF constant (Vpk_LL/krpm)
@@ -42,7 +42,7 @@ dq_pid.Ki_pu = dq_pid.Ki * (baseValue.adc_current_max / baseValue.supply_voltage
 % Ramp parameters
 rampParams.rate = 200;   % Ramp rate, per-unit
 rampParams.id = 0.0;
-rampParams.iq = 0.1;
+rampParams.iq = 0.8;
 
 % TCP/IP communication setting
 useTCP = false;
