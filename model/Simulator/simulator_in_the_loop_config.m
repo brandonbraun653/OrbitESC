@@ -1,4 +1,4 @@
-idleRotationRate = convangvel(1000, 'rpm', 'rad/s');
+idleRotationRate = convangvel(983, 'rpm', 'rad/s');
 
 % Si Unit Base Values for PU conversions
 baseValue.adc_current_max = 16.0;    % Amps
