@@ -24,11 +24,13 @@ motorParams.ldq_pu = motorParams.ldq / (baseValue.supply_voltage / (baseValue.mo
 motorParams.flux_linkage = 60 / (motorParams.kv * motorParams.p * pi * sqrt(2));
 motorParams.flux_linkage_pu = motorParams.flux_linkage / (baseValue.supply_voltage / baseValue.motor_omega);
 
-% Control cycle sample time
-ccTs = 50e-6;  % Control cycle sample time (seconds)
-
-% DQ-axis PID saturation limits
-omega_bw = 2*pi*10000; % Bandwidth in rad/s
+% Inner loop current control settings:
+% When setting PID bandwidth, a general rule of thumb is sample
+% freq is 10x-20x larger than control bandwidth.
+ccFreqHz = 20e3;
+ccTs = 1/ccFreqHz;  % Control cycle sample time (seconds)
+omega_bw_hz = ccFreqHz / 10;
+omega_bw = 2*pi*omega_bw_hz; % Bandwidth in rad/s
 
 dq_pid.satUpper = 1.0;  % Upper saturation limit
 dq_pid.satLower = -1.0; % Lower saturation limit
@@ -40,9 +42,9 @@ dq_pid.Ki = omega_bw*motorParams.rs;
 dq_pid.Ki_pu = dq_pid.Ki * (baseValue.adc_current_max / baseValue.supply_voltage);
 
 % Ramp parameters
-rampParams.rate = 200;   % Ramp rate, per-unit
+rampParams.rate = 500;   % Ramp rate, per-unit
 rampParams.id = 0.0;
-rampParams.iq = 0.8;
+rampParams.iq = 0.95;
 
 % TCP/IP communication setting
 useTCP = false;
