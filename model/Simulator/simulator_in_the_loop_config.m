@@ -43,8 +43,8 @@ dq_pid.Ki_pu = dq_pid.Ki * (baseValue.adc_current_max / baseValue.supply_voltage
 
 % Ramp parameters
 rampParams.rate = 500;   % Ramp rate, per-unit
-rampParams.id = 0.0;
-rampParams.iq = 0.95;
+rampParams.id = -0.1;
+rampParams.iq = 0.70;
 
 % TCP/IP communication setting
 useTCP = false;
