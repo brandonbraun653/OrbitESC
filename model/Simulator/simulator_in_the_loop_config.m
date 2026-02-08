@@ -2,8 +2,9 @@ idleRotationRate = convangvel(983, 'rpm', 'rad/s');
 
 % Si Unit Base Values for PU conversions
 baseValue.adc_current_max = 16.0;    % Amps
-baseValue.motor_omega     = 523.6;   % Rad/s (5000 rpm)
 baseValue.supply_voltage  = 12.0;    % Volts
+baseValue.motor_omega     = 523.6;   % Rad/s (5000 rpm)
+baseValue.motor_rpm       = (baseValue.motor_omega * 60)/(2*pi);
 
 adcParams.iSenseLimit = 16.0;
 adcParams.num_bits = 12;
@@ -43,7 +44,7 @@ dq_pid.Ki_pu = dq_pid.Ki * (baseValue.adc_current_max / baseValue.supply_voltage
 
 % Ramp parameters
 rampParams.rate = 500;   % Ramp rate, per-unit
-rampParams.id = -0.1;
+rampParams.id = 0.0;
 rampParams.iq = 0.70;
 
 % TCP/IP communication setting
