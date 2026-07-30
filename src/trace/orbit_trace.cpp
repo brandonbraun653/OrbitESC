@@ -14,7 +14,9 @@ Includes
 #include <src/trace/orbit_trace.hpp>
 #include <src/core/com/serial/serial_config.hpp>
 #include <src/core/com/serial/serial_server.hpp>
+#if defined( SIMULATOR )
 #include <src/simulator/sim_tcp_server.hpp>
+#endif
 #include <Chimera/thread>
 
 namespace Orbit::Trace

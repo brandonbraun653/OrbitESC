@@ -20,7 +20,9 @@ Includes
 #include <src/core/hw/orbit_motor_sense.hpp>
 #include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_timer.hpp>
+#if defined( SIMULATOR )
 #include <src/simulator/sim_adc.hpp>
+#endif
 
 namespace Orbit::ADC
 {

@@ -21,7 +21,9 @@ Includes
 #include <src/core/tasks/tsk_hwm.hpp>
 #include <src/core/tasks/tsk_idle.hpp>
 #include <src/core/tasks/tsk_usb.hpp>
+#if defined( SIMULATOR )
 #include <src/simulator/sim_tsk.hpp>
+#endif
 
 namespace Orbit::Tasks
 {

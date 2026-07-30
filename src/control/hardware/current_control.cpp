@@ -30,8 +30,10 @@ Includes
 #include <src/core/hw/orbit_motor_drive.hpp>
 #include <src/trace/orbit_trace.hpp>
 #include <src/core/hw/orbit_motor_sense.hpp>
+#if defined( SIMULATOR )
 #include <src/simulator/sim_adc.hpp>
 #include <src/simulator/sim_observer.hpp>
+#endif
 
 #if defined( SEGGER_SYS_VIEW )
 #include "SEGGER_SYSVIEW.h"

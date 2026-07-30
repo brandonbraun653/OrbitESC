@@ -134,27 +134,6 @@
     "common.hpp": "c",
     "*.def": "cpp"
   },
-  "peacock.color": "#f9e64f",
-  "workbench.colorCustomizations": {
-    "activityBar.activeBorder": "#06b9a5",
-    "activityBar.activeBackground": "#fbed80",
-    "activityBar.background": "#fbed80",
-    "activityBar.foreground": "#15202b",
-    "activityBar.inactiveForeground": "#15202b99",
-    "activityBarBadge.background": "#06b9a5",
-    "activityBarBadge.foreground": "#15202b",
-    "commandCenter.border": "#15202b99",
-    "sash.hoverBorder": "#fbed80",
-    "statusBar.background": "#f9e64f",
-    "statusBar.foreground": "#15202b",
-    "statusBarItem.hoverBackground": "#f7df1e",
-    "statusBarItem.remoteBackground": "#f9e64f",
-    "statusBarItem.remoteForeground": "#15202b",
-    "titleBar.activeBackground": "#f9e64f",
-    "titleBar.activeForeground": "#15202b",
-    "titleBar.inactiveBackground": "#f9e64f99",
-    "titleBar.inactiveForeground": "#15202b99"
-  },
   "cortex-debug.variableUseNaturalFormat": true,
   "files.exclude": {
     "**/.svn": true,
@@ -166,9 +145,9 @@
     "**/.conda": true,
     "**/build/debug": true,
     "**/build/release": true,
-    "**/.idea": true,
+    "**/.idea": true
   },
-  "terminal.integrated.profiles.linux":{
+  "terminal.integrated.profiles.linux": {
     "bash": {
       "path": "bash",
       "icon": "terminal-bash",
@@ -182,14 +161,8 @@
   "python.defaultInterpreterPath": "./.venv/bin/python",
   "editor.defaultFormatter": "ms-python.black-formatter",
   "editor.formatOnSave": true,
-  "black-formatter.args": [
-    "--config",
-    "${workspaceFolder}/pyproject.toml"
-  ],
-  "flake8.args": [
-    "--config",
-    "${workspaceFolder}/pyproject.toml"
-  ],
+  "black-formatter.args": ["--config", "${workspaceFolder}/pyproject.toml"],
+  "flake8.args": ["--config", "${workspaceFolder}/pyproject.toml"],
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit"
   },
