@@ -37,3 +37,6 @@
 [submodule "lib/cmsis/core"]
 	path = lib/cmsis/core
 	url = https://github.com/STMicroelectronics/cmsis_core.git
+[submodule ".agents"]
+	path = .agents
+	url = git@gitlab.ndandclicky.com:onyxengineering/agents.git
