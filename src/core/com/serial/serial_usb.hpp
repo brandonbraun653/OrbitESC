@@ -5,7 +5,7 @@
  *  Description:
  *    Serial driver for the Tiny USB CDC interface
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -17,7 +17,7 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/serial>
 #include <etl/circular_buffer.h>
-
+#include <etl/queue_spsc_locked.h>
 
 namespace Orbit::Serial
 {
@@ -27,12 +27,22 @@ namespace Orbit::Serial
 
   using CircularBuffer = etl::icircular_buffer<uint8_t> *;
 
-
   /*---------------------------------------------------------------------------
   Forward Declarations
   ---------------------------------------------------------------------------*/
 
   class USBSerial;
+
+  /*---------------------------------------------------------------------------
+  Enumerations
+  ---------------------------------------------------------------------------*/
+
+  enum Endpoint : uint8_t
+  {
+    COM_ENDPOINT = 0,  /**< Default communication endpoint */
+
+    NUM_ENDPOINTS
+  };
 
 
   /*---------------------------------------------------------------------------
@@ -47,7 +57,6 @@ namespace Orbit::Serial
 
   /**
    * @brief Checks if the USB serial driver is connected to a host
-   *
    * @return bool  True if connected, false otherwise
    */
   bool isConnected();
@@ -58,7 +67,11 @@ namespace Orbit::Serial
   ---------------------------------------------------------------------------*/
 
   /**
-   * @brief Serial over USB driver
+   * @brief Serial over USB driver.
+   *
+   * This class is a thin wrapper around the TinyUSB CDC driver. It provides
+   * a serial interface to the host PC over USB. All read/write operations are
+   * done in user space and are thread safe.
    */
   class USBSerial : public Chimera::Serial::Driver
   {
@@ -66,28 +79,34 @@ namespace Orbit::Serial
     USBSerial();
     ~USBSerial();
 
-    /*-------------------------------------------------------------------------
-    Custom Interface
-    -------------------------------------------------------------------------*/
-
     /**
-     * @brief Map buffers to the USB driver
+     * @brief Initializes the USB serial driver
      *
      * @param endpoint Which CDC endpoint to push/pull from
-     * @param prx RX buffer to use
-     * @param ptx TX buffer to use
+     * @param prx RX buffer to use for normal multi-threaded operation
+     * @param ptx TX buffer to use for normal multi-threaded operation
      * @return Chimera::Status_t
      */
-    Chimera::Status_t init( const size_t endpoint, CircularBuffer prx, CircularBuffer ptx );
+    Chimera::Status_t init( const Endpoint endpoint, CircularBuffer prx, CircularBuffer ptx );
 
     /**
      * @brief Periodic processing to flush IO buffers as data arrives.
      *
-     * Needs to be called rapidly to ensure data is not lost.
+     * Normally most data is transferred via the userspace interrupt handlers
+     * for the USB peripheral. However, it's possible to stall data transfer
+     * in some scenarios due to the locking sync of the read/write functions.
+     * This function is used to ensure that data is still being processed even
+     * if the interrupt driven handlers couldn't process immediately.
      *
      * @return void
      */
     void process();
+
+    /**
+     * @brief Returns the number of bytes available for writing
+     * @return size_t
+     */
+    size_t availableForWrite();
 
     /*-------------------------------------------------------------------------
     Chimera::Serial::Driver Implementation
@@ -98,6 +117,12 @@ namespace Orbit::Serial
                              const size_t timeout = Chimera::Thread::TIMEOUT_DONT_WAIT ) final override;
     int               read( void *const buffer, const size_t length,
                             const size_t timeout = Chimera::Thread::TIMEOUT_DONT_WAIT ) final override;
+
+  protected:
+    friend etl::delegate<void( void )>;
+
+    void on_rx_complete();
+    void on_tx_complete();
 
   private:
     size_t         mEndpoint;

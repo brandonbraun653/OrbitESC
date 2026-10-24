@@ -8,9 +8,7 @@
  *    data out the IO endpoints without having to dedicate a lot of time to
  *    managing the timing of the transmissions.
  *
- *    There are quite a large number of messages that need to be sent and
- *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -21,6 +19,7 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <cstdint>
+#include <etl/string.h>
 #include <src/core/com/com_types.hpp>
 
 
@@ -82,15 +81,16 @@ namespace Orbit::COM::Scheduler
    */
   struct Task
   {
-    Endpoint endpoint;                 /**< Mask of which endpoint to write to */
-    TaskId   uuid;                     /**< Registration ID of this task */
-    Priority priority;                 /**< Assigns scheduling importance */
-    uint16_t period;                   /**< How often to run the task in milliseconds */
-    TTL_t    ttl;                      /**< How long to run the task in milliseconds */
-    uint32_t nextRun;                  /**< Next time the task should run in milliseconds */
-    void    *data;                     /**< Data to write. Must be persistent! (aka no stack memory) */
-    uint32_t size;                     /**< Size of the data to write */
-    void ( *updater )( Task *const );  /**< (Optional) Function to call when the task runs */
+    Endpoint        endpoint;         /**< Mask of which endpoint to write to */
+    TaskId          uuid;             /**< Registration ID of this task */
+    Priority        priority;         /**< Assigns scheduling importance */
+    uint16_t        period;           /**< How often to run the task in milliseconds */
+    TTL_t           ttl;              /**< How long to run the task in milliseconds */
+    uint32_t        nextRun;          /**< Next time the task should run in milliseconds */
+    void           *data;             /**< Data to write. Must be persistent! (aka no stack memory) */
+    uint32_t        size;             /**< Size of the data to write */
+    etl::string<32> name;             /**< Name of the task */
+    void ( *updater )( Task *const ); /**< (Optional) Function to call when the task runs */
 
     void clear()
     {
@@ -103,6 +103,7 @@ namespace Orbit::COM::Scheduler
       data     = nullptr;
       size     = 0;
       updater  = nullptr;
+      name.clear();
     }
   };
 

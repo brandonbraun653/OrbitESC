@@ -5,7 +5,7 @@
  *  Description:
  *    Device driver power up procedures
  *
- *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -16,16 +16,9 @@ Includes
 #include <Chimera/assert>
 #include <Chimera/gpio>
 #include <Chimera/serial>
-#include <Thor/lld/common/cortex-m4/system_time.hpp>
-#include <Thor/lld/interface/inc/flash>
-#include <Thor/lld/interface/inc/flash>
-#include <Thor/lld/interface/inc/power>
-#include <Thor/lld/interface/inc/rcc>
-#include <Thor/lld/stm32f4x/rcc/hw_rcc_prv.hpp>
 #include <etl/circular_buffer.h>
 #include <src/config/bsp/board_map.hpp>
-#include <src/control/foc_driver.hpp>
-#include <src/control/subroutines/interface.hpp>
+#include <src/control/system_control.hpp>
 #include <src/core/bootup.hpp>
 #include <src/core/com/com_scheduler.hpp>
 #include <src/core/data/orbit_data.hpp>
@@ -43,6 +36,16 @@ Includes
 #include <src/core/tasks.hpp>
 #include <src/monitor/orbit_metrics.hpp>
 #include <src/monitor/orbit_monitors.hpp>
+#include <src/trace/orbit_trace.hpp>
+
+#if defined( EMBEDDED )
+#include <Thor/lld/common/cortex-m4/system_time.hpp>
+#include <Thor/lld/interface/inc/flash>
+#include <Thor/lld/interface/inc/flash>
+#include <Thor/lld/interface/inc/power>
+#include <Thor/lld/interface/inc/rcc>
+#include <Thor/lld/stm32f4x/rcc/hw_rcc_prv.hpp>
+#endif /* EMBEDDED */
 
 
 namespace Orbit::Boot
@@ -111,6 +114,11 @@ namespace Orbit::Boot
     Log::enable();
 
     /*-------------------------------------------------------------------------
+    Initialize the trace system for data logging and debugging
+    -------------------------------------------------------------------------*/
+    Orbit::Trace::initialize();
+
+    /*-------------------------------------------------------------------------
     Power up the peripherals with re-configurable settings
     -------------------------------------------------------------------------*/
     Orbit::ADC::powerUp();
@@ -126,8 +134,7 @@ namespace Orbit::Boot
     Orbit::COM::Scheduler::initialize();
     Orbit::Monitor::initMetrics();
     Orbit::Event::initialize();
-    Orbit::Control::FOC::initialize();
-    Orbit::Control::Subroutine::initialize();
+    Orbit::Control::initialize();
   }
 
 
@@ -144,15 +151,22 @@ namespace Orbit::Boot
 
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_IDLE ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_HWM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_USB ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+    Chimera::delayMilliseconds( 500 );
+
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_COM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
     RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CTL ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
-    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_CDC ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
-    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_USB ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+    Chimera::delayMilliseconds( 25 );
+
+#if defined( SIMULATOR )
+    RT_HARD_ASSERT( true == sendTaskMsg( Tasks::getTaskId( Tasks::TASK_SIM ), TSK_MSG_WAKEUP, TIMEOUT_BLOCK ) );
+#endif
   }
 
 }    // namespace Orbit::Boot
 
 
+#if defined( EMBEDDED )
 namespace Thor::LLD::RCC
 {
   /**
@@ -213,8 +227,8 @@ namespace Thor::LLD::RCC
     clkCfg.PLLCore.M = 24;
     clkCfg.PLLCore.N = 360;
     clkCfg.PLLCore.P = 2;
-    clkCfg.PLLCore.Q = 8;   // Doesn't matter, not used
-    clkCfg.PLLCore.R = 7;   // Doesn't matter, not used
+    clkCfg.PLLCore.Q = 8;    // Doesn't matter, not used
+    clkCfg.PLLCore.R = 7;    // Doesn't matter, not used
 
     /* SAI PLL configuration settings */
     clkCfg.PLLSAI.M = 16;
@@ -244,4 +258,5 @@ namespace Thor::LLD::RCC
     auto rcc = getCoreClockCtrl();
     RT_HARD_ASSERT( targetUSBClk == rcc->getClockFrequency( Chimera::Clock::Bus::PLLSAI_P ) );
   }
-}
+}    // namespace Thor::LLD::RCC
+#endif /* EMBEDDED */

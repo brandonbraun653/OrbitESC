@@ -2,7 +2,7 @@
   "version": 3,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 16,
+    "minor": 25,
     "patch": 0
   },
   "configurePresets": [
@@ -10,11 +10,12 @@
       "name": "OrbitESC_V3 Debug",
       "displayName": "OrbitESC_V3 Debug",
       "description": "Configure debug variant of OrbitESC software",
-      "generator": "Unix Makefiles",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/debug",
+      "toolchainFile": "${sourceDir}/lib/CommonTools/cmake/toolchains/gcc_arm_none_eabi.cmake",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "TOOLCHAIN": "arm-none-eabi",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "FREERTOS_THREADS": "ON",
         "DEVICE_TARGET": "stm32f446re",
         "THOR_IMPL": "HW"
@@ -24,11 +25,12 @@
       "name": "OrbitESC_V3 Release",
       "displayName": "OrbitESC_V3 Release",
       "description": "Configure release variant of OrbitESC software",
-      "generator": "Unix Makefiles",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/release",
+      "toolchainFile": "${sourceDir}/lib/CommonTools/cmake/toolchains/gcc_arm_none_eabi.cmake",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "TOOLCHAIN": "arm-none-eabi",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "FREERTOS_THREADS": "ON",
         "DEVICE_TARGET": "stm32f446re",
         "THOR_IMPL": "HW"
@@ -38,29 +40,46 @@
       "name": "OrbitESC Simulator",
       "displayName": "OrbitESC Simulator",
       "description": "Simulate OrbitESC",
-      "generator": "Unix Makefiles",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/sim",
+      "toolchainFile": "${sourceDir}/lib/CommonTools/cmake/toolchains/gcc.cmake",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_STANDARD": "20",
         "CMAKE_VERBOSE_MAKEFILE": "OFF",
-        "FREERTOS_THREADS": "ON",
-        "TOOLCHAIN": "arm-none-eabi",
-        "DEVICE_TARGET": "STM32F446RE",
-        "THOR_IMPL": "HW"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "NATIVE_THREADS": "ON",
+        "DEVICE_TARGET": "sim"
+      }
+    },
+    {
+      "name": "OrbitESC Testing",
+      "displayName": "OrbitESC Testing",
+      "description": "Build unit tests for OrbitESC components",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/test",
+      "toolchainFile": "${sourceDir}/lib/CommonTools/cmake/toolchains/gcc.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_VERBOSE_MAKEFILE": "OFF",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "NATIVE_THREADS": "ON",
+        "GTEST": "ON",
+        "DEVICE_TARGET": "sim"
       }
     }
   ],
   "buildPresets": [
     {
       "name": "OrbitESC_V3 Debug",
-      "description":"Build release variant of OrbitESC software",
+      "description":"Build debug variant of OrbitESC software",
       "displayName": "OrbitESC_V3 Debug",
       "configurePreset": "OrbitESC_V3 Debug",
       "targets": [
         "OrbitESC"
       ],
-      "jobs": 8
+      "jobs": 16
     },
     {
       "name": "OrbitESC_V3 Release",
@@ -70,7 +89,27 @@
       "targets": [
         "OrbitESC"
       ],
-      "jobs": 8
+      "jobs": 16
+    },
+    {
+      "name": "OrbitESC Simulator",
+      "description":"Build simulator variant of OrbitESC software",
+      "displayName": "OrbitESC Simulator",
+      "configurePreset": "OrbitESC Simulator",
+      "targets": [
+        "OrbitESC"
+      ],
+      "jobs": 16
+    },
+    {
+      "name": "OrbitESC Testing",
+      "description":"Build unit tests for OrbitESC components",
+      "displayName": "OrbitESC Testing",
+      "configurePreset": "OrbitESC Testing",
+      "targets": [
+        "foc_math_tests"
+      ],
+      "jobs": 16
     }
   ]
 }

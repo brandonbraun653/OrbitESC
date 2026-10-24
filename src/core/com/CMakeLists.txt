@@ -1,4 +1,4 @@
-include("${COMMON_TOOL_ROOT}/cmake/utility/embedded.cmake")
+include(CTEmbedded)
 
 gen_static_lib_variants(
   TARGET
@@ -11,7 +11,8 @@ gen_static_lib_variants(
     can/routers/can_ping_router.cpp
     can/routers/can_reset_router.cpp
     can/routers/can_speed_router.cpp
-    com_app_tx.cpp
+    com_stream.cpp
+    com_stream_tasks.cpp
     com_scheduler.cpp
     proto/motor_control.pb.c
     proto/serial_interface.pb.c
@@ -24,6 +25,19 @@ gen_static_lib_variants(
     serial/serial_async_message.cpp
     serial/serial_server.cpp
     serial/serial_sink.cpp
+  PRV_LIBRARIES
+    aurora_intf_inc
+    chimera_intf_inc
+    project_intf_inc
+    tiny_usb_intf_inc
+  EXPORT_DIR
+    "${PROJECT_BINARY_DIR}/OrbitESC"
+)
+
+gen_static_lib_variants(
+  TARGET
+    lib_orbit_com_hw
+  SOURCES
     serial/serial_usb.cpp
   PRV_LIBRARIES
     aurora_intf_inc

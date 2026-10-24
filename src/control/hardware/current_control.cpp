@@ -5,7 +5,7 @@
  *  Description:
  *    Implements the current control loop for a FOC motor
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -13,49 +13,53 @@ Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/function>
 #include <Chimera/gpio>
+#include <etl/queue_spsc_atomic.h>
 #include <src/config/bsp/board_map.hpp>
-#include <src/control/hardware/current_control.hpp>
+#include <src/config/orbit_esc_cfg.hpp>
 #include <src/control/foc_data.hpp>
 #include <src/control/foc_math.hpp>
+#include <src/control/foc_observer.hpp>
+#include <src/control/hardware/current_control.hpp>
+#include <src/control/hardware/speed_control.hpp>
+#include <src/core/com/serial/serial_async_message.hpp>
+#include <src/core/com/serial/serial_usb.hpp>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/data/orbit_data_defaults.hpp>
 #include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 #include <src/core/hw/orbit_motor_drive.hpp>
+#include <src/trace/orbit_trace.hpp>
 #include <src/core/hw/orbit_motor_sense.hpp>
+#if defined( SIMULATOR )
+#include <src/simulator/sim_adc.hpp>
+#include <src/simulator/sim_observer.hpp>
+#endif
+
+#if defined( SEGGER_SYS_VIEW )
+#include "SEGGER_SYSVIEW.h"
+#endif /* EMBEDDED */
 
 namespace Orbit::Control::Field
 {
   /*---------------------------------------------------------------------------
-  Structures
+  Static Function Declarations
   ---------------------------------------------------------------------------*/
-  struct ControlState
-  {
-    volatile Mode ctl_mode; /**< Current control mode */
-    volatile float open_loop_theta;
-    volatile float open_loop_iq_ref;
-    volatile float open_loop_id_ref;
-  };
 
+  static void reset_state();
 
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static volatile ControlState               s_state;   /**< Current state of the control loop */
-  static volatile Chimera::GPIO::Driver_rPtr s_dbg_pin; /**< Debug pin for timing measurements */
 
-  /*---------------------------------------------------------------------------
-  Static Function Declarations
-  ---------------------------------------------------------------------------*/
+  static volatile Mode s_ctl_mode; /**< Current control mode */
+  static volatile Chimera::GPIO::Driver_rPtr
+      s_dbg_pin; /**< Debug pin for timing measurements */
+  static volatile ISRInnerLoopCallback
+      s_inner_loop_cb; /**< Callback for inner loop custom behaviors */
 
-  /**
-   * @brief Executes a single cycle of the current control algorithm.
-   * @note  This function is called from the ADC DMA ISR.
-   *
-   * This function consumes the latest ADC samples, runs the control algorithm,
-   * and updates the PWM outputs for the next cycle.
-   */
-  static void isr_current_control_loop();
+  static etl::queue_spsc_atomic<uint8_t, 4096,
+                                etl::memory_model::MEMORY_MODEL_MEDIUM>
+      s_tx_isr_buffer;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -65,52 +69,60 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Initialize the control state
     -------------------------------------------------------------------------*/
-    s_state.ctl_mode = Mode::UNKNOWN;
+    s_ctl_mode      = Mode::UNKNOWN;
+    s_inner_loop_cb = nullptr;
+    s_tx_isr_buffer.clear();
 
     /*-------------------------------------------------------------------------
     Get a reference to the debug pin. This is used for timing measurements.
     Works in concert with orbit_motor_sense.cpp.
     -------------------------------------------------------------------------*/
-    s_dbg_pin = Chimera::GPIO::getDriver( Orbit::IO::Digital::dbg1Port, Orbit::IO::Digital::dbg1Pin );
+    s_dbg_pin = Chimera::GPIO::getDriver( Orbit::IO::Digital::dbg1Port,
+                                          Orbit::IO::Digital::dbg1Pin );
 
     /*-------------------------------------------------------------------------
     Map the current control function to the ADC DMA ISR
     -------------------------------------------------------------------------*/
-    Orbit::Motor::Sense::setSenseCallback( isr_current_control_loop );
+    Orbit::Motor::Sense::onComplete( isr_current_control_loop );
 
     /*-------------------------------------------------------------------------
     Initialize the motor drive and feedback sense hardware
     -------------------------------------------------------------------------*/
-    Orbit::Motor::Drive::powerUpDrive();    // Drive timer first since it's the master
-    Orbit::Motor::Sense::powerUpSense();    // Sense timer second since it's the slave
+    Orbit::Motor::Drive::initialize();    // Drive timer first since it's the
+                                          // master
+    Orbit::Motor::Sense::initialize();    // Sense timer second since it's the
+                                          // slave
 
     /*-------------------------------------------------------------------------
     Prepare the system for FOC operation
     -------------------------------------------------------------------------*/
     Orbit::Control::initFOCData();
+    Orbit::Control::Observer::initialize();
+    Orbit::Control::Observer::setPolicy(
+        Orbit::Control::Observer::Policy::ORTEGA_NON_LINEAR );
 
     /*-------------------------------------------------------------------------
     Assign PID current control parameters
     -------------------------------------------------------------------------*/
-    foc_ireg_state.dt = 1.0f / Orbit::Data::DFLT_STATOR_PWM_FREQ_HZ;
+    foc_ireg_state.dt = 1.0f / Data::SysControl.statorPWMFreq;
 
     foc_ireg_state.iqPID.init();
-    foc_ireg_state.iqPID.OutMinLimit = -1.0f;
-    foc_ireg_state.iqPID.OutMaxLimit = 1.0f;
-    foc_ireg_state.iqPID.setTunings( Data::SysControl.currentCtrl_Q_Kp, Data::SysControl.currentCtrl_Q_Ki,
-                                     Data::SysControl.currentCtrl_Q_Kd, foc_ireg_state.dt );
+    foc_ireg_state.iqPID.OutMinLimit = -12.0f;
+    foc_ireg_state.iqPID.OutMaxLimit = 12.0f;
+    // foc_ireg_state.iqPID.setTunings( Data::SysControl.currentCtrl_Q_Kp,
+    // Data::SysControl.currentCtrl_Q_Ki,
+    //                                  Data::SysControl.currentCtrl_Q_Kd,
+    //                                  foc_ireg_state.dt );
+    foc_ireg_state.iqPID.setTunings( 15.0f, 0.1f, 0.0f, foc_ireg_state.dt );
 
     foc_ireg_state.idPID.init();
-    foc_ireg_state.idPID.OutMinLimit = -1.0f;
-    foc_ireg_state.idPID.OutMaxLimit = 1.0f;
-    foc_ireg_state.idPID.setTunings( Data::SysControl.currentCtrl_D_Kp, Data::SysControl.currentCtrl_D_Ki,
-                                     Data::SysControl.currentCtrl_D_Kd, foc_ireg_state.dt );
-
-    // TODO: Move this elsewhere
-    // Orbit::Motor::enableDriveOutput();
-    // Orbit::Motor::svmUpdate( 1.0f, 1.0f, 1.0f ); // Have to call this to kick initial PWM update
-    // foc_ireg_state.iqRef = 0.0f;
-    // foc_ireg_state.idRef = 0.001f; // Torque command
+    foc_ireg_state.idPID.OutMinLimit = -12.0f;
+    foc_ireg_state.idPID.OutMaxLimit = 12.0f;
+    // foc_ireg_state.idPID.setTunings( Data::SysControl.currentCtrl_D_Kp,
+    // Data::SysControl.currentCtrl_D_Ki,
+    //                                  Data::SysControl.currentCtrl_D_Kd,
+    //                                  foc_ireg_state.dt );
+    foc_ireg_state.idPID.setTunings( 15.0f, 0.1f, 0.0f, foc_ireg_state.dt );
 
     setControlMode( Mode::DISABLED );
   }
@@ -118,6 +130,17 @@ namespace Orbit::Control::Field
 
   void powerDn()
   {
+    /*-------------------------------------------------------------------------
+    Tear down in the opposite order of initialization
+    -------------------------------------------------------------------------*/
+    setControlMode( Mode::DISABLED );
+    Orbit::Motor::Sense::reset();
+    Orbit::Motor::Drive::reset();
+
+    /*-------------------------------------------------------------------------
+    Reset module memory
+    -------------------------------------------------------------------------*/
+    reset_state();
   }
 
 
@@ -126,15 +149,28 @@ namespace Orbit::Control::Field
     /*-------------------------------------------------------------------------
     Check if the mode is already set
     -------------------------------------------------------------------------*/
-    if( mode == s_state.ctl_mode )
+    if( mode == s_ctl_mode )
     {
       return true;
     }
 
+    Chimera::Timer::Inverter::Driver *const inverter =
+        Motor::Drive::getDriver();
+
     /*-------------------------------------------------------------------------
     Gate the ISR from running temporarily while state data gets updated
     -------------------------------------------------------------------------*/
-    s_state.ctl_mode = Mode::DISABLED;
+    // TODO BMB: This is a bad idea. I need to rework the control loop to
+    // perform the algorithm
+    // TODO BMB: changes/updates inside the ISR. Enabling/disabling globally is
+    // fine though.
+    // TODO BMB: I can't allow the motor control signals to be stale for any
+    // amount of time. The
+    // TODO BMB: update needs to be atomic as far as the power stage is
+    // concerned.
+    auto isr_msk = Chimera::System::disableInterrupts();
+    s_ctl_mode   = Mode::DISABLED;
+    Chimera::System::enableInterrupts( isr_msk );
 
     /*-------------------------------------------------------------------------
     Otherwise, cleanly transition to the new mode
@@ -145,98 +181,154 @@ namespace Orbit::Control::Field
     switch( mode )
     {
       case Mode::DISABLED:
-        Orbit::Motor::Drive::disableDriveOutput();
+        inverter->disableOutput();
+#if defined( SIMULATOR )
+        Orbit::Sim::ADC::enableMotorSenseADC( false );
+#endif
         break;
 
       case Mode::OPEN_LOOP:
-        s_state.open_loop_id_ref = 0.0f;
-        s_state.open_loop_iq_ref = 0.0f;
-        s_state.open_loop_theta  = 0.0f;
-        break;
-
-      case Mode::CLOSED_LOOP:
         foc_motor_state.thetaEst = 0.0f;
         foc_ireg_state.iqRef     = 0.0f;
         foc_ireg_state.idRef     = 0.0f;
+
+        inverter->svmUpdate( 0.0f, 0.0f, 0.0f, 0.0f );
+        inverter->enableOutput();
+
+
+#if defined( SIMULATOR )
+        Orbit::Sim::ADC::enableMotorSenseADC( true );
+#endif
+        break;
+
+      case Mode::CLOSED_LOOP:
         break;
 
       default:
-        Orbit::Motor::Drive::disableDriveOutput();
+        s_ctl_mode = Mode::DISABLED;
+        inverter->disableOutput();
+
+#if defined( SIMULATOR )
+        Orbit::Sim::ADC::enableMotorSenseADC( false );
+#endif
         return false;
     }
 
     /*-------------------------------------------------------------------------
     Activate the new mode
     -------------------------------------------------------------------------*/
-    s_state.ctl_mode = mode;
+    s_ctl_mode = mode;
     return true;
   }
 
 
   Mode getControlMode()
   {
-    return s_state.ctl_mode;
+    return s_ctl_mode;
   }
 
 
-  void setInnerLoopReferences( const float iq_ref, const float id_ref, const float theta )
+  void setInnerLoopCallback( ISRInnerLoopCallback callback )
   {
-    if( s_state.ctl_mode == Mode::OPEN_LOOP )
+    auto isr_msk    = Chimera::System::disableInterrupts();
+    s_inner_loop_cb = callback;
+    Chimera::System::enableInterrupts( isr_msk );
+  }
+
+
+  void pumpISRDataStream()
+  {
+    using namespace Orbit::Serial;
+
+    /*-------------------------------------------------------------------------
+    Send the control state over the serial port for monitoring
+    -------------------------------------------------------------------------*/
+    if( s_tx_isr_buffer.empty() )
     {
-      s_state.open_loop_iq_ref = iq_ref;
-      s_state.open_loop_id_ref = id_ref;
-      s_state.open_loop_theta  = theta;
+      return;
+    }
+
+    /*-------------------------------------------------------------------------
+    Pull the next byte from the buffer and send it over the serial port
+    -------------------------------------------------------------------------*/
+    auto     serial    = getUSBSerialDriver();
+    uint32_t idx       = 0;
+    size_t   pump_size = 0;
+    uint8_t  arr[ 256 ];
+
+    Chimera::Thread::TimedLockGuard lck( *serial );
+    if( !lck.try_lock_for( Chimera::Thread::TIMEOUT_DONT_WAIT ) )
+    {
+      return;
+    }
+
+    while( s_tx_isr_buffer.size() )
+    {
+      /*-----------------------------------------------------------------------
+      Pull a number of bytes from the buffer
+      -----------------------------------------------------------------------*/
+      idx       = 0;
+      pump_size = std::min( sizeof( arr ), serial->availableForWrite() );
+
+      memset( arr, 0, sizeof( arr ) );
+
+      while( s_tx_isr_buffer.pop( arr[ idx ] ) && ( idx < pump_size ) )
+      {
+        idx++;
+      }
+
+      /*-----------------------------------------------------------------------
+      Send the data over the serial port. We can't do anything if the data
+      can't enqueue, so just drop it.
+      -----------------------------------------------------------------------*/
+      serial->write( arr, idx );
     }
   }
+
 
   /*---------------------------------------------------------------------------
   Static Functions
   ---------------------------------------------------------------------------*/
-  static void isr_current_control_loop()
+
+  static void reset_state()
+  {
+    s_ctl_mode = Mode::DISABLED;
+    foc_ireg_state.iqPID.resetState();
+    foc_ireg_state.idPID.resetState();
+  }
+
+
+  /**
+   * @brief Executes a single cycle of the current control algorithm.
+   * @note  This function is called from the ADC DMA ISR.
+   * @see AN1078: Sensorless Field Oriented Control of PMSM Motors Figure 6
+   *
+   * This function consumes the latest ADC samples, runs the control algorithm,
+   * and updates the PWM outputs for the next cycle.
+   */
+  void isr_current_control_loop()
   {
     using namespace Orbit::Motor::Drive;
     using namespace Orbit::Motor::Sense;
     using namespace Orbit::Instrumentation;
     using namespace Orbit::Control::Math;
 
-    s_dbg_pin->setState( Chimera::GPIO::State::HIGH );
-    s_dbg_pin->setState( Chimera::GPIO::State::LOW );
+    static uint32_t         isr_monitor_count = 0;
+    static Observer::Input  observer_input;
+    static Observer::Output observer_output;
+
+    Chimera::Timer::Inverter::Driver *const inverter =
+        Motor::Drive::getDriver();
 
     /*-------------------------------------------------------------------------
     Decide how to proceed depending on our current mode
     -------------------------------------------------------------------------*/
-    float theta = 0.0f;
-    float iqRef = 0.0f;
-    float idRef = 0.0f;
-
-    switch( s_state.ctl_mode )
+    // TODO BMB: This is a hack to prevent the control loop from running when
+    // the subroutines that control major motor functions haven't fully
+    // registered yet. This is a architecture problem. Fix it.
+    if( s_ctl_mode == Mode::DISABLED || !s_inner_loop_cb )
     {
-      /*-----------------------------------------------------------------------
-      Use external references for the current control loop. This is used for
-      manual control.
-      -----------------------------------------------------------------------*/
-      case Mode::OPEN_LOOP:
-        theta = s_state.open_loop_theta;
-        iqRef = s_state.open_loop_iq_ref;
-        idRef = s_state.open_loop_id_ref;
-        break;
-
-      /*-----------------------------------------------------------------------
-      Use internal references generated by state estimator and speed control
-      outer loop to generate current control references.
-      -----------------------------------------------------------------------*/
-      case Mode::CLOSED_LOOP:
-        theta = foc_motor_state.thetaEst;
-        iqRef = foc_ireg_state.iqRef;
-        idRef = foc_ireg_state.idRef;
-        break;
-
-      /*-----------------------------------------------------------------------
-      Default case is to do nothing and immediately return.
-      -----------------------------------------------------------------------*/
-      case Mode::DISABLED:
-      default:
-        return;
+      return;
     }
 
     /*-------------------------------------------------------------------------
@@ -248,7 +340,11 @@ namespace Orbit::Control::Field
     foc_ireg_state.vma = sense_data.channel[ CHANNEL_PHASE_A_VOLTAGE ];
     foc_ireg_state.vmb = sense_data.channel[ CHANNEL_PHASE_B_VOLTAGE ];
     foc_ireg_state.vmc = sense_data.channel[ CHANNEL_PHASE_C_VOLTAGE ];
+    foc_ireg_state.ima = sense_data.channel[ CHANNEL_PHASE_A_CURRENT ];
+    foc_ireg_state.imb = sense_data.channel[ CHANNEL_PHASE_B_CURRENT ];
+    foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
 
+#if defined( EMBEDDED )
     /*-------------------------------------------------------------------------
     Reconstruct 3-phase currents from two phases. One phase could have the
     low side switch active for a very short amount of time, leading to a bad
@@ -258,10 +354,10 @@ namespace Orbit::Control::Field
 
     See: TIDUCY7 Figure 3. "Using Three-Shunt Current Sampling Technique"
     -------------------------------------------------------------------------*/
-    uint32_t tOnHighA, tOnHighB, tOnHighC;
-    svmOnTicks( tOnHighA, tOnHighB, tOnHighC );
+    const auto svmState = Orbit::Motor::Drive::getDriver()->svmState();
 
-    if ( ( tOnHighA > tOnHighB ) && ( tOnHighA > tOnHighC ) )
+    if( ( svmState.phase1 == Chimera::Timer::Channel::CHANNEL_2 ) &&
+        ( svmState.phase2 == Chimera::Timer::Channel::CHANNEL_3 ) )
     {
       /*-----------------------------------------------------------------------
       Phase A low side is on for the shortest amount of time. Reconstruct it.
@@ -270,7 +366,8 @@ namespace Orbit::Control::Field
       foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
       foc_ireg_state.ima = -1.0f * ( foc_ireg_state.imb + foc_ireg_state.imc );
     }
-    else if ( ( tOnHighB > tOnHighA ) && ( tOnHighB > tOnHighC ) )
+    else if( ( svmState.phase1 == Chimera::Timer::Channel::CHANNEL_1 ) &&
+             ( svmState.phase2 == Chimera::Timer::Channel::CHANNEL_3 ) )
     {
       /*-----------------------------------------------------------------------
       Phase B low side is on for the shortest amount of time. Reconstruct it.
@@ -279,7 +376,8 @@ namespace Orbit::Control::Field
       foc_ireg_state.imc = sense_data.channel[ CHANNEL_PHASE_C_CURRENT ];
       foc_ireg_state.imb = -1.0f * ( foc_ireg_state.ima + foc_ireg_state.imc );
     }
-    else if ( ( tOnHighC > tOnHighA ) && ( tOnHighC > tOnHighB ) )
+    else if( ( svmState.phase1 == Chimera::Timer::Channel::CHANNEL_1 ) &&
+             ( svmState.phase2 == Chimera::Timer::Channel::CHANNEL_2 ) )
     {
       /*-----------------------------------------------------------------------
       Phase C low side is on for the shortest amount of time. Reconstruct it.
@@ -293,55 +391,117 @@ namespace Orbit::Control::Field
       /*-----------------------------------------------------------------------
       Something went wrong, so bugger out now.
       -----------------------------------------------------------------------*/
+      emergencyStop();
+      RT_DBG_ASSERT( false );
       return;
+    }
+#endif /* EMBEDDED */
+
+    /*-------------------------------------------------------------------------
+    Use Clarke Transform to convert from rotational frame => alpha/beta frame.
+    -------------------------------------------------------------------------*/
+    clarke_transform( foc_ireg_state.ima, foc_ireg_state.imb,
+                      foc_ireg_state.imc, foc_ireg_state.ialpha,
+                      foc_ireg_state.ibeta );
+    clarke_transform( foc_ireg_state.vma, foc_ireg_state.vmb,
+                      foc_ireg_state.vmc, foc_ireg_state.valpha,
+                      foc_ireg_state.vbeta );
+
+    /*-------------------------------------------------------------------------
+    Run the obvserver to update the system estimation. This will always track
+    in open loop, but the values will actually get used once we switch over to
+    closed loop speed control.
+    -------------------------------------------------------------------------*/
+    observer_input.dt     = foc_ireg_state.dt;
+    observer_input.iAlpha = foc_ireg_state.ialpha;
+    observer_input.iBeta  = foc_ireg_state.ibeta;
+    observer_input.vAlpha = foc_ireg_state.va_cmd;
+    observer_input.vBeta  = foc_ireg_state.vb_cmd;
+
+#if defined( EMBEDDED )
+    Observer::execute( observer_input, observer_output );
+#elif defined( SIMULATOR )
+    Orbit::Sim::Control::Observer::execute( observer_input, observer_output );
+#endif
+
+    if( s_ctl_mode == Mode::CLOSED_LOOP )
+    {
+      foc_motor_state.thetaEst = observer_output.theta_elec;
+      foc_motor_state.omegaEst = observer_output.omega_elec;
+    }
+    else
+    {
+      /*-----------------------------------------------------------------------
+      Open loop integration of the commanded speed. Allow to grow unbounded so
+      we don't introduce discontinuities in the angle estimate. Normalized at
+      consumption.
+      -----------------------------------------------------------------------*/
+      // foc_motor_state.thetaEst += foc_motor_state.omegaEst *
+      // foc_ireg_state.dt;
     }
 
     /*-------------------------------------------------------------------------
-    Use Clarke Transform to convert phase currents from 3-axis to 2-axis
+    Using the new estimations, convert to the DQ axis for control
     -------------------------------------------------------------------------*/
-    clarke_transform( foc_ireg_state.ima, foc_ireg_state.imb, foc_ireg_state.ia, foc_ireg_state.ib );
-
-    // observerUpdate( s_state );
+    park_transform( foc_ireg_state.ialpha, foc_ireg_state.ibeta,
+                    std::fmodf( foc_motor_state.thetaEst, M_2PI_F ),
+                    foc_ireg_state.iq, foc_ireg_state.id );
 
     /*-------------------------------------------------------------------------
-    Use Park Transform to convert phase currents from 2-axis to d-q axis
+    Generate voltage commands in the D-Q axis for the next control cycle. This
+    regulates the inner loop currents.
     -------------------------------------------------------------------------*/
-    park_transform( foc_ireg_state.ia, foc_ireg_state.ib, theta, foc_ireg_state.iq, foc_ireg_state.id );
-
-
-    // /*-------------------------------------------------------------------------
-    // Use sliding mode controller to estimate rotor speed and position
-    // -------------------------------------------------------------------------*/
-    // updateCurrentObserver();
-    // updateSpeedPosObserver();
+    // TODO: From mcpwm_foc:4299 (Vedder), once I switch into closed loop
+    // TODO: control I probably should add decoupling of the d-q currents.
+    if( s_ctl_mode == Mode::CLOSED_LOOP )
+    {
+      foc_ireg_state.vd =
+          foc_ireg_state.idPID.run( foc_ireg_state.idRef - foc_ireg_state.id );
+      foc_ireg_state.vq =
+          foc_ireg_state.iqPID.run( foc_ireg_state.iqRef - foc_ireg_state.iq );
+    }
+    else
+    {
+      foc_ireg_state.vd = foc_ireg_state.idRef;
+      foc_ireg_state.vq = foc_ireg_state.iqRef;
+    }
 
     /*-------------------------------------------------------------------------
-    Run PI controllers for motor currents to generate voltage commands
+    Modulate the voltage commands to fit within the allowable space vector
     -------------------------------------------------------------------------*/
-    foc_ireg_state.vq -= foc_ireg_state.iqPID.run( iqRef - foc_ireg_state.iq );
-    foc_ireg_state.vd += foc_ireg_state.idPID.run( idRef - foc_ireg_state.id );
+    // // Compute the max length of the voltage space vector without
+    // overmodulation const float max_v_mag = ONE_OVER_SQRT3 *
+    // foc_ireg_state.max_drive * vSupply;
 
-    const float max_duty  = 1.0;
-    const float max_v_mag = ONE_OVER_SQRT3 * max_duty * vSupply;
+    // // Scale the voltage commands to fit within the allowable space vector
+    // saturate_vector_2d( foc_ireg_state.vd, foc_ireg_state.vq, max_v_mag );
 
-    Control::Math::truncate_fabs( foc_ireg_state.vd, max_v_mag );
-
-    float max_vq = sqrtf( ( max_v_mag * max_v_mag ) - ( foc_ireg_state.vd * foc_ireg_state.vd ) );
-    Control::Math::truncate_fabs( foc_ireg_state.vq, max_vq );
-    Control::Math::saturate_vector_2d( foc_ireg_state.vd, foc_ireg_state.vq, max_v_mag );
+    // const float v_norm = 1.5f / vSupply;
+    // foc_ireg_state.vd  = foc_ireg_state.vd * v_norm;
+    // foc_ireg_state.vq  = foc_ireg_state.vq * v_norm;
 
     /*-------------------------------------------------------------------------
-    Use Inverse Park Transform to convert d-q voltages to 2-axis phase voltages
+    Convert rotating DQ frame back to stationary alpha-beta frame
     -------------------------------------------------------------------------*/
-    inverse_park_transform( foc_ireg_state.vq, foc_ireg_state.vd, theta, foc_ireg_state.va, foc_ireg_state.vb );
+    inverse_park_transform( foc_ireg_state.vq, foc_ireg_state.vd,
+                            std::fmodf( foc_motor_state.thetaEst, M_2PI_F ),
+                            foc_ireg_state.va_cmd, foc_ireg_state.vb_cmd );
 
     /*-------------------------------------------------------------------------
-    Apply the SVM updates
+    Update the SVM to generate the next PWM cycle
     -------------------------------------------------------------------------*/
-    svmUpdate( foc_ireg_state.va, foc_ireg_state.vb, theta );
+    float modulation_index =
+        hypotf( foc_ireg_state.va_cmd, foc_ireg_state.vb_cmd );
+
+    // TODO: Grok says I don't need theta here as it can be computed internally
+    // TODO: from alpha/beta via atan2(beta, alpha). Might be worth it?
+    inverter->svmUpdate( foc_ireg_state.va_cmd, foc_ireg_state.vb_cmd,
+                         std::fmodf( foc_motor_state.thetaEst, M_2PI_F ),
+                         modulation_index );
 
     /*-------------------------------------------------------------------------
-    Set the debug pin low to indicate the end of the control loop
+    Invoke control system callback to swap in custom inner loop behaviors
     -------------------------------------------------------------------------*/
+    s_inner_loop_cb();
   }
 }    // namespace Orbit::Control::Field

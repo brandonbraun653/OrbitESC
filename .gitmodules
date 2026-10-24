@@ -34,3 +34,6 @@
 [submodule "lib/usb/tinyusb/tools/uf2"]
 	path = lib/usb/tinyusb/tools/uf2
 	url = https://github.com/microsoft/uf2.git
+[submodule "lib/cmsis/core"]
+	path = lib/cmsis/core
+	url = https://github.com/STMicroelectronics/cmsis_core.git

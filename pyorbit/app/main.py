@@ -8,10 +8,8 @@ from loguru import logger
 from pyorbit.app.parameters.updater import ParameterUpdater
 from pyorbit.app.ui.pyorbit import Ui_MainWindow
 from pyorbit.app.connections.serial import SerialConnectionManagerSingleton
+from pyorbit.app.util import AppSettings
 from pyorbit.serial.client import OrbitClient
-
-# Load our settings storage
-AppSettings = QtCore.QSettings("OrbitESC", "PyOrbit")
 
 
 class PyOrbitGUI(QMainWindow, Ui_MainWindow):

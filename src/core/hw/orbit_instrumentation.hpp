@@ -7,7 +7,7 @@
  *    the board. To-date this has been used for temperature and voltage
  *    measurements of interest.
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -17,6 +17,7 @@
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
+#include <Chimera/adc>
 #include <cstdint>
 
 namespace Orbit::Instrumentation
@@ -84,6 +85,25 @@ namespace Orbit::Instrumentation
    * @return float
    */
   float getCurrentSenseReferenceVoltage();
+
+
+  /*---------------------------------------------------------------------------
+  Private Functions
+  ---------------------------------------------------------------------------*/
+  namespace Private
+  {
+    /**
+     * @brief Callback to handle results of ADC conversions
+     *
+     * This is called from an ISR context and invoked as a result of a timer triggered DMA transfer.
+     * In the case of a simulator build, this will be called periodically to simulate the ADC
+     * conversion process.
+     *
+     * @param isr  Results of the ADC conversion
+     * @return void
+     */
+    void isr_on_instrumentation_adc_conversion_complete( const Chimera::ADC::InterruptDetail &isr );
+  }
 
 }    // namespace Orbit::Instrumentation
 

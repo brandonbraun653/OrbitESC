@@ -291,7 +291,10 @@ namespace Orbit::Data::Param
       break;
 
       default:
-        if( memcmp( node->address, src, size ) == 0 )
+        /*---------------------------------------------------------------------
+        If the data is the same, don't bother writing it to disk.
+        ---------------------------------------------------------------------*/
+        if( ( memcmp( node->address, src, size ) == 0 ) && ( node->address != src ) )
         {
           return true;
         }

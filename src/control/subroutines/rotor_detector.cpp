@@ -8,11 +8,17 @@
  *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
+
+// TODO BMB: This whole algorithm needs updating to use the Id current measurements.
+// TODO BMB: The current implementation is not very good and is not reliable.
+
+
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
 #include <Aurora/logging>
 #include <src/control/subroutines/rotor_detector.hpp>
+#include <src/core/data/orbit_data.hpp>
 #include <src/core/hw/orbit_motor_drive.hpp>
 #include <src/core/hw/orbit_motor_sense.hpp>
 
@@ -32,7 +38,7 @@ namespace Orbit::Control::Subroutine
     mMeasurements.fill( {} );
     id         = Routine::ALIGNMENT_DETECTION;
     name       = "Rotor Alignment Detector";
-    mState     = State::UNINITIALIZED;
+    mState     = RunState::UNINITIALIZED;
     mStartTime = 0;
     mIdx       = 0;
   }
@@ -47,11 +53,10 @@ namespace Orbit::Control::Subroutine
   {
     using namespace Chimera::Timer::Inverter;
 
-    LOG_INFO( "Initialized rotor detector" );
+    LOG_INFO( "Initialized %s", this->name.c_str() );
 
     mTimer = Motor::Drive::getDriver();
     mTimer->enableOutput();
-    mTimer->shortLowSideWindings();
 
     /*-------------------------------------------------------------------------
     Configure the 6 commutation sampling sequences
@@ -80,15 +85,14 @@ namespace Orbit::Control::Subroutine
     mMeasurements[ 5 ].loSide     = SwitchIO::SWITCH_3_LO;
     mMeasurements[ 5 ].accCurrent = 0.0f;
 
-    mState = State::INITIALIZED;
+    mState = RunState::INITIALIZED;
   }
 
 
   void RotorDetector::start()
   {
-    LOG_INFO( "Running rotor detector" );
-    mState = State::RUNNING;
-
+    LOG_INFO( "Running %s", this->name.c_str() );
+    mState = RunState::RUNNING;
 
     mIdx = 0;
     mTimer->energizeWinding( mMeasurements[ mIdx ].hiSide, mMeasurements[ mIdx ].loSide, DRIVE_DUTY_CYCLE );
@@ -99,7 +103,8 @@ namespace Orbit::Control::Subroutine
 
   void RotorDetector::stop()
   {
-    mState = State::STOPPED;
+    LOG_INFO( "Stopped %s", this->name.c_str() );
+    mState = RunState::STOPPED;
     if( mTimer )
     {
       mTimer->disableOutput();
@@ -109,7 +114,7 @@ namespace Orbit::Control::Subroutine
 
   void RotorDetector::destroy()
   {
-    mState = State::UNINITIALIZED;
+    mState = RunState::UNINITIALIZED;
   }
 
 
@@ -146,13 +151,12 @@ namespace Orbit::Control::Subroutine
           break;
       }
 
-      if( mMeasurements[ mIdx ].accCurrent > 100.0f )
+      if( mMeasurements[ mIdx ].accCurrent > 25.0f )
       {
-        mMeasurements[ mIdx ].accTime = Chimera::millis() - mStartTime;
-        // mTimer->shortLowSideWindings();
         mTimer->energizeWinding( mMeasurements[ mIdx ].hiSide, mMeasurements[ mIdx ].loSide, 0.0f );
-        mSampleActive = false;
-        mStartTime    = Chimera::millis();
+        mMeasurements[ mIdx ].accTime = Chimera::millis() - mStartTime;
+        mSampleActive                 = false;
+        mStartTime                    = Chimera::millis();
       }
     }
 
@@ -160,7 +164,7 @@ namespace Orbit::Control::Subroutine
     Windings fully discharged, move to next measurement
     -------------------------------------------------------------------------*/
     // TODO: Could probably do this in a more efficient way, maybe by using the actual measurements
-    if( !mSampleActive && ( ( Chimera::millis() - mStartTime ) > 100 ) )
+    if( !mSampleActive && ( ( Chimera::millis() - mStartTime ) > 10 ) )
     {
       mIdx++;
       mTimer->energizeWinding( mMeasurements[ mIdx ].hiSide, mMeasurements[ mIdx ].loSide, DRIVE_DUTY_CYCLE );
@@ -173,7 +177,7 @@ namespace Orbit::Control::Subroutine
     -------------------------------------------------------------------------*/
     if( mIdx >= mMeasurements.size() )
     {
-      mState = State::STOPPED;
+      mState = RunState::STOPPED;
       mTimer->disableOutput();
       LOG_INFO( "Rotor Detector Results" );
       size_t lowest_idx = 0;
@@ -189,11 +193,17 @@ namespace Orbit::Control::Subroutine
       }
 
       LOG_INFO( "  Lowest: %d", lowest_idx );
+
+      /*-----------------------------------------------------------------------
+      Propagate the decision for the park sector up to the rest of the system.
+      This will be used by the ARM state as a starting point for the ramp up.
+      -----------------------------------------------------------------------*/
+      Data::SysControl.parkTheta = lowest_idx * 60.0f;
     }
   }
 
 
-  State RotorDetector::state()
+  RunState RotorDetector::state()
   {
     return mState;
   }

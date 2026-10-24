@@ -20,7 +20,9 @@ Includes
 #include <src/core/hw/orbit_motor_sense.hpp>
 #include <src/core/hw/orbit_instrumentation.hpp>
 #include <src/core/hw/orbit_timer.hpp>
-
+#if defined( SIMULATOR )
+#include <src/simulator/sim_adc.hpp>
+#endif
 
 namespace Orbit::ADC
 {
@@ -207,6 +209,10 @@ namespace Orbit::ADC
     adc_cfg.transferMode    = Chimera::ADC::TransferMode::DMA;
     adc_cfg.analogVRef      = 3.30f;
 
+    #if defined( SIMULATOR )
+    Sim::ADC::initialize( adc_cfg.analogVRef, 4096.0f );
+    #endif  /* SIMULATOR */
+
     adc = Chimera::ADC::getDriver( adc_cfg.periph );
     RT_DBG_ASSERT( adc );
     RT_HARD_ASSERT( Chimera::Status::OK == adc->open( adc_cfg ) );
@@ -218,25 +224,25 @@ namespace Orbit::ADC
     s_motor_channels[ Motor::Sense::CHANNEL_PHASE_A_CURRENT ] = IO::Analog::adcIPhaseA;
     s_motor_channels[ Motor::Sense::CHANNEL_PHASE_B_CURRENT ] = IO::Analog::adcIPhaseB;
     s_motor_channels[ Motor::Sense::CHANNEL_PHASE_C_CURRENT ] = IO::Analog::adcIPhaseC;
-    s_motor_channels[ Motor::Sense::CHANNEL_PHASE_A_VOLTAGE ] = IO::Analog::adcVPhaseA;
-    s_motor_channels[ Motor::Sense::CHANNEL_PHASE_B_VOLTAGE ] = IO::Analog::adcVPhaseB;
-    s_motor_channels[ Motor::Sense::CHANNEL_PHASE_C_VOLTAGE ] = IO::Analog::adcVPhaseC;
+    // s_motor_channels[ Motor::Sense::CHANNEL_PHASE_A_VOLTAGE ] = IO::Analog::adcVPhaseA;
+    // s_motor_channels[ Motor::Sense::CHANNEL_PHASE_B_VOLTAGE ] = IO::Analog::adcVPhaseB;
+    // s_motor_channels[ Motor::Sense::CHANNEL_PHASE_C_VOLTAGE ] = IO::Analog::adcVPhaseC;
 
     seq.clear();
     seq.channels    = &s_motor_channels;
-    seq.numChannels = Motor::Sense::CHANNEL_COUNT;
+    seq.numChannels = 3;
     seq.seqGroup    = Chimera::ADC::SequenceGroup::REGULAR;
     seq.seqMode     = Chimera::ADC::SamplingMode::TRIGGER;
     seq.trigMode    = Chimera::ADC::TriggerMode::RISING_EDGE;
     seq.trigChannel = IO::Analog::MotorExternalEventChannel;
 
     RT_HARD_ASSERT( Chimera::Status::OK == adc->configSequence( seq ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseA, 12 ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseA, 12 ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseB, 12 ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseB, 12 ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseC, 12 ) );
-    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseC, 12 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseA, 5 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseB, 5 ) );
+    RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcIPhaseC, 5 ) );
+    // RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseA, 3 ) );
+    // RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseB, 3 ) );
+    // RT_HARD_ASSERT( Chimera::Status::OK == adc->setSampleTime( IO::Analog::adcVPhaseC, 3 ) );
   }
 
 
@@ -301,6 +307,9 @@ namespace Orbit::ADC
     init_gpio_pins();
     cfg_motor_adc();
     cfg_instrumentation_adc();
+
+    const uint32_t ns_sample_time = motorChannelSampleTimeNs();
+    LOG_DEBUG_IF( ns_sample_time > 0, "Motor ADC Sample Time: %d ns", ns_sample_time );
   }
 
 
@@ -308,6 +317,7 @@ namespace Orbit::ADC
   {
     using namespace Chimera::Timer;
     using namespace Chimera::ADC;
+    using namespace Orbit::Motor::Sense;
 
     /*-------------------------------------------------------------------------
     Compute the total time it takes to sample all the motor channels in
@@ -316,7 +326,7 @@ namespace Orbit::ADC
     uint32_t sampleTimeNs = 0;
     auto     adc          = Chimera::ADC::getDriver( IO::Analog::MotorADC );
 
-    for ( size_t idx = 0; idx < Motor::Sense::CHANNEL_COUNT; idx++ )
+    for ( size_t idx = 0; idx <= CHANNEL_COUNT; idx++ )
     {
       sampleTimeNs += adc->totalMeasureTime( adc->getSampleCycle( s_motor_channels[ idx ] ) );
     }

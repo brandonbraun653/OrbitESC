@@ -1,4 +1,6 @@
 import logging
+import time
+
 from pyorbit.nanopb.motor_control_pb2 import MotorCtrlState
 from pyorbit.tests.fixtures import *
 from pyorbit.serial.client import OrbitClient
@@ -21,6 +23,17 @@ class TestSystemControlCommands:
 
         LOGGER.info("Validate IDLE->ARM transition")
         assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ARMED)
+
+    def test_engage_transition(self, serial_client: OrbitClient) -> None:
+        """ Checks behavior on transition to engage state. """
+        LOGGER.info("Transitioning to idle state")
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_IDLE)
+
+        LOGGER.info("Validate IDLE->ARM transition")
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ARMED)
+
+        LOGGER.info("Validate ARM->ENGAGE transition")
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ENGAGED)
 
     def test_arm_idle_transition(self, serial_client: OrbitClient) -> None:
         """ Checks behavior on transition to arm state. """

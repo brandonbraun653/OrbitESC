@@ -8,9 +8,10 @@
  *    that use the STM32HAL out of convenience. I can't use those definitions
  *    directly because they'll conflict with my custom HW drivers in Thor.
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
+#if defined( EMBEDDED )
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
@@ -205,3 +206,5 @@ uint16_t const *tud_descriptor_string_cb( uint8_t index, uint16_t langid )
 
   return _desc_str;
 }
+
+#endif /* EMBEDDED */

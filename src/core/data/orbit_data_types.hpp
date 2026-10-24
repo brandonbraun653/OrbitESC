@@ -5,7 +5,7 @@
  *  Description:
  *    Type declarations for system data
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -34,7 +34,7 @@ namespace Orbit::Data
   public:
     etl::string<16> boardName;    /**< PARAM_BOARD_NAME */
     etl::string<32> description;  /**< PARAM_DESCRIPTION */
-    etl::string<8>  serialNumber; /**< PARAM_SERIAL_NUMBER */
+    etl::string<16> serialNumber; /**< PARAM_SERIAL_NUMBER */
     etl::string<8>  swVersion;    /**< PARAM_SW_VERSION */
     uint8_t         hwVersion;    /**< PARAM_HW_VERSION */
     uint32_t        deviceId;     /**< PARAM_DEVICE_ID */
@@ -78,6 +78,12 @@ namespace Orbit::Data
     float rampCtrlFirstOrderTerm;                         /**< PARAM_RAMP_CTRL_FIRST_ORDER_TERM */
     float rampCtrlSecondOrderTerm;                        /**< PARAM_RAMP_CTRL_SECOND_ORDER_TERM */
     float rampCtrlRampTimeSec;                            /**< PARAM_RAMP_CTRL_RAMP_TIME_SEC */
+    float pwmDriveMaxDutyCycle;                           /**< PARAM_PWM_DRIVE_MAX_DUTY */
+
+    /*-------------------------------------------------------------------------
+    Runtime Derived Controls
+    -------------------------------------------------------------------------*/
+    uint32_t parkTheta; /**< Which angle to drive for Park alignment */
 
     void clear();
     void setDefaults();

@@ -13,7 +13,8 @@ import numpy as np
 from PyQt5 import QtCore
 from pyqtgraph import PlotWidget, PlotDataItem
 
-from pyorbit.app.main import AppSettings, Settings
+from pyorbit.app.main import Settings
+from pyorbit.app.util import AppSettings
 from pyorbit.serial.messages import SystemDataPBMsg
 from pyorbit.serial.parameters import ParameterId
 from pyorbit.observers import MessageObserver

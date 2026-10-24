@@ -5,7 +5,7 @@
  *  Description:
  *    Orbit ESC USB driver interface
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -16,7 +16,8 @@
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/function>
-
+#include <etl/delegate.h>
+#include <etl/queue_spsc_locked.h>
 
 namespace Orbit::USB
 {
@@ -24,9 +25,16 @@ namespace Orbit::USB
   Public Functions
   ---------------------------------------------------------------------------*/
   /**
-   * @brief Powers up the USB driver subsystem
+   * @brief Powers up the USB driver hardware
+   * @return void
    */
   void powerUp();
+
+  /**
+   * @brief Starts executing the USB driver stack
+   * @return void
+   */
+  void attach();
 
   /**
    * @brief Register a callback for when the USB device is connected
@@ -43,6 +51,23 @@ namespace Orbit::USB
    * @return True if the callback was registered
    */
   bool onDisconnect( Chimera::Function::Opaque &&callback );
+
+  /**
+   * @brief Registers a callback for when a CDC interface has received data
+   *
+   * @param itf The CDC interface
+   * @param callback The function to be called
+   */
+  void onCDCRXComplete( const uint8_t itf, Chimera::Function::Opaque &&callback );
+
+  /**
+   * @brief Registers a callback for when a CDC interface has transmitted data
+   *
+   * @param itf The CDC interface
+   * @param callback
+   */
+  void onCDCTXComplete( const uint8_t itf, Chimera::Function::Opaque &&callback );
+
 }    // namespace Orbit::USB
 
 #endif /* !ORBIT_ESC_USB_HPP */

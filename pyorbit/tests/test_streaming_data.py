@@ -1,6 +1,8 @@
+import csv
 import math
 import time
 import logging
+from pathlib import Path
 from typing import List
 from pyorbit.serial.messages import SystemDataPBMsg, SystemTickPBMsg, SystemStatusPBMsg
 from pyorbit.tests.fixtures import *
@@ -188,3 +190,104 @@ class TestStaticStreamingData:
             assert math.isclose(msg.va, 0.0, rel_tol=0.1)
             assert math.isclose(msg.vb, 0.0, rel_tol=0.1)
             assert math.isclose(msg.vc, 0.0, rel_tol=0.1)
+
+    def test_current_control_monitor_stream(self, serial_client: OrbitClient) -> None:
+        """ Validates that the current control monitor data is being reported """
+        LOGGER.info("Command transition to ENGAGED state")
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_IDLE)
+        time.sleep(0.5)
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ARMED)
+        time.sleep(0.5)
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ENGAGED)
+
+        LOGGER.info("Acquiring current control loop monitor data")
+        packets = serial_client.com_pipe.filter(
+            lambda msg: isinstance(msg, SystemDataPBMsg) and (msg.data_id == SystemDataId.CURRENT_CONTROL_MONITOR),
+            qty=25000,
+            timeout=8)
+
+        LOGGER.info("Command an IDLE state")
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_IDLE)
+
+        LOGGER.info("Exporting data")
+        messages = [msg.extract_payload() for msg in packets]
+        assert all(isinstance(msg, CurrentControlMonitorPayload) for msg in messages)
+
+        # Write all the data to a CSV file for post-processing
+        output_file = Path(__file__).parent / "data_output" / "current_control_monitor.csv"
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        with output_file.open("w") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["timestamp", "ia", "ib", "ic", "id_ref", "iq_ref", "id", "iq", "vd", "vq", "va",
+                             "vb"])
+            for idx in range(len(messages)):
+                writer.writerow([packets[idx].timestamp,
+                                 messages[idx].ia, messages[idx].ib, messages[idx].ic,
+                                 messages[idx].id_ref, messages[idx].iq_ref, messages[idx].id, messages[idx].iq,
+                                 messages[idx].vd, messages[idx].vq, messages[idx].va, messages[idx].vb])
+
+    def test_system_observer_monitor_stream(self, serial_client: OrbitClient) -> None:
+        """ Validates that the observer monitor data is being reported """
+        LOGGER.info("Command transition to ENGAGED state")
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_IDLE)
+        time.sleep(0.5)
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ARMED)
+        time.sleep(0.5)
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ENGAGED)
+
+        LOGGER.info("Acquiring system observer monitor data")
+        packets = serial_client.com_pipe.filter(
+            lambda msg: isinstance(msg, SystemDataPBMsg) and (msg.data_id == SystemDataId.SYSTEM_OBSERVER_MONITOR),
+            qty=25000,
+            timeout=4)
+
+        LOGGER.info("Command an IDLE state")
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_IDLE)
+
+        LOGGER.info("Exporting data")
+        messages = [msg.extract_payload() for msg in packets]
+        assert all(isinstance(msg, SystemObserverMonitorPayload) for msg in messages)
+
+        # Write all the data to a CSV file for post-processing
+        output_file = Path(__file__).parent / "data_output" / "system_observer_monitor.csv"
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        with output_file.open("w") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["timestamp", "theta_est", "omega_est"])
+            for idx in range(len(messages)):
+                writer.writerow([packets[idx].timestamp, messages[idx].theta_est, messages[idx].omega_est])
+
+    def test_inner_loop_voltage_monitor_stream(self, serial_client: OrbitClient) -> None:
+        """ Validates that the inner loop voltage monitor data is being reported """
+        LOGGER.info("Command transition to ENGAGED state")
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_IDLE)
+        time.sleep(0.5)
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ARMED)
+        time.sleep(0.5)
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_ENGAGED)
+
+        LOGGER.info("Acquiring inner loop voltage monitor data")
+        packets = serial_client.com_pipe.filter(
+            lambda msg: isinstance(msg, SystemDataPBMsg) and (msg.data_id == SystemDataId.INNER_LOOP_VOLTAGES),
+            qty=25000,
+            timeout=4)
+
+        LOGGER.info("Command an IDLE state")
+        assert serial_client.set_motor_ctrl_state(MotorCtrlState.MOTOR_CTRL_STATE_IDLE)
+
+        LOGGER.info("Exporting data")
+        messages = [msg.extract_payload() for msg in packets]
+        assert all(isinstance(msg, InnerLoopVoltageMonitorPayload) for msg in messages)
+
+        # Write all the data to a CSV file for post-processing
+        output_file = Path(__file__).parent / "data_output" / "inner_loop_voltage_monitor.csv"
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        with output_file.open("w") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["timestamp", "va", "vb", "vc", "alpha", "beta"])
+            for idx in range(len(messages)):
+                writer.writerow([packets[idx].timestamp, messages[idx].va, messages[idx].vb, messages[idx].vc,
+                                 messages[idx].alpha, messages[idx].beta])

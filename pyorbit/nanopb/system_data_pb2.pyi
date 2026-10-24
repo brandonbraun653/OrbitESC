@@ -3,7 +3,9 @@
 isort:skip_file
 """
 import builtins
+import collections.abc
 import google.protobuf.descriptor
+import google.protobuf.internal.containers
 import google.protobuf.internal.enum_type_wrapper
 import google.protobuf.message
 import motor_control_pb2
@@ -22,30 +24,57 @@ class _SystemDataId:
     ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
 
-class _SystemDataIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_SystemDataId.ValueType], builtins.type):
+class _SystemDataIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_SystemDataId.ValueType], builtins.type):  # noqa: F821
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
     SYS_DATA_INVALID: _SystemDataId.ValueType  # 0
     """Invalid data ID"""
     ADC_PHASE_CURRENTS: _SystemDataId.ValueType  # 1
-    """ADC readings of the phase currents"""
+    """Composite Data Streams
+    ADC readings of the phase currents
+    """
     ADC_PHASE_VOLTAGES: _SystemDataId.ValueType  # 2
     """Voltage commands being sent to the motor"""
     ADC_SYSTEM_VOLTAGES: _SystemDataId.ValueType  # 3
     """Measurements of less-critical system voltages"""
+    CURRENT_CONTROL_MONITOR: _SystemDataId.ValueType  # 4
+    """Current control monitor data"""
+    SYSTEM_OBSERVER_MONITOR: _SystemDataId.ValueType  # 5
+    """System observer monitor data"""
+    INNER_LOOP_VOLTAGES: _SystemDataId.ValueType  # 6
+    """Voltage measurements from the inner loop controller"""
+    INDIVIDUAL_DATA_STREAMS_START: _SystemDataId.ValueType  # 100
+    """Individual Data Streams
+    Start of individual data streams. Used for iteration only.
+    """
+    ADC_BUS_VOLTAGE: _SystemDataId.ValueType  # 101
+    """DC bus voltage input to the motor controller"""
 
 class SystemDataId(_SystemDataId, metaclass=_SystemDataIdEnumTypeWrapper): ...
 
 SYS_DATA_INVALID: SystemDataId.ValueType  # 0
 """Invalid data ID"""
 ADC_PHASE_CURRENTS: SystemDataId.ValueType  # 1
-"""ADC readings of the phase currents"""
+"""Composite Data Streams
+ADC readings of the phase currents
+"""
 ADC_PHASE_VOLTAGES: SystemDataId.ValueType  # 2
 """Voltage commands being sent to the motor"""
 ADC_SYSTEM_VOLTAGES: SystemDataId.ValueType  # 3
 """Measurements of less-critical system voltages"""
+CURRENT_CONTROL_MONITOR: SystemDataId.ValueType  # 4
+"""Current control monitor data"""
+SYSTEM_OBSERVER_MONITOR: SystemDataId.ValueType  # 5
+"""System observer monitor data"""
+INNER_LOOP_VOLTAGES: SystemDataId.ValueType  # 6
+"""Voltage measurements from the inner loop controller"""
+INDIVIDUAL_DATA_STREAMS_START: SystemDataId.ValueType  # 100
+"""Individual Data Streams
+Start of individual data streams. Used for iteration only.
+"""
+ADC_BUS_VOLTAGE: SystemDataId.ValueType  # 101
+"""DC bus voltage input to the motor controller"""
 global___SystemDataId = SystemDataId
 
-@typing_extensions.final
 class SystemTickMessage(google.protobuf.message.Message):
     """Message type for announcing the current system tick"""
 
@@ -68,7 +97,6 @@ class SystemTickMessage(google.protobuf.message.Message):
 
 global___SystemTickMessage = SystemTickMessage
 
-@typing_extensions.final
 class ConsoleMessage(google.protobuf.message.Message):
     """Message type for streaming out console messages in real time"""
 
@@ -99,7 +127,6 @@ class ConsoleMessage(google.protobuf.message.Message):
 
 global___ConsoleMessage = ConsoleMessage
 
-@typing_extensions.final
 class SystemInfoMessage(google.protobuf.message.Message):
     """Message type for announcing some device descriptions"""
 
@@ -134,7 +161,6 @@ class SystemInfoMessage(google.protobuf.message.Message):
 
 global___SystemInfoMessage = SystemInfoMessage
 
-@typing_extensions.final
 class SystemStatusMessage(google.protobuf.message.Message):
     """Message type for announcing the current system status"""
 
@@ -161,7 +187,171 @@ class SystemStatusMessage(google.protobuf.message.Message):
 
 global___SystemStatusMessage = SystemStatusMessage
 
-@typing_extensions.final
+class StreamRequestMessage(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    class _Encoding:
+        ValueType = typing.NewType("ValueType", builtins.int)
+        V: typing_extensions.TypeAlias = ValueType
+
+    class _EncodingEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[StreamRequestMessage._Encoding.ValueType], builtins.type):  # noqa: F821
+        DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+        FLOAT: StreamRequestMessage._Encoding.ValueType  # 0
+        """Floating point data"""
+        UINT32: StreamRequestMessage._Encoding.ValueType  # 1
+        """32-bit unsigned integer data"""
+        UINT16: StreamRequestMessage._Encoding.ValueType  # 2
+        """16-bit unsigned integer data"""
+        UINT8: StreamRequestMessage._Encoding.ValueType  # 3
+        """8-bit unsigned integer data"""
+        INT32: StreamRequestMessage._Encoding.ValueType  # 4
+        """32-bit signed integer data"""
+        INT16: StreamRequestMessage._Encoding.ValueType  # 5
+        """16-bit signed integer data"""
+        INT8: StreamRequestMessage._Encoding.ValueType  # 6
+        """8-bit signed integer data"""
+        BOOL: StreamRequestMessage._Encoding.ValueType  # 7
+        """Boolean data"""
+
+    class Encoding(_Encoding, metaclass=_EncodingEnumTypeWrapper): ...
+    FLOAT: StreamRequestMessage.Encoding.ValueType  # 0
+    """Floating point data"""
+    UINT32: StreamRequestMessage.Encoding.ValueType  # 1
+    """32-bit unsigned integer data"""
+    UINT16: StreamRequestMessage.Encoding.ValueType  # 2
+    """16-bit unsigned integer data"""
+    UINT8: StreamRequestMessage.Encoding.ValueType  # 3
+    """8-bit unsigned integer data"""
+    INT32: StreamRequestMessage.Encoding.ValueType  # 4
+    """32-bit signed integer data"""
+    INT16: StreamRequestMessage.Encoding.ValueType  # 5
+    """16-bit signed integer data"""
+    INT8: StreamRequestMessage.Encoding.ValueType  # 6
+    """8-bit signed integer data"""
+    BOOL: StreamRequestMessage.Encoding.ValueType  # 7
+    """Boolean data"""
+
+    HEADER_FIELD_NUMBER: builtins.int
+    ID_FIELD_NUMBER: builtins.int
+    RATE_FIELD_NUMBER: builtins.int
+    ACTIVE_FIELD_NUMBER: builtins.int
+    ENCODING_FIELD_NUMBER: builtins.int
+    @property
+    def header(self) -> serial_interface_pb2.Header: ...
+    id: global___SystemDataId.ValueType
+    """Data stream to act on"""
+    rate: builtins.float
+    """Periodic output rate in Hz"""
+    active: builtins.bool
+    """True to enable the stream, False for disable"""
+    encoding: global___StreamRequestMessage.Encoding.ValueType
+    """Encoding to use for the stream"""
+    def __init__(
+        self,
+        *,
+        header: serial_interface_pb2.Header | None = ...,
+        id: global___SystemDataId.ValueType | None = ...,
+        rate: builtins.float | None = ...,
+        active: builtins.bool | None = ...,
+        encoding: global___StreamRequestMessage.Encoding.ValueType | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["active", b"active", "encoding", b"encoding", "header", b"header", "id", b"id", "rate", b"rate"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["active", b"active", "encoding", b"encoding", "header", b"header", "id", b"id", "rate", b"rate"]) -> None: ...
+
+global___StreamRequestMessage = StreamRequestMessage
+
+class StreamDataMessage(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    class _Flags:
+        ValueType = typing.NewType("ValueType", builtins.int)
+        V: typing_extensions.TypeAlias = ValueType
+
+    class _FlagsEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[StreamDataMessage._Flags.ValueType], builtins.type):  # noqa: F821
+        DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+        VALID: StreamDataMessage._Flags.ValueType  # 1
+        """Data is valid"""
+        OUT_OF_SYNC: StreamDataMessage._Flags.ValueType  # 2
+        """Data was not logged at the requested rate"""
+        DEGRADED: StreamDataMessage._Flags.ValueType  # 4
+        """Processing is still ok, but data is in a degraded state"""
+
+    class Flags(_Flags, metaclass=_FlagsEnumTypeWrapper):
+        """Bitfield values to determine the health of a chunk"""
+
+    VALID: StreamDataMessage.Flags.ValueType  # 1
+    """Data is valid"""
+    OUT_OF_SYNC: StreamDataMessage.Flags.ValueType  # 2
+    """Data was not logged at the requested rate"""
+    DEGRADED: StreamDataMessage.Flags.ValueType  # 4
+    """Processing is still ok, but data is in a degraded state"""
+
+    class Chunk(google.protobuf.message.Message):
+        """Raw chunk of data representing a single stream"""
+
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        ID_FIELD_NUMBER: builtins.int
+        FLAGS_FIELD_NUMBER: builtins.int
+        TIMESTAMP_US_FIELD_NUMBER: builtins.int
+        FLOAT_VALUE_FIELD_NUMBER: builtins.int
+        UINT32_VALUE_FIELD_NUMBER: builtins.int
+        UINT16_VALUE_FIELD_NUMBER: builtins.int
+        UINT8_VALUE_FIELD_NUMBER: builtins.int
+        INT32_VALUE_FIELD_NUMBER: builtins.int
+        INT16_VALUE_FIELD_NUMBER: builtins.int
+        INT8_VALUE_FIELD_NUMBER: builtins.int
+        BOOL_VALUE_FIELD_NUMBER: builtins.int
+        id: global___SystemDataId.ValueType
+        """Data stream ID"""
+        flags: builtins.int
+        """Status flags for the chunk"""
+        timestamp_us: builtins.int
+        """System time of the data payload in microseconds"""
+        float_value: builtins.float
+        uint32_value: builtins.int
+        uint16_value: builtins.int
+        uint8_value: builtins.int
+        int32_value: builtins.int
+        int16_value: builtins.int
+        int8_value: builtins.int
+        bool_value: builtins.bool
+        def __init__(
+            self,
+            *,
+            id: global___SystemDataId.ValueType | None = ...,
+            flags: builtins.int | None = ...,
+            timestamp_us: builtins.int | None = ...,
+            float_value: builtins.float | None = ...,
+            uint32_value: builtins.int | None = ...,
+            uint16_value: builtins.int | None = ...,
+            uint8_value: builtins.int | None = ...,
+            int32_value: builtins.int | None = ...,
+            int16_value: builtins.int | None = ...,
+            int8_value: builtins.int | None = ...,
+            bool_value: builtins.bool | None = ...,
+        ) -> None: ...
+        def HasField(self, field_name: typing_extensions.Literal["bool_value", b"bool_value", "flags", b"flags", "float_value", b"float_value", "id", b"id", "int16_value", b"int16_value", "int32_value", b"int32_value", "int8_value", b"int8_value", "payload", b"payload", "timestamp_us", b"timestamp_us", "uint16_value", b"uint16_value", "uint32_value", b"uint32_value", "uint8_value", b"uint8_value"]) -> builtins.bool: ...
+        def ClearField(self, field_name: typing_extensions.Literal["bool_value", b"bool_value", "flags", b"flags", "float_value", b"float_value", "id", b"id", "int16_value", b"int16_value", "int32_value", b"int32_value", "int8_value", b"int8_value", "payload", b"payload", "timestamp_us", b"timestamp_us", "uint16_value", b"uint16_value", "uint32_value", b"uint32_value", "uint8_value", b"uint8_value"]) -> None: ...
+        def WhichOneof(self, oneof_group: typing_extensions.Literal["payload", b"payload"]) -> typing_extensions.Literal["float_value", "uint32_value", "uint16_value", "uint8_value", "int32_value", "int16_value", "int8_value", "bool_value"] | None: ...
+
+    HEADER_FIELD_NUMBER: builtins.int
+    CHUNKS_FIELD_NUMBER: builtins.int
+    @property
+    def header(self) -> serial_interface_pb2.Header: ...
+    @property
+    def chunks(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___StreamDataMessage.Chunk]: ...
+    def __init__(
+        self,
+        *,
+        header: serial_interface_pb2.Header | None = ...,
+        chunks: collections.abc.Iterable[global___StreamDataMessage.Chunk] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["header", b"header"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["chunks", b"chunks", "header", b"header"]) -> None: ...
+
+global___StreamDataMessage = StreamDataMessage
+
 class SystemDataMessage(google.protobuf.message.Message):
     """Message type for streaming out raw data from the system in real time"""
 
@@ -192,7 +382,6 @@ class SystemDataMessage(google.protobuf.message.Message):
 
 global___SystemDataMessage = SystemDataMessage
 
-@typing_extensions.final
 class ADCPhaseCurrentsPayload(google.protobuf.message.Message):
     """Data payload type for SystemDataId::ADC_PHASE_CURRENTS"""
 
@@ -219,7 +408,6 @@ class ADCPhaseCurrentsPayload(google.protobuf.message.Message):
 
 global___ADCPhaseCurrentsPayload = ADCPhaseCurrentsPayload
 
-@typing_extensions.final
 class ADCPhaseVoltagesPayload(google.protobuf.message.Message):
     """Data payload type for SystemDataId::PWM_COMMANDS"""
 
@@ -246,7 +434,6 @@ class ADCPhaseVoltagesPayload(google.protobuf.message.Message):
 
 global___ADCPhaseVoltagesPayload = ADCPhaseVoltagesPayload
 
-@typing_extensions.final
 class ADCSystemVoltagesPayload(google.protobuf.message.Message):
     """Data payload type for SystemDataId::ADC_SYSTEM_VOLTAGES"""
 
@@ -276,3 +463,113 @@ class ADCSystemVoltagesPayload(google.protobuf.message.Message):
     def ClearField(self, field_name: typing_extensions.Literal["v_dc_link", b"v_dc_link", "v_isense", b"v_isense", "v_mcu", b"v_mcu", "v_temp", b"v_temp"]) -> None: ...
 
 global___ADCSystemVoltagesPayload = ADCSystemVoltagesPayload
+
+class CurrentControlMonitorPayload(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    IA_FIELD_NUMBER: builtins.int
+    IB_FIELD_NUMBER: builtins.int
+    IC_FIELD_NUMBER: builtins.int
+    ID_REF_FIELD_NUMBER: builtins.int
+    IQ_REF_FIELD_NUMBER: builtins.int
+    ID_FIELD_NUMBER: builtins.int
+    IQ_FIELD_NUMBER: builtins.int
+    VD_FIELD_NUMBER: builtins.int
+    VQ_FIELD_NUMBER: builtins.int
+    VA_FIELD_NUMBER: builtins.int
+    VB_FIELD_NUMBER: builtins.int
+    ia: builtins.float
+    """Phase A current in Amps"""
+    ib: builtins.float
+    """Phase B current in Amps"""
+    ic: builtins.float
+    """Phase C current in Amps"""
+    id_ref: builtins.float
+    """D-axis current reference in Amps"""
+    iq_ref: builtins.float
+    """Q-axis current reference in Amps"""
+    id: builtins.float
+    """D-axis actual current in Amps"""
+    iq: builtins.float
+    """Q-axis actual current in Amps"""
+    vd: builtins.float
+    """D-axis voltage command in Volts"""
+    vq: builtins.float
+    """Q-axis voltage command in Volts"""
+    va: builtins.float
+    """Voltage command for the Alpha axis in Volts"""
+    vb: builtins.float
+    """Voltage command for the Beta axis in Volts"""
+    def __init__(
+        self,
+        *,
+        ia: builtins.float | None = ...,
+        ib: builtins.float | None = ...,
+        ic: builtins.float | None = ...,
+        id_ref: builtins.float | None = ...,
+        iq_ref: builtins.float | None = ...,
+        id: builtins.float | None = ...,
+        iq: builtins.float | None = ...,
+        vd: builtins.float | None = ...,
+        vq: builtins.float | None = ...,
+        va: builtins.float | None = ...,
+        vb: builtins.float | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["ia", b"ia", "ib", b"ib", "ic", b"ic", "id", b"id", "id_ref", b"id_ref", "iq", b"iq", "iq_ref", b"iq_ref", "va", b"va", "vb", b"vb", "vd", b"vd", "vq", b"vq"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["ia", b"ia", "ib", b"ib", "ic", b"ic", "id", b"id", "id_ref", b"id_ref", "iq", b"iq", "iq_ref", b"iq_ref", "va", b"va", "vb", b"vb", "vd", b"vd", "vq", b"vq"]) -> None: ...
+
+global___CurrentControlMonitorPayload = CurrentControlMonitorPayload
+
+class SystemObserverMonitorPayload(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    THETA_EST_FIELD_NUMBER: builtins.int
+    OMEGA_EST_FIELD_NUMBER: builtins.int
+    theta_est: builtins.float
+    """Estimated electrical angle in radians"""
+    omega_est: builtins.float
+    """Estimated electrical speed in radians per second"""
+    def __init__(
+        self,
+        *,
+        theta_est: builtins.float | None = ...,
+        omega_est: builtins.float | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["omega_est", b"omega_est", "theta_est", b"theta_est"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["omega_est", b"omega_est", "theta_est", b"theta_est"]) -> None: ...
+
+global___SystemObserverMonitorPayload = SystemObserverMonitorPayload
+
+class InnerLoopVoltageMonitorPayload(google.protobuf.message.Message):
+    """Message payload type for SystemDataId::INNER_LOOP_VOLTAGES"""
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    VA_FIELD_NUMBER: builtins.int
+    VB_FIELD_NUMBER: builtins.int
+    VC_FIELD_NUMBER: builtins.int
+    ALPHA_FIELD_NUMBER: builtins.int
+    BETA_FIELD_NUMBER: builtins.int
+    va: builtins.float
+    """Measured phase A voltage"""
+    vb: builtins.float
+    """Measured phase B voltage"""
+    vc: builtins.float
+    """Measured phase C voltage"""
+    alpha: builtins.float
+    """Measured alpha axis voltage"""
+    beta: builtins.float
+    """Measured beta axis voltage"""
+    def __init__(
+        self,
+        *,
+        va: builtins.float | None = ...,
+        vb: builtins.float | None = ...,
+        vc: builtins.float | None = ...,
+        alpha: builtins.float | None = ...,
+        beta: builtins.float | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["alpha", b"alpha", "beta", b"beta", "va", b"va", "vb", b"vb", "vc", b"vc"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["alpha", b"alpha", "beta", b"beta", "va", b"va", "vb", b"vb", "vc", b"vc"]) -> None: ...
+
+global___InnerLoopVoltageMonitorPayload = InnerLoopVoltageMonitorPayload

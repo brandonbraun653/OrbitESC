@@ -71,7 +71,7 @@ namespace Orbit::Control::Math
     float Ki;
     float Kd;
     float iTerm;
-    float lastInput;
+    float lastError;
   };
 }    // namespace Orbit::Control::Math
 

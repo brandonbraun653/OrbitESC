@@ -21,7 +21,7 @@ class _ParamType:
     ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
 
-class _ParamTypeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_ParamType.ValueType], builtins.type):
+class _ParamTypeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_ParamType.ValueType], builtins.type):  # noqa: F821
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
     UNKNOWN: _ParamType.ValueType  # 0
     BOOL: _ParamType.ValueType  # 1
@@ -50,7 +50,7 @@ class _ParamId:
     ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
 
-class _ParamIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_ParamId.ValueType], builtins.type):
+class _ParamIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_ParamId.ValueType], builtins.type):  # noqa: F821
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
     PARAM_INVALID: _ParamId.ValueType  # -1
     """Housekeeping parameters
@@ -121,6 +121,8 @@ class _ParamIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTy
     """Current observer sliding mode controller K gain value"""
     PARAM_CURRENT_OBSERVER_MAX_ERROR: _ParamId.ValueType  # 38
     """Current observer maximum error value"""
+    PARAM_PWM_DRIVE_MAX_DUTY: _ParamId.ValueType  # 39
+    """Maximum duty cycle of the PWM drive"""
     PARAM_ROTOR_POLES: _ParamId.ValueType  # 50
     """Motor Description
     Number of poles in the motor
@@ -215,6 +217,8 @@ PARAM_CURRENT_OBSERVER_KSLIDE: ParamId.ValueType  # 37
 """Current observer sliding mode controller K gain value"""
 PARAM_CURRENT_OBSERVER_MAX_ERROR: ParamId.ValueType  # 38
 """Current observer maximum error value"""
+PARAM_PWM_DRIVE_MAX_DUTY: ParamId.ValueType  # 39
+"""Maximum duty cycle of the PWM drive"""
 PARAM_ROTOR_POLES: ParamId.ValueType  # 50
 """Motor Description
 Number of poles in the motor
@@ -243,7 +247,7 @@ class _ParamIOSubId:
     ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
 
-class _ParamIOSubIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_ParamIOSubId.ValueType], builtins.type):
+class _ParamIOSubIdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_ParamIOSubId.ValueType], builtins.type):  # noqa: F821
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
     GET: _ParamIOSubId.ValueType  # 1
     """Retrieve the current value of a parameter"""
@@ -266,7 +270,6 @@ LOAD: ParamIOSubId.ValueType  # 4
 """Load all parameters from disk"""
 global___ParamIOSubId = ParamIOSubId
 
-@typing_extensions.final
 class ParamIOMessage(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 

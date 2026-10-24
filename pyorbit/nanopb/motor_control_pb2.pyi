@@ -20,7 +20,7 @@ class _MotorCtrlState:
     ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
 
-class _MotorCtrlStateEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_MotorCtrlState.ValueType], builtins.type):
+class _MotorCtrlStateEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_MotorCtrlState.ValueType], builtins.type):  # noqa: F821
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
     MOTOR_CTRL_STATE_IDLE: _MotorCtrlState.ValueType  # 0
     """Motor control is idle"""
@@ -51,7 +51,7 @@ class _MotorCtrlCmd:
     ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
 
-class _MotorCtrlCmdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_MotorCtrlCmd.ValueType], builtins.type):
+class _MotorCtrlCmdEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_MotorCtrlCmd.ValueType], builtins.type):  # noqa: F821
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
     MOTOR_CTRL_CMD_INVALID: _MotorCtrlCmd.ValueType  # 0
     """Invalid motor control command"""
@@ -74,7 +74,6 @@ MOTOR_CTRL_CMD_EMERGENCY_STOP: MotorCtrlCmd.ValueType  # 3
 """Immediately stop driving the power stage and halt"""
 global___MotorCtrlCmd = MotorCtrlCmd
 
-@typing_extensions.final
 class ManualICtrlSetPoint(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 

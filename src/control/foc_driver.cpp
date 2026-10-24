@@ -5,7 +5,7 @@
  *  Description:
  *    Field Oriented Control (FOC) Driver
  *
- *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -14,6 +14,7 @@ Includes
 #include <Aurora/logging>
 #include <Chimera/adc>
 #include <cmath>
+#include <src/config/orbit_esc_cfg.hpp>
 #include <src/config/bsp/board_map.hpp>
 #include <src/control/foc_driver.hpp>
 #include <src/control/foc_math.hpp>
@@ -30,11 +31,11 @@ Includes
 
 #if defined( EMBEDDED )
 #include <Thor/lld/interface/inc/timer>
+#endif /* EMBEDDED */
 
 #if defined( SEGGER_SYS_VIEW )
 #include "SEGGER_SYSVIEW.h"
 #endif /* SEGGER_SYS_VIEW */
-#endif /* EMBEDDED */
 
 
 namespace Orbit::Control::FOC

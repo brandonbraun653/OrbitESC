@@ -5,7 +5,7 @@
  *  Description:
  *    Idle state
  *
- *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -104,4 +104,4 @@ namespace Orbit::Control::State
     return this->No_State_Change;
   }
 
-}  // namespace Orbit::Control::State
+}    // namespace Orbit::Control::State

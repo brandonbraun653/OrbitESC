@@ -307,7 +307,10 @@ namespace Orbit::LED
     /*-------------------------------------------------------------------------
     Register USB connection status callbacks
     -------------------------------------------------------------------------*/
-    RT_HARD_ASSERT( Orbit::USB::onConnect( Opaque::create<usb_connect>() ) );
-    RT_HARD_ASSERT( Orbit::USB::onDisconnect( Opaque::create<usb_disconnect>() ) );
+    Opaque connect = Opaque::create<usb_connect>();
+    RT_HARD_ASSERT( Orbit::USB::onConnect( std::move( connect ) ) );
+
+    Opaque disconnect = Opaque::create<usb_disconnect>();
+    RT_HARD_ASSERT( Orbit::USB::onDisconnect( std::move( disconnect ) ) );
   }
 }    // namespace Orbit::LED

@@ -12,19 +12,23 @@
  *    is synchronized with the motor power stage PWM timer. This ensures that
  *    the ADC samples are taken at the same time as the power stage is active.
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/adc>
-#include <Thor/lld/common/cortex-m4/system_time.hpp>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/data/orbit_data.hpp>
 #include <src/core/hw/orbit_motor.hpp>
 #include <src/core/hw/orbit_motor_sense.hpp>
 #include <src/core/hw/orbit_timer.hpp>
+#include <src/control/foc_math.hpp>
+
+#if defined( EMBEDDED )
+#include <Thor/lld/common/cortex-m4/system_time.hpp>
+#endif /* EMBEDDED */
 
 namespace Orbit::Motor::Sense
 {
@@ -55,8 +59,9 @@ namespace Orbit::Motor::Sense
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
-  static volatile SenseControlBlock     s_ctl_blk;
-  static Chimera::Timer::Trigger::Slave s_motor_sense_timer;
+  static volatile bool                  s_is_initialized; /**< Flag to indicate if the motor sense subsystem is initialized */
+  static volatile SenseControlBlock     s_ctl_blk;        /**< Control block for the motor sense subsystem */
+  static Chimera::Timer::Trigger::Slave s_motor_sense_timer; /**< Timer for the motor sense subsystem */
 
   /*---------------------------------------------------------------------------
   Static Functions
@@ -79,7 +84,11 @@ namespace Orbit::Motor::Sense
    */
   static inline float current_time_sec()
   {
+#if defined( EMBEDDED )
     return static_cast<float>( CortexM4::SYSTick::getMicroseconds() ) / 1e6f;
+#else
+    return Chimera::micros() / 1e6f;
+#endif /* EMBEDDED */
   }
 
 
@@ -131,71 +140,32 @@ namespace Orbit::Motor::Sense
   }
 
 
-  /**
-   * @brief Callback to handle results of ADC conversions
-   *
-   * @param isrData Results of the ADC conversion
-   * @return void
-   */
-  static void isr_on_motor_sense_adc_conversion_complete( const Chimera::ADC::InterruptDetail &isr )
-  {
-    /*-------------------------------------------------------------------------
-    Set the debug pin high to start measuring ISR execution time. Should be
-    set low again via the user callback.
-    -------------------------------------------------------------------------*/
-    s_ctl_blk.dbg_pin->setState( Chimera::GPIO::State::HIGH );
-
-    /*-------------------------------------------------------------------------
-    Update the sense data cache
-    -------------------------------------------------------------------------*/
-    s_ctl_blk.siData.timestamp = current_time_sec();
-    s_ctl_blk.adc_vref         = isr.vref;
-    s_ctl_blk.adc_vres         = isr.resolution;
-
-    for ( auto i = 0; ( i < isr.num_samples ) && ( i < CHANNEL_COUNT ); i++ )
-    {
-      s_ctl_blk.rawData[ i ] = counts_to_voltage( isr.samples[ i ] );
-      s_ctl_blk.calData[ i ] = s_ctl_blk.rawData[ i ] - s_ctl_blk.calOffset[ i ];
-    }
-
-    /*-------------------------------------------------------------------------
-    Translate raw measurements into representative SI units
-    -------------------------------------------------------------------------*/
-    s_ctl_blk.siData.channel[ CHANNEL_PHASE_A_CURRENT ] = compute_phase_current( s_ctl_blk.calData[ CHANNEL_PHASE_A_CURRENT ] );
-    s_ctl_blk.siData.channel[ CHANNEL_PHASE_B_CURRENT ] = compute_phase_current( s_ctl_blk.calData[ CHANNEL_PHASE_B_CURRENT ] );
-    s_ctl_blk.siData.channel[ CHANNEL_PHASE_C_CURRENT ] = compute_phase_current( s_ctl_blk.calData[ CHANNEL_PHASE_C_CURRENT ] );
-    s_ctl_blk.siData.channel[ CHANNEL_PHASE_A_VOLTAGE ] = compute_phase_voltage( s_ctl_blk.calData[ CHANNEL_PHASE_A_VOLTAGE ] );
-    s_ctl_blk.siData.channel[ CHANNEL_PHASE_B_VOLTAGE ] = compute_phase_voltage( s_ctl_blk.calData[ CHANNEL_PHASE_B_VOLTAGE ] );
-    s_ctl_blk.siData.channel[ CHANNEL_PHASE_C_VOLTAGE ] = compute_phase_voltage( s_ctl_blk.calData[ CHANNEL_PHASE_C_VOLTAGE ] );
-
-    /*-------------------------------------------------------------------------
-    Invoke the user callback
-    -------------------------------------------------------------------------*/
-    if ( s_ctl_blk.callback )
-    {
-      s_ctl_blk.callback();
-    }
-  }
-
-
   /*---------------------------------------------------------------------------
   Public Functions
   ---------------------------------------------------------------------------*/
 
-  Chimera::Timer::Trigger::Slave* getTimer()
+  Chimera::Timer::Trigger::Slave *getTimer()
   {
     return &s_motor_sense_timer;
   }
 
 
-  void powerUpSense()
+  void initialize()
   {
+    /*-------------------------------------------------------------------------
+    Prevent re-initialization
+    -------------------------------------------------------------------------*/
+    if( s_is_initialized )
+    {
+      return;
+    }
+
     /*-------------------------------------------------------------------------
     Reset the state of the module
     -------------------------------------------------------------------------*/
     s_ctl_blk.siData.timestamp = current_time_sec();
 
-    for ( auto i = 0; i < CHANNEL_COUNT; i++ )
+    for( auto i = 0; i < CHANNEL_COUNT; i++ )
     {
       s_ctl_blk.calData[ i ]        = 0.0f;
       s_ctl_blk.calOffset[ i ]      = 0.0f;
@@ -209,13 +179,14 @@ namespace Orbit::Motor::Sense
     /*-------------------------------------------------------------------------
     Calibrate the sense inputs
     -------------------------------------------------------------------------*/
-    calibrateSenseInputs();
+    calibrate();
 
     /*-------------------------------------------------------------------------
     Link the ADC's DMA end-of-transfer interrupt to this module's ISR handler.
     This ADC should already be pre-configured to listen for timer events.
     -------------------------------------------------------------------------*/
-    Chimera::ADC::ISRCallback callback = Chimera::ADC::ISRCallback::create<isr_on_motor_sense_adc_conversion_complete>();
+    Chimera::ADC::ISRCallback callback =
+        Chimera::ADC::ISRCallback::create<Private::isr_on_motor_sense_adc_conversion_complete>();
 
     auto pADC = Chimera::ADC::getDriver( Orbit::IO::Analog::MotorADC );
     pADC->onInterrupt( Chimera::ADC::Interrupt::EOC_SEQUENCE, callback );
@@ -248,10 +219,24 @@ namespace Orbit::Motor::Sense
     spurrious triggering.
     -------------------------------------------------------------------------*/
     pADC->startSequence();
+
+    /*-------------------------------------------------------------------------
+    Set the initialized flag
+    -------------------------------------------------------------------------*/
+    s_is_initialized = true;
   }
 
 
-  void setSenseCallback( SenseCallback callback )
+  void reset()
+  {
+    // TODO: Don't call this unless you have a way to restart the power up sequence.
+    // auto pADC = Chimera::ADC::getDriver( Orbit::IO::Analog::MotorADC );
+    // RT_HARD_ASSERT( pADC );
+    // pADC->close();
+  }
+
+
+  void onComplete( SenseCallback callback )
   {
     s_ctl_blk.callback = callback;
   }
@@ -263,27 +248,19 @@ namespace Orbit::Motor::Sense
   }
 
 
-  void calibrateSenseInputs()
+  void calibrate()
   {
     /*-------------------------------------------------------------------------
     Local Constants
     -------------------------------------------------------------------------*/
-    const Chimera::ADC::Channel sample_channels[] = {
-      IO::Analog::adcIPhaseA, /**< CHANNEL_PHASE_A_CURRENT */
-      IO::Analog::adcIPhaseB, /**< CHANNEL_PHASE_B_CURRENT */
-      IO::Analog::adcIPhaseC, /**< CHANNEL_PHASE_C_CURRENT */
-      IO::Analog::adcVPhaseA, /**< CHANNEL_PHASE_A_VOLTAGE */
-      IO::Analog::adcVPhaseB, /**< CHANNEL_PHASE_B_VOLTAGE */
-      IO::Analog::adcVPhaseC  /**< CHANNEL_PHASE_C_VOLTAGE */
-    };
+    Chimera::ADC::Channel sample_channels[ CHANNEL_COUNT ];
 
-    static_assert( CHANNEL_PHASE_A_CURRENT == 0 );
-    static_assert( CHANNEL_PHASE_B_CURRENT == 1 );
-    static_assert( CHANNEL_PHASE_C_CURRENT == 2 );
-    static_assert( CHANNEL_PHASE_A_VOLTAGE == 3 );
-    static_assert( CHANNEL_PHASE_B_VOLTAGE == 4 );
-    static_assert( CHANNEL_PHASE_C_VOLTAGE == 5 );
-    static_assert( ARRAY_COUNT( sample_channels ) == CHANNEL_COUNT );
+    sample_channels[ CHANNEL_PHASE_A_CURRENT ] = IO::Analog::adcIPhaseA;
+    sample_channels[ CHANNEL_PHASE_B_CURRENT ] = IO::Analog::adcIPhaseB;
+    sample_channels[ CHANNEL_PHASE_C_CURRENT ] = IO::Analog::adcIPhaseC;
+    sample_channels[ CHANNEL_PHASE_A_VOLTAGE ] = IO::Analog::adcVPhaseA;
+    sample_channels[ CHANNEL_PHASE_B_VOLTAGE ] = IO::Analog::adcVPhaseB;
+    sample_channels[ CHANNEL_PHASE_C_VOLTAGE ] = IO::Analog::adcVPhaseC;
 
     /*-------------------------------------------------------------------------
     Relinquish control from the timer peripheral of the motor power stage.
@@ -310,7 +287,7 @@ namespace Orbit::Motor::Sense
     -------------------------------------------------------------------------*/
     auto adc = Chimera::ADC::getDriver( IO::Analog::MotorADC );
 
-    for ( size_t idx = 0; idx < ARRAY_COUNT( sample_channels ); idx++ )
+    for( size_t idx = 0; idx < ARRAY_COUNT( sample_channels ); idx++ )
     {
       float  ceiling   = -FLT_MAX;
       float  floor     = FLT_MAX;
@@ -318,18 +295,18 @@ namespace Orbit::Motor::Sense
       float  pIxAvg    = 0.0f;
       size_t startTime = Chimera::millis();
 
-      while ( ( Chimera::millis() - startTime ) < Chimera::Thread::TIMEOUT_5MS )
+      while( ( Chimera::millis() - startTime ) < Chimera::Thread::TIMEOUT_5MS )
       {
         auto  sample  = adc->sampleChannel( sample_channels[ idx ] );
         float voltage = adc->toVoltage( sample );
         pIxAvg += voltage;
         samples++;
 
-        if ( voltage > ceiling )
+        if( voltage > ceiling )
         {
           ceiling = voltage;
         }
-        else if ( voltage < floor )
+        else if( voltage < floor )
         {
           floor = voltage;
         }
@@ -344,4 +321,55 @@ namespace Orbit::Motor::Sense
     TIMER::configureIOControl();
   }
 
-}    // namespace Orbit::Motor
+
+  /*---------------------------------------------------------------------------
+  Private Functions
+  ---------------------------------------------------------------------------*/
+
+  void Private::isr_on_motor_sense_adc_conversion_complete( const Chimera::ADC::InterruptDetail &isr )
+  {
+    using namespace Orbit::Control::Math;
+
+    if( !s_is_initialized )
+    {
+      return;
+    }
+
+    /*-------------------------------------------------------------------------
+    Set the debug pin high to start measuring ISR execution time. Should be
+    set low again via the user callback.
+    -------------------------------------------------------------------------*/
+    s_ctl_blk.dbg_pin->setState( Chimera::GPIO::State::HIGH );
+
+    /*-------------------------------------------------------------------------
+    Update the sense data cache
+    -------------------------------------------------------------------------*/
+    s_ctl_blk.siData.timestamp = current_time_sec();
+    s_ctl_blk.adc_vref         = isr.vref;
+    s_ctl_blk.adc_vres         = isr.resolution;
+
+    for( auto i = 0; ( i < isr.num_samples ) && ( i < CHANNEL_COUNT ); i++ )
+    {
+      s_ctl_blk.rawData[ i ] = counts_to_voltage( isr.samples[ i ] );
+      s_ctl_blk.calData[ i ] = s_ctl_blk.rawData[ i ] - s_ctl_blk.calOffset[ i ];
+    }
+
+    /*-------------------------------------------------------------------------
+    Translate raw measurements into representative SI units
+    -------------------------------------------------------------------------*/
+    s_ctl_blk.siData.channel[ CHANNEL_PHASE_A_CURRENT ] = compute_phase_current( s_ctl_blk.calData[ CHANNEL_PHASE_A_CURRENT ] );
+    s_ctl_blk.siData.channel[ CHANNEL_PHASE_B_CURRENT ] = compute_phase_current( s_ctl_blk.calData[ CHANNEL_PHASE_B_CURRENT ] );
+    s_ctl_blk.siData.channel[ CHANNEL_PHASE_C_CURRENT ] = compute_phase_current( s_ctl_blk.calData[ CHANNEL_PHASE_C_CURRENT ] );
+    s_ctl_blk.siData.channel[ CHANNEL_PHASE_A_VOLTAGE ] = compute_phase_voltage( s_ctl_blk.calData[ CHANNEL_PHASE_A_VOLTAGE ] );
+    s_ctl_blk.siData.channel[ CHANNEL_PHASE_B_VOLTAGE ] = compute_phase_voltage( s_ctl_blk.calData[ CHANNEL_PHASE_B_VOLTAGE ] );
+    s_ctl_blk.siData.channel[ CHANNEL_PHASE_C_VOLTAGE ] = compute_phase_voltage( s_ctl_blk.calData[ CHANNEL_PHASE_C_VOLTAGE ] );
+
+    /*-------------------------------------------------------------------------
+    Invoke the user callback
+    -------------------------------------------------------------------------*/
+    if( s_ctl_blk.callback )
+    {
+      s_ctl_blk.callback();
+    }
+  }
+}    // namespace Orbit::Motor::Sense

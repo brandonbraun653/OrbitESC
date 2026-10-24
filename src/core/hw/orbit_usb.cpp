@@ -5,7 +5,7 @@
  *  Description:
  *    USB driver implementation
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -14,22 +14,36 @@ Includes
 #include <Aurora/logging>
 #include <Chimera/function>
 #include <Chimera/gpio>
-#include <Thor/lld/interface/inc/interrupt>
 #include <etl/vector.h>
 #include <src/config/bsp/board_map.hpp>
+#include <src/core/com/serial/serial_usb.hpp>
 #include <src/core/hw/orbit_tusb.h>
+#include <src/core/hw/orbit_usb.hpp>
 #include <src/monitor/debug/segger_modules_intf.h>
 
+#if defined( EMBEDDED )
 #include <tusb.h>
+#include <Thor/lld/interface/inc/interrupt>
+#endif
 
 namespace Orbit::USB
 {
+  /*---------------------------------------------------------------------------
+  Constants
+  ---------------------------------------------------------------------------*/
+
+  #if defined( EMBEDDED )
+  static constexpr IRQn_Type USB_IRQn = OTG_HS_IRQn;
+  #endif
+
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
 
   static etl::vector<Chimera::Function::Opaque, 2> s_connect_callbacks;
   static etl::vector<Chimera::Function::Opaque, 2> s_disconnect_callbacks;
+  static etl::array<Chimera::Function::Opaque, Orbit::Serial::Endpoint::NUM_ENDPOINTS> s_cdc_rx_complete_callbacks;
+  static etl::array<Chimera::Function::Opaque, Orbit::Serial::Endpoint::NUM_ENDPOINTS> s_cdc_tx_complete_callbacks;
 
   /*---------------------------------------------------------------------------
   Public Functions
@@ -42,6 +56,8 @@ namespace Orbit::USB
     -------------------------------------------------------------------------*/
     s_connect_callbacks.clear();
     s_disconnect_callbacks.clear();
+    s_cdc_rx_complete_callbacks.fill( {} );
+    s_cdc_tx_complete_callbacks.fill( {} );
 
     /*-------------------------------------------------------------------------
     Configure GPIO
@@ -68,6 +84,7 @@ namespace Orbit::USB
     RT_HARD_ASSERT( pin );
     RT_HARD_ASSERT( Chimera::Status::OK == pin->init( IO::USB::enumPinInit ) );
 
+    #if defined( EMBEDDED )
     /*-------------------------------------------------------------------------
     Configure USB clocks
     -------------------------------------------------------------------------*/
@@ -76,14 +93,21 @@ namespace Orbit::USB
     /*-------------------------------------------------------------------------
     Configure Interrupts
     -------------------------------------------------------------------------*/
-    Thor::LLD::INT::setPriority( OTG_HS_IRQn, 2u, 0u );
-    Thor::LLD::INT::enableIRQ( OTG_HS_IRQn );
+    Thor::LLD::INT::setPriority( USB_IRQn, 1u, 0u );
+    Thor::LLD::INT::enableIRQ( USB_IRQn );
+    #endif  /* EMBEDDED */
+  }
 
+
+  void attach()
+  {
+    #if defined( EMBEDDED )
     /*-------------------------------------------------------------------------
     Initialize TinyUSB
     -------------------------------------------------------------------------*/
     RT_HARD_ASSERT( true == tusb_init() );
     OrbitMonitorRecordEvent_TUSB( TUSB_Init );
+    #endif
   }
 
 
@@ -108,6 +132,20 @@ namespace Orbit::USB
 
     s_disconnect_callbacks.push_back( std::move( callback ) );
     return true;
+  }
+
+
+  void onCDCRXComplete( const uint8_t itf, Chimera::Function::Opaque &&callback )
+  {
+    RT_DBG_ASSERT( itf < s_cdc_rx_complete_callbacks.max_size() );
+    s_cdc_rx_complete_callbacks[ itf ] = std::move( callback );
+  }
+
+
+  void onCDCTXComplete( const uint8_t itf, Chimera::Function::Opaque &&callback )
+  {
+    RT_DBG_ASSERT( itf < s_cdc_tx_complete_callbacks.max_size() );
+    s_cdc_tx_complete_callbacks[ itf ] = std::move( callback );
   }
 }    // namespace Orbit::USB
 
@@ -150,5 +188,31 @@ extern "C"
     {
       cb();
     }
+  }
+
+
+  /**
+   * @brief Implements the CDC receive complete callback
+   *
+   * @param itf The interface number that completed the reception
+   * @return void
+   */
+  void tud_cdc_rx_cb( uint8_t itf )
+  {
+    RT_DBG_ASSERT( itf < Orbit::USB::s_cdc_rx_complete_callbacks.max_size() );
+    Orbit::USB::s_cdc_rx_complete_callbacks[ itf ].call_if();
+  }
+
+
+  /**
+   * @brief Implements the CDC transmit complete callback
+   *
+   * @param itf  The interface number that completed the transmission
+   * @return void
+   */
+  void tud_cdc_tx_complete_cb( uint8_t itf )
+  {
+    RT_DBG_ASSERT( itf < Orbit::USB::s_cdc_tx_complete_callbacks.max_size() );
+    Orbit::USB::s_cdc_tx_complete_callbacks[ itf ].call_if();
   }
 } /* extern "C" */

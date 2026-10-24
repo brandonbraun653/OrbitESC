@@ -5,25 +5,25 @@
  *  Description:
  *    Tiny USB Serial Driver Implementation
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
+
+#if defined( EMBEDDED )
 
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
-#include <src/core/com/serial/serial_usb.hpp>
+#include <Chimera/serial>
+#include <Chimera/thread>
 #include <src/core/com/serial/serial_config.hpp>
+#include <src/core/com/serial/serial_usb.hpp>
+#include <src/core/hw/orbit_usb.hpp>
+#include <src/core/tasks.hpp>
+
 #include <tusb.h>
 
 namespace Orbit::Serial
 {
-
-  /*---------------------------------------------------------------------------
-  Constants
-  ---------------------------------------------------------------------------*/
-
-  static constexpr uint8_t USB_SERIAL_ENDPOINT = 0;
-
   /*---------------------------------------------------------------------------
   Static Data
   ---------------------------------------------------------------------------*/
@@ -42,20 +42,20 @@ namespace Orbit::Serial
 
   bool isConnected()
   {
-    return tud_cdc_n_connected( USB_SERIAL_ENDPOINT );
+    return tud_cdc_n_connected( Endpoint::COM_ENDPOINT );
   }
 
 
   Chimera::Serial::Driver_rPtr Config::getCommandPort()
   {
-    return &s_usb_serial;
+    return reinterpret_cast<Chimera::Serial::Driver_rPtr>( &s_usb_serial );
   }
 
   /*---------------------------------------------------------------------------
   USBSerial Implementation
   ---------------------------------------------------------------------------*/
 
-  USBSerial::USBSerial() : mEndpoint( USB_SERIAL_ENDPOINT ), mRXBuffer( nullptr ), mTXBuffer( nullptr )
+  USBSerial::USBSerial() : mEndpoint( Endpoint::COM_ENDPOINT ), mRXBuffer( nullptr ), mTXBuffer( nullptr )
   {
   }
 
@@ -65,8 +65,10 @@ namespace Orbit::Serial
   }
 
 
-  Chimera::Status_t USBSerial::init( const size_t endpoint, CircularBuffer prx, CircularBuffer ptx )
+  Chimera::Status_t USBSerial::init( const Endpoint endpoint, CircularBuffer prx, CircularBuffer ptx )
   {
+    using namespace Chimera::Function;
+
     /*-------------------------------------------------------------------------
     Assign the configuration
     -------------------------------------------------------------------------*/
@@ -80,16 +82,139 @@ namespace Orbit::Serial
     mRXBuffer->clear();
     mTXBuffer->clear();
 
+    /*-------------------------------------------------------------------------
+    Register the RTX handlers for this instance
+    -------------------------------------------------------------------------*/
+    Orbit::USB::onCDCRXComplete( mEndpoint, Opaque::create<USBSerial, &USBSerial::on_rx_complete>( *this ) );
+    Orbit::USB::onCDCTXComplete( mEndpoint, Opaque::create<USBSerial, &USBSerial::on_tx_complete>( *this ) );
+
     return Chimera::Status::OK;
   }
 
 
   void USBSerial::process()
   {
-    Chimera::Thread::LockGuard _lock( *this );
+    on_rx_complete();
+    on_tx_complete();
+  }
+
+
+  size_t USBSerial::availableForWrite()
+  {
+    return mTXBuffer->available();
+  }
+
+
+  Chimera::Status_t USBSerial::open( const Chimera::Serial::Config &config )
+  {
+    return Chimera::Status::OK;
+  }
+
+
+  Chimera::Status_t USBSerial::close()
+  {
+    return Chimera::Status::OK;
+  }
+
+
+  int USBSerial::write( const void *const buffer, const size_t length, const size_t timeout )
+  {
+    using namespace Orbit::Tasks;
 
     /*-------------------------------------------------------------------------
-    Pull data out from the USB driver and push it into the RX buffer
+    Validate input arguments
+    -------------------------------------------------------------------------*/
+    if( !buffer || !length || !mTXBuffer )
+    {
+      return 0;
+    }
+
+    /*-------------------------------------------------------------------------
+    Do the write operation
+    -------------------------------------------------------------------------*/
+    Chimera::Thread::TimedLockGuard lck( *this );
+
+    size_t read_idx = 0;
+
+    if( lck.try_lock_for( timeout ) )
+    {
+      /*-----------------------------------------------------------------------
+      Write data directly to the USB driver
+      -----------------------------------------------------------------------*/
+      const size_t cdc_avail_size = tud_cdc_n_write_available( mEndpoint );
+      const size_t cdc_write_size = std::min( length, cdc_avail_size );
+
+      if( cdc_write_size )
+      {
+        read_idx += static_cast<ssize_t>( tud_cdc_n_write( mEndpoint, buffer, cdc_write_size ) );
+      }
+
+      /*-----------------------------------------------------------------------
+      Enqueue any remaining data into the TX buffer
+      -----------------------------------------------------------------------*/
+      const size_t to_write = length - read_idx;
+      if( to_write > 0 )
+      {
+        ssize_t q_write_size = std::min( to_write, mTXBuffer->available() );
+        while( q_write_size > 0 )
+        {
+          mTXBuffer->push( static_cast<const uint8_t *>( buffer )[ read_idx++ ] );
+          q_write_size--;
+        }
+      }
+    }
+
+    return static_cast<int>( read_idx );
+  }
+
+
+  int USBSerial::read( void *const buffer, const size_t length, const size_t timeout )
+  {
+    /*-------------------------------------------------------------------------
+    Validate input arguments
+    -------------------------------------------------------------------------*/
+    if( !buffer || !length || !mRXBuffer )
+    {
+      return 0;
+    }
+
+    /*-------------------------------------------------------------------------
+    Read data into the user buffer
+    -------------------------------------------------------------------------*/
+    Chimera::Thread::TimedLockGuard lck( *this );
+
+    size_t bytes_read = 0;
+
+    if( lck.try_lock_for( timeout ) )
+    {
+      const size_t read_size = std::min( length, mRXBuffer->size() );
+
+      while( bytes_read < read_size )
+      {
+        static_cast<uint8_t *>( buffer )[ bytes_read ] = mRXBuffer->front();
+        mRXBuffer->pop();
+        bytes_read++;
+      }
+    }
+
+    return static_cast<int>( bytes_read );
+  }
+
+
+  void USBSerial::on_rx_complete()
+  {
+    /*-------------------------------------------------------------------------
+    This function is called as a userspace callback from some TinyUSB event,
+    so we need to guard against some other thread first. It's ok if this fails
+    because the 'process' function will be called again later.
+    -------------------------------------------------------------------------*/
+    if( !this->try_lock_for( Chimera::Thread::TIMEOUT_DONT_WAIT ) )
+    {
+      return;
+    }
+
+    /*-------------------------------------------------------------------------
+    Pull data from the USB driver into the RX buffer
     -------------------------------------------------------------------------*/
     while( !mRXBuffer->full() )
     {
@@ -125,8 +250,24 @@ namespace Orbit::Serial
       }
     }
 
+    this->unlock();
+  }
+
+
+  void USBSerial::on_tx_complete()
+  {
     /*-------------------------------------------------------------------------
-    Pull data out from the TX buffer and push it into the USB driver
+    This function is called as a userspace callback from some TinyUSB event,
+    so we need to guard against some other thread first. It's ok if this fails
+    because the 'process' function will be called again later.
+    -------------------------------------------------------------------------*/
+    if( !this->try_lock_for( Chimera::Thread::TIMEOUT_DONT_WAIT ) )
+    {
+      return;
+    }
+
+    /*-------------------------------------------------------------------------
+    Push data from the TX buffer into the USB driver
     -------------------------------------------------------------------------*/
     while( !mTXBuffer->empty() )
     {
@@ -161,85 +302,10 @@ namespace Orbit::Serial
         }
       }
     }
-  }
 
-
-  Chimera::Status_t USBSerial::open( const Chimera::Serial::Config &config )
-  {
-    return Chimera::Status::OK;
-  }
-
-
-  Chimera::Status_t USBSerial::close()
-  {
-    return Chimera::Status::OK;
-  }
-
-
-  int USBSerial::write( const void *const buffer, const size_t length, const size_t timeout )
-  {
-    /*-------------------------------------------------------------------------
-    Validate input arguments
-    -------------------------------------------------------------------------*/
-    if( !buffer || !length || !mTXBuffer )
-    {
-      return 0;
-    }
-
-    /*-------------------------------------------------------------------------
-    Make sure the device is connected before doing anything
-    -------------------------------------------------------------------------*/
-    if( !tud_cdc_n_connected( mEndpoint ) )
-    {
-      return 0;
-    }
-
-    /*-------------------------------------------------------------------------
-    Enqueue the data into the TX buffer
-    -------------------------------------------------------------------------*/
-    Chimera::Thread::LockGuard _lock( *this );
-
-    const size_t buf_bytes  = mTXBuffer->available();
-    const size_t write_size = std::min( length, buf_bytes );
-
-    size_t bytes_written = 0;
-    while( bytes_written < write_size )
-    {
-      mTXBuffer->push( static_cast<const uint8_t *>( buffer )[ bytes_written ] );
-      bytes_written++;
-    }
-
-    return bytes_written;
-  }
-
-
-  int USBSerial::read( void *const buffer, const size_t length, const size_t timeout )
-  {
-    /*-------------------------------------------------------------------------
-    Validate input arguments
-    -------------------------------------------------------------------------*/
-    if( !buffer || !length || !mRXBuffer )
-    {
-      return 0;
-    }
-
-    /*-------------------------------------------------------------------------
-    Read data into the user buffer
-    -------------------------------------------------------------------------*/
-    Chimera::Thread::LockGuard _lock( *this );
-
-    const size_t buf_bytes = mRXBuffer->size();
-    const size_t read_size = std::min( length, buf_bytes );
-
-    size_t bytes_read = 0;
-    while( bytes_read < read_size )
-    {
-      static_cast<uint8_t *>( buffer )[ bytes_read ] = mRXBuffer->front();
-      mRXBuffer->pop();
-      bytes_read++;
-    }
-
-    return bytes_read;
+    this->unlock();
   }
 
 }    // namespace Orbit::Serial
+
+#endif /* EMBEDDED */

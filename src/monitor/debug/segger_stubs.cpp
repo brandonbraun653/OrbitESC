@@ -5,12 +5,15 @@
  *  Description:
  *    Stub functions for the Segger System View drivers
  *
- *  2023 | Brandon Braun | brandonbraun653@gmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@gmail.com
  *****************************************************************************/
+
+#include <src/config/orbit_esc_cfg.hpp>
 
 /*-----------------------------------------------------------------------------
 Includes (Order Dependent)
 -----------------------------------------------------------------------------*/
+#if defined( SEGGER_SYS_VIEW )
 #include "SEGGER_SYSVIEW.h"    // Must be first
 #include "FreeRTOSConfig.h"    // Must be second
 #include <Chimera/system>
@@ -160,3 +163,5 @@ extern "C"
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
+
+#endif  /* SEGGER_SYS_VIEW */

@@ -1,4 +1,4 @@
-include("${COMMON_TOOL_ROOT}/cmake/utility/embedded.cmake")
+include(CTEmbedded)
 
 gen_static_lib_variants(
   TARGET
@@ -8,6 +8,7 @@ gen_static_lib_variants(
     foc_data.cpp
     foc_driver.cpp
     foc_math.cpp
+    foc_observer.cpp
     hardware/current_control.cpp
     hardware/speed_control.cpp
     math/pid.cpp
@@ -16,10 +17,13 @@ gen_static_lib_variants(
     modes/sys_mode_fault.cpp
     modes/sys_mode_idle.cpp
     modes/sys_mode_run.cpp
-    subroutines/subroutines.cpp
     subroutines/idle.cpp
     subroutines/optimize_sample_point.cpp
+    subroutines/rotor_align.cpp
     subroutines/rotor_detector.cpp
+    subroutines/rotor_ramp.cpp
+    subroutines/subroutines.cpp
+    system_control.cpp
   PRV_LIBRARIES
     aurora_intf_inc
     chimera_intf_inc

@@ -42,6 +42,8 @@
             "${workspaceFolder}/lib/Thor/include",
             "${workspaceFolder}/lib/db/flashdb/inc",
             "${workspaceFolder}/lib/db/flashdb/port/fal/inc",
+            "${workspaceFolder}/lib/cmsis/core/Include",
+            "${workspaceFolder}/lib/cmsis/core/DSP/Include",
             "${workspaceFolder}/lib/usb/tinyusb/hw/mcu/st/cmsis_device_f4/Include",
             "${workspaceFolder}/lib/usb/tinyusb/src",
             "${workspaceFolder}/lib/usb/tinyusb/src/class/audio",
@@ -59,19 +61,26 @@
             "${workspaceFolder}/lib/usb/tinyusb/src/device",
             "${workspaceFolder}/lib/usb/tinyusb/src/host",
             "${workspaceFolder}/src",
+            "${workspaceFolder}/src/config",
             "${workspaceFolder}/src/config/aurora",
             "${workspaceFolder}/src/config/bsp",
             "${workspaceFolder}/src/config/fatfs",
+            "${workspaceFolder}/src/config/flashdb",
             "${workspaceFolder}/src/config/freertos",
             "${workspaceFolder}/src/config/thor",
             "${workspaceFolder}/src/control",
             "${workspaceFolder}/src/core",
             "${workspaceFolder}/src/core/com",
+            "${workspaceFolder}/src/core/com/can",
+            "${workspaceFolder}/src/core/com/proto",
+            "${workspaceFolder}/src/core/com/serial",
             "${workspaceFolder}/src/core/data",
             "${workspaceFolder}/src/core/data/persistent",
             "${workspaceFolder}/src/core/data/volatile",
             "${workspaceFolder}/src/core/hw",
-            "${workspaceFolder}/src/core/tasks"
+            "${workspaceFolder}/src/core/tasks",
+            "${workspaceFolder}/test",
+            "${workspaceFolder}/test/harness"
         ],
         "thorIncludePaths_HLD": [
             "${workspaceFolder}/lib/Thor/hld",
@@ -141,7 +150,6 @@
         "defaultEmbeddedDefines": [
             "EMBEDDED",
             "FREERTOS_CFG_PORT_ARM_CM4F=1",
-            "SEGGER_SYS_VIEW",
             "USING_FREERTOS_THREADS",
             "${defaultDefines}"
         ],
@@ -156,26 +164,6 @@
         "defaultEmbeddedCppStandard": "gnu++20"
     },
     "configurations": [
-        {
-            "name": "STM32L4 Development",
-            "includePath": [
-                "${defaultIncludePaths}",
-                "${thorIncludePaths_HLD}",
-                "${thorIncludePaths_LLD_Intf}",
-                "${thorIncludePaths_LLD_L4}",
-                "${workspaceFolder}/lib/Aurora/lib/embedded_template_library/etl/include"
-            ],
-            "defines": [
-                "${defaultDefines}",
-                "${defaultEmbeddedDefines}",
-                "STM32L432xx",
-                "TARGET_STM32L4",
-                "THOR_USER_CONFIG"
-            ],
-            "compilerPath": "/home/brandon/toolchain/xpack-arm-none-eabi-gcc-12.2.1-1.2/bin/arm-none-eabi-gcc",
-            "cStandard": "gnu17",
-            "cppStandard": "gnu++20"
-        },
         {
             "name": "STM32F4 Development",
             "includePath": [
@@ -215,7 +203,8 @@
                 "${defaultIncludePaths}"
             ],
             "defines": [
-                "${defaultSimDefines}"
+                "${defaultSimDefines}",
+                "THOR_USER_CONFIG"
             ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "gnu17",

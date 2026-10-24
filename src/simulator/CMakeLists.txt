@@ -1,0 +1,20 @@
+include(CTEmbedded)
+
+gen_static_lib_variants(
+  TARGET
+    lib_orbit_simulator
+  SOURCES
+    sim_adc.cpp
+    sim_matlab.cpp
+    sim_observer.cpp
+    sim_tsk.cpp
+    sim_usb_serial.cpp
+    sim_tcp_server.cpp
+  PRV_LIBRARIES
+    aurora_intf_inc
+    chimera_intf_inc
+    chimera_sim_intf_inc
+    project_intf_inc
+  EXPORT_DIR
+    "${PROJECT_BINARY_DIR}/OrbitESC"
+)

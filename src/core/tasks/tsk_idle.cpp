@@ -5,7 +5,7 @@
  *  Description:
  *    Idle task implementation
  *
- *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2025 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -59,17 +59,36 @@ namespace Orbit::Tasks::BKD
     Main loop. Don't add any blocking calls here. It's expected that this
     will run as fast as possible and consume all available CPU time.
     -------------------------------------------------------------------------*/
+    static size_t           last_led_update        = 0;
+    static constexpr size_t LED_UPDATE_INTERVAL_MS = 10;    // Update LEDs every 10ms
+
     while( 1 )
     {
+      const size_t current_time = Chimera::millis();
+
       /*-----------------------------------------------------------------------
-      Process the LED state machine
+      Process the LED state machine (throttled to reduce CPU usage)
       -----------------------------------------------------------------------*/
-      LED::process();
+      if( current_time - last_led_update >= LED_UPDATE_INTERVAL_MS )
+      {
+        LED::process();
+        last_led_update = current_time;
+      }
 
       /*-----------------------------------------------------------------------
       Publish available data to the remote host
       -----------------------------------------------------------------------*/
       Orbit::COM::Scheduler::process();
+
+      /*-----------------------------------------------------------------------
+      Don't consume ALL the CPU time on simulators. This can chew ~7% of a 16
+      core system no problem. On hardware we do infact want to consume all idle
+      CPU time and let the RTOS scheduler do its thing.
+      -----------------------------------------------------------------------*/
+#if defined( SIMULATOR )
+      Chimera::delayMilliseconds( 1 );
+      Chimera::Thread::this_thread::yield();
+#endif /* SIMULATOR */
     }
   }
 }    // namespace Orbit::Tasks::BKD

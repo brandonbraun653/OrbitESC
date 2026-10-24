@@ -3,9 +3,11 @@
  *    orbit_motor_drive.cpp
  *
  *  Description:
- *    Hardware driver for controlling the motor drive power stage
+ *    Hardware driver interface for controlling the motor drive power stage.
+ *    This is a thin veneer over the Chimera timer driver, mainly to manage the
+ *    lifetime of the HW.
  *
- *  2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2023-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
@@ -36,7 +38,7 @@ namespace Orbit::Motor::Drive
   }
 
 
-  void powerUpDrive()
+  void initialize()
   {
     /*-------------------------------------------------------------------------
     Configure the Advanced Timer for center-aligned 3-phase PWM
@@ -49,10 +51,19 @@ namespace Orbit::Motor::Drive
     pwm_cfg.coreCfg.baseFreq    = TIMER_BASE_FREQ;
     pwm_cfg.coreCfg.tolerance   = 1.0f;
     pwm_cfg.breakIOLevel        = Chimera::GPIO::State::LOW;
-    pwm_cfg.deadTimeNs          = 250.0f;
     pwm_cfg.pwmFrequency        = Orbit::Data::SysControl.statorPWMFreq;
+    pwm_cfg.deadTimeNs          = 250.0f;
+    pwm_cfg.adcSampleTimeNs     = 1800.0f;
+    pwm_cfg.settleTimeNs        = 2000.0f;
 
     RT_HARD_ASSERT( Chimera::Status::OK == s_motor_drive_timer.init( pwm_cfg ) );
+  }
+
+
+  void reset()
+  {
+    // TODO: Don't call this unless you have a way to restart the power up sequence.
+    // s_motor_drive_timer.reset();
   }
 
 
@@ -62,26 +73,15 @@ namespace Orbit::Motor::Drive
   }
 
 
-  void enableDriveOutput()
+  void enableOutput()
   {
     s_motor_drive_timer.enableOutput();
   }
 
 
-  void disableDriveOutput()
+  void disableOutput()
   {
     s_motor_drive_timer.disableOutput();
   }
 
-
-  void svmUpdate( const float &alpha, const float &beta, const float &theta )
-  {
-    s_motor_drive_timer.svmUpdate( alpha, beta, theta );
-  }
-
-
-  void svmOnTicks( uint32_t &tOnA, uint32_t &tOnB, uint32_t &tOnC )
-  {
-    s_motor_drive_timer.getSVMOnTicks( tOnA, tOnB, tOnC );
-  }
 }    // namespace Orbit::Motor

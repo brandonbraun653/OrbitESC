@@ -1,14 +1,12 @@
-include("${COMMON_TOOL_ROOT}/cmake/utility/embedded.cmake")
-
-# -----------------------------------------------------------------------------
-# Project Libraries
-# -----------------------------------------------------------------------------
+include(CTEmbedded)
 add_subdirectory(core)
 add_subdirectory(control)
 add_subdirectory(monitor)
+add_subdirectory(simulator)
+add_subdirectory(trace)
 
 # -----------------------------------------------------------------------------
-# Project Libraries
+# Hardware Driver Libraries
 # -----------------------------------------------------------------------------
 gen_intf_lib_variants(
   TARGET
@@ -48,40 +46,6 @@ gen_intf_lib_variants(
     thor_lld_intf_timer
     thor_lld_intf_usart
     thor_lld_intf_watchdog
-  EXPORT_DIR
-    ${PROJECT_BINARY_DIR}/OrbitESC
-)
-
-gen_intf_lib_variants(
-  TARGET
-    stm32l4_libs
-  LIBRARIES
-    thor_lld_stm32l4_adc
-    thor_lld_stm32l4_can
-    thor_lld_stm32l4_crs
-    thor_lld_stm32l4_des
-    thor_lld_stm32l4_dma
-    thor_lld_stm32l4_exti
-    thor_lld_stm32l4_flash
-    thor_lld_stm32l4_gpio
-    thor_lld_stm32l4_i2c
-    thor_lld_stm32l4_interrupt
-    thor_lld_stm32l4_iwdg
-    thor_lld_stm32l4_power
-    thor_lld_stm32l4_rcc
-    thor_lld_stm32l4_spi
-    thor_lld_stm32l4_startup
-    thor_lld_stm32l4_system
-    thor_lld_stm32l4_usart
-    thor_lld_stm32l4_wwdg
-  EXPORT_DIR
-    ${PROJECT_BINARY_DIR}/OrbitESC
-)
-
-gen_intf_lib_variants(
-  TARGET
-    stm32f4_libs
-  LIBRARIES
     thor_lld_stm32f4_adc
     thor_lld_stm32f4_can
     thor_lld_stm32f4_des
@@ -104,6 +68,9 @@ gen_intf_lib_variants(
     ${PROJECT_BINARY_DIR}/OrbitESC
 )
 
+# -----------------------------------------------------------------------------
+# Aurora Libraries
+# -----------------------------------------------------------------------------
 gen_intf_lib_variants(
   TARGET
     aurora_libs
@@ -119,6 +86,9 @@ gen_intf_lib_variants(
     ${PROJECT_BINARY_DIR}/OrbitESC
 )
 
+# -----------------------------------------------------------------------------
+# Orbit Libraries
+# -----------------------------------------------------------------------------
 gen_intf_lib_variants(
   TARGET
     orbit_libs
@@ -126,31 +96,28 @@ gen_intf_lib_variants(
     lib_orbit_com
     lib_orbit_core
     lib_orbit_ctrl
-    lib_orbit_data_rel_dbg
+    lib_orbit_data
     lib_orbit_events
     lib_orbit_hw
     lib_orbit_monitor
     lib_orbit_runtime
     lib_orbit_tasks
-    lib_orbit_testing
+    lib_orbit_trace
   EXPORT_DIR
     ${PROJECT_BINARY_DIR}/OrbitESC
 )
+
 # -----------------------------------------------------------------------------
-# Hardware Config:
-# cmake -DTOOLCHAIN=arm-none-eabi -DFREERTOS_THREADS=ON -DDEVICE_TARGET=stm32l432kb -DCMAKE_BUILD_TYPE=Debug ./../
-#
-# Simulator Config:
-# cmake -DTOOLCHAIN=gcc -DNATIVE_THREADS=ON -DDEVICE_TARGET=sim -DCMAKE_BUILD_TYPE=Debug ./../
+# Main Application
 # -----------------------------------------------------------------------------
 add_executable(OrbitESC startup.cpp)
-
 target_link_options(OrbitESC PRIVATE "-Wl,-Map=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/OrbitESC.map")
-
-# Include Directories
 target_include_directories(OrbitESC PRIVATE ".")
+target_include_directories(OrbitESC PRIVATE ${CMAKE_SOURCE_DIR})
 
-# Dependent Modules
+# -----------------------------------------------------------------------------
+# Target independent libraries
+# -----------------------------------------------------------------------------
 target_link_libraries(OrbitESC PRIVATE
   # Public Includes
   aurora_intf_inc
@@ -161,10 +128,9 @@ target_link_libraries(OrbitESC PRIVATE
   # Project Libraries
   aurora_libs
   chimera_core
-  lib_cobs_rel
+  lib_cobs
   lib_flash_db
-  lib_nanopb_rel
-  lib_tiny_usb
+  lib_nanopb
 
   # Orbit Libraries
   lib_orbit_com
@@ -176,39 +142,28 @@ target_link_libraries(OrbitESC PRIVATE
   lib_orbit_monitor
   lib_orbit_runtime
   lib_orbit_tasks
+  lib_orbit_trace
 
   # Target Properties
   prj_device_target
   prj_build_target
 )
 
-# Hardware Driver Model
-if(${DEVICE_TARGET} MATCHES "^stm32[lf]4")
-  target_link_libraries(OrbitESC PRIVATE embedded_core_libs)
-
-  if(${DEVICE_TARGET} MATCHES "^stm32l4")
-    target_link_libraries(OrbitESC PRIVATE stm32l4_libs)
-  elseif(${DEVICE_TARGET} MATCHES "^stm32f4")
-    target_link_libraries(OrbitESC PRIVATE stm32f4_libs)
-  endif()
-
-elseif(${DEVICE_TARGET} MATCHES "^sim")
+# -----------------------------------------------------------------------------
+# Target specific libraries
+# -----------------------------------------------------------------------------
+if(${DEVICE_TARGET} MATCHES "^stm32f4")
   target_link_libraries(OrbitESC PRIVATE
-    chimera_sim_core
-    gtest_src
-    gmock_src
-    zmq
-    )
-else()
-  message(FATAL_ERROR "Unsupported device target")
-endif()
+    # Hardware Drivers
+    embedded_core_libs
+    lib_cmsis
+    lib_tiny_usb
+    lib_flash_db_fal
+    lib_orbit_com_hw
 
-
-if(Toolchain::HAS_GCC_ARM_NONE_EABI)
-  target_link_libraries(OrbitESC PRIVATE
     # Threading Library
     freertos_intf_inc_all
-    freertos_core_rel
+    freertos_core
     freertos_port
     freertos_heap
     freertos_heap_4
@@ -218,10 +173,21 @@ if(Toolchain::HAS_GCC_ARM_NONE_EABI)
     segger_sys_view
     segger_sys_view_intf
     segger_sys_view_cortex_m4_freertos
-  )
+    )
+elseif(${DEVICE_TARGET} MATCHES "^sim")
+  target_link_libraries(OrbitESC PRIVATE
+    lib_cmsis
+    lib_orbit_simulator
+    chimera_sim_core
+    zmq
+    )
+else()
+  message(FATAL_ERROR "Unsupported device target")
 endif()
 
-target_include_directories(OrbitESC PRIVATE ${PROJECT_ROOT})
+# -----------------------------------------------------------------------------
+# Copy the application image to a known location for flashing
+# -----------------------------------------------------------------------------
 add_custom_command(TARGET OrbitESC POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OrbitESC> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/sys_image
 )

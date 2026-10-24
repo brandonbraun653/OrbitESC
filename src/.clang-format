@@ -34,7 +34,7 @@ BraceWrapping:
 BreakBeforeInheritanceComma: 'false'
 BreakConstructorInitializers: AfterColon
 BreakStringLiterals: 'true'
-ColumnLimit: '128'
+ColumnLimit: '80'
 CompactNamespaces: 'true'
 ConstructorInitializerAllOnOneLineOrOnePerLine: 'false'
 ConstructorInitializerIndentWidth: '4'

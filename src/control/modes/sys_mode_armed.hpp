@@ -5,7 +5,7 @@
  *  Description:
  *    Armed mode
  *
- *  2022 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 #pragma once
@@ -23,11 +23,12 @@ namespace Orbit::Control::State
   /*---------------------------------------------------------------------------
   State Class
   ---------------------------------------------------------------------------*/
-  class Armed : public etl::fsm_state<FOC::StateMachine, Armed, ModeId::ARMED, MsgDisable, MsgFault>
+  class Armed : public etl::fsm_state<FOC::StateMachine, Armed, ModeId::ARMED, MsgEngage, MsgDisable, MsgFault>
   {
   public:
-    void on_exit_state() final override;
+    void                on_exit_state() final override;
     etl::fsm_state_id_t on_enter_state() final override;
+    etl::fsm_state_id_t on_event( const MsgEngage & );
     etl::fsm_state_id_t on_event( const MsgDisable & );
     etl::fsm_state_id_t on_event( const MsgFault & );
     etl::fsm_state_id_t on_event_unknown( const etl::imessage & );

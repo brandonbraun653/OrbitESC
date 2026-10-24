@@ -96,6 +96,20 @@
         "focus": true,
         "panel": "dedicated"
       }
+    },
+    {
+      "type": "shell",
+      "label": "Run Simulator",
+      "command": "./OrbitESC",
+      "options": {
+        "cwd": "${workspaceFolder}/build/artifacts/last_build_version"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": false,
+        "focus": true,
+        "panel": "dedicated"
+      }
     }
   ]
 }

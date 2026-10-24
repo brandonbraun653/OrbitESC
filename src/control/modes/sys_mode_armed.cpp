@@ -5,13 +5,14 @@
  *  Description:
  *    State machine control logic for the ARMED state
  *
- *  2022-2023 | Brandon Braun | brandonbraun653@protonmail.com
+ *  2022-2024 | Brandon Braun | brandonbraun653@protonmail.com
  *****************************************************************************/
 
 /*-----------------------------------------------------------------------------
 Includes
 -----------------------------------------------------------------------------*/
 #include <Chimera/system>
+#include <src/control/foc_math.hpp>
 #include <src/control/hardware/current_control.hpp>
 #include <src/control/hardware/speed_control.hpp>
 #include <src/control/modes/sys_mode_armed.hpp>
@@ -60,7 +61,7 @@ namespace Orbit::Control::State
   {
     using namespace Orbit::Control::Subroutine;
 
-    if( const auto sub = getActiveSubroutine(); sub != Routine::IDLE)
+    if( const auto sub = getActiveSubroutine(); sub != Routine::IDLE )
     {
       LOG_WARN( "Cannot engage ARMED state. Subroutine [%s] is active.", getSubroutineName( sub ) );
       return false;
@@ -96,13 +97,14 @@ namespace Orbit::Control::State
     procedure.
     -------------------------------------------------------------------------*/
     // TODO BMB: Somehow this is triggering a full system reset when the external
-    // TODO BMB: power supply isn't connected. What's going on here?
+    // TODO BMB: power supply isn't connected. What's going on here? Do I need more
+    // TODO BMB: bulk capacitance?
     Control::Field::powerUp();
     Control::Speed::powerUp();
 
-    if( !switchRoutine( Routine::ALIGNMENT_DETECTION ) )
+    if( !switchRoutine( Routine::FORCE_ALIGNMENT ) )
     {
-      LOG_ERROR( "Failed to start alignment detection routine" );
+      LOG_ERROR( "Failed to start alignment routine" );
       return ModeId::IDLE;
     }
 
@@ -114,6 +116,25 @@ namespace Orbit::Control::State
     LOG_INFO( "Entered ARMED state" );
     return ModeId::ARMED;
   }
+
+
+  etl::fsm_state_id_t Armed::on_event( const MsgEngage &msg )
+  {
+    using namespace Subroutine;
+
+    /*-------------------------------------------------------------------------
+    Validate we can transition. It's expected the alignment detection routine
+    will have completed before we can engage.
+    -------------------------------------------------------------------------*/
+    if( auto active_routine = getActiveSubroutine(); active_routine != Routine::IDLE )
+    {
+      LOG_WARN( "ARM -> ENGAGE fail. Subroutine [%s] is active.", getSubroutineName( active_routine ) );
+      return this->No_State_Change;
+    }
+
+    return ModeId::ENGAGED;
+  }
+
 
   etl::fsm_state_id_t Armed::on_event( const MsgDisable &msg )
   {
