@@ -22,7 +22,7 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
-import nanopb_pb2 as nanopb__pb2
+from pyorbit.nanopb import nanopb_pb2 as nanopb__pb2
 
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13motor_control.proto\x1a\x0cnanopb.proto\"N\n\x13ManualICtrlSetPoint\x12\x17\n\x0frotor_theta_rad\x18\x01 \x02(\x02\x12\x0e\n\x06id_ref\x18\x02 \x02(\x02\x12\x0e\n\x06iq_ref\x18\x03 \x02(\x02*\x9f\x01\n\x0eMotorCtrlState\x12\x19\n\x15MOTOR_CTRL_STATE_IDLE\x10\x00\x12\x1a\n\x16MOTOR_CTRL_STATE_ARMED\x10\x01\x12\x1c\n\x18MOTOR_CTRL_STATE_ENGAGED\x10\x02\x12\x1a\n\x16MOTOR_CTRL_STATE_FAULT\x10\x03\x12\x1c\n\x18MOTOR_CTRL_STATE_INVALID\x10\x04*\x9e\x01\n\x0cMotorCtrlCmd\x12\x1a\n\x16MOTOR_CTRL_CMD_INVALID\x10\x00\x12&\n\"MOTOR_CTRL_CMD_ENABLE_OUTPUT_STAGE\x10\x01\x12\'\n#MOTOR_CTRL_CMD_DISABLE_OUTPUT_STAGE\x10\x02\x12!\n\x1dMOTOR_CTRL_CMD_EMERGENCY_STOP\x10\x03')

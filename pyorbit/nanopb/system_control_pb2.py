@@ -22,8 +22,8 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
-import nanopb_pb2 as nanopb__pb2
-import serial_interface_pb2 as serial__interface__pb2
+from pyorbit.nanopb import nanopb_pb2 as nanopb__pb2
+from pyorbit.nanopb import serial_interface_pb2 as serial__interface__pb2
 
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14system_control.proto\x1a\x0cnanopb.proto\x1a\x16serial_interface.proto\"D\n\x14SystemControlMessage\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\x13\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x42\x05\x92?\x02\x08@*\xae\x03\n\x12SystemControlSubId\x12\t\n\x05RESET\x10\x01\x12\t\n\x05MOTOR\x10\x02\x12\x0b\n\x07\x43\x41L_ADC\x10\x03\x12\x15\n\x11MANUAL_INNER_LOOP\x10\x04\x12\x19\n\x15MANUAL_INNER_LOOP_REF\x10\x05\x12 \n\x1c\x45NABLE_STREAM_PHASE_CURRENTS\x10\x06\x12!\n\x1d\x44ISABLE_STREAM_PHASE_CURRENTS\x10\x07\x12!\n\x1d\x45NABLE_STREAM_SYSTEM_VOLTAGES\x10\x08\x12\"\n\x1e\x44ISABLE_STREAM_SYSTEM_VOLTAGES\x10\t\x12 \n\x1c\x45NABLE_STREAM_PHASE_VOLTAGES\x10\n\x12!\n\x1d\x44ISABLE_STREAM_PHASE_VOLTAGES\x10\x0b\x12!\n\x1d\x45NABLE_STREAM_STATE_ESTIMATES\x10\x0c\x12\"\n\x1e\x44ISABLE_STREAM_STATE_ESTIMATES\x10\r\x12\x07\n\x03\x41RM\x10\x0e\x12\n\n\x06\x45NGAGE\x10\x0f\x12\x0b\n\x07\x44ISABLE\x10\x10\x12\t\n\x05\x46\x41ULT\x10\x11')

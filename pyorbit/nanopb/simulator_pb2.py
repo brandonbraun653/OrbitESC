@@ -22,8 +22,8 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
-import nanopb_pb2 as nanopb__pb2
-import serial_interface_pb2 as serial__interface__pb2
+from pyorbit.nanopb import nanopb_pb2 as nanopb__pb2
+from pyorbit.nanopb import serial_interface_pb2 as serial__interface__pb2
 
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fsimulator.proto\x1a\x0cnanopb.proto\x1a\x16serial_interface.proto\"<\n\x12SimulatorFloatEcho\x12\x17\n\x06header\x18\x01 \x02(\x0b\x32\x07.Header\x12\r\n\x05value\x18\x02 \x02(\x02*$\n\x0eSimulatorSubId\x12\x12\n\x0eSIM_FLOAT_ECHO\x10\x01')

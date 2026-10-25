@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets
 
 from pyorbit.app.util import AppSettings, DuplicatedWidgetId
-from system_data_pb2 import SystemDataId
+from pyorbit.nanopb.system_data_pb2 import SystemDataId
 
 
 class InnerLoopCustomPlotField(DuplicatedWidgetId, QtWidgets.QComboBox):

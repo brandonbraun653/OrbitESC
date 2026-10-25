@@ -28,5 +28,16 @@ python lib/Aurora/lib/nanopb/nanopb/generator/nanopb_generator.py --cpp-descript
 
 
 # Build the Python bindings
+# Uses the protoc bundled with grpcio-tools. nanopb.proto must be listed as an
+# input (not just an include path) so that nanopb_pb2.py gets generated — the
+# generated *_pb2.py modules import it at load time.
 echo "Building Python Bindings"
-protoc -I="$SRC_DIR" -I="$NPB_DIR" -I"$SRC_DIR"/serial_interface.proto --python_out="$DST_DIR" --mypy_out="$DST_DIR" "$SRC_DIR"/*.proto
+python -m grpc_tools.protoc -I="$SRC_DIR" -I="$NPB_DIR" \
+  --python_out="$DST_DIR" --mypy_out="$DST_DIR" \
+  "$SRC_DIR"/*.proto "$NPB_DIR/nanopb.proto"
+
+# protoc emits flat imports (e.g. "import serial_interface_pb2 as ...") that
+# assume the output directory is on sys.path. Rewrite them to package-qualified
+# imports so the modules load correctly as pyorbit.nanopb.* submodules.
+echo "Fixing generated import paths"
+sed -i -E 's/^import ([a-z0-9_]+_pb2) as /from pyorbit.nanopb import \1 as /' "$DST_DIR"/*_pb2.py

@@ -11,7 +11,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from pyqtgraph import PlotWidget
 from pyqtgraph.Qt import QtCore
 
-from system_data_pb2 import SystemDataId
+from pyorbit.nanopb.system_data_pb2 import SystemDataId
 
 
 class LivePlotManager(QtCore.QObject):
