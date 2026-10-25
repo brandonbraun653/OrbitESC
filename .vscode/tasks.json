@@ -2,6 +2,16 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Update BMP Port",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/update_bmp_port.sh",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      }
+    },
+    {
       "label": "CMake Clean",
       "type": "shell",
       "command": "mkdir -p ${workspaceFolder}/build && rm -rf ${workspaceFolder}/build/*",

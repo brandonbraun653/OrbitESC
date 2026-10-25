@@ -143,8 +143,6 @@
     "**/Thumbs.db": true,
     "**/__pycache__": true,
     "**/.conda": true,
-    "**/build/debug": true,
-    "**/build/release": true,
     "**/.idea": true
   },
   "terminal.integrated.profiles.linux": {
@@ -167,7 +165,11 @@
     "source.organizeImports": "explicit"
   },
   "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
+  "clangd.arguments": [
+    "--compile-commands-dir=${workspaceFolder}",
+    "--query-driver=/usr/bin/arm-none-eabi-g++,/usr/bin/arm-none-eabi-gcc,/usr/bin/gcc,/usr/bin/g++"
+  ],
   "[cpp]": {
-    "editor.defaultFormatter": "xaver.clang-format"
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
   }
 }

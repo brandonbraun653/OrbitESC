@@ -21,6 +21,7 @@ TOOLS=(
   "arm-none-eabi-objcopy"
   "arm-none-eabi-objdump"
   "arm-none-eabi-strip"
+  "arm-none-eabi-gdb"
 )
 
 print_usage() {

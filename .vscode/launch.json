@@ -4,19 +4,19 @@
     {
       "name": "J-Link OrbitESC V3",
       "cwd": "${workspaceRoot}",
-      "executable": "./build/artifacts/last_build_version/OrbitESC",
+      "executable": "./build/debug/bin/OrbitESC",
       "request": "launch",
       "type": "cortex-debug",
       "servertype": "jlink",
       "interface": "swd",
       "device": "STM32F446RE",
       "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32F446.svd",
-      "gdbPath": "arm-none-eabi-gdb",
+      "gdbPath": "arm-none-eabi-gdb"
     },
     {
       "name": "BMP OrbitESC V3",
       "cwd": "${workspaceRoot}",
-      "executable": "./build/artifacts/last_build_version/OrbitESC",
+      "executable": "./build/debug/bin/OrbitESC",
       "request": "launch",
       "type": "cortex-debug",
       "servertype": "bmp",
@@ -25,9 +25,8 @@
       "svdFile": "${workspaceFolder}/lib/CommonTools/svd/STM32F446.svd",
       "gdbPath": "arm-none-eabi-gdb",
       "BMPGDBSerialPort": "/dev/ttyACM0",
-      "preRestartCommands": [
-          "enable breakpoint"
-      ]
+      "preLaunchTask": "Update BMP Port",
+      "preRestartCommands": ["enable breakpoint"]
     },
     {
       "name": "CMake Launch Target",
@@ -41,18 +40,18 @@
         {
           "name": "PATH",
           "value": "$PATH:${command:cmake.launchTargetDirectory}"
-        },
+        }
       ],
       "externalConsole": false,
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
       "setupCommands": [
-          {
-              "description": "Enable pretty-printing for gdb",
-              "text": "-enable-pretty-printing",
-              "ignoreFailures": true
-          }
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
       ]
-    },
+    }
   ]
 }
