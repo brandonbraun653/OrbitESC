@@ -26,7 +26,9 @@
       "gdbPath": "arm-none-eabi-gdb",
       "BMPGDBSerialPort": "/dev/ttyACM0",
       "preLaunchTask": "Update BMP Port",
-      "preRestartCommands": ["enable breakpoint"]
+      "preRestartCommands": [
+        "enable breakpoint"
+      ]
     },
     {
       "name": "CMake Launch Target",
@@ -52,6 +54,27 @@
           "ignoreFailures": true
         }
       ]
+    },
+    {
+      "name": "OrbitCommand (Debug)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/tools/OrbitCommand/build/debug/OrbitCommand",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "Build OrbitCommand (Debug)"
     }
   ]
 }

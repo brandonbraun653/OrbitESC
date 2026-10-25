@@ -8,6 +8,7 @@ Brushless motor controller development environment for STM32-based ESC firmware,
 - STM32F446RE target (embedded) and host simulator build (ChimeraSim)
 - Protobuf/Nanopb command and telemetry schema for C/C++ and Python
 - Python tools and PyQt5 GUI for monitoring, configuration, and testing
+- OrbitCommand: Qt 6/QML C++ desktop console with dark-neon HUD, live plotting, and parameter editing
 - CMake presets for embedded and simulator builds
 
 ## Project Structure
@@ -17,6 +18,7 @@ Brushless motor controller development environment for STM32-based ESC firmware,
 | `src/` | C++ sources for firmware, simulator integration, startup, tasks, and libraries. |
 | `lib/` | Third-party and in-tree libraries: Aurora, Chimera, ChimeraSim, CMSIS, FreeRTOS, Thor, tinyusb, db. |
 | `pyorbit/` | Python package for host tools, GUI (`pyorbit/app`), serial/CAN clients, protobuf stubs. |
+| `tools/OrbitCommand/` | Standalone Qt 6/QML C++ desktop console for USB serial monitoring and parameter editing. |
 | `scripts/` | Helper scripts: build embedded, generate protobufs, CAN interface setup. |
 | `model/` | MATLAB/Simulink models and notebooks related to control algorithms. |
 | `CMakePresets.json` | Configure/build presets for embedded and simulator targets. |
@@ -85,6 +87,22 @@ cd scripts
 What it does
 - Runs Nanopb to generate C/C++ descriptors into `src/core/com/proto`
 - Runs `protoc` to generate Python modules and `.pyi` into `pyorbit/nanopb`
+
+---
+
+## OrbitCommand (Qt 6/QML C++ console)
+
+OrbitCommand is the C++ desktop replacement path for the PyQt GUI. It lives in `tools/OrbitCommand` as a standalone CMake project so it never enters the ARM firmware build.
+
+Build and run:
+
+```bash
+cmake -S tools/OrbitCommand -B tools/OrbitCommand/build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
+cmake --build tools/OrbitCommand/build/debug
+./tools/OrbitCommand/build/debug/OrbitCommand
+```
+
+See `tools/OrbitCommand/README.md` for prerequisites, tests, protocol notes, and V0 limitations.
 
 ---
 

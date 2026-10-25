@@ -1,5 +1,6 @@
 .VSCodeCounter
 build/**
+tools/OrbitCommand/build/**
 artifacts/**
 profile_data
 

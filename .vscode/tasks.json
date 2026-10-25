@@ -120,6 +120,32 @@
         "focus": true,
         "panel": "dedicated"
       }
+    },
+    {
+      "type": "shell",
+      "label": "Build OrbitCommand (Debug)",
+      "command": "cmake --preset debug --fresh && cmake --build --preset debug",
+      "options": {
+        "cwd": "${workspaceFolder}/tools/OrbitCommand"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": "build"
+    },
+    {
+      "type": "shell",
+      "label": "Run OrbitCommand",
+      "command": "${workspaceFolder}/tools/OrbitCommand/build/debug/OrbitCommand",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": false,
+        "focus": true,
+        "panel": "dedicated"
+      }
     }
   ]
 }
