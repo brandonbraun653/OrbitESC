@@ -5,6 +5,9 @@ import OrbitCommand
 Switch {
     id: control
 
+    Accessible.role: Accessible.CheckBox
+    Accessible.checked: checked
+
     implicitWidth: 42
     implicitHeight: 22
     spacing: 0

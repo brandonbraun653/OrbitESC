@@ -52,6 +52,7 @@ Item {
 
             delegate: ParameterField {
                 width: list.width
+                paramKey: model.key
                 paramId: model.paramId
                 label: model.label
                 paramType: model.type

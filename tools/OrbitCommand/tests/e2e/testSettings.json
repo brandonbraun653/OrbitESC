@@ -1,0 +1,9 @@
+{
+  "waitForObjectTimeout": 5000,
+  "waitForAppStartTimeout": 60000,
+  "waitForAppStopTimeout": 30000,
+  "waitForAppAttachTimeout": 5000,
+  "longOperationTimeout": 15000,
+  "screenshotOnFail": true,
+  "continueAfterFail": false
+}

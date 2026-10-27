@@ -55,6 +55,8 @@ Item {
                 rowSpacing: 14
 
                 MetricTile {
+                    objectName: "oc.dashboard.systemMode"
+                    Accessible.name: "System Mode"
                     Layout.fillWidth: true
                     Layout.minimumWidth: 220
                     label: "System Mode"
@@ -64,6 +66,8 @@ Item {
                 }
 
                 MetricTile {
+                    objectName: "oc.dashboard.linkState"
+                    Accessible.name: "Link State"
                     Layout.fillWidth: true
                     Layout.minimumWidth: 220
                     label: "Link State"
@@ -73,6 +77,8 @@ Item {
                 }
 
                 MetricTile {
+                    objectName: "oc.dashboard.busVoltage"
+                    Accessible.name: "DC Bus Voltage"
                     Layout.fillWidth: true
                     Layout.minimumWidth: 220
                     label: "DC Bus Voltage"
@@ -83,6 +89,8 @@ Item {
                 }
 
                 MetricTile {
+                    objectName: "oc.dashboard.tempSensor"
+                    Accessible.name: "Temperature Sensor"
                     Layout.fillWidth: true
                     Layout.minimumWidth: 220
                     label: "Temperature Sensor"
@@ -93,6 +101,8 @@ Item {
                 }
 
                 MetricTile {
+                    objectName: "oc.dashboard.phaseRms"
+                    Accessible.name: "Phase Current RMS"
                     Layout.fillWidth: true
                     Layout.minimumWidth: 220
                     label: "Phase Current RMS"
@@ -103,6 +113,8 @@ Item {
                 }
 
                 MetricTile {
+                    objectName: "oc.dashboard.phasePeak"
+                    Accessible.name: "Phase Current Peak"
                     Layout.fillWidth: true
                     Layout.minimumWidth: 220
                     label: "Phase Current Peak"
@@ -164,6 +176,8 @@ Item {
                     Item { Layout.fillHeight: true }
 
                     NeonButton {
+                        objectName: "oc.dashboard.resetButton"
+                        Accessible.name: "Command reset"
                         Layout.fillWidth: true
                         text: "COMMAND RESET"
                         enabled: app.online
@@ -171,6 +185,8 @@ Item {
                     }
 
                     NeonButton {
+                        objectName: "oc.dashboard.clearLogButton"
+                        Accessible.name: "Clear log"
                         Layout.fillWidth: true
                         text: "CLEAR LOG"
                         filled: false

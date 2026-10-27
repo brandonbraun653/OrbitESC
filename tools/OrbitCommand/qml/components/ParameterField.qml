@@ -6,6 +6,7 @@ import OrbitCommand
 Rectangle {
     id: root
 
+    property string paramKey: ""
     property int paramId: -1
     property string label: ""
     property int paramType: 0
@@ -19,6 +20,9 @@ Rectangle {
     property int maxLength: 32
 
     signal valueEdited(var newValue)
+
+    objectName: paramKey.length > 0 ? "oc.parameters.field." + paramKey : ""
+    Accessible.name: label
 
     implicitHeight: 52
     color: dirty ? Qt.rgba(1, 0.17, 0.84, 0.045) : "transparent"
@@ -121,6 +125,8 @@ Rectangle {
 
         NeonSwitch {
             id: boolSwitch
+            objectName: root.paramKey.length > 0 ? "oc.parameters.editor." + root.paramKey : ""
+            Accessible.name: root.label
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             onToggled: root.valueEdited(checked)
@@ -138,6 +144,8 @@ Rectangle {
 
         TextField {
             id: stringField
+            objectName: root.paramKey.length > 0 ? "oc.parameters.editor." + root.paramKey : ""
+            Accessible.name: root.label
             maximumLength: root.maxLength
             selectByMouse: true
             color: Theme.textPrimary
@@ -165,6 +173,8 @@ Rectangle {
 
         TextField {
             id: doubleField
+            objectName: root.paramKey.length > 0 ? "oc.parameters.editor." + root.paramKey : ""
+            Accessible.name: root.label
             horizontalAlignment: Text.AlignRight
             selectByMouse: true
             color: Theme.textPrimary
@@ -203,6 +213,8 @@ Rectangle {
 
         SpinBox {
             id: intBox
+            objectName: root.paramKey.length > 0 ? "oc.parameters.editor." + root.paramKey : ""
+            Accessible.name: root.label
             from: Math.max(root.minimum, -2147483647)
             to: Math.min(root.maximum, 2147483647)
             editable: true

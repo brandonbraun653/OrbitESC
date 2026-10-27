@@ -13,10 +13,10 @@ Rectangle {
     border.width: 1
 
     readonly property var pages: [
-        { label: "DASH", glyph: "◈" },
-        { label: "PARAM", glyph: "⚙" },
-        { label: "LIVE", glyph: "∿" },
-        { label: "LOG", glyph: "▤" }
+        { key: "dashboard", label: "DASH", glyph: "◈" },
+        { key: "parameters", label: "PARAM", glyph: "⚙" },
+        { key: "liveData", label: "LIVE", glyph: "∿" },
+        { key: "console", label: "LOG", glyph: "▤" }
     ]
 
     ColumnLayout {
@@ -52,6 +52,9 @@ Rectangle {
 
             Rectangle {
                 id: item
+                objectName: "oc.nav." + modelData.key
+                Accessible.name: modelData.label
+                Accessible.role: Accessible.Button
                 Layout.fillWidth: true
                 Layout.preferredHeight: 62
                 color: root.currentIndex === index ? Theme.panelElevated : "transparent"

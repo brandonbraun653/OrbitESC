@@ -43,6 +43,7 @@ Item {
 
                 Text { text: "SAMPLE RATE"; color: Theme.textMuted; font.family: Theme.monoFont; font.pixelSize: 9; font.letterSpacing: 1.2 }
                 Text {
+                    objectName: "oc.liveData.sampleRate"
                     text: app.telemetry.count > 1 ? app.telemetry.sampleRate().toFixed(1) + " Hz" : "—"
                     color: Theme.primary
                     font.family: Theme.monoFont
@@ -55,6 +56,7 @@ Item {
 
                 Text { text: "SAMPLES"; color: Theme.textMuted; font.family: Theme.monoFont; font.pixelSize: 9; font.letterSpacing: 1.2 }
                 Text {
+                    objectName: "oc.liveData.samples"
                     text: app.telemetry.count
                     color: Theme.textPrimary
                     font.family: Theme.monoFont
@@ -81,6 +83,8 @@ Item {
 
                 NeonSwitch {
                     id: streamSwitch
+                    objectName: "oc.liveData.streamSwitch"
+                    Accessible.name: "Phase-current stream"
                     enabled: app.online
                     onToggled: app.setPhaseCurrentStream(checked)
 
@@ -105,6 +109,8 @@ Item {
 
                 NeonSwitch {
                     id: autoScaleSwitch
+                    objectName: "oc.liveData.autoScaleSwitch"
+                    Accessible.name: "Plot auto-scale"
                     checked: app.plotAutoScale
                     onToggled: app.plotAutoScale = checked
 
@@ -117,6 +123,8 @@ Item {
             }
 
             NeonButton {
+                objectName: "oc.liveData.clearButton"
+                Accessible.name: "Clear telemetry"
                 text: "CLEAR"
                 filled: false
                 onClicked: app.clearTelemetry()
@@ -132,6 +140,7 @@ Item {
             radius: Theme.radius
 
             PlotCanvas {
+                objectName: "oc.liveData.plot"
                 anchors.fill: parent
                 anchors.margins: 1
                 source: app.telemetry

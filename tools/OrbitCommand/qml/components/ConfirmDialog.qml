@@ -5,6 +5,7 @@ import OrbitCommand
 
 Dialog {
     id: root
+    objectName: "oc.dialog"
 
     property string message: ""
     property string confirmText: "CONFIRM"
@@ -52,12 +53,16 @@ Dialog {
             Item { Layout.fillWidth: true }
 
             NeonButton {
+                objectName: "oc.dialog.cancelButton"
+                Accessible.name: "Cancel"
                 text: "CANCEL"
                 filled: false
                 onClicked: root.close()
             }
 
             NeonButton {
+                objectName: "oc.dialog.confirmButton"
+                Accessible.name: "Confirm"
                 text: root.confirmText
                 danger: true
                 onClicked: {

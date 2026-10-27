@@ -79,7 +79,11 @@ namespace Orbit::Tasks::USB
       Control::Field::pumpISRDataStream();
 
       #else
-      Chimera::delayMilliseconds( 100 );
+      /*-----------------------------------------------------------------------
+      Service the simulated USB command socket
+      -----------------------------------------------------------------------*/
+      usb_serial->process();
+      Chimera::delayMilliseconds( 5 );
       #endif  /* EMBEDDED */
     }
   }

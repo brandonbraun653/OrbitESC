@@ -9,6 +9,9 @@ Button {
     property bool filled: true
     property color accent: danger ? Theme.fault : Theme.primary
 
+    Accessible.role: Accessible.Button
+    Accessible.name: text
+
     implicitHeight: 36
     implicitWidth: Math.max(88, contentItem.implicitWidth + leftPadding + rightPadding)
     leftPadding: 16

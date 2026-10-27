@@ -6,6 +6,7 @@ gen_gtest_executable(
   SOURCES
     test_main.cpp
     aurora_stubs.cpp
+    test_isr_config.cpp
     control/test_foc_math.cpp
     "${CMAKE_SOURCE_DIR}/src/control/foc_math.cpp"
   LIBRARIES
@@ -16,4 +17,3 @@ gen_gtest_executable(
     prj_device_target
     prj_build_target
 )
-

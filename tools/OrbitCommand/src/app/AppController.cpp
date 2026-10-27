@@ -1,5 +1,6 @@
 #include "app/AppController.h"
 
+#include "device/SimulatorDefaults.h"
 #include "model/ParameterRegistry.h"
 #include "protocol/ParameterCodec.h"
 
@@ -7,7 +8,6 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QSerialPortInfo>
 #include <QSettings>
 #include <QSaveFile>
 
@@ -17,7 +17,10 @@ namespace orbit::app
   {
     constexpr int TickAgeRefreshMs = 500;
     constexpr int StatsRefreshMs   = 200;
-    const char *LastPortKey        = "lastPort";
+    const char *LastTargetKey      = "lastTargetId";
+    const char *LegacyLastPortKey  = "lastPort";
+    const char *SimulatorHostKey   = "simulatorHost";
+    const char *SimulatorPortKey   = "simulatorPort";
 
     QJsonValue valueToJson( ParamType type, const QVariant &value )
     {
@@ -70,7 +73,7 @@ namespace orbit::app
     m_logModel  = new orbit::model::LogModel( this );
 
     m_worker = new QThread( this );
-    m_client = new orbit::device::DeviceClient();
+    m_client = new orbit::device::DeviceClient( &m_transportRegistry );
     m_client->moveToThread( m_worker );
 
     connect( m_client, &orbit::device::DeviceClient::stateChanged, this, &AppController::handleStateChanged );
@@ -98,27 +101,50 @@ namespace orbit::app
     m_statsTimer.start();
 
     QSettings settings;
-    m_selectedPort = settings.value( LastPortKey ).toString();
+    m_selectedTargetId = settings.value( LastTargetKey ).toString();
+    if( m_selectedTargetId.isEmpty() )
+    {
+      const QString legacyPort = settings.value( LegacyLastPortKey ).toString();
+      if( !legacyPort.isEmpty() )
+      {
+        m_selectedTargetId = QStringLiteral( "serial:%1" ).arg( legacyPort );
+        settings.setValue( LastTargetKey, m_selectedTargetId );
+      }
+    }
+    m_simulatorHost = settings.value( SimulatorHostKey, QString::fromLatin1( orbit::device::DefaultSimulatorHost ) )
+                          .toString()
+                          .trimmed();
+    if( m_simulatorHost.isEmpty() )
+    {
+      m_simulatorHost = QString::fromLatin1( orbit::device::DefaultSimulatorHost );
+    }
+    m_simulatorPort = qBound( 1, settings.value( SimulatorPortKey, orbit::device::DefaultSimulatorPort ).toInt(),
+                              65535 );
     m_selectedPage = qBound( 0, settings.value( "selectedPage", 0 ).toInt(), 3 );
     m_plotAutoScale = settings.value( "plotAutoScale", true ).toBool();
-    refreshPorts();
+    refreshTargets();
 
     m_logModel->addApp( orbit::model::LogModel::Severity::Info, tr( "OrbitCommand initialized" ) );
   }
 
   AppController::~AppController()
   {
-    if( m_worker && m_worker->isRunning() )
+    if( m_worker && m_worker->isRunning() && m_client )
     {
-      QMetaObject::invokeMethod( m_client, "closePort", Qt::BlockingQueuedConnection );
+      QMetaObject::invokeMethod( m_client, "closeConnection", Qt::BlockingQueuedConnection );
+      QMetaObject::invokeMethod( m_client, [client = m_client]() { delete client; }, Qt::BlockingQueuedConnection );
+      m_client = nullptr;
+    }
+    else if( m_client )
+    {
+      delete m_client;
+      m_client = nullptr;
     }
     if( m_worker )
     {
       m_worker->quit();
       m_worker->wait();
     }
-    delete m_client;
-    m_client = nullptr;
   }
 
   QString AppController::connectionState() const
@@ -167,61 +193,167 @@ namespace orbit::app
            m_motorAttributesModel->dirtyCount();
   }
 
-  void AppController::refreshPorts()
+  void AppController::refreshTargets()
   {
-    QVariantList ports;
-    const auto serialPorts = QSerialPortInfo::availablePorts();
-    for( const QSerialPortInfo &info : serialPorts )
+    QVariantList targets;
+    const auto discovered = m_transportRegistry.discoverTargets();
+    for( const orbit::device::ConnectionTarget &target : discovered )
     {
-      const quint16 vid = info.hasVendorIdentifier() ? info.vendorIdentifier() : 0;
-      const quint16 pid = info.hasProductIdentifier() ? info.productIdentifier() : 0;
-      const bool likelyOrbit = vid == 0xCAFE || info.description().contains( "Orbit", Qt::CaseInsensitive ) ||
-                               info.manufacturer().contains( "Orbit", Qt::CaseInsensitive );
-
       QVariantMap entry;
-      entry.insert( "name", info.portName() );
-      entry.insert( "description", info.description() );
-      entry.insert( "manufacturer", info.manufacturer() );
-      entry.insert( "vid", vid );
-      entry.insert( "pid", pid );
-      entry.insert( "likelyOrbit", likelyOrbit );
-      ports.append( entry );
-    }
-
-    m_availablePorts = ports;
-    emit availablePortsChanged();
-
-    if( m_selectedPort.isEmpty() && !ports.isEmpty() )
-    {
-      QString preferredPort = ports.first().toMap().value( "name" ).toString();
-      for( const QVariant &port : ports )
+      entry.insert( "id", target.id );
+      entry.insert( "kind", target.kind );
+      entry.insert( "label", target.displayName );
+      for( auto it = target.properties.cbegin(); it != target.properties.cend(); ++it )
       {
-        if( port.toMap().value( "likelyOrbit" ).toBool() )
-        {
-          preferredPort = port.toMap().value( "name" ).toString();
-          break;
-        }
+        entry.insert( it.key(), it.value() );
       }
-      setSelectedPort( preferredPort );
+
+      if( target.kind == QStringLiteral( "simulator" ) )
+      {
+        entry.insert( "host", m_simulatorHost );
+        entry.insert( "port", m_simulatorPort );
+        entry.insert( "description", tr( "TCP %1:%2" ).arg( m_simulatorHost ).arg( m_simulatorPort ) );
+      }
+
+      targets.append( entry );
     }
-  }
 
-  void AppController::selectPort( const QString &portName )
-  {
-    setSelectedPort( portName );
-  }
+    m_availableTargets = targets;
+    emit availableTargetsChanged();
 
-  void AppController::setSelectedPort( const QString &portName )
-  {
-    if( m_selectedPort == portName )
+    bool selectedStillExists = false;
+    for( const QVariant &target : m_availableTargets )
+    {
+      if( target.toMap().value( "id" ).toString() == m_selectedTargetId )
+      {
+        selectedStillExists = true;
+        break;
+      }
+    }
+
+    if( selectedStillExists )
     {
       return;
     }
 
-    m_selectedPort = portName;
+    QString fallbackId;
+    for( const QVariant &target : m_availableTargets )
+    {
+      const QVariantMap entry = target.toMap();
+      if( entry.value( "kind" ).toString() == QStringLiteral( "serial" ) &&
+          entry.value( "likelyOrbit" ).toBool() )
+      {
+        fallbackId = entry.value( "id" ).toString();
+        break;
+      }
+    }
+
+    if( fallbackId.isEmpty() )
+    {
+      for( const QVariant &target : m_availableTargets )
+      {
+        const QVariantMap entry = target.toMap();
+        if( entry.value( "kind" ).toString() == QStringLiteral( "serial" ) )
+        {
+          fallbackId = entry.value( "id" ).toString();
+          break;
+        }
+      }
+    }
+
+    if( fallbackId.isEmpty() )
+    {
+      for( const QVariant &target : m_availableTargets )
+      {
+        const QVariantMap entry = target.toMap();
+        if( entry.value( "kind" ).toString() == QStringLiteral( "simulator" ) )
+        {
+          fallbackId = entry.value( "id" ).toString();
+          break;
+        }
+      }
+    }
+
+    setSelectedTargetId( fallbackId );
+  }
+
+  void AppController::selectTarget( const QString &targetId )
+  {
+    setSelectedTargetId( targetId );
+  }
+
+  void AppController::setSelectedTargetId( const QString &targetId )
+  {
+    if( m_selectedTargetId == targetId )
+    {
+      return;
+    }
+
+    m_selectedTargetId = targetId;
     QSettings settings;
-    settings.setValue( LastPortKey, m_selectedPort );
-    emit selectedPortChanged();
+    settings.setValue( LastTargetKey, m_selectedTargetId );
+    emit selectedTargetIdChanged();
+  }
+
+  void AppController::setSimulatorHost( const QString &host )
+  {
+    const QString trimmedHost = host.trimmed();
+    if( m_simulatorHost == trimmedHost )
+    {
+      return;
+    }
+
+    m_simulatorHost = trimmedHost;
+    QSettings settings;
+    settings.setValue( SimulatorHostKey, m_simulatorHost );
+    emit simulatorHostChanged();
+    updateSimulatorTargetEntry();
+  }
+
+  void AppController::setSimulatorPort( int port )
+  {
+    const int boundedPort = qBound( 1, port, 65535 );
+    if( m_simulatorPort == boundedPort )
+    {
+      return;
+    }
+
+    m_simulatorPort = boundedPort;
+    QSettings settings;
+    settings.setValue( SimulatorPortKey, m_simulatorPort );
+    emit simulatorPortChanged();
+    updateSimulatorTargetEntry();
+  }
+
+  void AppController::updateSimulatorTargetEntry()
+  {
+    for( QVariant &target : m_availableTargets )
+    {
+      QVariantMap entry = target.toMap();
+      if( entry.value( "kind" ).toString() != QStringLiteral( "simulator" ) )
+      {
+        continue;
+      }
+
+      entry.insert( "host", m_simulatorHost );
+      entry.insert( "port", m_simulatorPort );
+      entry.insert( "description", tr( "TCP %1:%2" ).arg( m_simulatorHost ).arg( m_simulatorPort ) );
+      target = entry;
+    }
+    emit availableTargetsChanged();
+  }
+
+  QVariantMap AppController::selectedTargetMap() const
+  {
+    for( const QVariant &target : m_availableTargets )
+    {
+      const QVariantMap entry = target.toMap();
+      if( entry.value( "id" ).toString() == m_selectedTargetId )
+      {
+        return entry;
+      }
+    }
+    return {};
   }
 
   void AppController::toggleConnection()
@@ -242,21 +374,64 @@ namespace orbit::app
     {
       return;
     }
-    if( m_selectedPort.isEmpty() )
+
+    const QVariantMap selected = selectedTargetMap();
+    if( selected.isEmpty() )
     {
-      notify( Notification::Warning, tr( "Select a serial port first" ) );
+      notify( Notification::Warning, tr( "Select a connection target first" ) );
       return;
     }
 
+    orbit::device::ConnectionTarget target;
+    target.kind = selected.value( "kind" ).toString();
+    target.id = selected.value( "id" ).toString();
+    target.displayName = selected.value( "label" ).toString();
+    for( auto it = selected.cbegin(); it != selected.cend(); ++it )
+    {
+      if( it.key() != QStringLiteral( "id" ) && it.key() != QStringLiteral( "kind" ) &&
+          it.key() != QStringLiteral( "label" ) && it.key() != QStringLiteral( "description" ) )
+      {
+        target.properties.insert( it.key(), it.value() );
+      }
+    }
+
+    if( target.kind == QStringLiteral( "simulator" ) )
+    {
+      if( m_simulatorHost.isEmpty() )
+      {
+        notify( Notification::Warning, tr( "Enter a simulator host" ) );
+        return;
+      }
+      if( m_simulatorPort < 1 || m_simulatorPort > 65535 )
+      {
+        notify( Notification::Warning, tr( "Enter a simulator port between 1 and 65535" ) );
+        return;
+      }
+
+      target.properties.insert( "host", m_simulatorHost );
+      target.properties.insert( "port", m_simulatorPort );
+      setProgress( tr( "Connecting to simulator at %1:%2" ).arg( m_simulatorHost ).arg( m_simulatorPort ) );
+    }
+    else
+    {
+      const QString portName = target.properties.value( "portName" ).toString();
+      if( portName.isEmpty() )
+      {
+        notify( Notification::Warning, tr( "Select a serial port first" ) );
+        return;
+      }
+      setProgress( tr( "Opening %1" ).arg( portName ) );
+    }
+
     m_hasAutoRefreshed = false;
-    setProgress( tr( "Opening %1" ).arg( m_selectedPort ) );
-    QMetaObject::invokeMethod( m_client, "openPort", Qt::QueuedConnection, Q_ARG( QString, m_selectedPort ) );
+    QMetaObject::invokeMethod( m_client, "openTarget", Qt::QueuedConnection,
+                               Q_ARG( orbit::device::ConnectionTarget, target ) );
   }
 
   void AppController::disconnectDevice()
   {
     setProgress( {} );
-    QMetaObject::invokeMethod( m_client, "closePort", Qt::QueuedConnection );
+    QMetaObject::invokeMethod( m_client, "closeConnection", Qt::QueuedConnection );
   }
 
   void AppController::resetSystem()

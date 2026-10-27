@@ -17,6 +17,7 @@ Includes
 #include <etl/vector.h>
 #include <src/config/bsp/board_map.hpp>
 #include <src/core/com/serial/serial_usb.hpp>
+#include <src/core/hw/orbit_isr_config.hpp>
 #include <src/core/hw/orbit_tusb.h>
 #include <src/core/hw/orbit_usb.hpp>
 #include <src/monitor/debug/segger_modules_intf.h>
@@ -93,7 +94,7 @@ namespace Orbit::USB
     /*-------------------------------------------------------------------------
     Configure Interrupts
     -------------------------------------------------------------------------*/
-    Thor::LLD::INT::setPriority( USB_IRQn, 1u, 0u );
+    Thor::LLD::INT::setPriority( USB_IRQn, Orbit::USB_ISR_PRI_LVL, 0u );
     Thor::LLD::INT::enableIRQ( USB_IRQn );
     #endif  /* EMBEDDED */
   }

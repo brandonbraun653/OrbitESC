@@ -68,10 +68,34 @@ int main( int argc, char *argv[] )
     controller.setSelectedPage( app.arguments().at( pageIndex + 1 ).toInt() );
   }
 
+  const int simHostIndex = app.arguments().indexOf( "--sim-host" );
+  if( simHostIndex >= 0 && simHostIndex + 1 < app.arguments().size() )
+  {
+    controller.setSimulatorHost( app.arguments().at( simHostIndex + 1 ) );
+  }
+
+  const int simPortIndex = app.arguments().indexOf( "--sim-port" );
+  if( simPortIndex >= 0 && simPortIndex + 1 < app.arguments().size() )
+  {
+    controller.setSimulatorPort( app.arguments().at( simPortIndex + 1 ).toInt() );
+  }
+
   const int connectIndex = app.arguments().indexOf( "--connect" );
   if( connectIndex >= 0 && connectIndex + 1 < app.arguments().size() )
   {
-    controller.selectPort( app.arguments().at( connectIndex + 1 ) );
+    const QString target = app.arguments().at( connectIndex + 1 );
+    if( target == QStringLiteral( "simulator" ) )
+    {
+      controller.selectTarget( QStringLiteral( "simulator" ) );
+    }
+    else if( target.startsWith( QStringLiteral( "serial:" ) ) )
+    {
+      controller.selectTarget( target );
+    }
+    else
+    {
+      controller.selectTarget( QStringLiteral( "serial:%1" ).arg( target ) );
+    }
     QTimer::singleShot( 200, &controller, [&controller]() { controller.connectDevice(); } );
   }
 

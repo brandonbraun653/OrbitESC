@@ -51,11 +51,15 @@ Item {
 
                 NeonSwitch {
                     id: autoScrollSwitch
+                    objectName: "oc.console.autoScrollSwitch"
+                    Accessible.name: "Console auto-scroll"
                     checked: true
                 }
             }
 
             NeonButton {
+                objectName: "oc.console.clearButton"
+                Accessible.name: "Clear console"
                 text: "CLEAR"
                 filled: false
                 onClicked: app.clearLog()

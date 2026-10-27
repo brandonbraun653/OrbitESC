@@ -13,8 +13,15 @@ namespace orbit::device
     connect( m_port, &QSerialPort::errorOccurred, this, &SerialTransport::handleError );
   }
 
-  bool SerialTransport::open( const QString &portName )
+  bool SerialTransport::open( const ConnectionTarget &target )
   {
+    const QString portName = target.properties.value( "portName" ).toString();
+    if( portName.isEmpty() )
+    {
+      emit errorOccurred( tr( "Serial target is missing a port name" ) );
+      return false;
+    }
+
     if( m_port->isOpen() )
     {
       m_port->close();

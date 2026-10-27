@@ -12,7 +12,7 @@ namespace orbit::device
   public:
     explicit SerialTransport( QObject *parent = nullptr );
 
-    bool open( const QString &portName ) override;
+    bool open( const ConnectionTarget &target ) override;
     void close() override;
     void write( const QByteArray &data ) override;
     bool isOpen() const override;

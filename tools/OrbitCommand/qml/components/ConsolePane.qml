@@ -21,6 +21,8 @@ Item {
 
     ListView {
         id: list
+        objectName: "oc.console.list"
+        Accessible.name: "Console output"
         anchors.fill: parent
         model: root.model
         clip: true

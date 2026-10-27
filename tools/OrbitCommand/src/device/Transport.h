@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QString>
 
+#include "device/ConnectionTarget.h"
+
 namespace orbit::device
 {
   class Transport : public QObject
@@ -15,7 +17,7 @@ namespace orbit::device
     }
     ~Transport() override = default;
 
-    virtual bool open( const QString &portName ) = 0;
+    virtual bool open( const ConnectionTarget &target ) = 0;
     virtual void close() = 0;
     virtual void write( const QByteArray &data ) = 0;
     virtual bool isOpen() const = 0;

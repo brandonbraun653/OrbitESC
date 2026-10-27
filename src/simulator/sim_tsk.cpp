@@ -106,11 +106,11 @@ namespace Orbit::Tasks::SIM
             break;
         }
       }
-    }
 
-    /*-----------------------------------------------------------------------
-    Run simulation events
-    -----------------------------------------------------------------------*/
-    Orbit::Sim::ADC::triggerInstrumentationADC();
+      /*-----------------------------------------------------------------------
+      Run simulation events
+      -----------------------------------------------------------------------*/
+      Orbit::Sim::ADC::triggerInstrumentationADC();
+    }
   }
 }    // namespace Orbit::Tasks::SIM

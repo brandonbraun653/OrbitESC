@@ -36,9 +36,9 @@ namespace Orbit::Serial
   /*---------------------------------------------------------------------------
   Constants
   ---------------------------------------------------------------------------*/
-  static constexpr int  PORT       = 37218;
-  static constexpr int  MAX_CONN   = 1;
-  static constexpr bool DEBUG_INFO = false;
+  static constexpr int  DEFAULT_PORT = 37218;
+  static constexpr int  MAX_CONN     = 1;
+  static constexpr bool DEBUG_INFO   = false;
 
   /*---------------------------------------------------------------------------
   Structures
@@ -67,16 +67,27 @@ namespace Orbit::Serial
   ---------------------------------------------------------------------------*/
 
   /**
-   * @brief Ensures any open file descriptors are closed when the program exits
+   * @brief Closes the connected client while keeping the listener alive
    * @return void
    */
-  static void close_socket()
+  static void close_client()
   {
     if( s_server_config.client_fd > 0 )
     {
       ::close( s_server_config.client_fd );
       s_server_config.client_fd = -1;
     }
+
+    s_server_config.connected = false;
+  }
+
+  /**
+   * @brief Ensures any open file descriptors are closed when the program exits
+   * @return void
+   */
+  static void close_socket()
+  {
+    close_client();
 
     if( s_server_config.server_fd > 0 )
     {
@@ -85,6 +96,28 @@ namespace Orbit::Serial
     }
 
     s_server_config.connected = false;
+  }
+
+  /**
+   * @brief Resolves the command port from ORBITESC_SIM_PORT, falling back to the default
+   * @return Valid TCP port in the range 1..65535
+   */
+  static int resolvePort()
+  {
+    const char *override_port = std::getenv( "ORBITESC_SIM_PORT" );
+    if( override_port != nullptr && override_port[0] != '\0' )
+    {
+      char *end        = nullptr;
+      const long value = std::strtol( override_port, &end, 10 );
+      if( end != override_port && *end == '\0' && value >= 1 && value <= 65535 )
+      {
+        return static_cast<int>( value );
+      }
+
+      LOG_WARN( "Ignoring invalid ORBITESC_SIM_PORT='%s', using default %d", override_port, DEFAULT_PORT );
+    }
+
+    return DEFAULT_PORT;
   }
 
   /*---------------------------------------------------------------------------
@@ -182,6 +215,7 @@ namespace Orbit::Serial
     -------------------------------------------------------------------------*/
     if( !s_server_config.connected )
     {
+      s_server_config.addrlen = sizeof( s_server_config.address );
       const int client_fd = accept( s_server_config.server_fd, reinterpret_cast<struct sockaddr *>( &s_server_config.address ),
                                     reinterpret_cast<socklen_t *>( &s_server_config.addrlen ) );
 
@@ -243,7 +277,7 @@ namespace Orbit::Serial
         else if( read_size == 0 )
         {
           LOG_DEBUG_IF( DEBUG_INFO, "Client disconnected" );
-          close_socket();
+          close_client();
 
           if( mRXBuffer )
           {
@@ -288,7 +322,17 @@ namespace Orbit::Serial
           if( ( errno == EPIPE ) || ( errno == ECONNRESET ) )
           {
             LOG_DEBUG_IF( DEBUG_INFO, "Client disconnected during send" );
-            close_socket();
+            close_client();
+
+            if( mRXBuffer )
+            {
+              mRXBuffer->clear();
+            }
+
+            if( mTXBuffer )
+            {
+              mTXBuffer->clear();
+            }
           }
           else if( ( errno != EAGAIN ) && ( errno != EWOULDBLOCK ) )
           {
@@ -335,9 +379,10 @@ namespace Orbit::Serial
     /*-------------------------------------------------------------------------
     Bind the socket to the desired port
     -------------------------------------------------------------------------*/
+    const int port                          = resolvePort();
     s_server_config.address.sin_family      = AF_INET;
     s_server_config.address.sin_addr.s_addr = INADDR_ANY;
-    s_server_config.address.sin_port        = htons( PORT );
+    s_server_config.address.sin_port        = htons( port );
 
     if( bind( s_server_config.server_fd, ( struct sockaddr * )&s_server_config.address, sizeof( s_server_config.address ) ) <
         0 )
@@ -367,7 +412,7 @@ namespace Orbit::Serial
       return Chimera::Status::FAILED_INIT;
     }
 
-    LOG_DEBUG( "Created server on port %d", PORT );
+    LOG_DEBUG( "Created server on port %d", port );
     return Chimera::Status::OK;
   }
 

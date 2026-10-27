@@ -40,11 +40,15 @@ Item {
             Item { Layout.fillWidth: true }
 
             StatusPill {
+                objectName: "oc.parameters.dirtyPill"
+                Accessible.name: "Dirty parameter count"
                 text: app.dirtyCount + " DIRTY"
                 tone: app.dirtyCount > 0 ? "warn" : "idle"
             }
 
             BusyIndicator {
+                objectName: "oc.parameters.busyIndicator"
+                Accessible.name: "Parameter operation in progress"
                 running: app.busy
                 visible: app.busy
                 implicitWidth: 26
@@ -62,6 +66,8 @@ Item {
             }
 
             NeonButton {
+                objectName: "oc.parameters.refreshButton"
+                Accessible.name: "Refresh parameters"
                 text: "REFRESH"
                 filled: false
                 enabled: app.online && !app.busy
@@ -69,12 +75,16 @@ Item {
             }
 
             NeonButton {
+                objectName: "oc.parameters.applyButton"
+                Accessible.name: "Apply parameters"
                 text: "APPLY"
                 enabled: app.online && !app.busy && app.dirtyCount > 0
                 onClicked: app.applyParameters()
             }
 
             NeonButton {
+                objectName: "oc.parameters.loadButton"
+                Accessible.name: "Load parameters"
                 text: "LOAD"
                 filled: false
                 enabled: !app.busy
@@ -82,6 +92,8 @@ Item {
             }
 
             NeonButton {
+                objectName: "oc.parameters.saveButton"
+                Accessible.name: "Save parameters"
                 text: "SAVE"
                 filled: false
                 onClicked: saveDialog.open()
@@ -90,6 +102,8 @@ Item {
 
         TabBar {
             id: tabs
+            objectName: "oc.parameters.tabs"
+            Accessible.name: "Parameter groups"
             Layout.fillWidth: true
             spacing: 4
 
@@ -101,6 +115,8 @@ Item {
                 model: [ "Information", "System Behavior", "Motor Control", "Motor Attributes" ]
 
                 TabButton {
+                    objectName: "oc.parameters.tab." + index
+                    Accessible.name: modelData
                     text: modelData.toUpperCase()
                     font.family: Theme.monoFont
                     font.pixelSize: 10

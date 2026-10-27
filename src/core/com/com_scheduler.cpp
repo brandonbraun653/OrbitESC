@@ -50,22 +50,22 @@ namespace Orbit::COM::Scheduler
    *
    * @param lhs   Left hand side task to compare
    * @param rhs   Right hand side task to compare
-   * @return int
+   * @return bool
    */
-  static int task_sort_compare( const Task *const lhs, const Task *const rhs )
+  static bool task_sort_compare( const Task *const lhs, const Task *const rhs )
   {
     /*-------------------------------------------------------------------------
     Sort by next run time first
     -------------------------------------------------------------------------*/
     if( lhs->nextRun != rhs->nextRun )
     {
-      return ( lhs->nextRun < rhs->nextRun ) ? -1 : 1;
+      return lhs->nextRun < rhs->nextRun;
     }
 
     /*-------------------------------------------------------------------------
     Sort by priority second within all tasks that have the same next run time
     -------------------------------------------------------------------------*/
-    return ( lhs->priority <= rhs->priority ) ? -1 : 1;
+    return static_cast<uint8_t>( lhs->priority ) < static_cast<uint8_t>( rhs->priority );
   }
 
 

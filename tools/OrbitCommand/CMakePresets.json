@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 6,
   "configurePresets": [
     {
       "name": "debug",
@@ -8,17 +8,58 @@
       "binaryDir": "${sourceDir}/build/debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ORBITCOMMAND_ENABLE_E2E": "OFF"
       }
     },
     {
       "name": "release",
       "displayName": "OrbitCommand Release",
+      "description": "Canonical all-tier test build",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ORBITCOMMAND_ENABLE_E2E": "ON",
+        "ORBITCOMMAND_ENABLE_SYSTEM_TESTS": "ON"
+      }
+    },
+    {
+      "name": "asan",
+      "displayName": "OrbitCommand ASan + UBSan",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/asan",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ORBITCOMMAND_ENABLE_E2E": "OFF",
+        "ORBITCOMMAND_SANITIZERS": "address,undefined"
+      }
+    },
+    {
+      "name": "tsan",
+      "displayName": "OrbitCommand TSan",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/tsan",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ORBITCOMMAND_ENABLE_E2E": "OFF",
+        "ORBITCOMMAND_SANITIZERS": "thread"
+      }
+    },
+    {
+      "name": "coverage",
+      "displayName": "OrbitCommand Coverage",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/coverage",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ORBITCOMMAND_COVERAGE": "ON",
+        "ORBITCOMMAND_ENABLE_E2E": "OFF",
+        "ORBITCOMMAND_ENABLE_SYSTEM_TESTS": "OFF"
       }
     }
   ],
@@ -32,6 +73,21 @@
       "name": "release",
       "configurePreset": "release",
       "jobs": 16
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan",
+      "jobs": 16
+    },
+    {
+      "name": "tsan",
+      "configurePreset": "tsan",
+      "jobs": 16
+    },
+    {
+      "name": "coverage",
+      "configurePreset": "coverage",
+      "jobs": 16
     }
   ],
   "testPresets": [
@@ -40,6 +96,51 @@
       "configurePreset": "debug",
       "output": {
         "outputOnFailure": true
+      }
+    },
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "output": {
+        "outputOnFailure": true,
+        "outputJUnitFile": "${sourceDir}/build/test-results/ctest.xml"
+      }
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan",
+      "output": {
+        "outputOnFailure": true
+      },
+      "environment": {
+        "ASAN_OPTIONS": "detect_leaks=0"
+      }
+    },
+    {
+      "name": "tsan",
+      "configurePreset": "tsan",
+      "output": {
+        "outputOnFailure": true
+      },
+      "environment": {
+        "TSAN_OPTIONS": "suppressions=${sourceDir}/tests/tsan.supp"
+      },
+      "filter": {
+        "exclude": {
+          "name": "AppControllerTest\\."
+        }
+      }
+    },
+    {
+      "name": "coverage",
+      "configurePreset": "coverage",
+      "output": {
+        "outputOnFailure": true
+      },
+      "filter": {
+        "include": {
+          "label": "unit"
+        }
       }
     }
   ]

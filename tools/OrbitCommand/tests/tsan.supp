@@ -1,0 +1,8 @@
+# ThreadSanitizer suppressions for third-party Qt/glib internals.
+# TSan is advisory for OrbitCommand: these races are outside project code.
+race:eventfd
+race:libglib-2.0.so*
+race:libQt6Core.so*
+race:QThread*
+race:QCoreApplication*
+thread:QThread*

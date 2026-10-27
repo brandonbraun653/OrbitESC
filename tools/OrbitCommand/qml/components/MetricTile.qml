@@ -11,6 +11,7 @@ NeonCard {
     property string detail: ""
     property color valueColor: Theme.textPrimary
 
+    Accessible.name: label + " " + value
     implicitHeight: 116
 
     Text {

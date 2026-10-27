@@ -10,10 +10,13 @@
 #include "protocol/ConsoleAssembler.h"
 #include "protocol/FrameCodec.h"
 #include "protocol/MessageCodec.h"
+#include "device/ConnectionTarget.h"
 #include "device/Transport.h"
 
 namespace orbit::device
 {
+  class TransportRegistry;
+
   class DeviceClient : public QObject
   {
     Q_OBJECT
@@ -47,7 +50,8 @@ namespace orbit::device
     };
     Q_ENUM( Severity )
 
-    explicit DeviceClient( Transport *transport = nullptr, QObject *parent = nullptr );
+    explicit DeviceClient( TransportRegistry *registry, QObject *parent = nullptr );
+    explicit DeviceClient( Transport *transport, QObject *parent = nullptr );
     ~DeviceClient() override;
 
     State state() const
@@ -56,8 +60,8 @@ namespace orbit::device
     }
 
   public slots:
-    void openPort( const QString &portName );
-    void closePort();
+    void openTarget( const ConnectionTarget &target );
+    void closeConnection();
     void requestParameterGet( int paramId );
     void requestParameterSet( int paramId, int paramType, const QByteArray &data );
     void requestSystemControl( int subId, int detail );
@@ -98,6 +102,9 @@ namespace orbit::device
     };
 
     void setState( State state );
+    void initialize();
+    void wireTransport();
+    void destroyTransport();
     void enqueue( const PendingRequest &request, bool allowWhileNotOnline = false );
     void sendNextRequest();
     void finishCurrent( bool ok, const QString &error );
@@ -107,6 +114,8 @@ namespace orbit::device
     quint16 nextUuid();
 
     Transport *m_transport = nullptr;
+    TransportRegistry *m_registry = nullptr;
+    bool m_ownsTransport = false;
     orbit::protocol::FrameAccumulator m_accumulator;
     orbit::protocol::ConsoleAssembler m_consoleAssembler;
     QTimer *m_requestTimer = nullptr;

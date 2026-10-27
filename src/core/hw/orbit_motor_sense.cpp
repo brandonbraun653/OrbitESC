@@ -25,8 +25,11 @@ Includes
 #include <src/core/hw/orbit_motor_sense.hpp>
 #include <src/core/hw/orbit_timer.hpp>
 #include <src/control/foc_math.hpp>
+#include <src/core/hw/orbit_isr_config.hpp>
 
 #if defined( EMBEDDED )
+#include <Thor/lld/interface/inc/dma>
+#include <Thor/lld/interface/inc/interrupt>
 #include <Thor/lld/common/cortex-m4/system_time.hpp>
 #endif /* EMBEDDED */
 
@@ -190,6 +193,14 @@ namespace Orbit::Motor::Sense
 
     auto pADC = Chimera::ADC::getDriver( Orbit::IO::Analog::MotorADC );
     pADC->onInterrupt( Chimera::ADC::Interrupt::EOC_SEQUENCE, callback );
+
+#if defined( EMBEDDED )
+    const auto dmaResource = Thor::LLD::DMA::getResourceIndex( Thor::LLD::DMA::Source::ADC1 );
+    RT_HARD_ASSERT( dmaResource != Thor::LLD::INVALID_RESOURCE_INDEX );
+
+    // R1362
+    Thor::LLD::INT::setPriority( Thor::LLD::DMA::Resource::IRQSignals[ dmaResource ], FOC_DMA_ISR_PRI_LVL, 0u );
+#endif /* EMBEDDED */
 
     /*-------------------------------------------------------------------------
     Configure Timer 8 to trigger ADC conversions at a fixed rate

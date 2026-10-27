@@ -8,8 +8,10 @@
 #include <QTimer>
 #include <QUrl>
 #include <QVariantList>
+#include <QVariantMap>
 
 #include "device/DeviceClient.h"
+#include "device/TransportRegistry.h"
 #include "model/LogModel.h"
 #include "model/ParameterModel.h"
 #include "model/TelemetryBuffer.h"
@@ -20,8 +22,11 @@ namespace orbit::app
   {
     Q_OBJECT
 
-    Q_PROPERTY( QVariantList availablePorts READ availablePorts NOTIFY availablePortsChanged )
-    Q_PROPERTY( QString selectedPort READ selectedPort NOTIFY selectedPortChanged )
+    Q_PROPERTY( QVariantList availableTargets READ availableTargets NOTIFY availableTargetsChanged )
+    Q_PROPERTY( QString selectedTargetId READ selectedTargetId NOTIFY selectedTargetIdChanged )
+    Q_PROPERTY( QString simulatorHost READ simulatorHost NOTIFY simulatorHostChanged )
+    Q_PROPERTY( int simulatorPort READ simulatorPort NOTIFY simulatorPortChanged )
+    Q_PROPERTY( bool simulatorTargetSelected READ simulatorTargetSelected NOTIFY selectedTargetIdChanged )
     Q_PROPERTY( QString connectionState READ connectionState NOTIFY connectionStateChanged )
     Q_PROPERTY( bool connected READ connected NOTIFY connectionStateChanged )
     Q_PROPERTY( bool online READ online NOTIFY connectionStateChanged )
@@ -48,13 +53,25 @@ namespace orbit::app
     explicit AppController( QObject *parent = nullptr );
     ~AppController() override;
 
-    QVariantList availablePorts() const
+    QVariantList availableTargets() const
     {
-      return m_availablePorts;
+      return m_availableTargets;
     }
-    QString selectedPort() const
+    QString selectedTargetId() const
     {
-      return m_selectedPort;
+      return m_selectedTargetId;
+    }
+    QString simulatorHost() const
+    {
+      return m_simulatorHost;
+    }
+    int simulatorPort() const
+    {
+      return m_simulatorPort;
+    }
+    bool simulatorTargetSelected() const
+    {
+      return m_selectedTargetId == QStringLiteral( "simulator" );
     }
     QString connectionState() const;
     bool connected() const;
@@ -124,8 +141,10 @@ namespace orbit::app
       return m_logModel;
     }
 
-    Q_INVOKABLE void refreshPorts();
-    Q_INVOKABLE void selectPort( const QString &portName );
+    Q_INVOKABLE void refreshTargets();
+    Q_INVOKABLE void selectTarget( const QString &targetId );
+    Q_INVOKABLE void setSimulatorHost( const QString &host );
+    Q_INVOKABLE void setSimulatorPort( int port );
     Q_INVOKABLE void toggleConnection();
     Q_INVOKABLE void connectDevice();
     Q_INVOKABLE void disconnectDevice();
@@ -146,8 +165,10 @@ namespace orbit::app
     void setPlotAutoScale( bool enabled );
 
   signals:
-    void availablePortsChanged();
-    void selectedPortChanged();
+    void availableTargetsChanged();
+    void selectedTargetIdChanged();
+    void simulatorHostChanged();
+    void simulatorPortChanged();
     void connectionStateChanged();
     void systemModeChanged();
     void tickAgeChanged();
@@ -183,7 +204,9 @@ namespace orbit::app
       Error
     };
 
-    void setSelectedPort( const QString &portName );
+    void setSelectedTargetId( const QString &targetId );
+    void updateSimulatorTargetEntry();
+    QVariantMap selectedTargetMap() const;
     void setSystemMode( const QString &mode );
     void setBusy( bool busy );
     void setProgress( const QString &text );
@@ -199,8 +222,11 @@ namespace orbit::app
     QThread *m_worker = nullptr;
     orbit::device::DeviceClient *m_client = nullptr;
 
-    QVariantList m_availablePorts;
-    QString m_selectedPort;
+    QVariantList m_availableTargets;
+    QString m_selectedTargetId;
+    QString m_simulatorHost;
+    int m_simulatorPort = 0;
+    orbit::device::TransportRegistry m_transportRegistry;
     orbit::device::DeviceClient::State m_state = orbit::device::DeviceClient::State::Disconnected;
     QString m_systemMode = "N/A";
     int m_lastMotorState = -1;

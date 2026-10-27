@@ -36,3 +36,10 @@ slprj/**
 
 # Obsidian
 **/.obsidian/workspace.json
+
+# OrbitCommand test artifacts
+applications.json
+screenshots/
+test-results/
+coverage/
+.pytest_cache/

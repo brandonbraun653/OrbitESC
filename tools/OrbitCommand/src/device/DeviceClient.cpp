@@ -1,6 +1,6 @@
 #include "device/DeviceClient.h"
 
-#include "device/SerialTransport.h"
+#include "device/TransportRegistry.h"
 
 #include <QDateTime>
 
@@ -15,10 +15,34 @@ namespace orbit::device
     constexpr int PingTimeout      = 2000;
   }
 
+  DeviceClient::DeviceClient( TransportRegistry *registry, QObject *parent ) :
+      QObject( parent ),
+      m_registry( registry )
+  {
+    initialize();
+  }
+
   DeviceClient::DeviceClient( Transport *transport, QObject *parent ) :
       QObject( parent ),
-      m_transport( transport ? transport : new SerialTransport( this ) )
+      m_transport( transport ),
+      m_ownsTransport( false )
   {
+    initialize();
+    wireTransport();
+  }
+
+  DeviceClient::~DeviceClient()
+  {
+    if( m_ownsTransport && m_transport )
+    {
+      delete m_transport;
+      m_transport = nullptr;
+    }
+  }
+
+  void DeviceClient::initialize()
+  {
+    qRegisterMetaType<ConnectionTarget>();
     qRegisterMetaType<DeviceClient::State>();
     qRegisterMetaType<DeviceClient::Command>();
 
@@ -28,15 +52,38 @@ namespace orbit::device
     m_tickTimer->setSingleShot( true );
     connect( m_requestTimer, &QTimer::timeout, this, &DeviceClient::handleRequestTimeout );
     connect( m_tickTimer, &QTimer::timeout, this, &DeviceClient::handleTickTimeout );
+  }
+
+  void DeviceClient::wireTransport()
+  {
+    if( !m_transport )
+    {
+      return;
+    }
+
     connect( m_transport, &Transport::opened, this, &DeviceClient::handleTransportOpened );
     connect( m_transport, &Transport::closed, this, &DeviceClient::handleTransportClosed );
     connect( m_transport, &Transport::dataReceived, this, &DeviceClient::handleTransportData );
     connect( m_transport, &Transport::errorOccurred, this, &DeviceClient::handleTransportError );
   }
 
-  DeviceClient::~DeviceClient() = default;
+  void DeviceClient::destroyTransport()
+  {
+    if( !m_transport )
+    {
+      return;
+    }
 
-  void DeviceClient::openPort( const QString &portName )
+    disconnect( m_transport, nullptr, this, nullptr );
+    if( m_ownsTransport )
+    {
+      m_transport->close();
+      m_transport->deleteLater();
+    }
+    m_transport = nullptr;
+  }
+
+  void DeviceClient::openTarget( const ConnectionTarget &target )
   {
     if( m_state != State::Disconnected )
     {
@@ -44,22 +91,42 @@ namespace orbit::device
     }
 
     m_accumulator.clear();
+
+    if( m_registry )
+    {
+      destroyTransport();
+      m_transport = m_registry->create( target, this );
+      m_ownsTransport = true;
+      wireTransport();
+    }
+
+    if( !m_transport )
+    {
+      emit logMessage( static_cast<int>( Severity::Error ), tr( "No transport available for %1" ).arg( target.displayName ) );
+      return;
+    }
+
     setState( State::Connecting );
-    if( !m_transport->open( portName ) )
+    if( !m_transport->open( target ) )
     {
       setState( State::Disconnected );
+      destroyTransport();
     }
   }
 
-  void DeviceClient::closePort()
+  void DeviceClient::closeConnection()
   {
     m_requestTimer->stop();
     m_tickTimer->stop();
     finishCurrent( false, tr( "Disconnected" ) );
     m_queue.clear();
     m_accumulator.clear();
-    m_transport->close();
+    if( m_transport )
+    {
+      m_transport->close();
+    }
     setState( State::Disconnected );
+    destroyTransport();
   }
 
   void DeviceClient::requestParameterGet( int paramId )
@@ -143,7 +210,7 @@ namespace orbit::device
   {
     m_requestTimer->stop();
     m_tickTimer->stop();
-    finishCurrent( false, tr( "Serial link closed" ) );
+    finishCurrent( false, tr( "Device link closed" ) );
     m_queue.clear();
     setState( State::Disconnected );
   }
@@ -155,7 +222,7 @@ namespace orbit::device
 
     if( frames.overflowed )
     {
-      emit logMessage( static_cast<int>( Severity::Warning ), tr( "Serial receive buffer overflowed" ) );
+      emit logMessage( static_cast<int>( Severity::Warning ), tr( "Receive buffer overflowed" ) );
     }
     if( frames.invalidFrames > 0 )
     {

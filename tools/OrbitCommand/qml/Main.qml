@@ -7,6 +7,7 @@ import "pages"
 
 ApplicationWindow {
     id: window
+    objectName: "oc.mainWindow"
 
     width: 1440
     height: 900
@@ -61,6 +62,7 @@ ApplicationWindow {
             }
 
             StackLayout {
+                objectName: "oc.pageStack"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 currentIndex: window.currentPage

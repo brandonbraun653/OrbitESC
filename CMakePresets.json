@@ -53,6 +53,22 @@
       }
     },
     {
+      "name": "OrbitESC Simulator Release",
+      "displayName": "OrbitESC Simulator Release",
+      "description": "Simulate OrbitESC with an optimized build for test harnesses",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/sim-release",
+      "toolchainFile": "${sourceDir}/lib/CommonTools/cmake/toolchains/gcc.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_VERBOSE_MAKEFILE": "OFF",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "NATIVE_THREADS": "ON",
+        "DEVICE_TARGET": "sim"
+      }
+    },
+    {
       "name": "OrbitESC Testing",
       "displayName": "OrbitESC Testing",
       "description": "Build unit tests for OrbitESC components",
@@ -96,6 +112,16 @@
       "description":"Build simulator variant of OrbitESC software",
       "displayName": "OrbitESC Simulator",
       "configurePreset": "OrbitESC Simulator",
+      "targets": [
+        "OrbitESC"
+      ],
+      "jobs": 16
+    },
+    {
+      "name": "OrbitESC Simulator Release",
+      "description":"Build the optimized simulator variant",
+      "displayName": "OrbitESC Simulator Release",
+      "configurePreset": "OrbitESC Simulator Release",
       "targets": [
         "OrbitESC"
       ],

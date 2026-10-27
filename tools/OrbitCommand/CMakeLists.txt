@@ -17,8 +17,10 @@ set(ORBIT_PROTO_DIR "${ORBIT_REPO_ROOT}/src/core/com/proto")
 set(ORBIT_NANOPB_DIR "${ORBIT_REPO_ROOT}/lib/Aurora/lib/nanopb/nanopb")
 set(ORBIT_COBS_DIR "${ORBIT_REPO_ROOT}/lib/Aurora/lib/cobs/cobs")
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 SerialPort Test)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 SerialPort Network)
 qt_standard_project_setup(REQUIRES 6.5)
+
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/OrbitTesting.cmake")
 
 add_library(orbit_protocol STATIC
   src/protocol/FrameCodec.cpp
@@ -46,6 +48,10 @@ target_link_libraries(orbit_protocol PUBLIC Qt6::Core)
 add_library(orbit_client STATIC
   src/device/Transport.cpp
   src/device/SerialTransport.cpp
+  src/device/SerialTransportProvider.cpp
+  src/device/TcpTransport.cpp
+  src/device/SimulatorTransportProvider.cpp
+  src/device/TransportRegistry.cpp
   src/device/DeviceClient.cpp
   src/model/ParameterRegistry.cpp
   src/model/ParameterModel.cpp
@@ -54,7 +60,7 @@ add_library(orbit_client STATIC
   src/app/AppController.cpp
 )
 target_include_directories(orbit_client PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
-target_link_libraries(orbit_client PUBLIC orbit_protocol Qt6::Core Qt6::SerialPort)
+target_link_libraries(orbit_client PUBLIC orbit_protocol Qt6::Core Qt6::SerialPort Qt6::Network)
 
 set(ORBIT_QML_FILES
   qml/Main.qml
@@ -96,6 +102,7 @@ target_link_libraries(OrbitCommand PRIVATE
   Qt6::Quick
   Qt6::QuickControls2
   Qt6::SerialPort
+  Qt6::Network
 )
 
 set(ORBIT_FONT_FILES
@@ -118,20 +125,10 @@ endif()
 
 enable_testing()
 
-function(orbit_add_test name source)
-  qt_add_executable(${name} ${source})
-  target_link_libraries(${name} PRIVATE orbit_client Qt6::Test)
-  add_test(NAME ${name} COMMAND ${name})
-endfunction()
+if(ORBITCOMMAND_BUILD_TESTS)
+  add_subdirectory(tests)
+endif()
 
-orbit_add_test(tst_frame_codec tests/tst_frame_codec.cpp)
-orbit_add_test(tst_message_codec tests/tst_message_codec.cpp)
-orbit_add_test(tst_parameter_registry tests/tst_parameter_registry.cpp)
-orbit_add_test(tst_telemetry tests/tst_telemetry.cpp)
-orbit_add_test(tst_device_client tests/tst_device_client.cpp)
-
-add_test(NAME qml_smoke COMMAND OrbitCommand --smoke-test)
-set_tests_properties(qml_smoke PROPERTIES
-  ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software"
-  TIMEOUT 15
-)
+if(ORBITCOMMAND_COVERAGE)
+  orbit_add_coverage_target()
+endif()

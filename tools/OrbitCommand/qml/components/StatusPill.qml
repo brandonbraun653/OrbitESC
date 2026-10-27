@@ -7,6 +7,9 @@ Rectangle {
     property string text: ""
     property string tone: "idle"
 
+    Accessible.name: text
+    Accessible.role: Accessible.StaticText
+
     readonly property color toneColor: {
         if (tone === "ok")
             return Theme.success

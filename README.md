@@ -18,7 +18,7 @@ Brushless motor controller development environment for STM32-based ESC firmware,
 | `src/` | C++ sources for firmware, simulator integration, startup, tasks, and libraries. |
 | `lib/` | Third-party and in-tree libraries: Aurora, Chimera, ChimeraSim, CMSIS, FreeRTOS, Thor, tinyusb, db. |
 | `pyorbit/` | Python package for host tools, GUI (`pyorbit/app`), serial/CAN clients, protobuf stubs. |
-| `tools/OrbitCommand/` | Standalone Qt 6/QML C++ desktop console for USB serial monitoring and parameter editing. |
+| `tools/OrbitCommand/` | Standalone Qt 6/QML C++ desktop console for USB serial, simulator TCP, monitoring, and parameter editing. |
 | `scripts/` | Helper scripts: build embedded, generate protobufs, CAN interface setup. |
 | `model/` | MATLAB/Simulink models and notebooks related to control algorithms. |
 | `CMakePresets.json` | Configure/build presets for embedded and simulator targets. |
@@ -97,12 +97,25 @@ OrbitCommand is the C++ desktop replacement path for the PyQt GUI. It lives in `
 Build and run:
 
 ```bash
-cmake -S tools/OrbitCommand -B tools/OrbitCommand/build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
-cmake --build tools/OrbitCommand/build/debug
-./tools/OrbitCommand/build/debug/OrbitCommand
+cd tools/OrbitCommand
+cmake --preset release
+cmake --build --preset release
+./build/release/OrbitCommand
 ```
 
-See `tools/OrbitCommand/README.md` for prerequisites, tests, protocol notes, and V0 limitations.
+Test all tiers (unit, real-simulator system tests, and Qat GUI E2E):
+
+```bash
+uv sync
+cmake --preset "OrbitESC Simulator Release"   # from the repository root
+cmake --build --preset "OrbitESC Simulator Release"
+cd tools/OrbitCommand
+cmake --preset release
+cmake --build --preset release
+ctest --preset release --output-on-failure
+```
+
+The system and GUI tiers skip cleanly when the simulator, `qat`, or a display is unavailable. `scripts/test_orbitcommand.sh` wraps the common combinations. See `tools/OrbitCommand/README.md` for prerequisites, test tiers, the Qat object-name contract, protocol notes, simulator connection, and V0 limitations.
 
 ---
 
@@ -194,6 +207,15 @@ uv run black --check .
 ```
 
 Pytest is configured to discover tests under `pyorbit/tests`.
+
+OrbitCommand has separate C++ and GUI test tiers:
+
+```bash
+scripts/test_orbitcommand.sh              # unit + system + Qat E2E
+scripts/test_orbitcommand.sh --unit-only  # no simulator or display required
+```
+
+See `tools/OrbitCommand/README.md` for the full tier list, coverage, and sanitizer presets.
 
 ---
 
